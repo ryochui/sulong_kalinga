@@ -15,8 +15,8 @@ return new class extends Migration
 
         Schema::table('cose_users', function (Blueprint $table) {
             // Add new columns
-            $table->string('first_name', 50)->after('id');
-            $table->string('last_name', 50)->after('first_name');
+            $table->string('first_name', 100)->after('id');
+            $table->string('last_name', 100)->after('first_name');
             $table->date('birthday')->after('last_name');
             $table->string('civil_status', 20)->nullable()->after('birthday');
             $table->string('educational_background', 100)->nullable()->after('civil_status');
@@ -71,6 +71,6 @@ return new class extends Migration
             ]);
         });
 
-        Schema::rename('cose_user', 'users'); // Revert table name change
+        Schema::rename('cose_users', 'users'); // Revert table name change
     }
 };
