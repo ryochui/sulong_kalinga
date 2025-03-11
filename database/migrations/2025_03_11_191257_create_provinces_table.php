@@ -11,9 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('roles', function (Blueprint $table) {
-            $table->increments('role_id');
-            $table->string('role_name', 20)->unique;
+        Schema::create('provinces', function (Blueprint $table) {
+            $table->increments('province_id');
+            $table->string('province_name',100)->after('province_id');
             $table->timestamps();
         });
     }
@@ -23,6 +23,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('roles');
+        Schema::dropIfExists('provinces');
     }
 };
