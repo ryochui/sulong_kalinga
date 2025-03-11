@@ -409,6 +409,7 @@ LINE 1: select * from \"sessions\" where \"id\" = $1 limit 1
 #52 C:\\xampp\\htdocs\\sulong_kalinga\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\resources\\server.php(23): require_once('C:\\\\xampp\\\\htdocs...')
 #53 {main}
 
+#3 C:\\xampp\\htdocs\\sulong_kalinga\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connection.php(560): Illuminate\\Database\\Connection->run('alter table \"co...', Array, Object(Closure))
 [previous exception] [object] (Illuminate\\Foundation\\ViteManifestNotFoundException(code: 0): Vite manifest not found at: C:\\xampp\\htdocs\\sulong_kalinga\\public\\build/manifest.json at C:\\xampp\\htdocs\\sulong_kalinga\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Vite.php:934)
 [stacktrace]
 #0 C:\\xampp\\htdocs\\sulong_kalinga\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Vite.php(384): Illuminate\\Foundation\\Vite->manifest('build')
