@@ -1,0 +1,40 @@
+body, html {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f4f4f4;
+    height: 100%;
+    margin: 0;
+}
+
+.col-6 > h1 {
+    font-size: 84px;
+    color: #333;
+    margin-bottom: 10px;
+}
+
+#landing {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: calc(100vh - 56px);
+}
+
+.row {
+    width: 100%;
+}
+
+.col-6 {
+    text-align: left;
+}
+
+.col-6 > a {
+    padding: 10px 20px;
+    margin: 5px;
+}
+
+#more {
+    background-color: transparent;
+    border: 1px solid #333;
+    text-decoration: none;   
+}
