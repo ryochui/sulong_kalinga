@@ -1,0 +1,37 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    /**
+     * Run the migrations.
+     */
+    public function up(): void
+    {
+        Schema::create('general_care_plans', function (Blueprint $table) {
+            $table->id('general_care_plan_id');
+            $table->unsignedBigInteger('beneficiary_id')->unique()->after('general_care_plan_id');
+            $table->unsignedBigInteger('care_worker_id')->after('beneficiary_id');
+            $table->timestamps();
+
+            // Foreign Key Constraints
+        $table->foreign('care_worker_id')->references('id')->on('cose_users')->onDelete('no action');
+        });
+
+        
+        
+        // Separate Migration after creation of Beneficiary Table:
+        // $table->foreign('beneficiary_id')->references('beneficiaries')->on('beneficiary_id')->onDelete('no action');
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        Schema::dropIfExists('general_care_plans');
+    }
+};
