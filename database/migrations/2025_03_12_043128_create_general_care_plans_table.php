@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id('general_care_plan_id');
             $table->unsignedBigInteger('beneficiary_id')->unique()->after('general_care_plan_id');
             $table->unsignedBigInteger('care_worker_id')->after('beneficiary_id');
+            $table->text('emergency_plan')->after('care_worker_id');
             $table->timestamps();
 
             // Foreign Key Constraints
