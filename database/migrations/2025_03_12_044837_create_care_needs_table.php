@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('care_needs', function (Blueprint $table) {
             $table->increments('care_need_id');
-            $table->unsignedBigInteger('general_care_plan_id')->after('care_need_id');
+            $table->integer('general_care_plan_id')->after('care_need_id');
             $table->integer('care_category_id')->after('general_care_plan_id');
             $table->string('frequency', 100)->after('care_category_id');
             $table->text('assistance_required')->after('frequency');

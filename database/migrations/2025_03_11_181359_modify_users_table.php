@@ -31,10 +31,10 @@ return new class extends Migration
             $table->string('volunteer_status', 20)->after('nationality');
             $table->date('status_start_date')->after('volunteer_status');
             $table->date('status_end_date')->after('status_start_date');
-            $table->unsignedBigInteger('role_id')->after('status_end_date');
+            $table->integer('role_id')->after('status_end_date');
             $table->string('status', 20)->after('role_id');
-            $table->unsignedBigInteger('organization_role_id')->nullable()->after('status');
-            $table->unsignedBigInteger('assigned_municipality_id')->nullable()->after('organization_role_id');
+            $table->integer('organization_role_id')->nullable()->after('status');
+            $table->integer('assigned_municipality_id')->nullable()->after('organization_role_id');
             $table->binary('photo')->nullable()->after('assigned_municipality_id');
             $table->binary('government_issued_id')->nullable()->after('photo');
             $table->string('sss_id_number', 20)->nullable()->after('government_issued_id');
