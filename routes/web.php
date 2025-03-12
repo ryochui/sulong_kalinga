@@ -9,3 +9,7 @@ Route::get('/', function () {
 Route::get('/login', function () {
     return view ('login');
 })->name('login');
+
+Route::get('/forgot-password', function () {
+    return view ('forgot-password');
+})->name('forgotPass');
