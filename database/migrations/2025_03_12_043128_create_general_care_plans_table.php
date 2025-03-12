@@ -16,6 +16,7 @@ return new class extends Migration
             $table->integer('beneficiary_id')->unique()->after('general_care_plan_id');
             $table->integer('care_worker_id')->after('beneficiary_id');
             $table->text('emergency_plan')->after('care_worker_id');
+            $table->date('review_date')->after('emergency_plan');
             $table->timestamps();
 
             // Foreign Key Constraints
