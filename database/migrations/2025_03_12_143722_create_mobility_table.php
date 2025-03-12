@@ -17,7 +17,6 @@ return new class extends Migration
             $table->text('walking_ability')->after('general_care_plan_id')->nullable();
             $table->text('assistive_devices')->after('walking_ability')->nullable();
             $table->text('transportation_needs')->after('assistive_devices')->nullable();
-            $table->timestamps();
 
             // Foreign Key Constraints
             $table->foreign('general_care_plan_id')->references('general_care_plan_id')->on('general_care_plans')->onDelete('cascade');

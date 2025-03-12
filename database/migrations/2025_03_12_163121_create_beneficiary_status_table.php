@@ -14,7 +14,6 @@ return new class extends Migration
         Schema::create('beneficiary_status', function (Blueprint $table) {
             $table->increments('beneficiary_status_id');
             $table->string('status_name', 50)->unique();
-            $table->timestamps();
         });
     }
 

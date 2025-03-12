@@ -17,7 +17,6 @@ return new class extends Migration
             $table->integer('care_category_id')->after('general_care_plan_id');
             $table->string('frequency', 100)->after('care_category_id');
             $table->text('assistance_required')->after('frequency');
-            $table->timestamps();
 
             // Foreign Key Constraints
             $table->foreign('general_care_plan_id')->references('general_care_plan_id')->on('general_care_plans')->onDelete('cascade');

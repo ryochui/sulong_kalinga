@@ -14,7 +14,6 @@ return new class extends Migration
         Schema::create('beneficiary_categories', function (Blueprint $table) {
             $table->increments('category_id');
             $table->string('category_name', 50)->unique();
-            $table->timestamps();
         });
     }
 

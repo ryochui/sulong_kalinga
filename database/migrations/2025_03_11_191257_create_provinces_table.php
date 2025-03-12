@@ -14,7 +14,6 @@ return new class extends Migration
         Schema::create('provinces', function (Blueprint $table) {
             $table->increments('province_id');
             $table->string('province_name',100)->after('province_id');
-            $table->timestamps();
         });
     }
 

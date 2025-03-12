@@ -18,7 +18,6 @@ return new class extends Migration
             $table->text('thinking_skills')->after('memory')->nullable();
             $table->text('orientation')->after('thinking_skills')->nullable();
             $table->text('behavior')->after('orientation')->nullable();
-            $table->timestamps();
 
             // Foreign Key Constraints
             $table->foreign('general_care_plan_id')->references('general_care_plan_id')->on('general_care_plans')->onDelete('cascade');
