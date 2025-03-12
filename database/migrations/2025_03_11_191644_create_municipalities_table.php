@@ -18,7 +18,7 @@ return new class extends Migration
             $table->timestamps();
 
              // Foreign Key Constraints
-             $table->foreign('province_id')->references('province_id')->on('provinces')->onDelete('cascade');
+             $table->foreign('province_id')->references('province_id')->on('provinces')->onDelete('no action');
         });
     }
     

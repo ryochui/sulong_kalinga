@@ -19,8 +19,8 @@ return new class extends Migration
             $table->timestamps();
 
             // Foreign Key Constraints
-            $table->foreign('general_care_plan_id')->references('general_care_plan_id')->on('general_care_plans')->onDelete('cascade');
-            $table->foreign('care_worker_id')->references('id')->on('cose_users')->onDelete('set null');
+            $table->foreign('general_care_plan_id')->references('general_care_plan_id')->on('general_care_plans')->onDelete('no action');
+            $table->foreign('care_worker_id')->references('id')->on('cose_users')->onDelete('no action');
         });
     }
 
