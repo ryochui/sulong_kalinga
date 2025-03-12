@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('health_histories', function (Blueprint $table) {
             $table->increments('health_history_id');
-            $table->unsignedBigInteger('general_care_plan_id')->after('health_history_id');
+            $table->integer('general_care_plan_id')->after('health_history_id');
             $table->integer('history_category_id')->after('general_care_plan_id');
             $table->text('history_description')->after('history_category_id');
             $table->timestamps();
