@@ -22,8 +22,7 @@ return new class extends Migration
             $table->string('educational_background', 100)->nullable()->after('civil_status');
             $table->string('mobile', 11)->unique()->after('educational_background');
             $table->string('landline', 8)->nullable()->after('mobile');
-            $table->string('email_address', 100)->unique()->after('landline');
-            $table->string('password_hash', 255)->after('email_address');
+            $table->string('password_hash', 255)->after('landline');
             $table->text('current_address')->nullable()->after('password_hash');
             $table->string('gender', 10)->nullable()->after('current_address');
             $table->string('religion', 50)->nullable()->after('gender');
@@ -41,10 +40,10 @@ return new class extends Migration
             $table->string('philhealth_id_number', 20)->nullable()->after('sss_id_number');
             $table->string('pagibig_id_number', 20)->nullable()->after('philhealth_id_number');
             $table->binary('cv_resume')->nullable()->after('pagibig_id_number');
-            $table->unsignedBigInteger('updated_by')->nullable()->after('updated_at'); // Track who updated the record
+            $table->integer('updated_by')->nullable()->after('updated_at'); // Track who updated the record
 
             // Foreign Key Constraints
-            $table->foreign('role_id')->references('role_id')->on('roles')->onDelete('cascade');
+            $table->foreign('role_id')->references('role_id')->on('roles')->onDelete('no action');
 
             // Keep timestamps (created_at, updated_at)
             //$table->timestamps(); // Automatically adds created_at and updated_at

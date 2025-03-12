@@ -21,7 +21,7 @@ return new class extends Migration
 
             // Foreign Key Constraints
             $table->foreign('general_care_plan_id')->references('general_care_plan_id')->on('general_care_plans')->onDelete('cascade');
-            $table->foreign('care_category_id')->references('care_category_id')->on('care_categories')->onDelete('set null');
+            $table->foreign('care_category_id')->references('care_category_id')->on('care_categories')->onDelete('no action');
         });
     }
 
