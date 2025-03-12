@@ -16,7 +16,6 @@ return new class extends Migration
             $table->integer('general_care_plan_id')->after('health_history_id');
             $table->integer('history_category_id')->after('general_care_plan_id');
             $table->text('history_description')->after('history_category_id');
-            $table->timestamps();
 
             // Foreign Key Constraints
             $table->foreign('general_care_plan_id')->references('general_care_plan_id')->on('general_care_plans')->onDelete('cascade');

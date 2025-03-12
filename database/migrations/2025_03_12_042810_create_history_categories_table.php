@@ -14,7 +14,6 @@ return new class extends Migration
         Schema::create('history_categories', function (Blueprint $table) {
             $table->increments('history_category_id');
             $table->string('history_category_name', 100);
-            $table->timestamps();
         });
     }
 

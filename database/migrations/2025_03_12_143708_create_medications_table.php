@@ -18,7 +18,6 @@ return new class extends Migration
             $table->string('dosage', 100)->after('medication');
             $table->string('frequency', 100)->after('dosage');
             $table->text('administration_instructions')->after('frequency');
-            $table->timestamps();
 
             // Foreign Key Constraints
             $table->foreign('general_care_plan_id')->references('general_care_plan_id')->on('general_care_plans')->onDelete('cascade');

@@ -14,7 +14,6 @@ return new class extends Migration
         Schema::create('care_categories', function (Blueprint $table) {
             $table->increments('care_category_id');
             $table->string('care_category_name', 100)->after('care_category_id');
-            $table->timestamps();
         });
     }
 

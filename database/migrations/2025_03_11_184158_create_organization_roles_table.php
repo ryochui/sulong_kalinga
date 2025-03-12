@@ -15,7 +15,6 @@ return new class extends Migration
             $table->increments('organization_role_id');
             $table->string('role_name',50)->after('organization_role_id');
             $table->string('area',100)->nullable()->after('role_name');
-            $table->timestamps();
         });
     }
 

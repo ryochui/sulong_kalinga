@@ -16,7 +16,6 @@ return new class extends Migration
             $table->integer('general_care_plan_id')->after('cw_responsibility_id');
             $table->integer('care_worker_id')->after('general_care_plan_id');
             $table->text('task_description')->after('care_worker_id');
-            $table->timestamps();
 
             // Foreign Key Constraints
             $table->foreign('general_care_plan_id')->references('general_care_plan_id')->on('general_care_plans')->onDelete('no action');

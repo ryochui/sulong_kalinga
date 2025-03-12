@@ -17,7 +17,6 @@ return new class extends Migration
             $table->text('mood')->after('general_care_plan_id')->nullable();
             $table->text('social_interactions')->after('mood')->nullable();
             $table->text('emotional_support_needs')->after('social_interactions')->nullable();
-            $table->timestamps();
 
             // Foreign Key Constraints
             $table->foreign('general_care_plan_id')->references('general_care_plan_id')->on('general_care_plans')->onDelete('cascade');
