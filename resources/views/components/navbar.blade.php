@@ -14,10 +14,10 @@
         <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
             <ul class="navbar-nav">
                 <li class="nav-item">
-                    <a class="nav-link" href="#">About Us</a>
+                    <a class="nav-link {{ Request::routeIs('aboutUs') ? 'active' : '' }}" href="{{ route('aboutUs') }}">About Us</a>
                 </li>
                 <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" id="highlightsDropdown" role="button" data-bs-toggle="dropdown">
+                    <a class="nav-link dropdown-toggle {{ Request::routeIs('highlightsEvents') ? 'active' : '' }}" href="#" id="highlightsDropdown" role="button" data-bs-toggle="dropdown">
                         Highlights & Events
                     </a>
                     <ul class="dropdown-menu">
@@ -27,14 +27,14 @@
                     </ul>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="#">Donor</a>
+                    <a class="nav-link {{ Request::routeIs('donor') ? 'active' : '' }}" href="{{ route('donor') }}">Donor</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="#">Contact Us</a>
+                    <a class="nav-link {{ Request::routeIs('contactUs') ? 'active' : '' }}" href="{{ route('contactUs') }}">Contact Us</a>
                 </li>
 
                 <li class="nav-item">
-                    <a class="nav-link" href="{{ route('login') }}">Login</a>
+                    <a class="nav-link {{ Request::routeIs('login') || Request::routeIs('forgotPass') ? 'active' : '' }}" href="{{ route('login') }}">Login</a>
                 </li>
             </ul>
         </div>
