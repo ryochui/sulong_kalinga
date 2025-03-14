@@ -1,7 +1,7 @@
 <link rel="stylesheet" href="{{ asset('css/navbar.css') }}">
 
 <nav class="navbar navbar-expand-lg navbar-light bg-light shadow-sm">
-    <div class="container">
+    <div class="container-fluid">
         <a class="navbar-brand" href="{{ route('landing') }}">
             <img src="{{ asset('images/cose-logo.png') }}" alt="System Logo" width="30" class="me-2">
             <span class="text-dark">SulongKalinga</span>
@@ -11,10 +11,13 @@
             <span class="navbar-toggler-icon"></span>
         </button>
 
-        <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+        <div class="collapse navbar-collapse justify-content-end bg-light" id="navbarNav">
             <ul class="navbar-nav">
                 <li class="nav-item">
                     <a class="nav-link {{ Request::routeIs('aboutUs') ? 'active' : '' }}" href="{{ route('aboutUs') }}">About Us</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {{ Request::routeIs('dashboard') ? 'active' : '' }}" href="{{ route('dashboard') }}">Dashboard</a>
                 </li>
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle {{ Request::routeIs('highlightsEvents') ? 'active' : '' }}" href="#" id="highlightsDropdown" role="button" data-bs-toggle="dropdown">

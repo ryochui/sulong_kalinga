@@ -4,9 +4,9 @@
     z-index: 1000;
     height: 56px;
 }
-.navbar-brand {
+/* .navbar-brand {
     background-color: transparent !important;
-}
+} */
 .navbar-nav .nav-link {
     font-weight: 500;
     border-radius: 10px;

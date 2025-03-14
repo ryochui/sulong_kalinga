@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 
+require __DIR__.'/innerRoutes.php';
 
 Route::get('/', function () {
     return view('publicWeb.landing');
@@ -22,9 +23,6 @@ Route::get('/donor', function () {
 Route::get('/aboutUs', function () {
     return view('publicWeb.aboutUs');
 })->name('aboutUs');
-
-
-
 
 Route::get('/forgot-password', function () {
     return view ('forgot-password');

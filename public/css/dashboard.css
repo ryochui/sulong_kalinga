@@ -1,0 +1,33 @@
+
+.home-section .container-fluid {
+    height: calc(100% - 50px); /* Ensure the container takes full height */
+}
+
+.text-left {
+    text-align: left;
+    height: auto;
+    padding: 10px;
+    font-size: 20px;
+    font-weight: bold;
+}
+
+.home-section .row {
+    height: 100%; /* Ensure rows take full height */
+}
+
+.home-section .col-3 {
+    height: 100%; /* Ensure columns take full height */
+}
+
+/* Adjust heights for specific sections */
+#statistics {
+    height: 30%; /* 30% height for caregiver and beneficiary statistics */
+}
+
+#recentReports {
+    height: 70%; /* 70% height for recent reports */
+}
+
+#events, #performance {
+    height: 50%; /* 50% height for upcoming events and caregiver performance */
+}
