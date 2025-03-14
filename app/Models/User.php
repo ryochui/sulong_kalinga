@@ -12,15 +12,20 @@ class User extends Authenticatable
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable;
 
+    protected $table = 'cose_user'; // Updated table name
+
     /**
      * The attributes that are mass assignable.
      *
      * @var list<string>
      */
     protected $fillable = [
-        'name',
-        'email',
-        'password',
+        'first_name', 'last_name', 'birthday', 'civil_status', 'educational_background',
+        'mobile', 'landline', 'email_address', 'password_hash', 'current_address',
+        'gender', 'religion', 'nationality', 'volunteer_status', 'status_start_date',
+        'status_end_date', 'role_id', 'status', 'organization_role_id', 'assigned_municipality_id',
+        'photo', 'government_issued_id', 'sss_id_number', 'philhealth_id_number',
+        'pagibig_id_number', 'cv_resume', 'updated_by'
     ];
 
     /**
@@ -29,7 +34,7 @@ class User extends Authenticatable
      * @var list<string>
      */
     protected $hidden = [
-        'password',
+        'password_hash',
         'remember_token',
     ];
 
@@ -41,8 +46,13 @@ class User extends Authenticatable
     protected function casts(): array
     {
         return [
-            'email_verified_at' => 'datetime',
-            'password' => 'hashed',
+            'password_hash' => 'hashed',
         ];
     }
+
+    protected $casts = [
+        'birthday' => 'date',
+        'status_start_date' => 'date',
+        'status_end_date' => 'date',
+    ];
 }
