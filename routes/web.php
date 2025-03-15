@@ -24,6 +24,18 @@ Route::get('/aboutUs', function () {
     return view('publicWeb.aboutUs');
 })->name('aboutUs');
 
+Route::get('/milestones', function () {
+    return view('publicWeb.milestones');
+})->name('milestones');
+
+Route::get('/updates', function () {
+    return view('publicWeb.updates');
+})->name('updates');
+
+Route::get('/events', function () {
+    return view('publicWeb.events');
+})->name('events');
+
 Route::get('/forgot-password', function () {
     return view ('forgot-password');
 })->name('forgotPass');

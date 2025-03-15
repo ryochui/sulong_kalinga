@@ -10,8 +10,9 @@
 .navbar-nav .nav-link {
     font-weight: 500;
     border-radius: 10px;
-    padding: auto 20px auto 20px;
+    padding-left: 15px;
     margin: auto 5px auto 5px;
+
 }
 .navbar .nav-link.active {
     background-color: #0ad87f;

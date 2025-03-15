@@ -1,20 +1,20 @@
 <link rel="stylesheet" href="{{ asset('css/sidebar.css') }}">
- <div class="sidebar">
+ <div class="sidebar close">
       <div class="logo-details" id="logoToggle">
         <span class="logo_name">Menu</span>
       </div>
       <ul class="nav-links">
       <li>
-          <a href="dashboard">
+          <a href="dashboard" class="{{ Request::routeIs('dashboard') ? 'active' : '' }}">
             <i class='bx bx-grid-alt'></i>
             <span class="link_name">Dashboard</span>
           </a>
           <ul class="sub-menu blank">
-            <li><a class="link_name" href="#">Dashboard</a></li>
+            <li><a class="link_name" href="dashboard">Dashboard</a></li>
           </ul>
         </li>
         <li>
-          <a href="reportsManagement">
+          <a href="reportsManagement" class="{{ Request::routeIs('reportsManagement') ? 'active' : '' }}">
             <i class='bx bx-group'></i>
             <span class="link_name">Reports Management</span>
           </a>
@@ -24,23 +24,24 @@
         </li>
         <li>
           <div class="iocn-link">
-            <a href="userManagement">
+            <a class="{{ Request::routeIs('beneficiaryProfile') || Request::routeIs('familyProfile') || Request::routeIs('caregiverProfile') || Request::routeIs('careManagerProfile') || Request::routeIs('administratorProfile') ? 'active' : '' }}">
               <i class='bx bxs-user-account'></i>
               <span class="link_name" onclick="toggleDropdown(this)">User Management</span>
+              <i class='bx bxs-chevron-down arrow' onclick="toggleDropdown(this)"></i>
             </a>
-            <i class='bx bxs-chevron-down arrow' onclick="toggleDropdown(this)"></i>
+            
           </div>
           <ul class="sub-menu">
             <li><a class="link_name">User Management</a></li>
-            <li><a href="beneficiaryProfile">Beneficiary Profiles</a></li>
-            <li><a href="familyProfile">Family or Relative Profiles</a></li>
-            <li><a href="caregiverProfile">Caregiver Profiles</a></li>
-            <li><a href="careManagerProfile">Care Manager Profiles</a></li>
-            <li><a href="administratorProfile">Administrator Profiles</a></li>
+            <li><a href="beneficiaryProfile" class="{{ Request::routeIs('beneficiaryProfile') ? 'active' : '' }}">Beneficiary Profiles</a></li>
+            <li><a href="familyProfile" class="{{ Request::routeIs('familyProfile') ? 'active' : '' }}">Family or Relative Profiles</a></li>
+            <li><a href="caregiverProfile" class="{{ Request::routeIs('caregiverProfile') ? 'active' : '' }}">Caregiver Profiles</a></li>
+            <li><a href="careManagerProfile" class="{{ Request::routeIs('careManagerProfile') ? 'active' : '' }}">Care Manager Profiles</a></li>
+            <li><a href="administratorProfile" class="{{ Request::routeIs('administratorProfile') ? 'active' : '' }}">Administrator Profiles</a></li>
           </ul>
         </li>
         <li>
-          <a href="#">
+          <a href="municipality" class="{{ Request::routeIs('municipality') ? 'active' : '' }}">
             <i class='bx bx-map-alt'></i>
             <span class="link_name">Municipality</span>
           </a>
@@ -48,8 +49,20 @@
             <li><a class="link_name" href="municipality">Municipality</a></li>
           </ul>
         </li>
-
-
-
       </ul>
     </div>
+
+ <script>
+  function handleSidebarState() {
+      const sidebar = document.querySelector(".sidebar");
+      const contentSection = document.getElementById("content-section");
+
+      if (window.innerWidth <= 767.98) {
+          sidebar.classList.add("close");
+      } else {
+          sidebar.classList.remove("close");
+      }
+  }
+  window.addEventListener("load", handleSidebarState);
+  window.addEventListener("resize", handleSidebarState);
+ </script>   

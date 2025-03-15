@@ -3,33 +3,33 @@
 use Illuminate\Support\Facades\Route;
 
 Route::get('/dashboard', function () {
-    return view('dashboard');
+    return view('admin.dashboard');
 })->name('dashboard');
 
-Route::get('/reportsManagemet', function () {
-    return view('reportsManagemet');
-})->name('reportsManagemet');
+Route::get('/reportsManagement', function () {
+    return view('admin.reportsManagement');
+})->name('reportsManagement');
 
 Route::get('/beneficiaryProfile', function () {
-    return view('beneficiaryProfile');
+    return view('admin.beneficiaryProfile');
 })->name('beneficiaryProfile');
 
 Route::get('/familyProfile', function () {
-    return view('familyProfile');
+    return view('admin.familyProfile');
 })->name('familyProfile');
 
 Route::get('/caregiverProfile', function () {
-    return view('caregiverProfile');
+    return view('admin.caregiverProfile');
 })->name('caregiverProfile');
 
 Route::get('/careManagerProfile', function () {
-    return view('careManagerProfile');
+    return view('admin.careManagerProfile');
 })->name('careManagerProfile');
 
 Route::get('/administratorProfile', function () {
-    return view('administratorProfile');
+    return view('admin.administratorProfile');
 })->name('administratorProfile');
 
 Route::get('/municipality', function () {
-    return view('municipality');
+    return view('admin.municipality');
 })->name('municipality');

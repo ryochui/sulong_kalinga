@@ -20,13 +20,13 @@
                     <a class="nav-link {{ Request::routeIs('dashboard') ? 'active' : '' }}" href="{{ route('dashboard') }}">Dashboard</a>
                 </li>
                 <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle {{ Request::routeIs('highlightsEvents') ? 'active' : '' }}" href="#" id="highlightsDropdown" role="button" data-bs-toggle="dropdown">
+                    <a class="nav-link dropdown-toggle {{ Request::routeIs('milestones') || Request::routeIs('updates') || Request::routeIs('events') ? 'active' : '' }}" href="#" id="highlightsDropdown" role="button" data-bs-toggle="dropdown">
                         Highlights & Events
                     </a>
                     <ul class="dropdown-menu">
-                        <li><a class="dropdown-item" href="#">Upcoming Events</a></li>
-                        <li><a class="dropdown-item" href="#">Past Events</a></li>
-                        <li><a class="dropdown-item" href="#">News & Updates</a></li>
+                        <li><a class="dropdown-item {{ Request::routeIs('milestones') ? 'active' : '' }}" href="milestones">Project Milestones</a></li>
+                        <li><a class="dropdown-item {{ Request::routeIs('updates') ? 'active' : '' }}" href="updates">Latest Updates</a></li>
+                        <li><a class="dropdown-item {{ Request::routeIs('events') ? 'active' : '' }}" href="events">Events</a></li>
                     </ul>
                 </li>
                 <li class="nav-item">

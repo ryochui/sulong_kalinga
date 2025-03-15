@@ -37,8 +37,10 @@
 }
 .sidebar.close .logo-details .logo_name{
   transition-delay: 0s;
-  opacity: 0;
-  pointer-events: none;
+  opacity: 1;
+  pointer-events: auto;
+  font-size: 14px;
+  text-align: center;
 }
 .sidebar .nav-links{
   height: 100%;
@@ -110,9 +112,9 @@
 .sidebar .nav-links li .sub-menu a{
   color: #161111;
   font-size: 15px;
-  padding: 5px 0;
+  padding: 5px;
   white-space: nowrap;
-  opacity: 0.6;
+  opacity: 0.7;
   transition: all 0.3s ease;
 }
 .sidebar .nav-links li .sub-menu a:hover{
@@ -207,8 +209,8 @@
   position: relative;
   background: #E4E9F7;
   height: 100vh;
-  left: 330px;
-  width: calc(100% - 330px);
+  left: 320px;
+  width: calc(100% - 320px);
   transition: all 0.5s ease;
 }
 .sidebar.close ~ .home-section{
@@ -256,4 +258,19 @@
 }
 .home-section {
   height: calc(100vh - 56px);
+}
+
+/* Active state for sidebar links */
+.sidebar .nav-links li a.active {
+  background-color: #5a595d; /* Background color for active link */
+  color: #fff; /* Text color for active link */
+  border-radius: 8px; /* Rounded corners for active link */
+}
+
+.sidebar .nav-links li a.active .link_name {
+  color: #fff; /* Ensure text color matches active state */
+}
+
+.sidebar .nav-links li a.active i {
+  color: #fff; /* Ensure icon color matches active state */
 }
