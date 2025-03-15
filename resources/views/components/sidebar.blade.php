@@ -1,6 +1,6 @@
 <link rel="stylesheet" href="{{ asset('css/sidebar.css') }}">
 
-    <div class="sidebar close">
+    <div class="sidebar">
       <div class="logo-details" id="logoToggle">
         <span class="logo_name">Menu</span>
       </div>
@@ -16,7 +16,7 @@
         </li>
         <li>
           <a href="reportsManagement" class="{{ Request::routeIs('reportsManagement') ? 'active' : '' }}">
-            <i class='bx bx-group'></i>
+            <i class='bx bx-file'></i>
             <span class="link_name">Reports Management</span>
           </a>
           <ul class="sub-menu blank">
@@ -57,7 +57,7 @@
       const sidebar = document.querySelector(".sidebar");
       const contentSection = document.getElementById("content-section");
 
-      if (window.innerWidth <= 767.98) {
+      if (window.innerWidth <= 768) {
           sidebar.classList.add("close");
       } else {
           sidebar.classList.remove("close");

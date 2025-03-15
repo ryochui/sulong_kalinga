@@ -1,0 +1,175 @@
+
+.home-section .container-fluid {
+    height: calc(100% - 50px);
+}
+
+.text-left {
+    text-align: left;
+    height: auto;
+    padding: 10px;
+    font-size: 20px;
+    font-weight: bold;
+}
+
+.home-section{
+    position: relative;
+    background: #E4E9F7;
+    height: calc(100vh - 56px);
+    padding: 10px;
+    left: 342px;
+    width: calc(100% - 345px);
+    transition: all 0.5s ease;
+  }
+
+.home-section .home-content .bx-menu,
+.home-section .home-content .text{
+  color: #11101d;
+  font-size: 35px;
+}
+.home-section .home-content .bx-menu{
+  cursor: pointer;
+}
+.home-section .home-content .text{
+  font-size: 26px;
+  font-weight: 600;
+}
+
+.home-section .col-3 {
+    height: 100%; 
+    border-radius: 10px;
+}
+
+#recentReports {
+    height: 100%;
+    padding: 10px;
+}
+
+.action-icons {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
+}
+
+.action-icons i {
+  font-size: 22px;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.action-icons i:hover {
+  transform: scale(1.2); 
+}
+
+.table tbody tr {
+  height: auto; 
+}
+/* Ensure the home-section takes up the full height of the viewport */
+.home-section {
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - 56px); /* Adjust for the navbar height */
+    overflow: hidden; /* Prevent content overflow */
+}
+
+/* Make the container-fluid take up the remaining space */
+.home-section .container-fluid {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+/* Ensure the table is scrollable if content overflows */
+#recentReports {
+    flex: 1;
+    overflow-y: auto;
+    background-color: white;
+    padding: 10px;
+}
+
+/* Style the table to fit the container */
+.table-responsive {
+    height: 100%;
+    overflow-y: auto;
+}
+
+.table {
+    width: 100%;
+    margin-bottom: 0;
+    font-size: 16px;
+}
+
+/* Responsive Layout */
+@media (min-width: 768px) {
+    .container {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .search-bar {
+        flex: 1;
+        margin-right: 20px;
+        margin-bottom: 0;
+    }
+
+    .button-group {
+        display: flex;
+        align-items: center;
+        margin-bottom: 0;
+    }
+
+    .filter,
+    .export,
+    .add-button {
+        width: auto; /* Allow buttons to take their natural width */
+    }
+}
+
+@media (max-width: 767px) {
+    .container {
+        padding: 10px;
+    }
+
+    .search-bar,
+    .button-group {
+        width: 100%; /* Full width on smaller screens */
+    }
+
+    .input-group {
+        width: 100%;
+    }
+
+    .form-control {
+        width: 100%; /* Full width for search bar */
+    }
+
+    .button-group {
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .filter,
+    .export,
+    .add-button {
+        width: 100%; /* Full width for buttons */
+        margin-right: 0;
+        margin-bottom: 10px;
+    }
+
+    .add-button {
+        margin-bottom: 0;
+    }
+
+    .dropdown-menu {
+        width: 100%; /* Full width for dropdown menu */
+    }
+}
+
+@media (max-width: 1024px) {
+  .d-inline-block[style*="transform: translateY(-3px);"] {
+    transform: none !important;
+}
+}

@@ -6,50 +6,87 @@
     <title>Dashboard</title>
     <link rel="stylesheet" href="{{ asset('css/bootstrap.min.css') }}">
     <link href='https://unpkg.com/boxicons@2.0.7/css/boxicons.min.css' rel='stylesheet'>
-    <link rel="stylesheet" href="{{ asset('css/dashboard.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/reportsManagement.css') }}">
 </head>
 <body>
 
     @include('components.navbar')
     @include('components.sidebar')
-
+    
     <div class="home-section">
-      <div class="text-left">DASHBOARD</div>
+        <div class="text-left">MUNICIPALITY</div>
         <div class="container-fluid text-center">
-        <div class="row">
-              <!-- Statistics Row -->
-              <div class="col-12 col-lg-8" style="background-color: yellow;">
-                  <div class="row" id="statistics">
-                      <div class="col-6" id="caregiverStats" style="background-color: green;">
-                          Caregiver Statistics
-                      </div>
-                      <div class="col-6" id="beneficiaryStats" style="background-color: blue;">
-                          Beneficiary Statistics
-                      </div>
-                  </div>
-                  <div class="row" id="recentReports" style="background-color: white;">
-                      <div class="col-12" style="background-color: cyan;">
-                          Recent Reports
-                      </div>
-                  </div>
-              </div>
-              <!-- Events and Performance Column -->
-              <div class="col-12 col-lg-4 mt-3 mt-lg-0" style="background-color: red;">
-                  <div class="row" id="events">
-                      <div class="col-12" style="background-color: orange;">
-                          Upcoming Events
-                      </div>
-                  </div>
-                  <div class="row" id="performance">
-                      <div class="col-12" style="background-color: pink;">
-                          Caregiver Performance
-                      </div>
-                  </div>
-              </div>
-          </div>
-      </div>
+        <div class="row mb-3">
+                <div class="col-md-6">
+                    <!-- Search Bar -->
+                    <div class="input-group">
+                    <span class="input-group-text">
+                        <i class="bx bx-search-alt"></i>
+                    </span>
+                    <input type="text" class="form-control" placeholder="Search" id="searchBar">
+                    </div>
+                </div>
+            
+                <div class="col-md-6 text-end">
+                    <div class="d-inline-block me-2">
+                        <!-- Filter Dropdown -->
+                        <div class="input-group">
+                        <span class="input-group-text">
+                            <i class="bx bx-filter-alt"></i>
+                        </span>
+                        <select class="form-select" id="filterDropdown">
+                            <option value="" selected>Filter by</option>
+                            <option value="mondragon">Municipality of Mondragon</option>
+                            <option value="sanRoque">Municipality of San Roque</option>
+                        </select>
+                        </div>
+                    </div>
+                    <div class="d-inline-block" style="transform: translateY(-3px);">
+                        <!-- Add Report Button -->
+                        <button class="btn btn-primary" id="addReportButton">
+                            <i class="bx bx-plus"></i> Add Municipality
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+
+            <div class="row" id="recentReports">
+                <div class="col-12">
+                    <div class="table-responsive">
+                        <table class="table table-striped w-100 align-middle">
+                            <thead>
+                                <tr>
+                                    <th scope="col">Barangay</th>
+                                    <th scope="col">Assigned Caregiver</th>
+                                    <th scope="col">Assigned Care Manager</th>
+                                    <th scope="col">Beneficiaries</th>
+                                    <th scope="col">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @for ($i = 1; $i <= 33; $i++)
+                                    <tr>
+                                        <th scope="row">{{ $i }}</th>
+                                        <td>Mark</td>
+                                        <td>@mdo</td>
+                                        <td>Otto</td>
+                                        <td>
+                                            <div class="action-icons">
+                                                <i class='bx bx-trash'></i>
+                                                <i class='bx bxs-edit'></i>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                @endfor
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-   
+
     <script src=" {{ asset('js/toggleSideBar.js') }}"></script>
     <script src="{{ asset('js/bootstrap.bundle.min.js') }}"></script>
 </body>

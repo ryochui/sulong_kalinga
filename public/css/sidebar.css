@@ -18,7 +18,7 @@
   max-width: 345px;
   background: #f1f0fe;
   z-index: 100;
-  transition: all 0.5s ease;
+  transition: all 0.2s ease;
 }
 .sidebar.close{
   width: 78px;
@@ -40,7 +40,7 @@
   font-size: 16px;
   color: #161111;
   font-weight: 600;
-  transition: 0.3s ease;
+  transition: 0.2s ease;
   transition-delay: 0.1s;
 }
 .sidebar.close .logo-details .logo_name{
@@ -64,7 +64,7 @@
 .sidebar .nav-links li{
   position: relative;
   list-style: none;
-  transition: all 0.4s ease;
+  transition: all 0.2s ease;
 }
 
 .sidebar.close .nav-links li i {
@@ -93,7 +93,7 @@
   color: #161111;
   font-size: 20px;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
 }
 .sidebar .nav-links li.showMenu i.arrow{
   transform: rotate(-180deg);
@@ -110,7 +110,7 @@
   font-size: 18px;
   font-weight: 400;
   color: #161111;
-  transition: all 0.4s ease;
+  transition: all 0.2s ease;
 }
 .sidebar.close .nav-links li a .link_name{
   opacity: 0;
@@ -131,7 +131,7 @@
   padding: 5px;
   white-space: nowrap;
   opacity: 0.7;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
 }
 .sidebar .nav-links li .sub-menu a:hover{
   opacity: 1;
@@ -154,7 +154,7 @@
   opacity: 1;
   border-radius: 8px; 
   pointer-events: auto;
-  transition: all 0.4s ease;
+  transition: all 0.2s ease;
 }
 .sidebar .nav-links li .sub-menu .link_name{
   display: none;
@@ -185,7 +185,7 @@
   justify-content: center;
   background: #f1f0fe;
   padding: 12px 0;
-  transition: all 0.5s ease;
+  transition: all 0.2s ease;
 }
 .sidebar.close .profile-details{
   background: none;
@@ -204,7 +204,7 @@
   border-radius: 16px;
   margin: 0 14px 0 12px;
   background: #1d1b31;
-  transition: all 0.5s ease;
+  transition: all 0.2s ease;
 }
 .sidebar.close .profile-details img{
   padding: 10px;

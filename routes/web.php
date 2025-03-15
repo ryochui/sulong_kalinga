@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Admin\ReportsController;
 
 require __DIR__.'/innerRoutes.php';
 
@@ -39,3 +40,5 @@ Route::get('/events', function () {
 Route::get('/forgot-password', function () {
     return view ('forgot-password');
 })->name('forgotPass');
+
+Route::get('/admin/reportsManagement', [ReportsController::class, 'index'])->name('admin.reportsManagement');
