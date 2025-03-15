@@ -49,3 +49,12 @@ button:hover {
 .modal-header {
     background-color: rgb(92, 184, 92);
 }
+.backtoLogin{
+    padding: 10px;
+}
+
+.backtoLogin a{
+    text-decoration: underline;
+    color: #333;
+    font-size: 14px;
+}

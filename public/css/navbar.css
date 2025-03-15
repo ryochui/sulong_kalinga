@@ -18,5 +18,6 @@
     background-color: #0ad87f;
 }
 .dropdown-menu {
-    min-width: 200px;
+    max-width: 250px; /* Adjust as needed */
+    overflow-wrap: break-word;
 }

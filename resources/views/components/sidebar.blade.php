@@ -1,10 +1,11 @@
 <link rel="stylesheet" href="{{ asset('css/sidebar.css') }}">
- <div class="sidebar close">
+
+    <div class="sidebar close">
       <div class="logo-details" id="logoToggle">
         <span class="logo_name">Menu</span>
       </div>
       <ul class="nav-links">
-      <li>
+        <li>
           <a href="dashboard" class="{{ Request::routeIs('dashboard') ? 'active' : '' }}">
             <i class='bx bx-grid-alt'></i>
             <span class="link_name">Dashboard</span>
@@ -29,7 +30,6 @@
               <span class="link_name" onclick="toggleDropdown(this)">User Management</span>
               <i class='bx bxs-chevron-down arrow' onclick="toggleDropdown(this)"></i>
             </a>
-            
           </div>
           <ul class="sub-menu">
             <li><a class="link_name">User Management</a></li>

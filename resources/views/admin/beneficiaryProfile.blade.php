@@ -14,38 +14,39 @@
     @include('components.sidebar')
 
     <div class="home-section">
-    <div class="text-left">BENEFICIARY PROFILES</div>
-      <div class="container-fluid text-center">
-        
+      <div class="text-left">DASHBOARD</div>
+        <div class="container-fluid text-center">
         <div class="row">
-            <div class="col" style="background-color: yellow;">
-                <div class="row" id="statistics">
-                    <div class="col"  style="background-color: green;">
-                    Caregiver Statistics
-                    </div>
-                    <div class="col" id="beneficiaryStats" style="background-color: blue;">
-                    Beneficiary Statistics
-                    </div>
-                </div>
-                <div class="row" id="recentReports" style="background-color: white;">
-                    <div class="col">
-                    Recent Reports
-                    </div>
-                </div>
-            </div>
-          <div class="col-5" style="background-color: red;">
-            <div class="row" id="events">
-              <div class="col" style="background-color: orange;">
-                Upcoming Events
+              <!-- Statistics Row -->
+              <div class="col-12 col-lg-8" style="background-color: yellow;">
+                  <div class="row" id="statistics">
+                      <div class="col-6" id="caregiverStats" style="background-color: green;">
+                          Caregiver Statistics
+                      </div>
+                      <div class="col-6" id="beneficiaryStats" style="background-color: blue;">
+                          Beneficiary Statistics
+                      </div>
+                  </div>
+                  <div class="row" id="recentReports" style="background-color: white;">
+                      <div class="col-12" style="background-color: cyan;">
+                          Recent Reports
+                      </div>
+                  </div>
               </div>
-            </div>
-            <div class="row" id="performance">
-              <div class="col" style="background-color: pink;">
-                Caregiver Performance
+              <!-- Events and Performance Column -->
+              <div class="col-12 col-lg-4 mt-3 mt-lg-0" style="background-color: red;">
+                  <div class="row" id="events">
+                      <div class="col-12" style="background-color: orange;">
+                          Upcoming Events
+                      </div>
+                  </div>
+                  <div class="row" id="performance">
+                      <div class="col-12" style="background-color: pink;">
+                          Caregiver Performance
+                      </div>
+                  </div>
               </div>
-            </div>
           </div>
-        </div>
       </div>
     </div>
    
