@@ -13,7 +13,7 @@
 
     @include('components.userNavbar')
     @include('components.sidebar')
-    @include('components.modals.statusChange')
+    @include('components.modals.statusChangeBeneficiary')
     
     <div class="home-section">
         <div class="text-left">BENEFICIARY PROFILES</div>
