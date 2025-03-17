@@ -14,17 +14,17 @@
         <div class="collapse navbar-collapse justify-content-end bg-light" id="navbarNav">
             <ul class="navbar-nav">
                 <li class="nav-item">
-                    <a class="nav-link {{ Request::routeIs('aboutUs') ? 'active' : '' }}" href="#">Messages</a>
+                    <a class="nav-link {{ Request::routeIs('messages') ? 'active' : '' }}" href="#">Messages</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link {{ Request::routeIs('dashboard') ? 'active' : '' }}" href="#">Notifications</a>
+                    <a class="nav-link {{ Request::routeIs('notifications') ? 'active' : '' }}" href="#">Notifications</a>
                 </li>
                 <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle {{ Request::routeIs('milestones') || Request::routeIs('updates') || Request::routeIs('events') ? 'active' : '' }}" href="#" id="highlightsDropdown" role="button" data-bs-toggle="dropdown">
+                    <a class="nav-link dropdown-toggle {{ Request::routeIs('account') ? 'active' : '' }}" href="#" id="highlightsDropdown" role="button" data-bs-toggle="dropdown">
                         Account
                     </a>
                     <ul class="dropdown-menu dropdown-menu-end">
-                        <li><a class="dropdown-item {{ Request::routeIs('milestones') ? 'active' : '' }}" href="#">Account Profile</a></li>
+                        <li><a class="dropdown-item {{ Request::routeIs('account') ? 'active' : '' }}" href="#">Account Profile</a></li>
                         <li><a class="dropdown-item {{ Request::routeIs('updates') ? 'active' : '' }}" href="#">Logout</a></li>
                     </ul>
                 </li>

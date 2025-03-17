@@ -6,47 +6,46 @@
     <title>Dashboard</title>
     <link rel="stylesheet" href="{{ asset('css/bootstrap.min.css') }}">
     <link href='https://unpkg.com/boxicons@2.0.7/css/boxicons.min.css' rel='stylesheet'>
-    <link rel="stylesheet" href="{{ asset('css/reportsManagement.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/municipality.css') }}">
 </head>
 <body>
 
-    @include('components.navbar')
+    @include('components.userNavbar')
     @include('components.sidebar')
+    @include('components.modals.confirmDelete')
     
     <div class="home-section">
         <div class="text-left">MUNICIPALITY</div>
         <div class="container-fluid text-center">
-        <div class="row mb-3">
-                <div class="col-md-6">
-                    <!-- Search Bar -->
+            <div class="row mb-3 align-items-center">
+                <!-- Search Bar -->
+                <div class="col-12 col-md-6 col-lg-5 mb-2">
                     <div class="input-group">
-                    <span class="input-group-text">
-                        <i class="bx bx-search-alt"></i>
-                    </span>
-                    <input type="text" class="form-control" placeholder="Search" id="searchBar">
+                        <span class="input-group-text">
+                            <i class="bx bx-search-alt"></i>
+                        </span>
+                        <input type="text" class="form-control" placeholder="Search reports..." id="searchBar">
                     </div>
                 </div>
-            
-                <div class="col-md-6 text-end">
-                    <div class="d-inline-block me-2">
-                        <!-- Filter Dropdown -->
-                        <div class="input-group">
+
+                <!-- Filter Dropdown -->
+                <div class="col-12 col-md-6 col-lg-4 mb-2">
+                    <div class="input-group">
                         <span class="input-group-text">
                             <i class="bx bx-filter-alt"></i>
                         </span>
                         <select class="form-select" id="filterDropdown">
-                            <option value="" selected>Filter by</option>
-                            <option value="mondragon">Municipality of Mondragon</option>
-                            <option value="sanRoque">Municipality of San Roque</option>
+                            <option value="mondragon" selected>Municipality of Mondragon</option>
+                            <option value="author">Municipality of SanRoque</option>
                         </select>
-                        </div>
                     </div>
-                    <div class="d-inline-block" style="transform: translateY(-3px);">
-                        <!-- Add Report Button -->
-                        <button class="btn btn-primary" id="addReportButton">
-                            <i class="bx bx-plus"></i> Add Municipality
-                        </button>
-                    </div>
+                </div>
+
+                <!-- Add Report Button -->
+                <div class="col-12 col-md-6 col-lg-3 mb-2">
+                    <button class="btn btn-primary w-100" id="addButton">
+                        <i class="bx bx-plus"></i> Add Municipality
+                    </button>
                 </div>
             </div>
 
@@ -67,13 +66,13 @@
                             <tbody>
                                 @for ($i = 1; $i <= 33; $i++)
                                     <tr>
-                                        <th scope="row">{{ $i }}</th>
+                                        <td>Barangay</td>
                                         <td>Mark</td>
                                         <td>@mdo</td>
                                         <td>Otto</td>
                                         <td>
                                             <div class="action-icons">
-                                                <i class='bx bx-trash'></i>
+                                                <i class='bx bx-trash' data-bs-toggle="modal" data-bs-target="#deleteModal" onclick="setDeleteTarget(this)"></i>
                                                 <i class='bx bxs-edit'></i>
                                             </div>
                                         </td>
@@ -89,5 +88,6 @@
 
     <script src=" {{ asset('js/toggleSideBar.js') }}"></script>
     <script src="{{ asset('js/bootstrap.bundle.min.js') }}"></script>
+    <script src="{{ asset('js/deleteModal.js') }}"></script>
 </body>
 </html>

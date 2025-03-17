@@ -173,34 +173,32 @@
 
 /* Responsive Adjustments */
 @media (max-width: 1024px) {
-    .col-lg-2:nth-child(1), /* Export Button */
-    .col-lg-2:nth-child(2) { /* Add Report Button */
+    .col-lg-2:nth-child(1) { /* Add Report Button */
         flex: 0 0 50%; /* Move to the second row */
         max-width: 50%;
     }
 
-    .col-lg-2:nth-child(3), /* Export Button */
-    .col-lg-2:nth-child(4) { /* Add Report Button */
+    .col-lg-2:nth-child(2), /* Export Button */
+    .col-lg-2:nth-child(3) { /* Add Report Button */
         flex: 0 0 50%; /* Move to the second row */
         max-width: 50%;
     }
 }
 
 /* Breakpoint: 576px to 768px (3 rows: Search Bar, Filter, Export + Add Button) */
-@media (max-width: 768px) and (min-width: 426px) {
+@media (max-width: 991px) and (min-width: 426px) {
     .row.mb-3 {
         display: flex;
         flex-wrap: wrap;
     }
 
-    .col-12:nth-child(1), /* Search Bar */
-    .col-12:nth-child(2) { /* Filter Dropdown */
+    .col-12:nth-child(1) { /* Filter Dropdown */
         flex: 0 0 100%; /* Each occupies full width */
         max-width: 100%;
     }
 
-    .col-6:nth-child(3), /* Export Button */
-    .col-6:nth-child(4) { /* Add Report Button */
+    .col-6:nth-child(2), /* Export Button */
+    .col-6:nth-child(3) { /* Add Report Button */
         flex: 0 0 50%; /* Each occupies half the row */
         max-width: 50%;
     }
@@ -211,15 +209,32 @@
     .row.mb-3 {
         display: flex;
         flex-wrap: wrap;
-        gap: 0.5rem; /* Compact gap for smaller screens */
     }
 
     .col-12:nth-child(1), /* Search Bar */
     .col-12:nth-child(2), /* Filter Dropdown */
-    .col-6:nth-child(3), /* Export Button */
-    .col-6:nth-child(4) { /* Add Report Button */
+    .col-6:nth-child(3) { /* Add Report Button */
         flex: 0 0 100%; /* Each occupies full width */
         max-width: 100%;
     }
 }
 
+/* Ensure the dropdown menu is properly positioned */
+/* Ensure the dropdown menu is properly positioned */
+.action-icons {
+    position: relative; /* Ensure dropdown is positioned relative to this container */
+}
+
+.dropdown-menu {
+    z-index: 1050; /* Ensure dropdown appears above other elements */
+    position: fixed; /* Position the dropdown relative to the viewport */
+    top: 0; /* Default top position, adjusted dynamically by JavaScript */
+    left: 0; /* Default left position, adjusted dynamically by JavaScript */
+    background: #fff; /* Dropdown background */
+    border: 1px solid #ddd; /* Add border for dropdown */
+    padding: 0.5rem; /* Add padding for dropdown items */
+    list-style: none; /* Remove default list styling */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Add shadow for better visibility */
+    display: none; /* Initially hide the dropdown */
+    min-width: 150px; /* Ensure dropdown has a minimum width */
+}

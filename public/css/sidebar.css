@@ -34,22 +34,47 @@
   width: 100%;
   font-size: 24px;
   text-align: center;
+  display: flex;
+    align-items: center; /* Vertically align items */
+    gap: 10px; /* Add spacing between the icon and text */
+    padding: 10px;
+}
+
+.logo-details i {
+  font-size: 24px; /* Adjust the size of the icon */
+  color: #161111; /* Set the icon color */
 }
 
 .sidebar .logo-details .logo_name{
-  font-size: 16px;
+  font-size: 18px;
   color: #161111;
   font-weight: 600;
   transition: 0.2s ease;
   transition-delay: 0.1s;
 }
-.sidebar.close .logo-details .logo_name{
+.sidebar.close .logo-details .logo_name {
   transition-delay: 0s;
   opacity: 1;
   pointer-events: auto;
   font-size: 14px;
   text-align: center;
+  transform: translateX(-8px);
 }
+
+.sidebar.close .logo-details {
+  transition-delay: 0s;
+  opacity: 1;
+  transform: translateX(-10px);
+}
+
+.sidebar.close .logo-details i {
+  transition-delay: 0s;
+  opacity: 1;
+  pointer-events: auto;
+  font-size: 17px;
+  text-align: center;
+}
+
 .sidebar .nav-links{
   height: 100%;
   padding: 0 0 10px 0;

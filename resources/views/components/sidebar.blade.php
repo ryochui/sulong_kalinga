@@ -2,6 +2,7 @@
 
     <div class="sidebar">
       <div class="logo-details" id="logoToggle">
+        <i class='bx bx-menu'></i>
         <span class="logo_name">Menu</span>
       </div>
       <ul class="nav-links">
@@ -35,7 +36,7 @@
             <li><a class="link_name">User Management</a></li>
             <li><a href="beneficiaryProfile" class="{{ Request::routeIs('beneficiaryProfile') ? 'active' : '' }}">Beneficiary Profiles</a></li>
             <li><a href="familyProfile" class="{{ Request::routeIs('familyProfile') ? 'active' : '' }}">Family or Relative Profiles</a></li>
-            <li><a href="caregiverProfile" class="{{ Request::routeIs('caregiverProfile') ? 'active' : '' }}">Caregiver Profiles</a></li>
+            <li><a href="caregiverProfile" class="{{ Request::routeIs('caregiverProfile') ? 'active' : '' }}">Care Worker Profiles</a></li>
             <li><a href="careManagerProfile" class="{{ Request::routeIs('careManagerProfile') ? 'active' : '' }}">Care Manager Profiles</a></li>
             <li><a href="administratorProfile" class="{{ Request::routeIs('administratorProfile') ? 'active' : '' }}">Administrator Profiles</a></li>
           </ul>

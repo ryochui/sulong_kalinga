@@ -5,51 +5,65 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard</title>
     <link rel="stylesheet" href="{{ asset('css/bootstrap.min.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <link href='https://unpkg.com/boxicons@2.0.7/css/boxicons.min.css' rel='stylesheet'>
     <link rel="stylesheet" href="{{ asset('css/reportsManagement.css') }}">
 </head>
 <body>
 
-    @include('components.navbar')
+    @include('components.userNavbar')
     @include('components.sidebar')
-    
+    @include('components.modals.statusChange')
+   
     <div class="home-section">
         <div class="text-left">ADMINISTRATOR PROFILES</div>
         <div class="container-fluid text-center">
-        <div class="row mb-3">
-                <div class="col-md-7">
-                    <!-- Search Bar -->
+            <div class="row mb-3 align-items-center">
+                <!-- Search Bar -->
+                <div class="col-12 col-md-6 col-lg-6 mb-2">
                     <div class="input-group">
-                    <span class="input-group-text">
-                        <i class="bx bx-search-alt"></i>
-                    </span>
-                    <input type="text" class="form-control" placeholder="Search Administrator profile..." id="searchBar">
+                        <span class="input-group-text">
+                            <i class="bx bx-search-alt"></i>
+                        </span>
+                        <input type="text" class="form-control" placeholder="Search reports..." id="searchBar">
                     </div>
                 </div>
-            
-                <div class="col-md-5 text-end">
-                    <div class="d-inline-block me-2">
-                        <!-- Filter Dropdown -->
-                        <div class="input-group">
+
+                <!-- Filter Dropdown -->
+                <div class="col-12 col-sm-6 col-md-6 col-lg-2 mb-2">
+                    <div class="input-group">
                         <span class="input-group-text">
                             <i class="bx bx-filter-alt"></i>
                         </span>
                         <select class="form-select" id="filterDropdown">
                             <option value="" selected>Filter by</option>
-                            <option value="role">Organization Role</option>
-                            <option value="alphabetically">Alphabetically</option>
+                            <option value="author">Author</option>
+                            <option value="type">Report Type</option>
+                            <option value="date">Date Uploaded</option>
                         </select>
-                        </div>
-                    </div>
-                    <div class="d-inline-block" style="transform: translateY(-3px);">
-                        <!-- Add Report Button -->
-                        <button class="btn btn-primary" id="addReportButton">
-                            <i class="bx bx-plus"></i> Add Administrator
-                        </button>
                     </div>
                 </div>
-            </div>
 
+                <!-- Export Dropdown -->
+                <div class="col-6 col-md-3 col-lg-2 mb-2">
+                    <div class="dropdown-center">
+                        <button class="btn btn-secondary dropdown-toggle w-100" type="button" id="exportDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="bx bx-export"></i> Export
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="exportDropdown">
+                            <li><a class="dropdown-item" href="#">Export as PDF</a></li>
+                            <li><a class="dropdown-item" href="#">Export as Excel</a></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Add Report Button -->
+                <div class="col-6 col-md-3 col-lg-2 mb-2">
+                    <button class="btn btn-primary w-100" id="addButton">
+                        <i class="bx bx-plus"></i> Add Admin
+                    </button>
+                </div>
+            </div>
 
             <div class="row" id="recentReports">
                 <div class="col-12">
@@ -57,11 +71,13 @@
                         <table class="table table-striped w-100 align-middle">
                             <thead>
                                 <tr>
-                                    <th scope="col">ID</th>
+                                    <th scope="col">
+                                        <input type="checkbox" id="selectAll" /> <!-- Checkbox to select all rows -->
+                                    </th>
                                     <th scope="col">Fullname</th>
-                                    <th scope="col">Organization Role</th>
-                                    <th scope="col">Mobile Number</th>
-                                    <th scope="col">Email Address</Address></th>
+                                    <th scope="col" class="d-none d-sm-table-cell">Organization Role</th>
+                                    <th scope="col" class="d-none d-sm-table-cell">Mobile Number</th>
+                                    <th scope="col" class="d-none d-md-table-cell">Email Address</Address></th>
                                     <th scope="col">Status</th>
                                     <th scope="col">Actions</th>
                                 </tr>
@@ -69,21 +85,22 @@
                             <tbody>
                                 @for ($i = 1; $i <= 33; $i++)
                                     <tr>
-                                        <th scope="row">{{ $i }}</th>
-                                        <td>Mark</td>
-                                        <td>Otto</td>
-                                        <td>@mdo</td>
-                                        <td>Otto</td>
                                         <td>
-                                        <select class="form-select" name="status" id="statusSelect{{ $i }}">
+                                            <input type="checkbox" class="rowCheckbox" />
+                                        </td>
+                                        <td>Mark</td>
+                                        <td class="d-none d-sm-table-cell">Otto</td>
+                                        <td class="d-none d-sm-table-cell">@mdo</td>
+                                        <td class="d-none d-md-table-cell">Otto</td>
+                                        <td>
+                                        <select class="form-select" name="status" id="statusSelect{{ $i }}" onchange="openStatusChangeModal(this, 'Administrator')">
                                             <option value="active" selected>Active</option>
                                             <option value="inactive">Inactive</option>
-                                            <option value="pending">Pending</option>
                                         </select>
                                         </td>
                                         <td>
                                             <div class="action-icons">
-                                                <i class='bx bx-trash'></i>
+                                                <i class="fa fa-eye"></i>
                                                 <i class='bx bxs-edit'></i>
                                             </div>
                                         </td>
@@ -99,5 +116,6 @@
 
     <script src=" {{ asset('js/toggleSideBar.js') }}"></script>
     <script src="{{ asset('js/bootstrap.bundle.min.js') }}"></script>
+    <script src="{{ asset('js/forCheckbox.js') }}"></script>
 </body>
 </html>
