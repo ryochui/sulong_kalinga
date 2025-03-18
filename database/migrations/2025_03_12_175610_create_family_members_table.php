@@ -19,7 +19,7 @@ return new class extends Migration
             $table->string('mobile', 11)->nullable();
             $table->string('landline', 8)->nullable();
             $table->string('email', 100)->unique();
-            $table->boolean('status')->default(1); // Add status column default value
+            $table->boolean('access')->default(1); // Add status column default value
             $table->text('current_address');
             $table->string('gender', 50);
             $table->integer('related_beneficiary_id');
