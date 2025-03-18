@@ -21,7 +21,7 @@ class User extends Authenticatable
      */
     protected $fillable = [
         'first_name', 'last_name', 'birthday', 'civil_status', 'educational_background',
-        'mobile', 'landline', 'email_address', 'password_hash', 'current_address',
+        'mobile', 'landline', 'email_address', 'password_hash', 'street_address', 'barangay_id',
         'gender', 'religion', 'nationality', 'volunteer_status', 'status_start_date',
         'status_end_date', 'role_id', 'status', 'organization_role_id', 'assigned_municipality_id',
         'photo', 'government_issued_id', 'sss_id_number', 'philhealth_id_number',
