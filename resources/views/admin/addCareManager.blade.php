@@ -17,10 +17,10 @@
     <div class="home-section">
         <div class="container-fluid">
             <div class="d-flex justify-content-between align-items-center mb-3">
-                <a href="administratorProfile" class="btn btn-secondary">
+                <a href="careManagerProfile" class="btn btn-secondary">
                     <i class="bx bx-arrow-back"></i> Back
                 </a>
-                <div class="mx-auto text-center" style="flex-grow: 1; font-weight: bold; font-size: 20px;">ADD ADMINISTRATOR</div>
+                <div class="mx-auto text-center" style="flex-grow: 1; font-weight: bold; font-size: 20px;">ADD CARE MANAGER</div>
             </div>
             <div class="row" id="addUserForm">
                 <div class="col-12">
@@ -75,7 +75,14 @@
                                 <label for="nationality" class="form-label">Nationality</label>
                                 <input type="text" class="form-control" id="nationality" name="nationality" placeholder="Enter nationality">
                             </div>
-                            
+                            <div class="col-md-3">
+                                <label for="assignedMunicipality" class="form-label">Assigned Municipality</label>
+                                <select class="form-select" id="assignedMunicipality" name="assigned_municipality" required>
+                                    <option value="" selected disabled>Select Municipality</option>
+                                    <option value="sanroque">San Roque</option>
+                                    <option value="mondragon">Mondragon</option>
+                                </select>
+                            </div>
                         </div>
 
                         <hr class="my-4">
@@ -115,6 +122,43 @@
                         </div>
 
                         <hr class="my-4">
+                        <!-- Documents -->
+                        <div class="row mb-1">
+                            <div class="col-12">
+                                <h5 class="text-start">Documents Upload</h5> <!-- Row Title -->
+                            </div>
+                        </div>
+                        <div class="row mb-1">
+                            <div class="col-md-4">
+                                <label for="careWorkerPhoto" class="form-label">Care Manager Photo</label>
+                                <input type="file" class="form-control" id="careWorkerPhoto" name="care_worker_photo" accept="image/png, image/jpeg" capture="user" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="governmentID" class="form-label">Government Issued ID</label>
+                                <input type="file" class="form-control" id="governmentID" name="government_ID" accept=".jpg,.png" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="resume" class="form-label">Resume / CV</label>
+                                <input type="file" class="form-control" id="resume" name="resume" accept=".pdf,.doc,.docx" required>
+                            </div>
+                        </div>
+                        <div class="row mb-1">
+                            <div class="col-md-4">
+                                <label for="generalCarePlan" class="form-label">SSS ID</label>
+                                <input type="file" class="form-control" id="generalCarePlan" name="general_care_plan" accept=".jpg,.png">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="philhealthID" class="form-label">PhilHealth ID</label>
+                                <input type="file" class="form-control" id="philhealthID" name="philhealth_ID" accept=".jpg,.png" >
+                            </div>
+                            <div class="col-md-4">
+                                <label for="pagibigID" class="form-label">Pag-Ibig ID</label>
+                                <input type="file" class="form-control" id="pagibigID" name="pagibig_ID" accept=".jpg,.png">
+                            </div>
+                        </div>
+
+
+                        <hr class="my-4">
                         <!-- Account Registration -->
                         <div class="row mb-1">
                             <div class="col-12">
@@ -141,7 +185,7 @@
                             <div class="col-12 d-flex justify-content-center align-items-center">
                                 <button type="submit" class="btn btn-success btn-lg d-flex align-items-center">
                                     <i class='bx bx-save me-2' style="font-size: 24px;"></i>
-                                    Save Care Administrator
+                                    Save Care Manager
                                 </button>
                             </div>
                         </div>
@@ -160,7 +204,7 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body text-center">
-                    <p>Administrator has been successfully saved!</p>
+                    <p>Care Manager has been successfully saved!</p>
                 </div>
                 <div class="modal-footer justify-content-center">
                     <button type="button" class="btn btn-primary" data-bs-dismiss="modal">OK</button>

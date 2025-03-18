@@ -25,13 +25,25 @@ Route::get('/familyProfile', function () {
     return view('admin.familyProfile');
 })->name('familyProfile');
 
+Route::get('/addFamily', function () {
+    return view('admin.addFamily');
+})->name('addFamily');
+
 Route::get('/caregiverProfile', function () {
     return view('admin.caregiverProfile');
 })->name('caregiverProfile');
 
+Route::get('/addCareworker', function () {
+    return view('admin.addCareworker');
+})->name('addCareworker');
+
 Route::get('/careManagerProfile', function () {
     return view('admin.careManagerProfile');
 })->name('careManagerProfile');
+
+Route::get('/addCareManager', function () {
+    return view('admin.addCareManager');
+})->name('addCareManager');
 
 Route::get('/administratorProfile', function () {
     return view('admin.administratorProfile');

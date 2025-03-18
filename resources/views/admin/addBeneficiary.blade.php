@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard</title>
+    <title>Add Beneficiary</title>
     <link rel="stylesheet" href="{{ asset('css/bootstrap.min.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <link href='https://unpkg.com/boxicons@2.0.7/css/boxicons.min.css' rel='stylesheet'>
@@ -13,7 +13,6 @@
 
     @include('components.userNavbar')
     @include('components.sidebar')
-    @include('components.modals.statusChangeBeneficiary')
     
     <div class="home-section">
         <div class="container-fluid">
@@ -27,11 +26,11 @@
                 <div class="col-12">
                     <!-- <form action="{{ route('addBeneficiary') }}" method="POST"> -->
                     <form>
-                        @csrf <!-- Include CSRF token for security -->
+                        @csrf
                         <!-- Row 1: Personal Details -->
                         <div class="row mb-1 mt-3">
                             <div class="col-12">
-                                <h5 class="text-start">Personal Details</h5> <!-- Row Title -->
+                                <h5 class="text-start">Personal Details</h5>
                             </div>
                         </div>
                         <div class="row mb-1">
@@ -94,7 +93,7 @@
                         <!-- Row 2: Address -->
                         <div class="row mb-1">
                             <div class="col-12">
-                                <h5 class="text-start">Current Address</h5> <!-- Row Title -->
+                                <h5 class="text-start">Current Address</h5> 
                             </div>
                         </div>
                         <div class="row mb-3">
@@ -128,7 +127,7 @@
                         <!-- Row 3: Medical History -->
                         <div class="row mb-1">
                             <div class="col-12">
-                                <h5 class="text-start">Medical History</h5> <!-- Row Title -->
+                                <h5 class="text-start">Medical History</h5> 
                             </div>
                         </div>
                         <div class="row mb-1">
@@ -253,7 +252,7 @@
                        <!-- Medication Management -->
                         <div class="row mb-1">
                             <div class="col-12">
-                                <h5 class="text-start">Medication Management</h5> <!-- Row Title -->
+                                <h5 class="text-start">Medication Management</h5> 
                             </div>
                         </div>
                         <div id="medicationManagement">
@@ -280,6 +279,7 @@
                                 <button type="button" class="btn btn-primary" onclick="addMedicationRow()">Add Medication</button>
                             </div>
                         </div>
+
                         <hr class="my-4">
                         <!-- Mobility, Cognitive Function, Emotional Well-being -->
                         <div class="row mb-1">
@@ -334,12 +334,11 @@
                             </div>
                         </div>
 
-
                         <hr class="my-4">
                         <!-- Emergency Contact -->
                         <div class="row mb-1">
                             <div class="col-12">
-                                <h5 class="text-start">Emergency Contact</h5> <!-- Row Title -->
+                                <h5 class="text-start">Emergency Contact</h5>
                             </div>
                         </div>
                         <div class="row mb-3">
@@ -371,7 +370,7 @@
                         <!-- Emergency Plan -->
                         <div class="row mb-1">
                             <div class="col-12">
-                                <h5 class="text-start">Emergency Plan</h5> <!-- Row Title -->
+                                <h5 class="text-start">Emergency Plan</h5> 
                             </div>
                         </div>
                         <div class="row mb-3">
@@ -380,13 +379,12 @@
                                 <textarea class="form-control" id="emergencyProcedures" name="emergency_plan[procedures]" placeholder="Enter emergency procedures" rows="3" required></textarea>
                             </div>
                         </div>
-
                         
                         <hr class="my-4">
                         <!-- Care Worker's Responsibilities -->
                         <div class="row mb-3">
                             <div class="col-12">
-                                <h5 class="text-start">Care Worker's Responsibilities</h5> <!-- Row Title -->
+                                <h5 class="text-start">Care Worker's Responsibilities</h5> 
                             </div>
                         </div>
                         <div class="row mb-3">
@@ -434,12 +432,11 @@
                             </div>
                         </div>
 
-
                         <hr class="my-4">
                         <!-- Account Registration -->
                         <div class="row mb-1">
                             <div class="col-12">
-                                <h5 class="text-start">Family Portal Account Registration</h5> <!-- Row Title -->
+                                <h5 class="text-start">Family Portal Account Registration</h5> 
                             </div>
                         </div>
                         <div class="row mb-3">
@@ -559,71 +556,62 @@
     </script>
     <script>
         document.querySelector('form').addEventListener('submit', function (e) {
-            e.preventDefault(); // Prevent the default form submission
-
-            // Show the success modal
+            e.preventDefault();
             const successModal = new bootstrap.Modal(document.getElementById('saveSuccessModal'));
             successModal.show();
         });
     </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Function to filter dropdown items
+            function filterDropdown(inputId, dropdownId) {
+                const input = document.getElementById(inputId);
+                const dropdown = document.getElementById(dropdownId);
+                const items = dropdown.querySelectorAll('.dropdown-item');
 
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        // Function to filter dropdown items
-        function filterDropdown(inputId, dropdownId) {
-            const input = document.getElementById(inputId);
-            const dropdown = document.getElementById(dropdownId);
-            const items = dropdown.querySelectorAll('.dropdown-item');
+                input.addEventListener('input', function () {
+                    const filter = input.value.toLowerCase();
+                    let hasVisibleItems = false;
 
-            input.addEventListener('input', function () {
-                const filter = input.value.toLowerCase();
-                let hasVisibleItems = false;
+                    items.forEach(item => {
+                        if (item.textContent.toLowerCase().includes(filter)) {
+                            item.style.display = 'block';
+                            hasVisibleItems = true;
+                        } else {
+                            item.style.display = 'none';
+                        }
+                    });
+                    dropdown.style.display = hasVisibleItems ? 'block' : 'none';
+                });
+                input.addEventListener('blur', function () {
+                    setTimeout(() => dropdown.style.display = 'none', 200);
+                });
+                input.addEventListener('focus', function () {
+                    dropdown.style.display = 'block';
+                });
 
+                // Handle item selection
                 items.forEach(item => {
-                    if (item.textContent.toLowerCase().includes(filter)) {
-                        item.style.display = 'block';
-                        hasVisibleItems = true;
-                    } else {
-                        item.style.display = 'none';
-                    }
+                    item.addEventListener('click', function (e) {
+                        e.preventDefault();
+                        input.value = item.textContent;
+                        document.getElementById(inputId.replace('Input', '')).value = item.getAttribute('data-value');
+                        dropdown.style.display = 'none';
+                    });
                 });
+            }
 
-                // Show or hide the dropdown based on visible items
-                dropdown.style.display = hasVisibleItems ? 'block' : 'none';
-            });
-
-            // Hide dropdown when input loses focus
-            input.addEventListener('blur', function () {
-                setTimeout(() => dropdown.style.display = 'none', 200);
-            });
-
-            // Show dropdown when input gains focus
-            input.addEventListener('focus', function () {
-                dropdown.style.display = 'block';
-            });
-
-            // Handle item selection
-            items.forEach(item => {
-                item.addEventListener('click', function (e) {
-                    e.preventDefault();
-                    input.value = item.textContent;
-                    document.getElementById(inputId.replace('Input', '')).value = item.getAttribute('data-value');
-                    dropdown.style.display = 'none';
-                });
-            });
-        }
-
-        // Initialize filtering for each dropdown
-        filterDropdown('civilStatusInput', 'civilStatusDropdown');
-        filterDropdown('genderInput', 'genderDropdown');
-        filterDropdown('primaryCareworkerInput', 'primaryCareworkerDropdown');
-        filterDropdown('barangayInput', 'barangayDropdown');
-        filterDropdown('municipalityInput', 'municipalityDropdown');
-        filterDropdown('categoryInput', 'categoryDropdown');
-        filterDropdown('relationInput', 'relationDropdown');
-        filterDropdown('careworkerNameInput', 'careworkerNameDropdown');
-    });
-</script>
+            // Initialize filtering for each dropdown
+            filterDropdown('civilStatusInput', 'civilStatusDropdown');
+            filterDropdown('genderInput', 'genderDropdown');
+            filterDropdown('primaryCareworkerInput', 'primaryCareworkerDropdown');
+            filterDropdown('barangayInput', 'barangayDropdown');
+            filterDropdown('municipalityInput', 'municipalityDropdown');
+            filterDropdown('categoryInput', 'categoryDropdown');
+            filterDropdown('relationInput', 'relationDropdown');
+            filterDropdown('careworkerNameInput', 'careworkerNameDropdown');
+        });
+    </script>
 
 </body>
 </html>

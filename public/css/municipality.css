@@ -85,7 +85,7 @@
     padding: 10px;
 }
 
-/* Style the table to fit the container */
+
 .table-responsive {
     height: 100%;
     overflow-y: auto;
@@ -98,9 +98,9 @@
 }
 
 .table td, .table th {
-    white-space: nowrap; /* Prevent text from breaking into multiple lines */
-    text-overflow: ellipsis; /* Add ellipsis for overflowing text */
-    overflow: hidden; /* Hide overflowing text */
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden; 
     max-width: 200px;
 }
 
@@ -123,44 +123,44 @@
     }
 
     .form-control {
-        width: 100%; /* Full width for search bar */
+        width: 100%; 
     }
 
     .table td, .table th {
-        white-space: normal; /* Allow text to wrap */
+        white-space: normal; 
     }
 }
 
 /* Sidebar styles for smaller screens */
 @media (max-width: 375px) {
     .sidebar {
-        width: 100%; /* Ensure the sidebar takes full width on smaller screens */
-        position: fixed; /* Keep it fixed on the screen */
-        z-index: 1050; /* Ensure it stays above other elements */
+        width: 100%; 
+        position: fixed; 
+        z-index: 1050; 
         top: 0;
         left: 0;
-        height: 100vh; /* Full height */
-        background-color: #343a40; /* Sidebar background color */
-        overflow-y: auto; /* Allow scrolling if content overflows */
-        transition: transform 0.3s ease-in-out; /* Smooth transition for toggling */
+        height: 100vh; 
+        background-color: #343a40; 
+        overflow-y: auto; 
+        transition: transform 0.3s ease-in-out; 
     }
 
     .sidebar.hidden {
-        transform: translateX(-100%); /* Hide the sidebar off-screen */
+        transform: translateX(-100%); 
     }
 
     .sidebar.visible {
-        transform: translateX(0); /* Show the sidebar */
+        transform: translateX(0);
     }
 
     .home-section {
-        margin-left: 0; /* Remove margin to fit the content */
+        margin-left: 0; 
     }
 }
 
 @media (max-width: 576px) {
     .table td, .table th {
-        padding: 0.5rem; /* Reduce padding for smaller screens */
+        padding: 0.5rem; 
         max-width: 100px;
     }
 }
@@ -174,7 +174,7 @@
 /* Responsive Adjustments */
 @media (max-width: 1024px) {
     .col-lg-2:nth-child(1) { /* Add Report Button */
-        flex: 0 0 50%; /* Move to the second row */
+        flex: 0 0 50%; 
         max-width: 50%;
     }
 
@@ -219,22 +219,20 @@
     }
 }
 
-/* Ensure the dropdown menu is properly positioned */
-/* Ensure the dropdown menu is properly positioned */
 .action-icons {
-    position: relative; /* Ensure dropdown is positioned relative to this container */
+    position: relative; 
 }
 
 .dropdown-menu {
-    z-index: 1050; /* Ensure dropdown appears above other elements */
-    position: fixed; /* Position the dropdown relative to the viewport */
-    top: 0; /* Default top position, adjusted dynamically by JavaScript */
-    left: 0; /* Default left position, adjusted dynamically by JavaScript */
-    background: #fff; /* Dropdown background */
-    border: 1px solid #ddd; /* Add border for dropdown */
-    padding: 0.5rem; /* Add padding for dropdown items */
-    list-style: none; /* Remove default list styling */
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Add shadow for better visibility */
-    display: none; /* Initially hide the dropdown */
-    min-width: 150px; /* Ensure dropdown has a minimum width */
+    z-index: 1050; 
+    position: fixed; 
+    top: 0; 
+    left: 0; 
+    background: #fff; 
+    border: 1px solid #ddd;
+    padding: 0.5rem; 
+    list-style: none; 
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    display: none; 
+    min-width: 150px; 
 }
