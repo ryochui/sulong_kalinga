@@ -253,16 +253,16 @@
                         <div id="medicationManagement">
                             <div class="row mb-1 align-items-center medication-row">
                                 <div class="col-md-3">
-                                    <input type="text" class="form-control" name="medication_name[]" placeholder="MEDICATION NAME" >
+                                    <input type="text" class="form-control" name="medication_name[]" placeholder="Medication name" >
                                 </div>
                                 <div class="col-md-2">
-                                    <input type="text" class="form-control" name="dosage[]" placeholder="DOSAGE" >
+                                    <input type="text" class="form-control" name="dosage[]" placeholder="Dosage" >
                                 </div>
                                 <div class="col-md-2">
-                                    <input type="text" class="form-control" name="frequency[]" placeholder="FREQUENCY" >
+                                    <input type="text" class="form-control" name="frequency[]" placeholder="Frequency" >
                                 </div>
                                 <div class="col-md-4">
-                                    <textarea class="form-control" name="administration_instructions[]" placeholder="ADMINISTRATION INSTRUCTIONS" rows="1" ></textarea>
+                                    <textarea class="form-control" name="administration_instructions[]" placeholder="Administration Instructions" rows="1" ></textarea>
                                 </div>
                                 <div class="col-md-1 d-flex text-start">
                                     <button type="button" class="btn btn-danger" onclick="removeMedicationRow(this)">Delete</button>
