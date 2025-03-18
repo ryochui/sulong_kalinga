@@ -12,7 +12,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('cose_users', function (Blueprint $table) {
-            $table->foreign('assigned_municipality_id')->references('municipality_id')->on('municipalities')->onDelete('no action');
+            $table->integer('barangay_id')->after('street_address');
+            $table->foreign('barangay_id')->references('barangay_id')->on('barangays')->onDelete('no action');
         });
     }
 
@@ -22,7 +23,8 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('cose_users', function (Blueprint $table) {
-            $table->dropForeign(['assigned_municipality_id']);
+            $table->dropForeign(['barangay_id']);
+            $table->dropColumn('barangay_id');
         });
     }
 };

@@ -20,7 +20,8 @@ return new class extends Migration
             $table->string('landline', 8)->nullable();
             $table->string('email', 100)->unique();
             $table->boolean('access')->default(1); // Add status column default value
-            $table->text('current_address');
+            $table->text('street_address');
+            $table->integer('barangay_id');
             $table->string('gender', 50);
             $table->integer('related_beneficiary_id');
             $table->string('relation_to_beneficiary', 50);
@@ -36,6 +37,7 @@ return new class extends Migration
             $table->foreign('portal_account_id')->references('portal_account_id')->on('portal_accounts')->onDelete('no action');
             $table->foreign('created_by')->references('id')->on('cose_users')->onDelete('no action');
             $table->foreign('updated_by')->references('id')->on('cose_users')->onDelete('no action');
+            $table->foreign('barangay_id')->references('barangay_id')->on('barangays')->onDelete('no action');
         });
     }
 

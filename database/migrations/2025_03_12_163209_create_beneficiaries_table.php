@@ -21,7 +21,8 @@ return new class extends Migration
             $table->string('primary_caregiver', 255)->nullable();
             $table->string('mobile', 11)->nullable();
             $table->string('landline', 8)->nullable();
-            $table->text('current_address');
+            $table->text('street_address');
+            $table->integer('barangay_id');
             $table->integer('municipality_id');
             $table->integer('category_id');
             $table->string('emergency_contact_name', 255);
@@ -44,6 +45,7 @@ return new class extends Migration
             $table->foreign('portal_account_id')->references('portal_account_id')->on('portal_accounts')->onDelete('no action');
             $table->foreign('created_by')->references('id')->on('cose_users')->onDelete('no action');
             $table->foreign('updated_by')->references('id')->on('cose_users')->onDelete('no action');
+            $table->foreign('barangay_id')->references('barangay_id')->on('barangays')->onDelete('no action');
 
         });
     }
