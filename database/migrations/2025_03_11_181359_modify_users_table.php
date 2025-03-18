@@ -23,14 +23,14 @@ return new class extends Migration
             $table->string('mobile', 11)->unique();
             $table->string('landline', 8)->nullable();
             $table->string('password_hash', 255);
-            $table->text('street_address')->nullable();
-            $table->integer('barangay_id');
+            $table->text('address')->nullable();
+            $table->integer('barangay_id')->nullable();
             $table->string('gender', 10)->nullable();
             $table->string('religion', 50)->nullable();
             $table->string('nationality', 50)->nullable();
             $table->string('volunteer_status', 20);
             $table->date('status_start_date');
-            $table->date('status_end_date');
+            $table->date('status_end_date')->nullable();
             $table->integer('role_id');
             $table->string('status', 20);
             $table->integer('organization_role_id')->nullable();
