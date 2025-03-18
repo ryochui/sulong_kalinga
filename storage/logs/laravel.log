@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 [2025-03-15 05:01:35] local.ERROR: View [familyProfile] not found. {"exception":"[object] (InvalidArgumentException(code: 0): View [familyProfile] not found. at C:\\xampp\\htdocs\\sulong_kalinga\\vendor\\laravel\\framework\\src\\Illuminate\\View\\FileViewFinder.php:139)
 [stacktrace]
 #0 C:\\xampp\\htdocs\\sulong_kalinga\\vendor\\laravel\\framework\\src\\Illuminate\\View\\FileViewFinder.php(79): Illuminate\\View\\FileViewFinder->findInPaths('familyProfile', Array)
@@ -2961,3 +2962,5 @@
 #56 C:\\xampp\\htdocs\\sulong_kalinga\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\resources\\server.php(23): require_once('C:\\\\xampp\\\\htdocs...')
 #57 {main}
 "} 
+=======
+>>>>>>> origin/1_user_management
