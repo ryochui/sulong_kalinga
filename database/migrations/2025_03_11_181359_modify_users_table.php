@@ -23,7 +23,7 @@ return new class extends Migration
             $table->string('mobile', 11)->unique()->after('educational_background');
             $table->string('landline', 8)->nullable()->after('mobile');
             $table->string('password_hash', 255)->after('landline');
-            $table->text('current_address')->nullable()->after('password_hash');
+            $table->text('street_address')->nullable()->after('password_hash');
             $table->string('gender', 10)->nullable()->after('current_address');
             $table->string('religion', 50)->nullable()->after('gender');
             $table->string('nationality', 50)->nullable()->after('religion');
