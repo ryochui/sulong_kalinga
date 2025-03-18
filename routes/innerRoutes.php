@@ -1,0 +1,37 @@
+<?php
+
+use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Admin\ReportsController;
+
+
+Route::get('/dashboard', function () {
+    return view('admin.dashboard');
+})->name('dashboard');
+
+Route::get('/reportsManagement', function () {
+    return view('admin.reportsManagement');
+})->name('reportsManagement');
+
+Route::get('/beneficiaryProfile', function () {
+    return view('admin.beneficiaryProfile');
+})->name('beneficiaryProfile');
+
+Route::get('/familyProfile', function () {
+    return view('admin.familyProfile');
+})->name('familyProfile');
+
+Route::get('/caregiverProfile', function () {
+    return view('admin.caregiverProfile');
+})->name('caregiverProfile');
+
+Route::get('/careManagerProfile', function () {
+    return view('admin.careManagerProfile');
+})->name('careManagerProfile');
+
+Route::get('/administratorProfile', function () {
+    return view('admin.administratorProfile');
+})->name('administratorProfile');
+
+Route::get('/municipality', function () {
+    return view('admin.municipality');
+})->name('municipality');
