@@ -29,7 +29,7 @@
                     <form>
                         @csrf <!-- Include CSRF token for security -->
                         <!-- Row 1: Personal Details -->
-                        <div class="row mb-1">
+                        <div class="row mb-1 mt-3">
                             <div class="col-12">
                                 <h5 class="text-start">Personal Details</h5> <!-- Row Title -->
                             </div>
@@ -86,6 +86,8 @@
                                 <input type="text" class="form-control" id="landlineNumber" name="landline_number" placeholder="Enter landline number">
                             </div>
                         </div>
+
+                        <hr class="my-4">
                         <!-- Row 2: Address -->
                         <div class="row mb-1">
                             <div class="col-12">
@@ -116,6 +118,8 @@
                                 </select>
                             </div>
                         </div>
+
+                        <hr class="my-4">
                         <!-- Row 3: Medical History -->
                         <div class="row mb-1">
                             <div class="col-12">
@@ -151,6 +155,8 @@
                                 </select>
                             </div>
                         </div>
+
+                        <hr class="my-4">
                         <!-- Care Needs -->
                         <div class="row mb-1">
                             <div class="col-md-4">
@@ -164,10 +170,10 @@
                                 <label class="form-label">Mobility</label>
                             </div>
                             <div class="col-md-4">
-                                <textarea class="form-control" id="mobilityFrequency" name="frequency[mobility]" placeholder="Frequency for Mobility" rows="1"></textarea>
+                                <textarea class="form-control" id="mobilityFrequency" name="frequency[mobility]" placeholder="Frequency" rows="2"></textarea>
                             </div>
                             <div class="col-md-4">
-                                <textarea class="form-control" id="mobilityAssistance" name="assistance[mobility]" placeholder="Assistance for Mobility" rows="1"></textarea>
+                                <textarea class="form-control" id="mobilityAssistance" name="assistance[mobility]" placeholder="Assistance Required" rows="2"></textarea>
                             </div>
                         </div>
                         <div class="row mb-2 align-items-center">
@@ -175,10 +181,10 @@
                                 <label class="form-label">Cognitive / Communication</label>
                             </div>
                             <div class="col-md-4">
-                                <textarea class="form-control" id="cognitiveFrequency" name="frequency[cognitive]" placeholder="Frequency for Cognitive / Communication" rows="1"></textarea>
+                                <textarea class="form-control" id="cognitiveFrequency" name="frequency[cognitive]" placeholder="Frequency" rows="2"></textarea>
                             </div>
                             <div class="col-md-4">
-                                <textarea class="form-control" id="cognitiveAssistance" name="assistance[cognitive]" placeholder="Assistance for Cognitive / Communication" rows="1"></textarea>
+                                <textarea class="form-control" id="cognitiveAssistance" name="assistance[cognitive]" placeholder="Assistance Required" rows="2"></textarea>
                             </div>
                         </div>
                         <div class="row mb-2 align-items-center">
@@ -186,10 +192,10 @@
                                 <label class="form-label">Self-sustainability</label>
                             </div>
                             <div class="col-md-4">
-                                <textarea class="form-control" id="selfSustainabilityFrequency" name="frequency[self_sustainability]" placeholder="Frequency for Self-sustainability" rows="1"></textarea>
+                                <textarea class="form-control" id="selfSustainabilityFrequency" name="frequency[self_sustainability]" placeholder="Frequency" rows="2"></textarea>
                             </div>
                             <div class="col-md-4">
-                                <textarea class="form-control" id="selfSustainabilityAssistance" name="assistance[self_sustainability]" placeholder="Assistance for Self-sustainability" rows="1"></textarea>
+                                <textarea class="form-control" id="selfSustainabilityAssistance" name="assistance[self_sustainability]" placeholder="Assistance Required" rows="2"></textarea>
                             </div>
                         </div>
                         <div class="row mb-2 align-items-center">
@@ -197,10 +203,10 @@
                                 <label class="form-label">Disease / Therapy Handling</label>
                             </div>
                             <div class="col-md-4">
-                                <textarea class="form-control" id="diseaseFrequency" name="frequency[disease]" placeholder="Frequency for Disease / Therapy Handling" rows="1"></textarea>
+                                <textarea class="form-control" id="diseaseFrequency" name="frequency[disease]" placeholder="Frequency" rows="2"></textarea>
                             </div>
                             <div class="col-md-4">
-                                <textarea class="form-control" id="diseaseAssistance" name="assistance[disease]" placeholder="Assistance for Disease / Therapy Handling" rows="1"></textarea>
+                                <textarea class="form-control" id="diseaseAssistance" name="assistance[disease]" placeholder="Assistance Required" rows="2"></textarea>
                             </div>
                         </div>
                         <div class="row mb-2 align-items-center">
@@ -208,10 +214,10 @@
                                 <label class="form-label">Daily Life / Social Contact</label>
                             </div>
                             <div class="col-md-4">
-                                <textarea class="form-control" id="dailyLifeFrequency" name="frequency[daily_life]" placeholder="Frequency for Daily Life / Social Contact" rows="1"></textarea>
+                                <textarea class="form-control" id="dailyLifeFrequency" name="frequency[daily_life]" placeholder="Frequency" rows="2"></textarea>
                             </div>
                             <div class="col-md-4">
-                                <textarea class="form-control" id="dailyLifeAssistance" name="assistance[daily_life]" placeholder="Assistance for Daily Life / Social Contact" rows="1"></textarea>
+                                <textarea class="form-control" id="dailyLifeAssistance" name="assistance[daily_life]" placeholder="Assistance Required" rows="2"></textarea>
                             </div>
                         </div>
                         <div class="row mb-2 align-items-center">
@@ -219,10 +225,10 @@
                                 <label class="form-label">Outdoor Activities</label>
                             </div>
                             <div class="col-md-4">
-                                <textarea class="form-control" id="outdoorFrequency" name="frequency[outdoor]" placeholder="Frequency for Outdoor Activities" rows="1"></textarea>
+                                <textarea class="form-control" id="outdoorFrequency" name="frequency[outdoor]" placeholder="Frequency" rows="2"></textarea>
                             </div>
                             <div class="col-md-4">
-                                <textarea class="form-control" id="outdoorAssistance" name="assistance[outdoor]" placeholder="Assistance for Outdoor Activities" rows="1"></textarea>
+                                <textarea class="form-control" id="outdoorAssistance" name="assistance[outdoor]" placeholder="Assistance Required" rows="2"></textarea>
                             </div>
                         </div>
                         <div class="row mb-3 align-items-center">
@@ -230,14 +236,14 @@
                                 <label class="form-label">Household Keeping</label>
                             </div>
                             <div class="col-md-4">
-                                <textarea class="form-control" id="householdFrequency" name="frequency[household]" placeholder="Frequency for Household Keeping" rows="1"></textarea>
+                                <textarea class="form-control" id="householdFrequency" name="frequency[household]" placeholder="Frequency" rows="2"></textarea>
                             </div>
                             <div class="col-md-4">
-                                <textarea class="form-control" id="householdAssistance" name="assistance[household]" placeholder="Assistance for Household Keeping" rows="1"></textarea>
+                                <textarea class="form-control" id="householdAssistance" name="assistance[household]" placeholder="Assistance Required" rows="2"></textarea>
                             </div>
                         </div>
 
-
+                        <hr class="my-4">
                        <!-- Medication Management -->
                         <div class="row mb-1">
                             <div class="col-12">
@@ -247,16 +253,16 @@
                         <div id="medicationManagement">
                             <div class="row mb-1 align-items-center medication-row">
                                 <div class="col-md-3">
-                                    <input type="text" class="form-control" name="medication_name[]" placeholder="Enter medication name" >
+                                    <input type="text" class="form-control" name="medication_name[]" placeholder="MEDICATION NAME" >
                                 </div>
                                 <div class="col-md-2">
-                                    <input type="text" class="form-control" name="dosage[]" placeholder="Enter dosage" >
+                                    <input type="text" class="form-control" name="dosage[]" placeholder="DOSAGE" >
                                 </div>
                                 <div class="col-md-2">
-                                    <input type="text" class="form-control" name="frequency[]" placeholder="Enter frequency" >
+                                    <input type="text" class="form-control" name="frequency[]" placeholder="FREQUENCY" >
                                 </div>
                                 <div class="col-md-4">
-                                    <textarea class="form-control" name="administration_instructions[]" placeholder="Enter administration instructions" rows="1" ></textarea>
+                                    <textarea class="form-control" name="administration_instructions[]" placeholder="ADMINISTRATION INSTRUCTIONS" rows="1" ></textarea>
                                 </div>
                                 <div class="col-md-1 d-flex text-start">
                                     <button type="button" class="btn btn-danger" onclick="removeMedicationRow(this)">Delete</button>
@@ -268,7 +274,7 @@
                                 <button type="button" class="btn btn-primary" onclick="addMedicationRow()">Add Medication</button>
                             </div>
                         </div>
-
+                        <hr class="my-4">
                         <!-- Mobility, Cognitive Function, Emotional Well-being -->
                         <div class="row mb-1">
                             <div class="col-md-4">
@@ -322,6 +328,8 @@
                             </div>
                         </div>
 
+
+                        <hr class="my-4">
                         <!-- Emergency Contact -->
                         <div class="row mb-1">
                             <div class="col-12">
@@ -353,6 +361,8 @@
                                 <input type="email" class="form-control" id="emailAddress" name="emergency_contact[email]" placeholder="Enter email address" >
                             </div>
                         </div>
+
+                        <hr class="my-4">
                         <!-- Emergency Plan -->
                         <div class="row mb-1">
                             <div class="col-12">
@@ -366,6 +376,8 @@
                             </div>
                         </div>
 
+                        
+                        <hr class="my-4">
                         <!-- Care Worker's Responsibilities -->
                         <div class="row mb-3">
                             <div class="col-12">
@@ -416,10 +428,12 @@
                             </div>
                         </div>
 
+
+                        <hr class="my-4">
                         <!-- Account Registration -->
                         <div class="row mb-1">
                             <div class="col-12">
-                                <h5 class="text-start">Account Registration</h5> <!-- Row Title -->
+                                <h5 class="text-start">Family Portal Account Registration</h5> <!-- Row Title -->
                             </div>
                         </div>
                         <div class="row mb-3">

@@ -1,3 +1,11 @@
+body, html{
+    font-family: Roboto;
+}
+
+input, textarea, button {
+    font-family: Roboto, sans-serif;
+}
+
 .home-section .container-fluid {
     height: calc(100% - 50px);
 }
@@ -48,6 +56,7 @@
     display: flex;
     flex-direction: column;
     overflow: hidden;
+    padding: 10px;
 }
 
 #addUserForm {
@@ -69,10 +78,16 @@
 
 label {
     font-size: 14px;
+    color: #000;
 }
 
 h5{
     font-size: 18px;
+}
+
+input::placeholder {
+    color: rgba(0, 0, 0, 0.3); /* Adjust the color and opacity */
+    font-size: 14px;
 }
 
 @media (max-width: 768px) {
