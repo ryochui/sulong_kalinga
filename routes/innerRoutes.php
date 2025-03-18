@@ -37,6 +37,11 @@ Route::get('/administratorProfile', function () {
     return view('admin.administratorProfile');
 })->name('administratorProfile');
 
+Route::get('/addAdministrator', function () {
+    return view('admin.addAdministrator');
+})->name('addAdministrator');
+
+
 Route::get('/municipality', function () {
     return view('admin.municipality');
 })->name('municipality');

@@ -26,7 +26,7 @@
         </li>
         <li>
           <div class="iocn-link">
-            <a class="{{ Request::routeIs('beneficiaryProfile') || Request::routeIs('addBeneficiary') || Request::routeIs('familyProfile') || Request::routeIs('caregiverProfile') || Request::routeIs('careManagerProfile') || Request::routeIs('administratorProfile') ? 'active' : '' }}">
+            <a class="{{ Request::routeIs('beneficiaryProfile') || Request::routeIs('addBeneficiary') || Request::routeIs('familyProfile') || Request::routeIs('caregiverProfile') || Request::routeIs('careManagerProfile') || Request::routeIs('administratorProfile') || Request::routeIs('addAdministrator') ? 'active' : '' }}">
               <i class='bx bxs-user-account'></i>
               <span class="link_name" onclick="toggleDropdown(this)">User Management</span>
               <i class='bx bxs-chevron-down arrow' onclick="toggleDropdown(this)"></i>
@@ -38,7 +38,7 @@
             <li><a href="familyProfile" class="{{ Request::routeIs('familyProfile') ? 'active' : '' }}">Family or Relative Profiles</a></li>
             <li><a href="caregiverProfile" class="{{ Request::routeIs('caregiverProfile') ? 'active' : '' }}">Care Worker Profiles</a></li>
             <li><a href="careManagerProfile" class="{{ Request::routeIs('careManagerProfile') ? 'active' : '' }}">Care Manager Profiles</a></li>
-            <li><a href="administratorProfile" class="{{ Request::routeIs('administratorProfile') ? 'active' : '' }}">Administrator Profiles</a></li>
+            <li><a href="administratorProfile" class="{{ Request::routeIs('administratorProfile') || Request::routeIs('addAdministrator') ? 'active' : '' }}">Administrator Profiles</a></li>
           </ul>
         </li>
         <li>
