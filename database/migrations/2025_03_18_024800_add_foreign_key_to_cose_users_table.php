@@ -12,7 +12,6 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('cose_users', function (Blueprint $table) {
-            $table->integer('barangay_id')->after('street_address');
             $table->foreign('barangay_id')->references('barangay_id')->on('barangays')->onDelete('no action');
         });
     }
@@ -24,7 +23,6 @@ return new class extends Migration
     {
         Schema::table('cose_users', function (Blueprint $table) {
             $table->dropForeign(['barangay_id']);
-            $table->dropColumn('barangay_id');
         });
     }
 };

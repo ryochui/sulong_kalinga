@@ -15,32 +15,33 @@ return new class extends Migration
 
         Schema::table('cose_users', function (Blueprint $table) {
             // Add new columns
-            $table->string('first_name', 100)->after('id');
-            $table->string('last_name', 100)->after('first_name');
-            $table->date('birthday')->after('last_name');
-            $table->string('civil_status', 20)->nullable()->after('birthday');
-            $table->string('educational_background', 100)->nullable()->after('civil_status');
-            $table->string('mobile', 11)->unique()->after('educational_background');
-            $table->string('landline', 8)->nullable()->after('mobile');
-            $table->string('password_hash', 255)->after('landline');
-            $table->text('street_address')->nullable()->after('password_hash');
-            $table->string('gender', 10)->nullable()->after('current_address');
-            $table->string('religion', 50)->nullable()->after('gender');
-            $table->string('nationality', 50)->nullable()->after('religion');
-            $table->string('volunteer_status', 20)->after('nationality');
-            $table->date('status_start_date')->after('volunteer_status');
-            $table->date('status_end_date')->after('status_start_date');
-            $table->integer('role_id')->after('status_end_date');
-            $table->string('status', 20)->after('role_id');
-            $table->integer('organization_role_id')->nullable()->after('status');
-            $table->integer('assigned_municipality_id')->nullable()->after('organization_role_id');
-            $table->binary('photo')->nullable()->after('assigned_municipality_id');
-            $table->binary('government_issued_id')->nullable()->after('photo');
-            $table->string('sss_id_number', 20)->nullable()->after('government_issued_id');
-            $table->string('philhealth_id_number', 20)->nullable()->after('sss_id_number');
-            $table->string('pagibig_id_number', 20)->nullable()->after('philhealth_id_number');
-            $table->binary('cv_resume')->nullable()->after('pagibig_id_number');
-            $table->integer('updated_by')->nullable()->after('updated_at'); // Track who updated the record
+            $table->string('first_name', 100);
+            $table->string('last_name', 100);
+            $table->date('birthday');
+            $table->string('civil_status', 20)->nullable();
+            $table->string('educational_background', 100)->nullable();
+            $table->string('mobile', 11)->unique();
+            $table->string('landline', 8)->nullable();
+            $table->string('password_hash', 255);
+            $table->text('street_address')->nullable();
+            $table->integer('barangay_id');
+            $table->string('gender', 10)->nullable();
+            $table->string('religion', 50)->nullable();
+            $table->string('nationality', 50)->nullable();
+            $table->string('volunteer_status', 20);
+            $table->date('status_start_date');
+            $table->date('status_end_date');
+            $table->integer('role_id');
+            $table->string('status', 20);
+            $table->integer('organization_role_id')->nullable();
+            $table->integer('assigned_municipality_id')->nullable();
+            $table->binary('photo')->nullable();
+            $table->binary('government_issued_id')->nullable();
+            $table->string('sss_id_number', 20)->nullable();
+            $table->string('philhealth_id_number', 20)->nullable();
+            $table->string('pagibig_id_number', 20)->nullable();
+            $table->binary('cv_resume')->nullable();
+            $table->integer('updated_by')->nullable(); // Track who updated the record
 
             // Foreign Key Constraints
             $table->foreign('role_id')->references('role_id')->on('roles')->onDelete('no action');
