@@ -42,40 +42,22 @@
                                 <label for="lastName" class="form-label">Last Name</label>
                                 <input type="text" class="form-control" id="lastName" name="last_name" placeholder="Enter last name" required>
                             </div>
-                            <div class="col-md-3">
-                                <label for="civilStatus" class="form-label">Civil Status</label>
-                                <select class="form-select" id="civilStatus" name="civil_status" required>
-                                    <option value="" selected disabled>Select civil status</option>
-                                    <option value="single">Single</option>
-                                    <option value="married">Married</option>
-                                    <option value="widowed">Widowed</option>
-                                    <option value="divorced">Divorced</option>
-                                </select>
-                            </div>
-                            <div class="col-md-3">
+                            <div class="col-md-3 position-relative">
                                 <label for="gender" class="form-label">Gender</label>
-                                <select class="form-select" id="gender" name="gender" required>
-                                    <option value="" selected disabled>Select gender</option>
-                                    <option value="male">Male</option>
-                                    <option value="female">Female</option>
-                                    <option value="other">Other</option>
-                                </select>
+                                <input type="text" class="form-control" id="genderInput" placeholder="Select Gender" autocomplete="off">
+                                <ul class="dropdown-menu w-100" id="genderDropdown">
+                                    <li><a class="dropdown-item" data-value="male">Male</a></li>
+                                    <li><a class="dropdown-item" data-value="female">Female</a></li>
+                                    <li><a class="dropdown-item" data-value="other">Other</a></li>
+                                </ul>
+                                <input type="hidden" id="gender" name="gender">
                             </div>
-                        </div>
-                        <div class="row mb-3">
                             <div class="col-md-3">
                                 <label for="birthDate" class="form-label">Birthday</label>
                                 <input type="date" class="form-control" id="birthDate" name="birth_date" required onkeydown="return true">
                             </div>
-                            <div class="col-md-3">
-                                <label for="primaryCaregiver" class="form-label">Primary Caregiver</label>
-                                <select class="form-select" id="primaryCaregiver" name="primary_caregiver" required>
-                                    <option value="" selected disabled>Select caregiver</option>
-                                    <option value="caregiver1">Caregiver 1</option>
-                                    <option value="caregiver2">Caregiver 2</option>
-                                    <option value="caregiver3">Caregiver 3</option>
-                                </select>
-                            </div>
+                        </div>
+                        <div class="row mb-3">
                             <div class="col-md-3">
                                 <label for="mobileNumber" class="form-label">Mobile Number</label>
                                 <input type="text" class="form-control" id="mobileNumber" name="mobile_number" placeholder="Enter mobile number" required>
@@ -83,6 +65,16 @@
                             <div class="col-md-3">
                                 <label for="landlineNumber" class="form-label">Landline Number</label>
                                 <input type="text" class="form-control" id="landlineNumber" name="landline_number" placeholder="Enter landline number">
+                            </div>
+                            <div class="col-md-6 position-relative">
+                                <label for="relatedBeneficiary" class="form-label">Related Beneficiary</label>
+                                <input type="text" class="form-control" id="relatedBeneficiaryInput" placeholder="Select related beneficiary" autocomplete="off">
+                                <ul class="dropdown-menu w-100" id="relatedBeneficiaryDropdown">
+                                    <li><a class="dropdown-item" data-value="beneficiary1">Beneficiary 1</a></li>
+                                    <li><a class="dropdown-item" data-value="beneficiary2">Beneficiary 2</a></li>
+                                    <li><a class="dropdown-item" data-value="beneficiary3">Beneficiary 3</a></li>
+                                </ul>
+                                <input type="hidden" id="relatedBeneficiary" name="relatedBeneficiary">
                             </div>
                         </div>
 
@@ -94,47 +86,11 @@
                             </div>
                         </div>
                         <div class="row mb-3">
-                            <div class="col-md-6">
-                                <label for="addressDetails" class="form-label">House No., Street, Subdivision</label>
-                                <input type="text" class="form-control" id="addressDetails" name="address_details" placeholder="Enter house no., street, subdivision" required>
+                            <div class="col-md-12">
+                                <label for="addressDetails" class="form-label">House No., Street, Subdivision, Barangay, City, Province</label>
+                                <textarea class="form-control" id="addressDetails" name="address_details" placeholder="Enter complete current address" rows="2" required></textarea>
                             </div>
-                            <div class="col-md-3">
-                                <label for="barangay" class="form-label">Barangay</label>
-                                <select class="form-select" id="barangay" name="barangay" required>
-                                    <option value="" selected disabled>Select barangay</option>
-                                    <option value="barangay1">Barangay 1</option>
-                                    <option value="barangay2">Barangay 2</option>
-                                    <option value="barangay3">Barangay 3</option>
-                                </select>
-                            </div>
-                            <div class="col-md-3">
-                                <label for="municipality" class="form-label">Municipality</label>
-                                <select class="form-select" id="municipality" name="municipality" required>
-                                    <option value="" selected disabled>Select municipality</option>
-                                    <option value="municipality1">Municipality 1</option>
-                                    <option value="municipality2">Municipality 2</option>
-                                    <option value="municipality3">Municipality 3</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <hr class="my-4">
-                        <!-- General Care Plan and Care Service Agreement File Upload -->
-                        <div class="row mb-3">
-                            <div class="col-md-4">
-                                <label for="datePicker" class="form-label">Review Date</label>
-                                <input type="date" class="form-control" id="datePicker" name="date" value="{{ date('Y-m-d') }}" required>
-                            </div>
-                            <div class="col-md-4">
-                                <label for="generalCarePlan" class="form-label">General Care Plan</label>
-                                <input type="file" class="form-control" id="generalCarePlan" name="general_care_plan" accept=".pdf,.doc,.docx" required>
-                            </div>
-                            <div class="col-md-4">
-                                <label for="careServiceAgreement" class="form-label">Care Service Agreement</label>
-                                <input type="file" class="form-control" id="careServiceAgreement" name="care_service_agreement" accept=".pdf,.doc,.docx" required>
-                            </div>
-                        </div>
-
+                        </div>                  
 
                         <hr class="my-4">
                         <!-- Account Registration -->
@@ -144,17 +100,8 @@
                             </div>
                         </div>
                         <div class="row mb-3">
-                            <div class="col-md-4">
-                                <label for="accountEmail" class="form-label">Email</label>
-                                <input type="email" class="form-control" id="accountEmail" name="account[email]" placeholder="Enter email" required>
-                            </div>
-                            <div class="col-md-4">
-                                <label for="password" class="form-label">Password</label>
-                                <input type="password" class="form-control" id="password" name="account[password]" placeholder="Enter password" required>
-                            </div>
-                            <div class="col-md-4">
-                                <label for="confirmPassword" class="form-label">Confirm Password</label>
-                                <input type="password" class="form-control" id="confirmPassword" name="account[confirm_password]" placeholder="Confirm password" required>
+                            <div class="col-12">
+                                <h5 class="text-start" styl="font-weight: normal;"><strong>Note:* </strong>Your Family Portal account will be connected to your <strong>Related Beneficiary's account</strong></h5> <!-- Row Title -->
                             </div>
                         </div>
 
@@ -242,14 +189,8 @@
             }
 
             // Initialize filtering for each dropdown
-            filterDropdown('civilStatusInput', 'civilStatusDropdown');
             filterDropdown('genderInput', 'genderDropdown');
-            filterDropdown('primaryCareworkerInput', 'primaryCareworkerDropdown');
-            filterDropdown('barangayInput', 'barangayDropdown');
-            filterDropdown('municipalityInput', 'municipalityDropdown');
-            filterDropdown('categoryInput', 'categoryDropdown');
-            filterDropdown('relationInput', 'relationDropdown');
-            filterDropdown('careworkerNameInput', 'careworkerNameDropdown');
+            filterDropdown('relatedBeneficiaryInput', 'relatedBeneficiaryDropdown');
         });
     </script>
 

@@ -179,3 +179,18 @@ input, textarea, select {
     border: 2px solid red;
     background-color: #ffe6e6;
 }
+
+/* Ensure the canvas is responsive */
+.signature-pad-body canvas {
+    width: 100%; /* Make the canvas take up the full width of its container */
+    height: auto; /* Maintain aspect ratio */
+    border: 1px solid #ced4da;
+    display: block; /* Prevent inline-block spacing issues */
+}
+
+/* Adjust the height for smaller screens */
+@media (max-width: 768px) {
+    .signature-pad-body canvas {
+        height: 150px; /* Reduce height for smaller screens */
+    }
+}

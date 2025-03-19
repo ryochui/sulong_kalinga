@@ -25,7 +25,7 @@
             <div class="row" id="addUserForm">
                 <div class="col-12">
                     <!-- <form action="{{ route('addBeneficiary') }}" method="POST"> -->
-                    <form>
+                    <form id="addBeneficiaryForm">
                         @csrf
                         <!-- Row 1: Personal Details -->
                         <div class="row mb-1 mt-3">
@@ -382,15 +382,15 @@
                         
                         <hr class="my-4">
                         <!-- Care Worker's Responsibilities -->
-                        <div class="row mb-3">
+                        <div class="row mb-1">
                             <div class="col-12">
                                 <h5 class="text-start">Care Worker's Responsibilities</h5> 
                             </div>
                         </div>
-                        <div class="row mb-3">
+                        <div class="row mb-1">
                             <div class="col-md-3 position-relative">
-                                <label for="careworkerName" class="form-label">Municipality</label>
-                                <input type="text" class="form-control" id="careworkerNameInput" placeholder="Select municipality" autocomplete="off">
+                                <label for="careworkerName" class="form-label">Select Care Worker</label>
+                                <input type="text" class="form-control" id="careworkerNameInput" placeholder="Select Care Worker" autocomplete="off">
                                 <ul class="dropdown-menu w-100" id="careworkerNameDropdown">
                                     <li><a class="dropdown-item" data-value="careworker1">Careworker 1</a></li>
                                     <li><a class="dropdown-item" data-value="careworker2">Careworker 2</a></li>
@@ -416,19 +416,54 @@
                             </div>
                         </div>
 
+                        <hr class="my-4">
                         <!-- General Care Plan and Care Service Agreement File Upload -->
-                        <div class="row mb-3">
+                        <div class="row mb-1">
+                            <div class="col-12">
+                                <h5 class="text-start">Documents and Signatures</h5> 
+                            </div>
+                        </div>
+                        <div class="row mb-1">
                             <div class="col-md-4">
                                 <label for="datePicker" class="form-label">Review Date</label>
                                 <input type="date" class="form-control" id="datePicker" name="date" value="{{ date('Y-m-d') }}" required>
                             </div>
                             <div class="col-md-4">
-                                <label for="generalCarePlan" class="form-label">General Care Plan</label>
-                                <input type="file" class="form-control" id="generalCarePlan" name="general_care_plan" accept=".pdf,.doc,.docx" required>
-                            </div>
-                            <div class="col-md-4">
                                 <label for="careServiceAgreement" class="form-label">Care Service Agreement</label>
                                 <input type="file" class="form-control" id="careServiceAgreement" name="care_service_agreement" accept=".pdf,.doc,.docx" required>
+                            </div>
+                        </div>
+
+                        <!-- Beneficiary and Care Worker Signatures -->
+                        <div class="row mb-3">
+                            <!-- Beneficiary Signature Column -->
+                            <div class="col-md-6">
+                                <div class="form-group mt-3">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <label>Beneficiary Signature</label>
+                                        <button type="button" id="clear-signature-1" class="btn btn-danger btn-sm">Clear</button>
+                                    </div>
+                                    <div id="signature-pad-1" class="signature-pad">
+                                        <div class="signature-pad-body">
+                                            <canvas id="canvas1" style="border: 1px solid #ced4da; width: 100%; height: 200px;"></canvas>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Care Worker Signature Column -->
+                            <div class="col-md-6">
+                                <div class="form-group mt-3">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <label>Care Worker Signature</label>
+                                        <button type="button" id="clear-signature-2" class="btn btn-danger btn-sm">Clear</button>
+                                    </div>
+                                    <div id="signature-pad-2" class="signature-pad">
+                                        <div class="signature-pad-body">
+                                            <canvas id="canvas2" style="border: 1px solid #ced4da; width: 100%; height: 200px;"></canvas>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
@@ -486,6 +521,9 @@
             </div>
         </div>
     </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/signature_pad/1.5.3/signature_pad.min.js"></script>
+
 
     <script src=" {{ asset('js/toggleSideBar.js') }}"></script>
     <script src="{{ asset('js/bootstrap.bundle.min.js') }}"></script>
@@ -610,6 +648,69 @@
             filterDropdown('categoryInput', 'categoryDropdown');
             filterDropdown('relationInput', 'relationDropdown');
             filterDropdown('careworkerNameInput', 'careworkerNameDropdown');
+        });
+    </script>
+   <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            // Initialize Signature Pads
+            const canvas1 = document.getElementById("canvas1");
+            const canvas2 = document.getElementById("canvas2");
+
+            const signaturePad1 = new SignaturePad(canvas1);
+            const signaturePad2 = new SignaturePad(canvas2);
+
+            // Resize canvas to fit the container
+            function resizeCanvas(canvas, signaturePad) {
+                const ratio = Math.max(window.devicePixelRatio || 1, 1);
+                canvas.width = canvas.offsetWidth * ratio;
+                canvas.height = canvas.offsetHeight * ratio;
+                canvas.getContext("2d").scale(ratio, ratio);
+                signaturePad.clear(); // Clear the canvas after resizing
+            }
+
+            // Resize both canvases on page load and window resize
+            function initializeCanvas() {
+                resizeCanvas(canvas1, signaturePad1);
+                resizeCanvas(canvas2, signaturePad2);
+            }
+
+            window.addEventListener("resize", initializeCanvas);
+            initializeCanvas();
+
+            // Clear First Signature
+            document.getElementById("clear-signature-1").addEventListener("click", function () {
+                signaturePad1.clear();
+            });
+
+            // Clear Second Signature
+            document.getElementById("clear-signature-2").addEventListener("click", function () {
+                signaturePad2.clear();
+            });
+
+            // Handle Form Submission
+            document.getElementById("addBeneficiaryForm").addEventListener("submit", function (e) {
+                e.preventDefault();
+
+                if (signaturePad1.isEmpty()) {
+                    alert("Please draw the first signature.");
+                    return;
+                }
+
+                if (signaturePad2.isEmpty()) {
+                    alert("Please draw the second signature.");
+                    return;
+                }
+
+                // Save signatures as base64 images
+                const signatureDataURL1 = signaturePad1.toDataURL();
+                const signatureDataURL2 = signaturePad2.toDataURL();
+
+                // Log the signatures (you can send these to the backend)
+                console.log("First Signature (Base64):", signatureDataURL1);
+                console.log("Second Signature (Base64):", signatureDataURL2);
+
+                alert("Both signatures submitted successfully!");
+            });
         });
     </script>
 
