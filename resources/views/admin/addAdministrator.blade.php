@@ -118,7 +118,7 @@
                         <!-- Account Registration -->
                         <div class="row mb-1">
                             <div class="col-12">
-                                <h5 class="text-start">Care Manager Account Registration</h5> <!-- Row Title -->
+                                <h5 class="text-start">Administrator Account Registration</h5> <!-- Row Title -->
                             </div>
                         </div>
                         <div class="row mb-3">
@@ -141,7 +141,7 @@
                             <div class="col-12 d-flex justify-content-center align-items-center">
                                 <button type="submit" class="btn btn-success btn-lg d-flex align-items-center">
                                     <i class='bx bx-save me-2' style="font-size: 24px;"></i>
-                                    Save Care Administrator
+                                    Save Administrator
                                 </button>
                             </div>
                         </div>
