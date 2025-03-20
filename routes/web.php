@@ -5,6 +5,10 @@ use App\Http\Controllers\Admin\ReportsController;
 // use App\Http\Controllers\AuthController; // old auth
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\AdminController;
+// for retrieving beneficiaries table
+use App\Http\Controllers\BeneficiaryController;
+use App\Http\Controllers\UserController;
+
 
 require __DIR__.'/innerRoutes.php';
 
@@ -60,6 +64,9 @@ Route::post('logout', [LoginController::class, 'logout'])->name('logout'); // no
     })->name('forgotPass');
     
     Route::get('/admin/reportsManagement', [ReportsController::class, 'index'])->name('admin.reportsManagement');
-// });
 
-
+    //For beneficiary profiles table
+    Route::get('/beneficiaryProfile', [BeneficiaryController::class, 'index'])->name('admin.beneficiaryProfile');
+    Route::put('/admin/beneficiaries/{id}/status', [BeneficiaryController::class, 'updateStatus']);
+    Route::put('/admin/beneficiaries/{id}/activate', [BeneficiaryController::class, 'activate']);
+    Route::post('/validate-password', [UserController::class, 'validatePassword']);

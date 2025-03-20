@@ -20,7 +20,7 @@ return new class extends Migration
             $table->date('birthday');
             $table->string('civil_status', 20)->nullable();
             $table->string('educational_background', 100)->nullable();
-            $table->string('mobile', 11)->unique();
+            $table->string('mobile', 18)->unique();
             $table->string('landline', 8)->nullable();
             $table->string('personal_email', 255)->unique();
             // $table->string('email_address', 100)->unique();

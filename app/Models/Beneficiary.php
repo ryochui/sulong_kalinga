@@ -19,4 +19,28 @@ class Beneficiary extends Model
         'emergency_contact_email', 'beneficiary_status_id', 'status_reason', 'general_care_plan_id',
         'portal_account_id', 'beneficiary_signature', 'care_worker_signature', 'created_by', 'updated_by'
     ];
+
+    /**
+     * Get the category associated with the beneficiary.
+     */
+    public function category()
+    {
+        return $this->belongsTo(BeneficiaryCategory::class, 'category_id', 'category_id');
+    }
+
+    /**
+     * Get the status associated with the beneficiary.
+     */
+    public function status()
+    {
+        return $this->belongsTo(BeneficiaryStatus::class, 'beneficiary_status_id', 'beneficiary_status_id');
+    }
+
+     /**
+     * Get the municipality associated with the beneficiary.
+     */
+    public function municipality()
+    {
+        return $this->belongsTo(Municipality::class, 'municipality_id', 'municipality_id');
+    }
 }

@@ -34,7 +34,7 @@ class BeneficiaryFactory extends Factory
             'gender' => $this->faker->randomElement(['Male', 'Female']),
             'birthday' => $this->faker->date(),
             'primary_caregiver' => $this->faker->name,
-            'mobile' => $this->faker->unique()->numerify('09#########'),
+            'mobile' => $this->faker->unique()->numerify('+63##########'),
             'landline' => $this->faker->numerify('#######'),
             'street_address' => $this->faker->address,
             'barangay_id' => $barangayId,

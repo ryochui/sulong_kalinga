@@ -19,7 +19,7 @@ return new class extends Migration
             $table->string('gender', 50);
             $table->date('birthday');
             $table->string('primary_caregiver', 255)->nullable();
-            $table->string('mobile', 11)->nullable();
+            $table->string('mobile', 18)->nullable();
             $table->string('landline', 8)->nullable();
             $table->text('street_address');
             $table->integer('barangay_id');

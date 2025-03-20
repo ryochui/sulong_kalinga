@@ -16,7 +16,7 @@ return new class extends Migration
             $table->string('first_name', 100);
             $table->string('last_name', 100);
             $table->date('birthday');
-            $table->string('mobile', 11)->nullable();
+            $table->string('mobile', 18)->unique()->nullable();
             $table->string('landline', 8)->nullable();
             $table->string('email', 100)->unique();
             $table->boolean('access')->default(1); // Add status column default value

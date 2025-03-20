@@ -21,12 +21,14 @@
             <div class="row mb-3 align-items-center">
                 <!-- Search Bar -->
                 <div class="col-12 col-md-6 col-lg-6 mb-2">
-                    <div class="input-group">
-                        <span class="input-group-text">
-                            <i class="bx bx-search-alt"></i>
-                        </span>
-                        <input type="text" class="form-control" placeholder="Search reports..." id="searchBar">
-                    </div>
+                    <form action="{{ route('admin.beneficiaryProfile') }}" method="GET">
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="bx bx-search-alt"></i>
+                            </span>
+                            <input type="text" class="form-control" name="search" placeholder="Enter beneficiary name..." id="searchBar" value="{{ request('search') }}">
+                            <button type="submit" class="btn btn-primary">Search</button>
+                        </div>
                 </div>
 
                 <!-- Filter Dropdown -->
@@ -35,14 +37,15 @@
                         <span class="input-group-text">
                             <i class="bx bx-filter-alt"></i>
                         </span>
-                        <select class="form-select" id="filterDropdown">
-                            <option value="" selected>Filter by</option>
-                            <option value="author">Author</option>
-                            <option value="type">Report Type</option>
-                            <option value="date">Date Uploaded</option>
+                        <select class="form-select" name="filter" id="filterDropdown" onchange="this.form.submit()">
+                            <option value="" {{ request('filter') ? '' : 'selected' }}>Filter by</option>
+                            <option value="category" {{ request('filter') == 'category' ? 'selected' : '' }}>Category</option>
+                            <option value="status" {{ request('filter') == 'status' ? 'selected' : '' }}>Status</option>
+                            <option value="municipality" {{ request('filter') == 'municipality' ? 'selected' : '' }}>Municipality</option>
                         </select>
                     </div>
                 </div>
+                </form>
 
                 <!-- Export Dropdown -->
                 <div class="col-6 col-md-3 col-lg-2 mb-2">
@@ -79,25 +82,25 @@
                                     <th scope="col">Fullname</th>
                                     <th scope="col">Category</th>
                                     <th scope="col">Mobile Number</th>
-                                    <th scope="col">Primary Caregiver</th>
+                                    <th scope="col">Municipality</th>
                                     <th scope="col">Status</th>
                                     <th scope="col">Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                @for ($i = 1; $i <= 33; $i++)
+                                @foreach ($beneficiaries as $beneficiary)
                                     <tr>
                                         <td>
                                             <input type="checkbox" class="rowCheckbox" />
                                         </td>
-                                        <td>Mark</td>
-                                        <td>Otto</td>
-                                        <td>@+63 9123-123456</td>
-                                        <td>Otto</td>
+                                        <td>{{ $beneficiary->first_name }} {{ $beneficiary->last_name }}</td>
+                                        <td>{{ $beneficiary->category->category_name }}</td>
+                                        <td>{{ $beneficiary->mobile }}</td>
+                                        <td>{{ $beneficiary->municipality->municipality_name }}</td>
                                         <td>
-                                        <select class="form-select" name="status" id="statusSelect{{ $i }}" onchange="openStatusChangeModal(this, 'Beneficiary')">
-                                            <option value="active" selected>Active</option>
-                                            <option value="inactive">Inactive</option>
+                                        <select class="form-select" name="status" id="statusSelect{{ $beneficiary->beneficiary_id }}" onchange="openStatusChangeModal(this, 'Beneficiary', {{ $beneficiary->beneficiary_id }}, '{{ $beneficiary->status->status_name }}')">
+                                            <option value="Active" {{ $beneficiary->status->status_name == 'Active' ? 'selected' : '' }}>Active</option>
+                                            <option value="Inactive" {{ $beneficiary->status->status_name == 'Inactive' ? 'selected' : '' }}>Inactive</option>
                                         </select>
                                         </td>
                                         <td>
@@ -107,7 +110,7 @@
                                             </div>
                                         </td>
                                     </tr>
-                                @endfor
+                                @endforeach
                             </tbody>
                         </table>
                     </div>
@@ -116,7 +119,7 @@
         </div>
     </div>
 
-    <script src=" {{ asset('js/toggleSideBar.js') }}"></script>
+    <script src="{{ asset('js/toggleSideBar.js') }}"></script>
     <script src="{{ asset('js/bootstrap.bundle.min.js') }}"></script>
     <script src="{{ asset('js/forCheckbox.js') }}"></script>
 </body>
