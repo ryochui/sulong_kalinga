@@ -21,7 +21,7 @@ class User extends Authenticatable
      */
     protected $fillable = [
         'first_name', 'last_name', 'birthday', 'civil_status', 'educational_background',
-        'mobile', 'landline', 'email_address', 'password_hash', 'address', 'barangay_id',
+        'mobile', 'landline', 'email', 'address', 'barangay_id',
         'gender', 'religion', 'nationality', 'volunteer_status', 'status_start_date',
         'status_end_date', 'role_id', 'status', 'organization_role_id', 'assigned_municipality_id',
         'photo', 'government_issued_id', 'sss_id_number', 'philhealth_id_number',
@@ -49,64 +49,64 @@ class User extends Authenticatable
         'status_end_date' => 'date',
     ];
 
-    /**
-     * Get the name of the unique identifier for the user.
-     *
-     * @return string
-     */
-    public function getAuthIdentifierName()
-    {
-        return 'email_address';
-    }
+//     /**
+//      * Get the name of the unique identifier for the user.
+//      *
+//      * @return string
+//      */
+//     public function getAuthIdentifierName()
+//     {
+//         return 'email_address';
+//     }
 
-    /**
-     * Get the unique identifier for the user.
-     *
-     * @return mixed
-     */
-    public function getAuthIdentifier()
-    {
-        return $this->email_address;
-    }
+//     /**
+//      * Get the unique identifier for the user.
+//      *
+//      * @return mixed
+//      */
+//     public function getAuthIdentifier()
+//     {
+//         return $this->email_address;
+//     }
 
-    /**
-     * Get the password for the user.
-     *
-     * @return string
-     */
-    public function getAuthPassword()
-    {
-        return $this->password_hash;
-    }
+//     /**
+//      * Get the password for the user.
+//      *
+//      * @return string
+//      */
+//     public function getAuthPassword()
+//     {
+//         return $this->password_hash;
+//     }
 
-    /**
-     * Get the token value for the "remember me" session.
-     *
-     * @return string|null
-     */
-    public function getRememberToken()
-    {
-        return $this->remember_token;
-    }
+//     /**
+//      * Get the token value for the "remember me" session.
+//      *
+//      * @return string|null
+//      */
+//     public function getRememberToken()
+//     {
+//         return $this->remember_token;
+//     }
 
-    /**
-     * Set the token value for the "remember me" session.
-     *
-     * @param string|null $value
-     * @return void
-     */
-    public function setRememberToken($value)
-    {
-        $this->remember_token = $value;
-    }
+//     /**
+//      * Set the token value for the "remember me" session.
+//      *
+//      * @param string|null $value
+//      * @return void
+//      */
+//     public function setRememberToken($value)
+//     {
+//         $this->remember_token = $value;
+//     }
 
-    /**
-     * Get the column name for the "remember me" token.
-     *
-     * @return string
-     */
-    public function getRememberTokenName()
-    {
-        return 'remember_token';
-    }
+//     /**
+//      * Get the column name for the "remember me" token.
+//      *
+//      * @return string
+//      */
+//     public function getRememberTokenName()
+//     {
+//         return 'remember_token';
+//     }
 }

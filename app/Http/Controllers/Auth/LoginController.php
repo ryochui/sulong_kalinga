@@ -31,25 +31,32 @@ class LoginController extends Controller
             return redirect()->back()->withErrors($validator)->withInput();
         }
 
-        // Attempt to find the user by email
+        // Check in the cose_users table
         $user = \DB::table('cose_users')
                     ->where('email', $request->input('email'))
                     ->first();
 
-        if (!$user) {
-            return redirect()->back()->withErrors(['email' => 'User not found'])->withInput();
-        }
-
-        // Check if the password matches using Hash::check
-        if (Hash::check($request->input('password'), $user->password)) {
-            // If password is correct, log in the user
+        if ($user && Hash::check($request->input('password'), $user->password)) {
+            // If user is found in cose_users and password matches, log in the user
             Auth::loginUsingId($user->id);
-
-            return redirect()->route('landing');  // Redirect to the home route or dashboard
-        } else {
-            // If password doesn't match, return an error
-            return redirect()->back()->withErrors(['password' => 'Invalid password'])->withInput();
+            session(['user_type' => 'cose']); // Store user type in session
+            return redirect()->route('landing'); // Redirect to the landing page
         }
+
+        // If not found in cose_users, check in the portal_accounts table
+        $portalUser = \DB::table('portal_accounts')
+                        ->where('portal_email', $request->input('email'))
+                        ->first();
+
+        if ($portalUser && Hash::check($request->input('password'), $portalUser->portal_password)) {
+            // If user is found in portal_accounts and password matches, log in the user
+            Auth::loginUsingId($portalUser->id); // Use portal_account_id as the user ID
+            session(['user_type' => 'portal']); // Store user type in session
+            return redirect()->route('landing'); // Redirect to the landing page
+        }
+
+        // If no user is found in either table, return an error
+        return redirect()->back()->withErrors(['email' => 'Invalid credentials'])->withInput();
     }
 
     // Handle logout
