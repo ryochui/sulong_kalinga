@@ -12,8 +12,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('portal_accounts', function (Blueprint $table) {
-            $table->increments('portal_account_id');
-            $table->string('portal_email', 255)->after('portal_account_id');
+            $table->increments('id');
+            $table->string('portal_email', 255)->after('id');
             $table->string('portal_password', 255)->after('portal_username');
             $table->timestamps();
         });

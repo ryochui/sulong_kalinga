@@ -30,11 +30,11 @@
                                 </ul>
                             </div>
                         @endif
-                        <form action="#" method="POST">
-                            <!-- @csrf (VALIDATION TOKEN) -->
+                        <form action="{{ route('login') }}" method="POST">
+                            @csrf <!-- CSRF protection -->
                             <div class="mb-3">
                                 <label class="form-label">Email</label>
-                                <input type="email" class="form-control" placeholder="lastnameFirstname@example.com" required>
+                                <input type="email" class="form-control" name="email" placeholder="lastnameFirstname@example.com" required>
                                 <!-- EMAIL INPUT ERROR -->
                                 <!-- @error('email')
                                     <div class="invalid-feedback">
@@ -44,7 +44,7 @@
                             </div>
                             <div class="mb-3">
                                 <label class="form-label">Password</label>
-                                <input type="password" class="form-control" placeholder="Enter your password" required>
+                                <input type="password" class="form-control" name="password" placeholder="Enter your password" required>
                                 <!-- PASSWORD INPUT ERROR -->
                                 <!-- @error('password')
                                     <div class="invalid-feedback">
@@ -57,6 +57,7 @@
                             </div>
                             <button type="submit" class="btn btn-primary w-100" id="submitLogin">Login</button>
                         </form>
+
                     </div>
                 </div>
             </div>

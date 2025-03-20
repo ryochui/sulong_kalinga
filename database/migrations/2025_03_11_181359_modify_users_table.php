@@ -22,8 +22,8 @@ return new class extends Migration
             $table->string('educational_background', 100)->nullable();
             $table->string('mobile', 11)->unique();
             $table->string('landline', 8)->nullable();
-            $table->string('email_address', 100)->unique();
-            $table->string('password_hash', 255);
+            // $table->string('email_address', 100)->unique();
+            // $table->string('password_hash', 255);
             $table->text('address')->nullable();
             $table->integer('barangay_id')->nullable();
             $table->string('gender', 10)->nullable();
