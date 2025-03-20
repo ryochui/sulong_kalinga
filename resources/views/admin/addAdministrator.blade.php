@@ -118,8 +118,8 @@
                         </div> 
                         <div class="row mb-3">
                             <div class="col-md-4">
-                                <label for="emailAddress" class="form-label">Email Address</label>
-                                <input type="email" class="form-control" id="emailAddress" name="emmail_address" placeholder="Enter email" required>
+                                <label for="personalEmail" class="form-label">Personal Email Address</label>
+                                <input type="email" class="form-control" id="personalEmail" name="personal_email" placeholder="Enter personal email" required>
                             </div>
                             <div class="col-md-4">
                                 <label for="mobileNumber" class="form-label">Mobile Number</label>
@@ -132,6 +132,43 @@
                         </div>
 
                         <hr class="my-4">
+                        <!-- Documents -->
+                        <div class="row mb-1">
+                            <div class="col-12">
+                                <h5 class="text-start">Documents Upload</h5> <!-- Row Title -->
+                            </div>
+                        </div>
+                        <div class="row mb-1">
+                            <div class="col-md-4">
+                                <label for="administratorPhoto" class="form-label">Administrator Photo</label>
+                                <input type="file" class="form-control" id="administratorPhoto" name="administrator_photo" accept="image/png, image/jpeg" capture="user" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="governmentID" class="form-label">Government Issued ID</label>
+                                <input type="file" class="form-control" id="governmentID" name="government_ID" accept=".jpg,.png" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="resume" class="form-label">Resume / CV</label>
+                                <input type="file" class="form-control" id="resume" name="resume" accept=".pdf,.doc,.docx" required>
+                            </div>
+                        </div>
+                        <div class="row mb-1">
+                            <div class="col-md-4">
+                                <label for="sssID" class="form-label">SSS ID</label>
+                                <input type="text" class="form-control" id="sssID" name="sss_ID">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="philhealthID" class="form-label">PhilHealth ID</label>
+                                <input type="text" class="form-control" id="philhealthID" name="philhealth_ID">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="pagibigID" class="form-label">Pag-Ibig ID</label>
+                                <input type="text" class="form-control" id="pagibigID" name="pagibig_ID">
+                            </div>
+                        </div>
+
+
+                        <hr class="my-4">
                         <!-- Account Registration -->
                         <div class="row mb-1">
                             <div class="col-12">
@@ -140,8 +177,8 @@
                         </div>
                         <div class="row mb-1">
                             <div class="col-md-4">
-                                <label for="accountEmail" class="form-label">Email</label>
-                                <input type="email" class="form-control" id="accountEmail" name="account[email]" placeholder="Enter email" required>
+                                <label for="email" class="form-label">Email</label>
+                                <input type="email" class="form-control" id="email" name="account[email]" placeholder="Enter email" required>
                             </div>
                             <div class="col-md-4">
                                 <label for="password" class="form-label">Password</label>
@@ -149,16 +186,16 @@
                             </div>
                             <div class="col-md-4">
                                 <label for="confirmPassword" class="form-label">Confirm Password</label>
-                                <input type="password" class="form-control" id="confirmPassword" name="account[confirm_password]" placeholder="Confirm password" required>
+                                <input type="password" class="form-control" id="confirmPassword" name="account[password_confirmation]" placeholder="Confirm password" required>
                             </div>
                         </div>
                         <div class="row mb-3">
                             <div class="col-md-4 position-relative">
-                                <label for="Organization_Roles" class="form-label">Organization Roles</label>
+                                <label for="organization_Roles" class="form-label">Organization Roles</label>
                                 <input type="text" class="form-control" id="Organization_RolesInput" placeholder="Select organization role" autocomplete="off">
                                 <ul class="dropdown-menu w-100" id="Organization_RolesDropdown">
-                                    <li><a class="dropdown-item" data-value="project_coordinator">Project Coordinator</a></li>
-                                    <li><a class="dropdown-item" data-value="meal_coordinator">MEAL Coordinator</a></li>
+                                    <li><a class="dropdown-item" data-value="2">Project Coordinator</a></li>
+                                    <li><a class="dropdown-item" data-value="3">MEAL Coordinator</a></li>
                                 </ul>
                                 <input type="hidden" id="Organization_Roles" name="Organization_Roles">
                             </div>
@@ -198,6 +235,8 @@
     <script src="{{ asset('js/bootstrap.bundle.min.js') }}"></script>
     <script>
         document.querySelector('form').addEventListener('submit', function (e) {
+e.preventDefault(); // Prevent the default form submission
+
             e.preventDefault(); // Prevent the default form submission
 
             // Show the success modal
@@ -205,7 +244,7 @@
             successModal.show();
         });
     </script>
-    <script>
+<!-- <script>
         document.querySelector('form').addEventListener('submit', function (e) {
             e.preventDefault(); // Prevent the default form submission
 
@@ -213,7 +252,7 @@
             const successModal = new bootstrap.Modal(document.getElementById('saveSuccessModal'));
             successModal.show();
         });
-    </script>
+    </script> -->
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             // Function to filter dropdown items
