@@ -59,9 +59,11 @@
 
                 <!-- Add Report Button -->
                 <div class="col-6 col-md-3 col-lg-2 mb-2">
+                    <a href="addCareworker">
                     <button class="btn btn-primary w-100" id="addButton" style="padding:6px;">
                         <i class="bx bx-plus"></i> Add Careworker
                     </button>
+                    </a>
                 </div>
             </div>
 

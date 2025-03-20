@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard</title>
+    <title>Add Beneficiary</title>
     <link rel="stylesheet" href="{{ asset('css/bootstrap.min.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <link href='https://unpkg.com/boxicons@2.0.7/css/boxicons.min.css' rel='stylesheet'>
@@ -13,7 +13,6 @@
 
     @include('components.userNavbar')
     @include('components.sidebar')
-    @include('components.modals.statusChangeBeneficiary')
     
     <div class="home-section">
         <div class="container-fluid">
@@ -26,12 +25,12 @@
             <div class="row" id="addUserForm">
                 <div class="col-12">
                     <!-- <form action="{{ route('addBeneficiary') }}" method="POST"> -->
-                    <form>
-                        @csrf <!-- Include CSRF token for security -->
+                    <form id="addBeneficiaryForm">
+                        @csrf
                         <!-- Row 1: Personal Details -->
                         <div class="row mb-1 mt-3">
                             <div class="col-12">
-                                <h5 class="text-start">Personal Details</h5> <!-- Row Title -->
+                                <h5 class="text-start">Personal Details</h5>
                             </div>
                         </div>
                         <div class="row mb-1">
@@ -43,24 +42,26 @@
                                 <label for="lastName" class="form-label">Last Name</label>
                                 <input type="text" class="form-control" id="lastName" name="last_name" placeholder="Enter last name" required>
                             </div>
-                            <div class="col-md-3">
+                            <div class="col-md-3 position-relative">
                                 <label for="civilStatus" class="form-label">Civil Status</label>
-                                <select class="form-select" id="civilStatus" name="civil_status" required>
-                                    <option value="" selected disabled>Select civil status</option>
-                                    <option value="single">Single</option>
-                                    <option value="married">Married</option>
-                                    <option value="widowed">Widowed</option>
-                                    <option value="divorced">Divorced</option>
-                                </select>
+                                <input type="text" class="form-control" id="civilStatusInput" placeholder="Select civil status" autocomplete="off">
+                                <ul class="dropdown-menu w-100" id="civilStatusDropdown">
+                                    <li><a class="dropdown-item" data-value="single">Single</a></li>
+                                    <li><a class="dropdown-item" data-value="married">Married</a></li>
+                                    <li><a class="dropdown-item" data-value="widowed">Widowed</a></li>
+                                    <li><a class="dropdown-item" data-value="divorced">Divorced</a></li>
+                                </ul>
+                                <input type="hidden" id="civilStatus" name="civil_status">
                             </div>
-                            <div class="col-md-3">
+                            <div class="col-md-3 position-relative">
                                 <label for="gender" class="form-label">Gender</label>
-                                <select class="form-select" id="gender" name="gender" required>
-                                    <option value="" selected disabled>Select gender</option>
-                                    <option value="male">Male</option>
-                                    <option value="female">Female</option>
-                                    <option value="other">Other</option>
-                                </select>
+                                <input type="text" class="form-control" id="genderInput" placeholder="Select gender" autocomplete="off">
+                                <ul class="dropdown-menu w-100" id="genderDropdown">
+                                    <li><a class="dropdown-item" data-value="male">Male</a></li>
+                                    <li><a class="dropdown-item" data-value="female">Female</a></li>
+                                    <li><a class="dropdown-item" data-value="other">Other</a></li>
+                                </ul>
+                                <input type="hidden" id="gender" name="gender">
                             </div>
                         </div>
                         <div class="row mb-3">
@@ -68,14 +69,15 @@
                                 <label for="birthDate" class="form-label">Birthday</label>
                                 <input type="date" class="form-control" id="birthDate" name="birth_date" required onkeydown="return true">
                             </div>
-                            <div class="col-md-3">
-                                <label for="primaryCaregiver" class="form-label">Primary Caregiver</label>
-                                <select class="form-select" id="primaryCaregiver" name="primary_caregiver" required>
-                                    <option value="" selected disabled>Select caregiver</option>
-                                    <option value="caregiver1">Caregiver 1</option>
-                                    <option value="caregiver2">Caregiver 2</option>
-                                    <option value="caregiver3">Caregiver 3</option>
-                                </select>
+                            <div class="col-md-3 position-relative">
+                                <label for="primaryCareworker" class="form-label">Primary Caregiver</label>
+                                <input type="text" class="form-control" id="primaryCareworkerInput" placeholder="Select Primary Careworker" autocomplete="off">
+                                <ul class="dropdown-menu w-100" id="primaryCareworkerDropdown">
+                                    <li><a class="dropdown-item" data-value="careworker1">Careworker 1</a></li>
+                                    <li><a class="dropdown-item" data-value="careworker2">Careworker 2</a></li>
+                                    <li><a class="dropdown-item" data-value="careworker3">Careworker 3</a></li>
+                                </ul>
+                                <input type="hidden" id="primaryCareworker" name="primaryCareworker">
                             </div>
                             <div class="col-md-3">
                                 <label for="mobileNumber" class="form-label">Mobile Number</label>
@@ -91,7 +93,7 @@
                         <!-- Row 2: Address -->
                         <div class="row mb-1">
                             <div class="col-12">
-                                <h5 class="text-start">Current Address</h5> <!-- Row Title -->
+                                <h5 class="text-start">Current Address</h5> 
                             </div>
                         </div>
                         <div class="row mb-3">
@@ -99,23 +101,25 @@
                                 <label for="addressDetails" class="form-label">House No., Street, Subdivision</label>
                                 <input type="text" class="form-control" id="addressDetails" name="address_details" placeholder="Enter house no., street, subdivision" required>
                             </div>
-                            <div class="col-md-3">
+                            <div class="col-md-3 position-relative">
                                 <label for="barangay" class="form-label">Barangay</label>
-                                <select class="form-select" id="barangay" name="barangay" required>
-                                    <option value="" selected disabled>Select barangay</option>
-                                    <option value="barangay1">Barangay 1</option>
-                                    <option value="barangay2">Barangay 2</option>
-                                    <option value="barangay3">Barangay 3</option>
-                                </select>
+                                <input type="text" class="form-control" id="barangayInput" placeholder="Select barangay" autocomplete="off">
+                                <ul class="dropdown-menu w-100" id="barangayDropdown">
+                                    <li><a class="dropdown-item" data-value="barangay1">Barangay 1</a></li>
+                                    <li><a class="dropdown-item" data-value="barangay2">Barangay 2</a></li>
+                                    <li><a class="dropdown-item" data-value="barangay3">Barangay 3</a></li>
+                                </ul>
+                                <input type="hidden" id="barangay" name="barangay">
                             </div>
-                            <div class="col-md-3">
+                            <div class="col-md-3 position-relative">
                                 <label for="municipality" class="form-label">Municipality</label>
-                                <select class="form-select" id="municipality" name="municipality" required>
-                                    <option value="" selected disabled>Select municipality</option>
-                                    <option value="municipality1">Municipality 1</option>
-                                    <option value="municipality2">Municipality 2</option>
-                                    <option value="municipality3">Municipality 3</option>
-                                </select>
+                                <input type="text" class="form-control" id="municipalityInput" placeholder="Select municipality" autocomplete="off">
+                                <ul class="dropdown-menu w-100" id="municipalityDropdown">
+                                    <li><a class="dropdown-item" data-value="municipality1">Municipality 1</a></li>
+                                    <li><a class="dropdown-item" data-value="municipality2">Municipality 2</a></li>
+                                    <li><a class="dropdown-item" data-value="municipality3">Municipality 3</a></li>
+                                </ul>
+                                <input type="hidden" id="municipality" name="municipality">
                             </div>
                         </div>
 
@@ -123,7 +127,7 @@
                         <!-- Row 3: Medical History -->
                         <div class="row mb-1">
                             <div class="col-12">
-                                <h5 class="text-start">Medical History</h5> <!-- Row Title -->
+                                <h5 class="text-start">Medical History</h5> 
                             </div>
                         </div>
                         <div class="row mb-1">
@@ -145,15 +149,16 @@
                             </div>
                         </div>
                         <div class="row mb-3">
-                            <div class="col-md-3">
-                                <label for="category" class="form-label">Category</label>
-                                <select class="form-select" id="category" name="category" required>
-                                    <option value="" selected disabled>Select category</option>
-                                    <option value="child">Frail</option>
-                                    <option value="adult">Bedridden</option>
-                                    <option value="senior">Dementia</option>
-                                </select>
-                            </div>
+                        <div class="col-md-3 position-relative">
+                            <label for="category" class="form-label">Category</label>
+                            <input type="text" class="form-control" id="categoryInput" placeholder="Select category" autocomplete="off">
+                            <ul class="dropdown-menu w-100" id="categoryDropdown">
+                                <li><a class="dropdown-item" data-value="frail">Frail</a></li>
+                                <li><a class="dropdown-item" data-value="bedridden">Bedridden</a></li>
+                                <li><a class="dropdown-item" data-value="dementia">Dementia</a></li>
+                            </ul>
+                            <input type="hidden" id="category" name="category">
+                        </div>
                         </div>
 
                         <hr class="my-4">
@@ -247,7 +252,7 @@
                        <!-- Medication Management -->
                         <div class="row mb-1">
                             <div class="col-12">
-                                <h5 class="text-start">Medication Management</h5> <!-- Row Title -->
+                                <h5 class="text-start">Medication Management</h5> 
                             </div>
                         </div>
                         <div id="medicationManagement">
@@ -274,6 +279,7 @@
                                 <button type="button" class="btn btn-primary" onclick="addMedicationRow()">Add Medication</button>
                             </div>
                         </div>
+
                         <hr class="my-4">
                         <!-- Mobility, Cognitive Function, Emotional Well-being -->
                         <div class="row mb-1">
@@ -328,12 +334,11 @@
                             </div>
                         </div>
 
-
                         <hr class="my-4">
                         <!-- Emergency Contact -->
                         <div class="row mb-1">
                             <div class="col-12">
-                                <h5 class="text-start">Emergency Contact</h5> <!-- Row Title -->
+                                <h5 class="text-start">Emergency Contact</h5>
                             </div>
                         </div>
                         <div class="row mb-3">
@@ -341,16 +346,15 @@
                                 <label for="contactName" class="form-label">Contact Name</label>
                                 <input type="text" class="form-control" id="contactName" name="emergency_contact[name]" placeholder="Enter contact name" required>
                             </div>
-                            <div class="col-md-3">
+                            <div class="col-md-3 position-relative">
                                 <label for="relation" class="form-label">Relation</label>
-                                <select class="form-select" id="relation" name="emergency_contact[relation]" required>
-                                    <option value="" selected disabled>Select relation</option>
-                                    <option value="parent">Parent</option>
-                                    <option value="spouse">Spouse</option>
-                                    <option value="sibling">Sibling</option>
-                                    <option value="friend">Friend</option>
-                                    <option value="other">Other</option>
-                                </select>
+                                <input type="text" class="form-control" id="relationInput" placeholder="Select relation" autocomplete="off">
+                                <ul class="dropdown-menu w-100" id="relationDropdown">
+                                    <li><a class="dropdown-item" data-value="son">Son</a></li>
+                                    <li><a class="dropdown-item" data-value="daughter">Daughter</a></li>
+                                    <li><a class="dropdown-item" data-value="grandchild">Grandchild</a></li>
+                                </ul>
+                                <input type="hidden" id="relation" name="relation">
                             </div>
                             <div class="col-md-3">
                                 <label for="mobileNumber" class="form-label">Mobile Number</label>
@@ -366,7 +370,7 @@
                         <!-- Emergency Plan -->
                         <div class="row mb-1">
                             <div class="col-12">
-                                <h5 class="text-start">Emergency Plan</h5> <!-- Row Title -->
+                                <h5 class="text-start">Emergency Plan</h5> 
                             </div>
                         </div>
                         <div class="row mb-3">
@@ -375,24 +379,24 @@
                                 <textarea class="form-control" id="emergencyProcedures" name="emergency_plan[procedures]" placeholder="Enter emergency procedures" rows="3" required></textarea>
                             </div>
                         </div>
-
                         
                         <hr class="my-4">
                         <!-- Care Worker's Responsibilities -->
-                        <div class="row mb-3">
+                        <div class="row mb-1">
                             <div class="col-12">
-                                <h5 class="text-start">Care Worker's Responsibilities</h5> <!-- Row Title -->
+                                <h5 class="text-start">Care Worker's Responsibilities</h5> 
                             </div>
                         </div>
-                        <div class="row mb-3">
-                            <div class="col-md-4">
-                                <label for="careWorkerName" class="form-label">Care Worker's Name</label>
-                                <select class="form-select" id="careWorkerName" name="care_worker[name][]" required>
-                                    <option value="" selected disabled>Select care worker</option>
-                                    <option value="worker1">Worker 1</option>
-                                    <option value="worker2">Worker 2</option>
-                                    <option value="worker3">Worker 3</option>
-                                </select>
+                        <div class="row mb-1">
+                            <div class="col-md-3 position-relative">
+                                <label for="careworkerName" class="form-label">Select Care Worker</label>
+                                <input type="text" class="form-control" id="careworkerNameInput" placeholder="Select Care Worker" autocomplete="off">
+                                <ul class="dropdown-menu w-100" id="careworkerNameDropdown">
+                                    <li><a class="dropdown-item" data-value="careworker1">Careworker 1</a></li>
+                                    <li><a class="dropdown-item" data-value="careworker2">Careworker 2</a></li>
+                                    <li><a class="dropdown-item" data-value="careworker3">Careworker 3</a></li>
+                                </ul>
+                                <input type="hidden" id="careworkerName" name="careworkerName">
                             </div>
                             <div class="col-md-5">
                                 <label class="form-label">Tasks and Responsibilities</label>
@@ -412,15 +416,17 @@
                             </div>
                         </div>
 
+                        <hr class="my-4">
                         <!-- General Care Plan and Care Service Agreement File Upload -->
-                        <div class="row mb-3">
+                        <div class="row mb-1">
+                            <div class="col-12">
+                                <h5 class="text-start">Documents and Signatures</h5> 
+                            </div>
+                        </div>
+                        <div class="row mb-1">
                             <div class="col-md-4">
                                 <label for="datePicker" class="form-label">Review Date</label>
                                 <input type="date" class="form-control" id="datePicker" name="date" value="{{ date('Y-m-d') }}" required>
-                            </div>
-                            <div class="col-md-4">
-                                <label for="generalCarePlan" class="form-label">General Care Plan</label>
-                                <input type="file" class="form-control" id="generalCarePlan" name="general_care_plan" accept=".pdf,.doc,.docx" required>
                             </div>
                             <div class="col-md-4">
                                 <label for="careServiceAgreement" class="form-label">Care Service Agreement</label>
@@ -428,12 +434,44 @@
                             </div>
                         </div>
 
+                        <!-- Beneficiary and Care Worker Signatures -->
+                        <div class="row mb-3">
+                            <!-- Beneficiary Signature Column -->
+                            <div class="col-md-6">
+                                <div class="form-group mt-3">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <label>Beneficiary Signature</label>
+                                        <button type="button" id="clear-signature-1" class="btn btn-danger btn-sm">Clear</button>
+                                    </div>
+                                    <div id="signature-pad-1" class="signature-pad">
+                                        <div class="signature-pad-body">
+                                            <canvas id="canvas1" style="border: 1px solid #ced4da; width: 100%; height: 200px;"></canvas>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Care Worker Signature Column -->
+                            <div class="col-md-6">
+                                <div class="form-group mt-3">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <label>Care Worker Signature</label>
+                                        <button type="button" id="clear-signature-2" class="btn btn-danger btn-sm">Clear</button>
+                                    </div>
+                                    <div id="signature-pad-2" class="signature-pad">
+                                        <div class="signature-pad-body">
+                                            <canvas id="canvas2" style="border: 1px solid #ced4da; width: 100%; height: 200px;"></canvas>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
 
                         <hr class="my-4">
                         <!-- Account Registration -->
                         <div class="row mb-1">
                             <div class="col-12">
-                                <h5 class="text-start">Family Portal Account Registration</h5> <!-- Row Title -->
+                                <h5 class="text-start">Family Portal Account Registration</h5> 
                             </div>
                         </div>
                         <div class="row mb-3">
@@ -483,6 +521,10 @@
             </div>
         </div>
     </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/signature_pad/1.5.3/signature_pad.min.js"></script>
+
+
     <script src=" {{ asset('js/toggleSideBar.js') }}"></script>
     <script src="{{ asset('js/bootstrap.bundle.min.js') }}"></script>
     <script>
@@ -550,16 +592,127 @@
         }
 
     </script>
+    <script>
+        document.querySelector('form').addEventListener('submit', function (e) {
+            e.preventDefault();
+            const successModal = new bootstrap.Modal(document.getElementById('saveSuccessModal'));
+            successModal.show();
+        });
+    </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Function to filter dropdown items
+            function filterDropdown(inputId, dropdownId) {
+                const input = document.getElementById(inputId);
+                const dropdown = document.getElementById(dropdownId);
+                const items = dropdown.querySelectorAll('.dropdown-item');
 
-<script>
-    document.querySelector('form').addEventListener('submit', function (e) {
-        e.preventDefault(); // Prevent the default form submission
+                input.addEventListener('input', function () {
+                    const filter = input.value.toLowerCase();
+                    let hasVisibleItems = false;
 
-        // Show the success modal
-        const successModal = new bootstrap.Modal(document.getElementById('saveSuccessModal'));
-        successModal.show();
-    });
-</script>
+                    items.forEach(item => {
+                        if (item.textContent.toLowerCase().includes(filter)) {
+                            item.style.display = 'block';
+                            hasVisibleItems = true;
+                        } else {
+                            item.style.display = 'none';
+                        }
+                    });
+                    dropdown.style.display = hasVisibleItems ? 'block' : 'none';
+                });
+                input.addEventListener('blur', function () {
+                    setTimeout(() => dropdown.style.display = 'none', 200);
+                });
+                input.addEventListener('focus', function () {
+                    dropdown.style.display = 'block';
+                });
+
+                // Handle item selection
+                items.forEach(item => {
+                    item.addEventListener('click', function (e) {
+                        e.preventDefault();
+                        input.value = item.textContent;
+                        document.getElementById(inputId.replace('Input', '')).value = item.getAttribute('data-value');
+                        dropdown.style.display = 'none';
+                    });
+                });
+            }
+
+            // Initialize filtering for each dropdown
+            filterDropdown('civilStatusInput', 'civilStatusDropdown');
+            filterDropdown('genderInput', 'genderDropdown');
+            filterDropdown('primaryCareworkerInput', 'primaryCareworkerDropdown');
+            filterDropdown('barangayInput', 'barangayDropdown');
+            filterDropdown('municipalityInput', 'municipalityDropdown');
+            filterDropdown('categoryInput', 'categoryDropdown');
+            filterDropdown('relationInput', 'relationDropdown');
+            filterDropdown('careworkerNameInput', 'careworkerNameDropdown');
+        });
+    </script>
+   <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            // Initialize Signature Pads
+            const canvas1 = document.getElementById("canvas1");
+            const canvas2 = document.getElementById("canvas2");
+
+            const signaturePad1 = new SignaturePad(canvas1);
+            const signaturePad2 = new SignaturePad(canvas2);
+
+            // Resize canvas to fit the container
+            function resizeCanvas(canvas, signaturePad) {
+                const ratio = Math.max(window.devicePixelRatio || 1, 1);
+                canvas.width = canvas.offsetWidth * ratio;
+                canvas.height = canvas.offsetHeight * ratio;
+                canvas.getContext("2d").scale(ratio, ratio);
+                signaturePad.clear(); // Clear the canvas after resizing
+            }
+
+            // Resize both canvases on page load and window resize
+            function initializeCanvas() {
+                resizeCanvas(canvas1, signaturePad1);
+                resizeCanvas(canvas2, signaturePad2);
+            }
+
+            window.addEventListener("resize", initializeCanvas);
+            initializeCanvas();
+
+            // Clear First Signature
+            document.getElementById("clear-signature-1").addEventListener("click", function () {
+                signaturePad1.clear();
+            });
+
+            // Clear Second Signature
+            document.getElementById("clear-signature-2").addEventListener("click", function () {
+                signaturePad2.clear();
+            });
+
+            // Handle Form Submission
+            document.getElementById("addBeneficiaryForm").addEventListener("submit", function (e) {
+                e.preventDefault();
+
+                if (signaturePad1.isEmpty()) {
+                    alert("Please draw the first signature.");
+                    return;
+                }
+
+                if (signaturePad2.isEmpty()) {
+                    alert("Please draw the second signature.");
+                    return;
+                }
+
+                // Save signatures as base64 images
+                const signatureDataURL1 = signaturePad1.toDataURL();
+                const signatureDataURL2 = signaturePad2.toDataURL();
+
+                // Log the signatures (you can send these to the backend)
+                console.log("First Signature (Base64):", signatureDataURL1);
+                console.log("Second Signature (Base64):", signatureDataURL2);
+
+                alert("Both signatures submitted successfully!");
+            });
+        });
+    </script>
 
 </body>
 </html>

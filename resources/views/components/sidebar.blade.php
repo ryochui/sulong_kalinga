@@ -26,7 +26,7 @@
         </li>
         <li>
           <div class="iocn-link">
-            <a class="{{ Request::routeIs('beneficiaryProfile') || Request::routeIs('addBeneficiary') || Request::routeIs('familyProfile') || Request::routeIs('caregiverProfile') || Request::routeIs('careManagerProfile') || Request::routeIs('administratorProfile') ? 'active' : '' }}">
+            <a class="{{ Request::routeIs('beneficiaryProfile') || Request::routeIs('addBeneficiary') || Request::routeIs('familyProfile') || Request::routeIs('addFamily') || Request::routeIs('caregiverProfile') || Request::routeIs('addCareworker') || Request::routeIs('careManagerProfile') || Request::routeIs('addCareManager') || Request::routeIs('administratorProfile') || Request::routeIs('addAdministrator') ? 'active' : '' }}">
               <i class='bx bxs-user-account'></i>
               <span class="link_name" onclick="toggleDropdown(this)">User Management</span>
               <i class='bx bxs-chevron-down arrow' onclick="toggleDropdown(this)"></i>
@@ -35,10 +35,10 @@
           <ul class="sub-menu">
             <li><a class="link_name">User Management</a></li>
             <li><a href="beneficiaryProfile" class="{{ Request::routeIs('beneficiaryProfile') || Request::routeIs('addBeneficiary') ? 'active' : '' }}">Beneficiary Profiles</a></li>
-            <li><a href="familyProfile" class="{{ Request::routeIs('familyProfile') ? 'active' : '' }}">Family or Relative Profiles</a></li>
-            <li><a href="caregiverProfile" class="{{ Request::routeIs('caregiverProfile') ? 'active' : '' }}">Care Worker Profiles</a></li>
-            <li><a href="careManagerProfile" class="{{ Request::routeIs('careManagerProfile') ? 'active' : '' }}">Care Manager Profiles</a></li>
-            <li><a href="administratorProfile" class="{{ Request::routeIs('administratorProfile') ? 'active' : '' }}">Administrator Profiles</a></li>
+            <li><a href="familyProfile" class="{{ Request::routeIs('familyProfile') || Request::routeIs('addFamily') ? 'active' : '' }}">Family or Relative Profiles</a></li>
+            <li><a href="caregiverProfile" class="{{ Request::routeIs('caregiverProfile') || Request::routeIs('addCareworker') ? 'active' : '' }}">Care Worker Profiles</a></li>
+            <li><a href="careManagerProfile" class="{{ Request::routeIs('careManagerProfile') || Request::routeIs('addCareManager') ? 'active' : '' }}">Care Manager Profiles</a></li>
+            <li><a href="administratorProfile" class="{{ Request::routeIs('administratorProfile') || Request::routeIs('addAdministrator') ? 'active' : '' }}">Administrator Profiles</a></li>
           </ul>
         </li>
         <li>

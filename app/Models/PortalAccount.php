@@ -2,17 +2,17 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
+use Illuminate\Auth\Authenticatable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Foundation\Auth\User as AuthenticatableBase;
 use Illuminate\Notifications\Notifiable;
 
-class User extends Authenticatable
+class PortalAccount extends AuthenticatableBase implements AuthenticatableContract
 {
-    /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable, Authenticatable;
 
-    protected $table = 'cose_users'; // Updated table name
+    protected $table = 'portal_accounts'; // Table name
 
     /**
      * The attributes that are mass assignable.
@@ -20,12 +20,7 @@ class User extends Authenticatable
      * @var list<string>
      */
     protected $fillable = [
-        'first_name', 'last_name', 'birthday', 'civil_status', 'educational_background',
-        'mobile', 'landline', 'email_address', 'password_hash', 'address', 'barangay_id',
-        'gender', 'religion', 'nationality', 'volunteer_status', 'status_start_date',
-        'status_end_date', 'role_id', 'status', 'organization_role_id', 'assigned_municipality_id',
-        'photo', 'government_issued_id', 'sss_id_number', 'philhealth_id_number',
-        'pagibig_id_number', 'cv_resume', 'updated_by'
+        'portal_email', 'portal_password'
     ];
 
     /**
@@ -34,7 +29,7 @@ class User extends Authenticatable
      * @var list<string>
      */
     protected $hidden = [
-        'password_hash',
+        'portal_password',
         'remember_token',
     ];
 
@@ -44,9 +39,8 @@ class User extends Authenticatable
      * @var array<string, string>
      */
     protected $casts = [
-        'birthday' => 'date',
-        'status_start_date' => 'date',
-        'status_end_date' => 'date',
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
     ];
 
     /**
@@ -56,7 +50,7 @@ class User extends Authenticatable
      */
     public function getAuthIdentifierName()
     {
-        return 'email_address';
+        return 'portal_email';
     }
 
     /**
@@ -66,7 +60,7 @@ class User extends Authenticatable
      */
     public function getAuthIdentifier()
     {
-        return $this->email_address;
+        return $this->portal_email;
     }
 
     /**
@@ -76,7 +70,7 @@ class User extends Authenticatable
      */
     public function getAuthPassword()
     {
-        return $this->password_hash;
+        return $this->portal_password;
     }
 
     /**
