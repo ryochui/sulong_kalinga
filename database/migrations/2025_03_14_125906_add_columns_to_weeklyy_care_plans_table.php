@@ -12,10 +12,10 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('weekly_care_plans', function (Blueprint $table) {
-            $table->text('assessment_summary_draft')->after('assessment');
-            $table->text('assessment_translation_draft')->after('assessment_summary_draft');
-            $table->text('evaluation_summary_draft')->after('evaluation');
-            $table->text('evaluation_translation_draft')->after('evaluation_summary_draft');
+            $table->text('assessment_summary_draft')->nullable()->after('assessment');
+            $table->text('assessment_translation_draft')->nullable()->after('assessment_summary_draft');
+            $table->text('evaluation_summary_draft')->nullable()->after('evaluation');
+            $table->text('evaluation_translation_draft')->nullable()->after('evaluation_summary_draft');
         });
     }
 

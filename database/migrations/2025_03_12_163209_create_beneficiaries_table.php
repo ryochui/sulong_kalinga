@@ -44,7 +44,7 @@ return new class extends Migration
             $table->foreign('municipality_id')->references('municipality_id')->on('municipalities')->onDelete('no action');
             $table->foreign('category_id')->references('category_id')->on('beneficiary_categories')->onDelete('no action');
             $table->foreign('beneficiary_status_id')->references('beneficiary_status_id')->on('beneficiary_status')->onDelete('no action');
-            $table->foreign('portal_account_id')->references('portal_account_id')->on('portal_accounts')->onDelete('no action');
+            $table->foreign('portal_account_id')->references('id')->on('portal_accounts')->onDelete('no action');
             $table->foreign('created_by')->references('id')->on('cose_users')->onDelete('no action');
             $table->foreign('updated_by')->references('id')->on('cose_users')->onDelete('no action');
             $table->foreign('barangay_id')->references('barangay_id')->on('barangays')->onDelete('no action');

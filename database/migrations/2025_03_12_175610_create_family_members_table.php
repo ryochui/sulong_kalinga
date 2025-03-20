@@ -34,7 +34,7 @@ return new class extends Migration
 
             // Foreign Key Constraints
             $table->foreign('related_beneficiary_id')->references('beneficiary_id')->on('beneficiaries')->onDelete('no action');
-            $table->foreign('portal_account_id')->references('portal_account_id')->on('portal_accounts')->onDelete('no action');
+            $table->foreign('portal_account_id')->references('id')->on('portal_accounts')->onDelete('no action');
             $table->foreign('created_by')->references('id')->on('cose_users')->onDelete('no action');
             $table->foreign('updated_by')->references('id')->on('cose_users')->onDelete('no action');
             $table->foreign('barangay_id')->references('barangay_id')->on('barangays')->onDelete('no action');

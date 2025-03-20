@@ -77,6 +77,17 @@ return new class extends Migration
             ['category_name' => 'Dementia']
         ]);
 
+        // Insert data into the beneficiary_status table
+        DB::table('beneficiary_status')->insert([
+            ['status_name' => 'Active'],
+            ['status_name' => 'Inactive'],
+            ['status_name' => 'Opted Out'],
+            ['status_name' => 'Deceased'],
+            ['status_name' => 'Hospitalized'],
+            ['status_name' => 'Moved Residence'],
+            ['status_name' => 'No Longer Needed Assistance']
+        ]);
+
         // Insert data into the care_categories table
         DB::table('care_categories')->insert([
             ['care_category_name' => 'Mobility'],

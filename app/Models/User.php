@@ -21,7 +21,7 @@ class User extends Authenticatable
      */
     protected $fillable = [
         'first_name', 'last_name', 'birthday', 'civil_status', 'educational_background',
-        'mobile', 'landline', 'email', 'address', 'barangay_id',
+        'mobile', 'landline', 'personal_email', 'email', 'password', 'address', 'barangay_id',
         'gender', 'religion', 'nationality', 'volunteer_status', 'status_start_date',
         'status_end_date', 'role_id', 'status', 'organization_role_id', 'assigned_municipality_id',
         'photo', 'government_issued_id', 'sss_id_number', 'philhealth_id_number',
@@ -34,7 +34,7 @@ class User extends Authenticatable
      * @var list<string>
      */
     protected $hidden = [
-        'password_hash',
+        'password',
         'remember_token',
     ];
 
