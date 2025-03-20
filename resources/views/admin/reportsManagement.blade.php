@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard</title>
+    <title>Reports Management</title>
     <link rel="stylesheet" href="{{ asset('css/bootstrap.min.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <link href='https://unpkg.com/boxicons@2.0.7/css/boxicons.min.css' rel='stylesheet'>
@@ -86,7 +86,7 @@
                                     </td>
                                     <td>Mark</td>
                                     <td>Otto Otto</td>
-                                    <td class="d-none d-sm-table-cell">@mdo</td> <!-- Add responsive class -->
+                                    <td class="d-none d-sm-table-cell">@mdo</td>
                                     <td>
                                         <div class="action-icons">
                                             <i class="fa fa-eye"></i>

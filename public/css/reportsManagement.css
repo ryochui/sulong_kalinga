@@ -85,7 +85,6 @@
     padding: 10px;
 }
 
-/* Style the table to fit the container */
 .table-responsive {
     height: 100%;
     overflow-y: auto;
@@ -98,9 +97,9 @@
 }
 
 .table td, .table th {
-    white-space: nowrap; /* Prevent text from breaking into multiple lines */
-    text-overflow: ellipsis; /* Add ellipsis for overflowing text */
-    overflow: hidden; /* Hide overflowing text */
+    white-space: nowrap; 
+    text-overflow: ellipsis; 
+    overflow: hidden; 
     max-width: 200px;
 }
 
@@ -123,44 +122,43 @@
     }
 
     .form-control {
-        width: 100%; /* Full width for search bar */
+        width: 100%; 
     }
 
     .table td, .table th {
-        white-space: normal; /* Allow text to wrap */
+        white-space: normal;
     }
 }
 
-/* Sidebar styles for smaller screens */
 @media (max-width: 375px) {
     .sidebar {
-        width: 100%; /* Ensure the sidebar takes full width on smaller screens */
-        position: fixed; /* Keep it fixed on the screen */
-        z-index: 1050; /* Ensure it stays above other elements */
+        width: 100%;
+        position: fixed; 
+        z-index: 1050; 
         top: 0;
         left: 0;
-        height: 100vh; /* Full height */
-        background-color: #343a40; /* Sidebar background color */
-        overflow-y: auto; /* Allow scrolling if content overflows */
-        transition: transform 0.3s ease-in-out; /* Smooth transition for toggling */
+        height: 100vh;
+        background-color: #343a40; 
+        overflow-y: auto; 
+        transition: transform 0.3s ease-in-out;
     }
 
     .sidebar.hidden {
-        transform: translateX(-100%); /* Hide the sidebar off-screen */
+        transform: translateX(-100%); 
     }
 
     .sidebar.visible {
-        transform: translateX(0); /* Show the sidebar */
+        transform: translateX(0); 
     }
 
     .home-section {
-        margin-left: 0; /* Remove margin to fit the content */
+        margin-left: 0; 
     }
 }
 
 @media (max-width: 576px) {
     .table td, .table th {
-        padding: 0.5rem; /* Reduce padding for smaller screens */
+        padding: 0.5rem; 
         max-width: 100px;
     }
 }
@@ -173,51 +171,50 @@
 
 /* Responsive Adjustments */
 @media (max-width: 1024px) {
-    .col-lg-2:nth-child(1), /* Export Button */
-    .col-lg-2:nth-child(2) { /* Add Report Button */
-        flex: 0 0 50%; /* Move to the second row */
+    .col-lg-2:nth-child(1), 
+    .col-lg-2:nth-child(2) { 
+        flex: 0 0 50%; 
         max-width: 50%;
     }
 
-    .col-lg-2:nth-child(3), /* Export Button */
-    .col-lg-2:nth-child(4) { /* Add Report Button */
-        flex: 0 0 50%; /* Move to the second row */
+    .col-lg-2:nth-child(3),
+    .col-lg-2:nth-child(4) {
+        flex: 0 0 50%; 
         max-width: 50%;
     }
 }
 
-/* Breakpoint: 576px to 768px (3 rows: Search Bar, Filter, Export + Add Button) */
+
 @media (max-width: 768px) and (min-width: 426px) {
     .row.mb-3 {
         display: flex;
         flex-wrap: wrap;
     }
 
-    .col-12:nth-child(1), /* Search Bar */
-    .col-12:nth-child(2) { /* Filter Dropdown */
+    .col-12:nth-child(1), 
+    .col-12:nth-child(2) { 
         flex: 0 0 100%; /* Each occupies full width */
         max-width: 100%;
     }
 
-    .col-6:nth-child(3), /* Export Button */
-    .col-6:nth-child(4) { /* Add Report Button */
+    .col-6:nth-child(3), 
+    .col-6:nth-child(4) { 
         flex: 0 0 50%; /* Each occupies half the row */
         max-width: 50%;
     }
 }
 
-/* Breakpoint: 425px to 576px (4 rows: Search Bar, Filter, Export, Add Button) */
 @media (max-width: 425px) {
     .row.mb-3 {
         display: flex;
         flex-wrap: wrap;
-        gap: 0.5rem; /* Compact gap for smaller screens */
+        gap: 0.5rem; 
     }
 
-    .col-12:nth-child(1), /* Search Bar */
-    .col-12:nth-child(2), /* Filter Dropdown */
-    .col-6:nth-child(3), /* Export Button */
-    .col-6:nth-child(4) { /* Add Report Button */
+    .col-12:nth-child(1),
+    .col-12:nth-child(2), 
+    .col-6:nth-child(3), 
+    .col-6:nth-child(4) { 
         flex: 0 0 100%; /* Each occupies full width */
         max-width: 100%;
     }

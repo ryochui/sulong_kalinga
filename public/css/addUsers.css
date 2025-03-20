@@ -86,22 +86,18 @@ h5{
 }
 
 input::placeholder {
-    color: rgba(0, 0, 0, 0.3); /* Adjust the color and opacity */
+    color: rgba(0, 0, 0, 0.3); 
     font-size: 16px;
 }
 
-/* #civilStatus, #gender, #primaryCaregiver, #barangay, #municipality, #category, #relation, #careWorkerName {
-    font-size: 14px;
-} */
-
 input, textarea, select {
-    font-size: 16px; /* Smaller font size */
-    height: auto; /* Adjust height automatically */
+    font-size: 16px; 
+    height: auto;
 }
 
 .form-control, .form-select {
-    font-size: 16px; /* Smaller font size for form controls */
-    height: auto; /* Adjust height automatically */
+    font-size: 16px;
+    height: auto;
 }
 
 @media (max-width: 768px) {
@@ -114,49 +110,47 @@ input, textarea, select {
     }
 
     .form-control {
-        width: 100%; /* Full width for search bar */
+        width: 100%;
     }
 
     .table td, .table th {
-        white-space: normal; /* Allow text to wrap */
+        white-space: normal;
     }
 }
 
-/* Sidebar styles for smaller screens */
 @media (max-width: 375px) {
     .sidebar {
-        width: 100%; /* Ensure the sidebar takes full width on smaller screens */
-        position: fixed; /* Keep it fixed on the screen */
-        z-index: 1050; /* Ensure it stays above other elements */
+        width: 100%;
+        position: fixed;
+        z-index: 1050; 
         top: 0;
         left: 0;
-        height: 100vh; /* Full height */
-        background-color: #343a40; /* Sidebar background color */
-        overflow-y: auto; /* Allow scrolling if content overflows */
-        transition: transform 0.3s ease-in-out; /* Smooth transition for toggling */
+        height: 100vh; 
+        background-color: #343a40;
+        overflow-y: auto;
+        transition: transform 0.3s ease-in-out;
     }
 
     .sidebar.hidden {
-        transform: translateX(-100%); /* Hide the sidebar off-screen */
+        transform: translateX(-100%); 
     }
 
     .sidebar.visible {
-        transform: translateX(0); /* Show the sidebar */
+        transform: translateX(0); 
     }
 
     .home-section {
-        margin-left: 0; /* Remove margin to fit the content */
+        margin-left: 0; 
     }
 }
 
 @media (max-width: 576px) {
     .table td, .table th {
-        padding: 0.5rem; /* Reduce padding for smaller screens */
+        padding: 0.5rem;
         max-width: 100px;
     }
 }
 
-/* Responsive Layout for 1024px */
 @media (max-width: 1024px) {
     #addUserForm {
         padding: 15px;
@@ -184,4 +178,19 @@ input, textarea, select {
 .is-invalid {
     border: 2px solid red;
     background-color: #ffe6e6;
+}
+
+/* Ensure the canvas is responsive */
+.signature-pad-body canvas {
+    width: 100%; /* Make the canvas take up the full width of its container */
+    height: auto; /* Maintain aspect ratio */
+    border: 1px solid #ced4da;
+    display: block; /* Prevent inline-block spacing issues */
+}
+
+/* Adjust the height for smaller screens */
+@media (max-width: 768px) {
+    .signature-pad-body canvas {
+        height: 150px; /* Reduce height for smaller screens */
+    }
 }

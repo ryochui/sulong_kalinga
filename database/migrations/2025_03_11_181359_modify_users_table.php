@@ -22,6 +22,7 @@ return new class extends Migration
             $table->string('educational_background', 100)->nullable();
             $table->string('mobile', 11)->unique();
             $table->string('landline', 8)->nullable();
+            $table->string('email_address', 100)->unique();
             $table->string('password_hash', 255);
             $table->text('address')->nullable();
             $table->integer('barangay_id')->nullable();
@@ -63,7 +64,7 @@ return new class extends Migration
             $table->dropForeign(['role_id']);
             $table->dropColumn([
                 'first_name', 'last_name', 'birthday', 'civil_status', 'educational_background', 
-                'mobile', 'landline', 'email_address', 'password_hash', 'current_address', 
+                'mobile', 'landline', 'email_address', 'password_hash', 'address', 
                 'gender', 'religion', 'nationality', 'volunteer_status', 'status_start_date', 
                 'status_end_date', 'role_id', 'status', 'organization_role_id', 'assigned_municipality_id', 
                 'photo', 'government_issued_id', 'sss_id_number', 'philhealth_id_number', 

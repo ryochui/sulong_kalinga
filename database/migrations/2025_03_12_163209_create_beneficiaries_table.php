@@ -33,6 +33,8 @@ return new class extends Migration
             $table->string('status_reason', 255)->nullable();
             $table->integer('general_care_plan_id');
             $table->integer('portal_account_id');
+            $table->binary('beneficiary_signature')->nullable();
+            table->binary('care_worker_signature')->nullable();
             $table->integer('created_by');
             $table->integer('updated_by');
             $table->timestamps();

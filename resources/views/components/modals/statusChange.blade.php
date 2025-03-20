@@ -9,14 +9,8 @@
                 <p>Are you sure you want to change the status of this <span id="entityType" style="font-weight: bold;"></span>?</p>
                 <form id="statusChangeForm">
                     <div class="mb-3">
-                        <label for="reasonSelect" class="form-label">Reason for Status Change</label>
-                        <select class="form-select" id="reasonSelect" required>
-                            <option value="" selected disabled>Select a reason</option>
-                            <option value="performance">Performance Issues</option>
-                            <option value="policy">Policy Violation</option>
-                            <option value="resignation">Resignation</option>
-                            <option value="other">Other</option>
-                        </select>
+                        <label for="passwordInput" class="form-label">Enter Password to Confirm</label>
+                        <input type="password" class="form-control" id="passwordInput" placeholder="Enter your password" required>
                     </div>
                 </form>
             </div>
@@ -31,11 +25,13 @@
 <script>
 document.addEventListener("DOMContentLoaded", function () {
     let selectedStatusElement = null;
+    let previousStatusValue = null; // Store the previous value of the dropdown
     let entityType = ""; // Store the entity type dynamically
 
     // Function to open the modal and store the selected status element
     window.openStatusChangeModal = function (selectElement, type) {
         selectedStatusElement = selectElement; // Store the reference to the dropdown
+        previousStatusValue = selectElement.value; // Store the previous value
         entityType = type; // Set the entity type dynamically
         document.getElementById("entityType").textContent = entityType; // Update the modal text
         const statusChangeModal = new bootstrap.Modal(document.getElementById("statusChangeModal"));
@@ -45,21 +41,37 @@ document.addEventListener("DOMContentLoaded", function () {
     // Handle the status change confirmation
     const confirmStatusChangeButton = document.getElementById("confirmStatusChangeButton");
     confirmStatusChangeButton.addEventListener("click", function () {
-        const reasonSelect = document.getElementById("reasonSelect");
-        const selectedReason = reasonSelect.value;
+        const passwordInput = document.getElementById("passwordInput");
+        const enteredPassword = passwordInput.value.trim();
 
-        if (!selectedReason) {
-            alert("Please select a reason for the status change.");
+        if (!enteredPassword) {
+            alert("Please enter your password to confirm the status change.");
+            return;
+        }
+
+        // Simulate password validation (replace with actual server-side validation)
+        const correctPassword = "userpassword"; // Replace with actual password validation logic
+        if (enteredPassword !== correctPassword) {
+            alert("Incorrect password. Please try again.");
             return;
         }
 
         // Simulate saving the status change (replace with actual logic)
-        alert(`Status changed to "${selectedStatusElement.value}" for ${entityType} with reason: "${selectedReason}".`);
+        alert(`Status changed to "${selectedStatusElement.value}" for ${entityType}.`);
 
         // Reset the modal fields
-        reasonSelect.value = "";
+        passwordInput.value = "";
         const statusChangeModal = bootstrap.Modal.getInstance(document.getElementById("statusChangeModal"));
         statusChangeModal.hide();
+    });
+
+    // Handle modal cancellation
+    const statusChangeModalElement = document.getElementById("statusChangeModal");
+    statusChangeModalElement.addEventListener("hidden.bs.modal", function () {
+        if (selectedStatusElement && previousStatusValue !== null) {
+            // Revert the dropdown to its previous value if the modal is cancelled
+            selectedStatusElement.value = previousStatusValue;
+        }
     });
 });
 </script>

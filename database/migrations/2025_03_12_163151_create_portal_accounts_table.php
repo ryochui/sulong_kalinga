@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('portal_accounts', function (Blueprint $table) {
             $table->increments('portal_account_id');
-            $table->string('portal_username', 255)->after('portal_account_id');
+            $table->string('portal_email', 255)->after('portal_account_id');
             $table->string('portal_password', 255)->after('portal_username');
             $table->timestamps();
         });

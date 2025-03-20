@@ -25,7 +25,7 @@
                     </a>
                     <ul class="dropdown-menu dropdown-menu-end">
                         <li><a class="dropdown-item {{ Request::routeIs('account') ? 'active' : '' }}" href="#">Account Profile</a></li>
-                        <li><a class="dropdown-item {{ Request::routeIs('updates') ? 'active' : '' }}" href="#">Logout</a></li>
+                        <li><a href="/login"class="dropdown-item" href="#">Logout</a></li>
                     </ul>
                 </li>
             </ul>
