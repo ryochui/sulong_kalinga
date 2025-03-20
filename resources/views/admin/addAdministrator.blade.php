@@ -61,26 +61,28 @@
                                 <label for="birthDate" class="form-label">Birthday</label>
                                 <input type="date" class="form-control" id="birthDate" name="birth_date" required onkeydown="return true">
                             </div>
-                            <div class="col-md-3">
+                            <div class="col-md-3 position-relative">
                                 <label for="gender" class="form-label">Gender</label>
-                                <select class="form-select" id="gender" name="gender" required>
-                                    <option value="" selected disabled>Select gender</option>
-                                    <option value="male">Male</option>
-                                    <option value="female">Female</option>
-                                    <option value="other">Other</option>
-                                </select>
+                                <input type="text" class="form-control" id="genderInput" placeholder="Select gender" autocomplete="off">
+                                <ul class="dropdown-menu w-100" id="genderDropdown">
+                                    <li><a class="dropdown-item" data-value="male">Male</a></li>
+                                    <li><a class="dropdown-item" data-value="female">Female</a></li>
+                                    <li><a class="dropdown-item" data-value="other">Other</a></li>
+                                </ul>
+                                <input type="hidden" id="gender" name="gender">
                             </div>
                         </div>
                         <div class="row mb-3">
-                            <div class="col-md-3">
+                            <div class="col-md-3 position-relative">
                                 <label for="civilStatus" class="form-label">Civil Status</label>
-                                <select class="form-select" id="civilStatus" name="civil_status" required>
-                                    <option value="" selected disabled>Select civil status</option>
-                                    <option value="single">Single</option>
-                                    <option value="married">Married</option>
-                                    <option value="widowed">Widowed</option>
-                                    <option value="divorced">Divorced</option>
-                                </select>
+                                <input type="text" class="form-control" id="civilStatusInput" placeholder="Select civil status" autocomplete="off">
+                                <ul class="dropdown-menu w-100" id="civilStatusDropdown">
+                                    <li><a class="dropdown-item" data-value="single">Single</a></li>
+                                    <li><a class="dropdown-item" data-value="married">Married</a></li>
+                                    <li><a class="dropdown-item" data-value="widowed">Widowed</a></li>
+                                    <li><a class="dropdown-item" data-value="divorced">Divorced</a></li>
+                                </ul>
+                                <input type="hidden" id="civilStatus" name="civil_status">
                             </div>
                             <div class="col-md-3">
                                 <label for="religion" class="form-label">Religion</label>
@@ -136,7 +138,7 @@
                                 <h5 class="text-start">Administrator Account Registration</h5> <!-- Row Title -->
                             </div>
                         </div>
-                        <div class="row mb-3">
+                        <div class="row mb-1">
                             <div class="col-md-4">
                                 <label for="accountEmail" class="form-label">Email</label>
                                 <input type="email" class="form-control" id="accountEmail" name="account[email]" placeholder="Enter email" required>
@@ -151,17 +153,16 @@
                             </div>
                         </div>
                         <div class="row mb-3">
-                            <div class="col-md-3">
-                                <label for="Orgnanization_Roles" class="form-label">Orgnanization Roles</label>
-                                <select class="form-select" id="Orgnanization_Roles" name="Orgnanization_Roles" required>
-                                    <option value="" selected disabled>Select Organization Role</option>
-                                    <option value="project_coordinator">Project Coordinator</option>
-                                    <option value="meal_coordinator">MEAL Coordinator</option>
-                                </select>
+                            <div class="col-md-4 position-relative">
+                                <label for="Organization_Roles" class="form-label">Organization Roles</label>
+                                <input type="text" class="form-control" id="Organization_RolesInput" placeholder="Select organization role" autocomplete="off">
+                                <ul class="dropdown-menu w-100" id="Organization_RolesDropdown">
+                                    <li><a class="dropdown-item" data-value="project_coordinator">Project Coordinator</a></li>
+                                    <li><a class="dropdown-item" data-value="meal_coordinator">MEAL Coordinator</a></li>
+                                </ul>
+                                <input type="hidden" id="Organization_Roles" name="Organization_Roles">
                             </div>
-                        </div>
-
-                        
+                        </div>                        
                         <div class="row mt-4">
                             <div class="col-12 d-flex justify-content-center align-items-center">
                                 <button type="submit" class="btn btn-success btn-lg d-flex align-items-center">
@@ -202,6 +203,61 @@
             // Show the success modal
             const successModal = new bootstrap.Modal(document.getElementById('saveSuccessModal'));
             successModal.show();
+        });
+    </script>
+    <script>
+        document.querySelector('form').addEventListener('submit', function (e) {
+            e.preventDefault(); // Prevent the default form submission
+
+            // Show the success modal
+            const successModal = new bootstrap.Modal(document.getElementById('saveSuccessModal'));
+            successModal.show();
+        });
+    </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Function to filter dropdown items
+            function filterDropdown(inputId, dropdownId) {
+                const input = document.getElementById(inputId);
+                const dropdown = document.getElementById(dropdownId);
+                const items = dropdown.querySelectorAll('.dropdown-item');
+
+                input.addEventListener('input', function () {
+                    const filter = input.value.toLowerCase();
+                    let hasVisibleItems = false;
+
+                    items.forEach(item => {
+                        if (item.textContent.toLowerCase().includes(filter)) {
+                            item.style.display = 'block';
+                            hasVisibleItems = true;
+                        } else {
+                            item.style.display = 'none';
+                        }
+                    });
+                    dropdown.style.display = hasVisibleItems ? 'block' : 'none';
+                });
+                input.addEventListener('blur', function () {
+                    setTimeout(() => dropdown.style.display = 'none', 200);
+                });
+                input.addEventListener('focus', function () {
+                    dropdown.style.display = 'block';
+                });
+
+                // Handle item selection
+                items.forEach(item => {
+                    item.addEventListener('click', function (e) {
+                        e.preventDefault();
+                        input.value = item.textContent;
+                        document.getElementById(inputId.replace('Input', '')).value = item.getAttribute('data-value');
+                        dropdown.style.display = 'none';
+                    });
+                });
+            }
+
+            // Initialize filtering for each dropdown
+            filterDropdown('civilStatusInput', 'civilStatusDropdown');
+            filterDropdown('genderInput', 'genderDropdown');
+            filterDropdown('Organization_RolesInput', 'Organization_RolesDropdown');
         });
     </script>
 

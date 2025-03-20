@@ -46,26 +46,28 @@
                                 <label for="birthDate" class="form-label">Birthday</label>
                                 <input type="date" class="form-control" id="birthDate" name="birth_date" required onkeydown="return true">
                             </div>
-                            <div class="col-md-3">
+                            <div class="col-md-3 position-relative">
                                 <label for="gender" class="form-label">Gender</label>
-                                <select class="form-select" id="gender" name="gender" required>
-                                    <option value="" selected disabled>Select gender</option>
-                                    <option value="male">Male</option>
-                                    <option value="female">Female</option>
-                                    <option value="other">Other</option>
-                                </select>
+                                <input type="text" class="form-control" id="genderInput" placeholder="Select gender" autocomplete="off">
+                                <ul class="dropdown-menu w-100" id="genderDropdown">
+                                    <li><a class="dropdown-item" data-value="male">Male</a></li>
+                                    <li><a class="dropdown-item" data-value="female">Female</a></li>
+                                    <li><a class="dropdown-item" data-value="other">Other</a></li>
+                                </ul>
+                                <input type="hidden" id="gender" name="gender">
                             </div>
                         </div>
                         <div class="row mb-3">
-                            <div class="col-md-3">
+                            <div class="col-md-3 position-relative">
                                 <label for="civilStatus" class="form-label">Civil Status</label>
-                                <select class="form-select" id="civilStatus" name="civil_status" required>
-                                    <option value="" selected disabled>Select civil status</option>
-                                    <option value="single">Single</option>
-                                    <option value="married">Married</option>
-                                    <option value="widowed">Widowed</option>
-                                    <option value="divorced">Divorced</option>
-                                </select>
+                                <input type="text" class="form-control" id="civilStatusInput" placeholder="Select civil status" autocomplete="off">
+                                <ul class="dropdown-menu w-100" id="civilStatusDropdown">
+                                    <li><a class="dropdown-item" data-value="single">Single</a></li>
+                                    <li><a class="dropdown-item" data-value="married">Married</a></li>
+                                    <li><a class="dropdown-item" data-value="widowed">Widowed</a></li>
+                                    <li><a class="dropdown-item" data-value="divorced">Divorced</a></li>
+                                </ul>
+                                <input type="hidden" id="civilStatus" name="civil_status">
                             </div>
                             <div class="col-md-3">
                                 <label for="religion" class="form-label">Religion</label>
@@ -75,13 +77,15 @@
                                 <label for="nationality" class="form-label">Nationality</label>
                                 <input type="text" class="form-control" id="nationality" name="nationality" placeholder="Enter nationality">
                             </div>
-                            <div class="col-md-3">
-                                <label for="assignedMunicipality" class="form-label">Assigned Municipality</label>
-                                <select class="form-select" id="assignedMunicipality" name="assigned_municipality" required>
-                                    <option value="" selected disabled>Select Municipality</option>
-                                    <option value="sanroque">San Roque</option>
-                                    <option value="mondragon">Mondragon</option>
-                                </select>
+                            <div class="col-md-3 position-relative">
+                                <label for="municipality" class="form-label">Municipality</label>
+                                <input type="text" class="form-control" id="municipalityInput" placeholder="Select municipality" autocomplete="off">
+                                <ul class="dropdown-menu w-100" id="municipalityDropdown">
+                                    <li><a class="dropdown-item" data-value="municipality1">Municipality 1</a></li>
+                                    <li><a class="dropdown-item" data-value="municipality2">Municipality 2</a></li>
+                                    <li><a class="dropdown-item" data-value="municipality3">Municipality 3</a></li>
+                                </ul>
+                                <input type="hidden" id="municipality" name="municipality">
                             </div>
                         </div>
 
@@ -144,16 +148,16 @@
                         </div>
                         <div class="row mb-1">
                             <div class="col-md-4">
-                                <label for="generalCarePlan" class="form-label">SSS ID</label>
-                                <input type="file" class="form-control" id="generalCarePlan" name="general_care_plan" accept=".jpg,.png">
+                                <label for="sssID" class="form-label">SSS ID</label>
+                                <input type="text" class="form-control" id="sssID" name="sss_ID">
                             </div>
                             <div class="col-md-4">
                                 <label for="philhealthID" class="form-label">PhilHealth ID</label>
-                                <input type="file" class="form-control" id="philhealthID" name="philhealth_ID" accept=".jpg,.png" >
+                                <input type="text" class="form-control" id="philhealthID" name="philhealth_ID">
                             </div>
                             <div class="col-md-4">
                                 <label for="pagibigID" class="form-label">Pag-Ibig ID</label>
-                                <input type="file" class="form-control" id="pagibigID" name="pagibig_ID" accept=".jpg,.png">
+                                <input type="text" class="form-control" id="pagibigID" name="pagibig_ID">
                             </div>
                         </div>
 
@@ -221,6 +225,52 @@
             // Show the success modal
             const successModal = new bootstrap.Modal(document.getElementById('saveSuccessModal'));
             successModal.show();
+        });
+    </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Function to filter dropdown items
+            function filterDropdown(inputId, dropdownId) {
+                const input = document.getElementById(inputId);
+                const dropdown = document.getElementById(dropdownId);
+                const items = dropdown.querySelectorAll('.dropdown-item');
+
+                input.addEventListener('input', function () {
+                    const filter = input.value.toLowerCase();
+                    let hasVisibleItems = false;
+
+                    items.forEach(item => {
+                        if (item.textContent.toLowerCase().includes(filter)) {
+                            item.style.display = 'block';
+                            hasVisibleItems = true;
+                        } else {
+                            item.style.display = 'none';
+                        }
+                    });
+                    dropdown.style.display = hasVisibleItems ? 'block' : 'none';
+                });
+                input.addEventListener('blur', function () {
+                    setTimeout(() => dropdown.style.display = 'none', 200);
+                });
+                input.addEventListener('focus', function () {
+                    dropdown.style.display = 'block';
+                });
+
+                // Handle item selection
+                items.forEach(item => {
+                    item.addEventListener('click', function (e) {
+                        e.preventDefault();
+                        input.value = item.textContent;
+                        document.getElementById(inputId.replace('Input', '')).value = item.getAttribute('data-value');
+                        dropdown.style.display = 'none';
+                    });
+                });
+            }
+
+            // Initialize filtering for each dropdown
+            filterDropdown('civilStatusInput', 'civilStatusDropdown');
+            filterDropdown('genderInput', 'genderDropdown');
+            filterDropdown('municipalityInput', 'municipalityDropdown');
         });
     </script>
 

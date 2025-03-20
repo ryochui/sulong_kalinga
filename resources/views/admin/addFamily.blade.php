@@ -149,50 +149,59 @@
         });
     </script>
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            // Function to filter dropdown items
-            function filterDropdown(inputId, dropdownId) {
-                const input = document.getElementById(inputId);
-                const dropdown = document.getElementById(dropdownId);
-                const items = dropdown.querySelectorAll('.dropdown-item');
+    document.addEventListener('DOMContentLoaded', function () {
+        // Function to filter dropdown items
+        function filterDropdown(inputId, dropdownId) {
+            const input = document.getElementById(inputId);
+            const dropdown = document.getElementById(dropdownId);
+            const items = dropdown.querySelectorAll('.dropdown-item');
 
-                input.addEventListener('input', function () {
-                    const filter = input.value.toLowerCase();
-                    let hasVisibleItems = false;
+            // Filter dropdown items based on user input
+            input.addEventListener('input', function () {
+                const filter = input.value.toLowerCase();
+                let hasVisibleItems = false;
 
-                    items.forEach(item => {
-                        if (item.textContent.toLowerCase().includes(filter)) {
-                            item.style.display = 'block';
-                            hasVisibleItems = true;
-                        } else {
-                            item.style.display = 'none';
-                        }
-                    });
-                    dropdown.style.display = hasVisibleItems ? 'block' : 'none';
-                });
-                input.addEventListener('blur', function () {
-                    setTimeout(() => dropdown.style.display = 'none', 200);
-                });
-                input.addEventListener('focus', function () {
-                    dropdown.style.display = 'block';
-                });
-
-                // Handle item selection
                 items.forEach(item => {
-                    item.addEventListener('click', function (e) {
-                        e.preventDefault();
-                        input.value = item.textContent;
-                        document.getElementById(inputId.replace('Input', '')).value = item.getAttribute('data-value');
-                        dropdown.style.display = 'none';
-                    });
+                    if (item.textContent.toLowerCase().includes(filter)) {
+                        item.style.display = 'block';
+                        hasVisibleItems = true;
+                    } else {
+                        item.style.display = 'none';
+                    }
                 });
-            }
+                dropdown.style.display = hasVisibleItems ? 'block' : 'none';
+            });
 
-            // Initialize filtering for each dropdown
-            filterDropdown('genderInput', 'genderDropdown');
-            filterDropdown('relatedBeneficiaryInput', 'relatedBeneficiaryDropdown');
-        });
-    </script>
+            // Hide dropdown when input loses focus
+            input.addEventListener('blur', function () {
+                setTimeout(() => dropdown.style.display = 'none', 200);
+            });
+
+            // Show dropdown when input gains focus
+            input.addEventListener('focus', function () {
+                dropdown.style.display = 'block';
+            });
+
+            // Handle item selection
+            items.forEach(item => {
+                item.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    input.value = item.textContent; // Update the input field with the selected item's text
+                    const hiddenInputId = inputId.replace('Input', ''); // Derive the hidden input ID
+                    const hiddenInput = document.getElementById(hiddenInputId);
+                    if (hiddenInput) {
+                        hiddenInput.value = item.getAttribute('data-value'); // Update the hidden input with the selected item's value
+                    }
+                    dropdown.style.display = 'none'; // Hide the dropdown
+                });
+            });
+        }
+
+        // Initialize filtering for each dropdown
+        filterDropdown('genderInput', 'genderDropdown');
+        filterDropdown('relatedBeneficiaryInput', 'relatedBeneficiaryDropdown');
+    });
+</script>
 
 </body>
 </html>

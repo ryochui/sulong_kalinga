@@ -70,14 +70,8 @@
                                 <input type="date" class="form-control" id="birthDate" name="birth_date" required onkeydown="return true">
                             </div>
                             <div class="col-md-3 position-relative">
-                                <label for="primaryCareworker" class="form-label">Primary Caregiver</label>
-                                <input type="text" class="form-control" id="primaryCareworkerInput" placeholder="Select Primary Careworker" autocomplete="off">
-                                <ul class="dropdown-menu w-100" id="primaryCareworkerDropdown">
-                                    <li><a class="dropdown-item" data-value="careworker1">Careworker 1</a></li>
-                                    <li><a class="dropdown-item" data-value="careworker2">Careworker 2</a></li>
-                                    <li><a class="dropdown-item" data-value="careworker3">Careworker 3</a></li>
-                                </ul>
-                                <input type="hidden" id="primaryCareworker" name="primaryCareworker">
+                                <label for="primaryCaregiver" class="form-label">Primary Caregiver</label>
+                                <input type="text" class="form-control" id="primaryCaregiver" name="primary_caregiver" placeholder="Enter Primary Caregiver name" required>                            
                             </div>
                             <div class="col-md-3">
                                 <label for="mobileNumber" class="form-label">Mobile Number</label>
@@ -432,36 +426,60 @@
                                 <label for="careServiceAgreement" class="form-label">Care Service Agreement</label>
                                 <input type="file" class="form-control" id="careServiceAgreement" name="care_service_agreement" accept=".pdf,.doc,.docx" required>
                             </div>
+                            <div class="col-md-4">
+                                <label for="generalCareplan" class="form-label">Care Service Agreement</label>
+                                <input type="file" class="form-control" id="generalCareplan" name="general_careplan" accept=".pdf,.doc,.docx" required>
+                            </div>
                         </div>
 
                         <!-- Beneficiary and Care Worker Signatures -->
                         <div class="row mb-3">
                             <!-- Beneficiary Signature Column -->
                             <div class="col-md-6">
-                                <div class="form-group mt-3">
-                                    <div class="d-flex justify-content-between align-items-center mb-2">
-                                        <label>Beneficiary Signature</label>
-                                        <button type="button" id="clear-signature-1" class="btn btn-danger btn-sm">Clear</button>
-                                    </div>
-                                    <div id="signature-pad-1" class="signature-pad">
-                                        <div class="signature-pad-body">
-                                            <canvas id="canvas1" style="border: 1px solid #ced4da; width: 100%; height: 200px;"></canvas>
+                                <div class="row mb-2">
+                                    <div class="col-md-12">
+                                        <div class="form-group mt-3">
+                                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                                <label>Beneficiary Signature</label>
+                                                <button type="button" id="clear-signature-1" class="btn btn-danger btn-sm">Clear</button>
+                                            </div>
+                                            <div id="signature-pad-1" class="signature-pad">
+                                                <div class="signature-pad-body">
+                                                    <canvas id="canvas1" style="border: 1px solid #ced4da; width: 100%; height: 200px;"></canvas>
+                                                </div>
+                                            </div>
                                         </div>
+                                    </div>
+                                </div>
+                                <div class="row mb-1">
+                                    <div class="col-md-12">
+                                        <label for="beneficiarySignatureUpload" class="form-label">Upload Beneficiary Signature</label>
+                                        <input type="file" class="form-control" id="beneficiarySignatureUpload" name="beneficiary_signature_upload" accept="image/png, image/jpeg">
                                     </div>
                                 </div>
                             </div>
 
                             <!-- Care Worker Signature Column -->
                             <div class="col-md-6">
-                                <div class="form-group mt-3">
-                                    <div class="d-flex justify-content-between align-items-center mb-2">
-                                        <label>Care Worker Signature</label>
-                                        <button type="button" id="clear-signature-2" class="btn btn-danger btn-sm">Clear</button>
-                                    </div>
-                                    <div id="signature-pad-2" class="signature-pad">
-                                        <div class="signature-pad-body">
-                                            <canvas id="canvas2" style="border: 1px solid #ced4da; width: 100%; height: 200px;"></canvas>
+                                <div class="row mb-2">
+                                    <div class="col-md-12">
+                                        <div class="form-group mt-3">
+                                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                                <label>Care Worker Signature</label>
+                                                <button type="button" id="clear-signature-2" class="btn btn-danger btn-sm">Clear</button>
+                                            </div>
+                                            <div id="signature-pad-2" class="signature-pad">
+                                                <div class="signature-pad-body">
+                                                    <canvas id="canvas2" style="border: 1px solid #ced4da; width: 100%; height: 200px;"></canvas>
+                                                </div>
+                                            </div>
                                         </div>
+                                    </div>
+                                </div>
+                                <div class="row mb-1">
+                                    <div class="col-md-12">
+                                        <label for="beneficiarySignatureUpload" class="form-label">Upload Care Worker Signature</label>
+                                        <input type="file" class="form-control" id="beneficiarySignatureUpload" name="beneficiary_signature_upload" accept="image/png, image/jpeg">
                                     </div>
                                 </div>
                             </div>
@@ -642,7 +660,6 @@
             // Initialize filtering for each dropdown
             filterDropdown('civilStatusInput', 'civilStatusDropdown');
             filterDropdown('genderInput', 'genderDropdown');
-            filterDropdown('primaryCareworkerInput', 'primaryCareworkerDropdown');
             filterDropdown('barangayInput', 'barangayDropdown');
             filterDropdown('municipalityInput', 'municipalityDropdown');
             filterDropdown('categoryInput', 'categoryDropdown');

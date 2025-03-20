@@ -58,7 +58,7 @@
                             </div>
                         </div>
                         <div class="row mb-3">
-                        <div class="col-md-3 position-relative">
+                            <div class="col-md-3 position-relative">
                                 <label for="civilStatus" class="form-label">Civil Status</label>
                                 <input type="text" class="form-control" id="civilStatusInput" placeholder="Select civil status" autocomplete="off">
                                 <ul class="dropdown-menu w-100" id="civilStatusDropdown">
@@ -149,15 +149,15 @@
                         <div class="row mb-1">
                             <div class="col-md-4">
                                 <label for="generalCarePlan" class="form-label">SSS ID</label>
-                                <input type="file" class="form-control" id="generalCarePlan" name="general_care_plan" accept=".jpg,.png">
+                                <input type="text" class="form-control" id="generalCarePlan" name="general_care_plan" accept=".jpg,.png">
                             </div>
                             <div class="col-md-4">
                                 <label for="philhealthID" class="form-label">PhilHealth ID</label>
-                                <input type="file" class="form-control" id="philhealthID" name="philhealth_ID" accept=".jpg,.png" >
+                                <input type="text" class="form-control" id="philhealthID" name="philhealth_ID" accept=".jpg,.png" >
                             </div>
                             <div class="col-md-4">
                                 <label for="pagibigID" class="form-label">Pag-Ibig ID</label>
-                                <input type="file" class="form-control" id="pagibigID" name="pagibig_ID" accept=".jpg,.png">
+                                <input type="text" class="form-control" id="pagibigID" name="pagibig_ID" accept=".jpg,.png">
                             </div>
                         </div>
 
