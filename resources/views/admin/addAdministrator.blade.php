@@ -22,10 +22,25 @@
                 </a>
                 <div class="mx-auto text-center" style="flex-grow: 1; font-weight: bold; font-size: 20px;">ADD ADMINISTRATOR</div>
             </div>
+            @if (session('success'))
+                <div class="alert alert-success">
+                    {{ session('success') }}
+                </div>
+            @endif
+
+            @if ($errors->any())
+                <div class="alert alert-danger">
+                    <ul>
+                        @foreach ($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
             <div class="row" id="addUserForm">
                 <div class="col-12">
                     <!-- <form action="{{ route('addBeneficiary') }}" method="POST"> -->
-                    <form>
+                    <form action="{{ route('admin.addAdministrator') }}" method="POST">
                         @csrf <!-- Include CSRF token for security -->
                         <!-- Row 1: Personal Details -->
                         <div class="row mb-1 mt-3">
@@ -133,6 +148,16 @@
                             <div class="col-md-4">
                                 <label for="confirmPassword" class="form-label">Confirm Password</label>
                                 <input type="password" class="form-control" id="confirmPassword" name="account[confirm_password]" placeholder="Confirm password" required>
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-3">
+                                <label for="Orgnanization_Roles" class="form-label">Orgnanization Roles</label>
+                                <select class="form-select" id="Orgnanization_Roles" name="Orgnanization_Roles" required>
+                                    <option value="" selected disabled>Select Organization Role</option>
+                                    <option value="project_coordinator">Project Coordinator</option>
+                                    <option value="meal_coordinator">MEAL Coordinator</option>
+                                </select>
                             </div>
                         </div>
 

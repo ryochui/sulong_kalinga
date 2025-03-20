@@ -6,7 +6,8 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
-use App\Models\User;  // Assuming User model corresponds to cose_users table
+use App\Models\User; 
+use App\Models\PortalAccount; 
 use Illuminate\Support\Facades\Validator;
 
 class LoginController extends Controller
@@ -40,18 +41,18 @@ class LoginController extends Controller
             // If user is found in cose_users and password matches, log in the user
             Auth::loginUsingId($user->id);
             session(['user_type' => 'cose']); // Store user type in session
-            return redirect()->route('landing'); // Redirect to the landing page
+            return redirect()->route('dashboard'); // Redirect to the landing page
         }
 
         // If not found in cose_users, check in the portal_accounts table
-        $portalUser = \DB::table('portal_accounts')
+        $user = \DB::table('portal_accounts')
                         ->where('portal_email', $request->input('email'))
                         ->first();
 
-        if ($portalUser && Hash::check($request->input('password'), $portalUser->portal_password)) {
+        if ($user && Hash::check($request->input('password'), $user->portal_password)) {
             // If user is found in portal_accounts and password matches, log in the user
-            Auth::loginUsingId($portalUser->id); // Use portal_account_id as the user ID
-            session(['user_type' => 'portal']); // Store user type in session
+            Auth::loginUsingId($user->id); // Use portal_account_id as the user ID
+            session(['user_type' => 'family']); // Store user type in session
             return redirect()->route('landing'); // Redirect to the landing page
         }
 

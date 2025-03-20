@@ -29,6 +29,11 @@
             <div class="col" style="background-color: red;">
                 a
             </div>
+            @if (Auth::check())
+    <p>Logged-in User ID: {{ Auth::user()->id }}</p>
+@else
+    <p>No user is logged in.</p>
+@endif
         </div>
     </div>
     
