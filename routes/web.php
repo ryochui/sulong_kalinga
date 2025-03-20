@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admin\ReportsController;
 // use App\Http\Controllers\AuthController; // old auth
 use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\AdminController;
 
 require __DIR__.'/innerRoutes.php';
 
@@ -18,6 +19,10 @@ Route::post('login', [LoginController::class, 'login']);
 Route::post('logout', [LoginController::class, 'logout'])->name('logout'); // no logout for now
 
 // Route::middleware('auth')->group(function () {
+    
+
+    Route::post('/admin/add-administrator', [AdminController::class, 'storeAdministrator'])->name('admin.addAdministrator');
+    
     Route::get('/', function () {
         return view('publicWeb.landing');
     })->name('landing');
