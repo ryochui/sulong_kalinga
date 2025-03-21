@@ -35,6 +35,10 @@
                         </div>
                         <div class="row mb-1">
                             <div class="col-md-3">
+                                <label for="familyProfilePic" class="form-label">Profile Picture</label>
+                                <input type="file" class="form-control" id="familyProfilePic" name="familyProfilePic" accept="image/png, image/jpeg">
+                            </div>
+                            <div class="col-md-3">
                                 <label for="firstName" class="form-label">First Name</label>
                                 <input type="text" class="form-control" id="firstName" name="first_name" placeholder="Enter first name" required>
                             </div>
@@ -52,12 +56,12 @@
                                 </ul>
                                 <input type="hidden" id="gender" name="gender">
                             </div>
+                        </div>
+                        <div class="row mb-3">
                             <div class="col-md-3">
                                 <label for="birthDate" class="form-label">Birthday</label>
                                 <input type="date" class="form-control" id="birthDate" name="birth_date" required onkeydown="return true">
                             </div>
-                        </div>
-                        <div class="row mb-3">
                             <div class="col-md-3">
                                 <label for="mobileNumber" class="form-label">Mobile Number</label>
                                 <input type="text" class="form-control" id="mobileNumber" name="mobile_number" placeholder="Enter mobile number" required>
@@ -66,7 +70,7 @@
                                 <label for="landlineNumber" class="form-label">Landline Number</label>
                                 <input type="text" class="form-control" id="landlineNumber" name="landline_number" placeholder="Enter landline number">
                             </div>
-                            <div class="col-md-6 position-relative">
+                            <div class="col-md-3 position-relative">
                                 <label for="relatedBeneficiary" class="form-label">Related Beneficiary</label>
                                 <input type="text" class="form-control" id="relatedBeneficiaryInput" placeholder="Select related beneficiary" autocomplete="off">
                                 <ul class="dropdown-menu w-100" id="relatedBeneficiaryDropdown">

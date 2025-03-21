@@ -420,7 +420,7 @@
                         <div class="row mb-1">
                             <div class="col-md-3">
                                 <label for="beneficiaryProfilePic" class="form-label">Upload Beneficiary Picture</label>
-                                <input type="file" class="form-control" id="beneficiaryProfilePic" name="beneficiaryProfilePic" accept="image/png, image/jpeg" required>
+                                <input type="file" class="form-control" id="beneficiaryProfilePic" name="beneficiaryProfilePic" accept="image/png, image/jpeg">
                             </div>
                             <div class="col-md-3">
                                 <label for="datePicker" class="form-label">Review Date</label>
