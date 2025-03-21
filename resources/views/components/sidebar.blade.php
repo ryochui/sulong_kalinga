@@ -36,7 +36,7 @@
             <li><a class="link_name">User Management</a></li>
             <li><a href="beneficiaryProfile" class="{{ Request::routeIs('beneficiaryProfile') || Request::routeIs('addBeneficiary') ? 'active' : '' }}">Beneficiary Profiles</a></li>
             <li><a href="familyProfile" class="{{ Request::routeIs('familyProfile') || Request::routeIs('addFamily') ? 'active' : '' }}">Family or Relative Profiles</a></li>
-            <li><a href="caregiverProfile" class="{{ Request::routeIs('caregiverProfile') || Request::routeIs('addCareworker') ? 'active' : '' }}">Care Worker Profiles</a></li>
+            <li><a href="careWorkerProfile" class="{{ Request::routeIs('careWorkerProfile') || Request::routeIs('addCareworker') ? 'active' : '' }}">Care Worker Profiles</a></li>
             <li><a href="careManagerProfile" class="{{ Request::routeIs('careManagerProfile') || Request::routeIs('addCareManager') ? 'active' : '' }}">Care Manager Profiles</a></li>
             <li><a href="administratorProfile" class="{{ Request::routeIs('administratorProfile') || Request::routeIs('addAdministrator') ? 'active' : '' }}">Administrator Profiles</a></li>
           </ul>
