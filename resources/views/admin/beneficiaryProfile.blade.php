@@ -107,13 +107,21 @@
                                         </td>
                                         <td>
                                             <div class="action-icons">
-                                                <!-- Link to VIEW PROFILE DETAILS -->
-                                                <a href="viewProfileDetails" class="text-decoration-none" style="color:black;">
-                                                    <i class="fa fa-eye"></i>
-                                                </a>
-                                                <a href="editProfile" class="text-decoration-none" style="color:black;">
-                                                <i class='bx bxs-edit'></i>
-                                                </a>
+                                                <!-- Form to VIEW PROFILE DETAILS -->
+                                                <form action="{{ route('viewProfileDetails') }}" method="POST" style="display:inline;">
+                                                    @csrf
+                                                    <input type="hidden" name="beneficiary_id" value="{{ $beneficiary->beneficiary_id }}">
+                                                    <button type="submit" class="btn btn-link text-decoration-none" style="color:black;">
+                                                        <i class="fa fa-eye"></i>
+                                                    </button>
+                                                </form>
+                                                <form action="{{ route('editProfile') }}" method="POST" style="display:inline;">
+                                                    @csrf
+                                                    <input type="hidden" name="beneficiary_id" value="{{ $beneficiary->beneficiary_id }}">
+                                                    <button type="submit" class="btn btn-link text-decoration-none" style="color:black;">
+                                                        <i class="bx bxs-edit"></i>
+                                                    </button>
+                                                </form>
                                             </div>
                                         </td>
                                     </tr>

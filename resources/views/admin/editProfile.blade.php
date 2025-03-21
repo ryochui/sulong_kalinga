@@ -16,10 +16,16 @@
     
     <div class="home-section">
         <div class="container-fluid">
+            <!-- Back Button Logic -->
             <div class="d-flex justify-content-between align-items-center mb-3">
-                <a href="viewProfileDetails" class="btn btn-secondary">
+                <form action="{{ route('viewProfileDetails') }}" method="POST" style="display:inline;">
+                    @csrf
+                    <input type="hidden" name="beneficiary_id" value="{{ $beneficiary->beneficiary_id }}">
+                    <button type="submit" class="btn btn-secondary original-back-btn">
                     <i class="bx bx-arrow-back"></i> Back
-                </a>
+                    </button>
+                </form>
+
                 <div class="mx-auto text-center" style="flex-grow: 1; font-weight: bold; font-size: 20px;">EDIT BENEFICIARY PROFILE</div>
             </div>
             <div class="row" id="addUserForm">
@@ -27,6 +33,7 @@
                     <!-- <form action="{{ route('addBeneficiary') }}" method="POST"> -->
                     <form id="addBeneficiaryForm">
                         @csrf
+                        @method('PUT')
                         <!-- Row 1: Personal Details -->
                         <div class="row mb-1 mt-3">
                             <div class="col-12">
@@ -36,7 +43,7 @@
                         <div class="row mb-1">
                             <div class="col-md-3">
                                 <label for="firstName" class="form-label">First Name</label>
-                                <input type="text" class="form-control" id="firstName" name="first_name" placeholder="Enter first name" required>
+                                <input type="text" class="form-control" id="firstName" name="first_name" placeholder="Enter first name" value="{{ $beneficiary->first_name }}" required>
                             </div>
                             <div class="col-md-3">
                                 <label for="lastName" class="form-label">Last Name</label>

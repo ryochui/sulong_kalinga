@@ -76,4 +76,28 @@ class BeneficiaryController extends Controller
 
         return response()->json(['success' => true]);
     }
+
+    public function viewProfileDetails(Request $request)
+    {
+        $beneficiary_id = $request->input('beneficiary_id');
+        $beneficiary = Beneficiary::with(['category', 'barangay', 'municipality', 'status'])->find($beneficiary_id);
+
+        if (!$beneficiary) {
+            return redirect()->route('beneficiaryProfile')->with('error', 'Beneficiary not found.');
+        }
+        return view('admin.viewProfileDetails', compact('beneficiary')); 
+        
+    }
+
+    public function editProfile(Request $request)
+    {
+        $beneficiary_id = $request->input('beneficiary_id');
+        $beneficiary = Beneficiary::with(['category', 'barangay', 'municipality', 'status'])->find($beneficiary_id);
+
+        if (!$beneficiary) {
+            return redirect()->route('beneficiaryProfile')->with('error', 'Beneficiary not found.');
+        }
+
+        return view('admin.editProfile', compact('beneficiary')); 
+    }
 }

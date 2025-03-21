@@ -44,6 +44,7 @@ class BeneficiaryFactory extends Factory
             'emergency_contact_relation' => $this->faker->randomElement(['Sister', 'Brother', 'Parent']),
             'emergency_contact_mobile' => $this->faker->unique()->numerify('09#########'),
             'emergency_contact_email' => $this->faker->unique()->safeEmail,
+            'emergency_procedure' => $this->faker->sentence,
             'beneficiary_status_id' => 1,
             'status_reason' => 'N/A',
             'general_care_plan_id' => $generalCarePlanId++,

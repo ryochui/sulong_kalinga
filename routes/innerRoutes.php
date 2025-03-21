@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admin\ReportsController;
+use App\Http\Controllers\BeneficiaryController;
 
 
 Route::get('/dashboard', function () {
@@ -68,3 +69,7 @@ Route::get('/viewProfileDetails', function () {
 Route::get('/editProfile', function () {
     return view('admin.editProfile');
 })->name('editProfile');
+
+//View and Edit Beneficiary Profile from Table Routing
+Route::post('/viewProfileDetails', [BeneficiaryController::class, 'viewProfileDetails'])->name('viewProfileDetails');
+Route::post('/editProfile', [BeneficiaryController::class, 'editProfile'])->name('editProfile');
