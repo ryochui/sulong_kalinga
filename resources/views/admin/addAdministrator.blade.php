@@ -145,7 +145,7 @@
                                 <label for="mobileNumber" class="form-label">Mobile Number</label>
                                 <div class="input-group">
                                     <span class="input-group-text">+63</span>
-                                    <input type="text" class="form-control" id="mobileNumber" name="mobile_number" placeholder="Enter mobile number" maxlength="10" required oninput="restrictToNumbers(this)" title="Must be 10 digits.">
+                                    <input type="text" class="form-control" id="mobileNumber" name="mobile_number" placeholder="Enter mobile number" maxlength="11" required oninput="restrictToNumbers(this)" title="Must be 10 or 11digits.">
                                 </div>
                             </div>
                             <div class="col-md-4">
