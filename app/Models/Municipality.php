@@ -18,6 +18,6 @@ class Municipality extends Model
      * @var array<string>
      */
     protected $fillable = [
-        'municipality_name', 'province_id'
+        'municipality_name', 'province_id', 'created_at'. 'updated_at'
     ];
 }

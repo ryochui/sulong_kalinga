@@ -11,6 +11,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\FamilyMemberController;
 use App\Http\Controllers\CareWorkerController;
 use App\Http\Controllers\CareManagerController;
+use App\Http\Controllers\MunicipalityController;
 
 
 require __DIR__.'/innerRoutes.php';
@@ -29,6 +30,7 @@ Route::post('logout', [LoginController::class, 'logout'])->name('logout'); // no
     
 
     Route::post('/admin/addAdministrator', [AdminController::class, 'storeAdministrator'])->name('admin.addAdministrator.store');
+    Route::post('/admin/addCareManager', [AdminController::class, 'storeCareManager'])->name('admin.addCareManager.store');
     
     Route::get('/', function () {
         return view('publicWeb.landing');
@@ -71,6 +73,12 @@ Route::post('logout', [LoginController::class, 'logout'])->name('logout'); // no
     Route::get('/admin/addAdministrator', function () {
         return view('admin.addAdministrator');
     })->name('admin.addAdministrator');
+
+    // Route::get('/admin/addCareManager', function () {
+    //     return view('admin.addCareManager');
+    // })->name('admin.addCareManager');
+
+    Route::get('/admin/addCareManager', [CareManagerController::class, 'create'])->name('admin.addCareManager');
 
     //For beneficiary profiles table
     Route::get('/beneficiaryProfile', [BeneficiaryController::class, 'index'])->name('admin.beneficiaryProfile');

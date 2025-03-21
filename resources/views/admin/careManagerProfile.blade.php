@@ -99,7 +99,7 @@
                                         </td>
                                         <td>{{ $caremanager->first_name }} {{ $caremanager->last_name }}</td>
                                         <td>{{ $caremanager->municipality->municipality_name ?? 'N/A' }}</td>
-                                        <td>{{ $caremanager->barangay->barangay_name }}</td>
+                                        <td>{{ $caremanager->barangay->barangay_name ?? 'N/A' }}</td>
                                         <td>{{ $caremanager->mobile }}</td>
                                         <td>
                                             <select class="form-select" name="status" id="statusSelect{{ $caremanager->id }}" onchange="openStatusChangeModal(this, 'Care Manager')">

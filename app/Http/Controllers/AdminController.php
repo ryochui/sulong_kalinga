@@ -113,8 +113,8 @@ class AdminController extends Controller
 
         // Handle file uploads
         $administratorPhotoPath = $request->file('administrator_photo')->store('uploads/administrator_photos', 'public');
-        $governmentIDPath = $request->file('government_ID')->store('uploads/government_ids', 'public');
-        $resumePath = $request->file('resume')->store('uploads/resumes', 'public');
+        $governmentIDPath = $request->file('government_ID')->store('uploads/administrator_government_ids', 'public');
+        $resumePath = $request->file('resume')->store('uploads/administrator_resumes', 'public');
 
         // Save the administrator to the database
         $administrator = new User();
