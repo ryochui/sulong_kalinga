@@ -92,7 +92,16 @@
                                 <label for="nationality" class="form-label">Nationality</label>
                                 <input type="text" class="form-control" id="nationality" name="nationality" placeholder="Enter nationality">
                             </div>
-                            
+                            <div class="col-md-3 position-relative">
+                                <label for="educationalBackground" class="form-label">Educational Background</label>
+                                <input type="text" class="form-control" id="educationalBackgroundInput" placeholder="Select Educational Background" autocomplete="off">
+                                <ul class="dropdown-menu w-100" id="educationalBackgroundDropdown">
+                                    <li><a class="dropdown-item" data-value="college">College</a></li>
+                                    <li><a class="dropdown-item" data-value="highschool">High School</a></li>
+                                    <li><a class="dropdown-item" data-value="doctorate">Doctorate</a></li>
+                                </ul>
+                                <input type="hidden" id="civilStatus" name="civil_status">
+                            </div>
                         </div>
 
                         <hr class="my-4">
@@ -296,6 +305,7 @@ e.preventDefault(); // Prevent the default form submission
             // Initialize filtering for each dropdown
             filterDropdown('civilStatusInput', 'civilStatusDropdown');
             filterDropdown('genderInput', 'genderDropdown');
+            filterDropdown('educationalBackgroundInput', 'educationalBackgroundDropdown');
             filterDropdown('Organization_RolesInput', 'Organization_RolesDropdown');
         });
     </script>

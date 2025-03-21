@@ -86,27 +86,27 @@
                             </thead>
                             <tbody>
                                 @for ($i = 1; $i <= 33; $i++)
-                                    <tr>
-                                        <td>
-                                            <input type="checkbox" class="rowCheckbox" />
-                                        </td>
-                                        <td>Mark</td>
-                                        <td class="d-none d-sm-table-cell">Otto</td>
-                                        <td class="d-none d-sm-table-cell">@mdo</td>
-                                        <td class="d-none d-md-table-cell">Otto</td>
-                                        <td>
-                                        <select class="form-select" name="status" id="statusSelect{{ $i }}" onchange="openStatusChangeModal(this, 'Administrator')">
-                                            <option value="active" selected>Active</option>
-                                            <option value="inactive">Inactive</option>
-                                        </select>
-                                        </td>
-                                        <td>
-                                            <div class="action-icons">
-                                                <i class="fa fa-eye"></i>
-                                                <i class='bx bxs-edit'></i>
-                                            </div>
-                                        </td>
-                                    </tr>
+                                        <tr>
+                                            <td>
+                                                <input type="checkbox" class="rowCheckbox" />
+                                            </td>
+                                            <td>Mark</td>
+                                            <td class="d-none d-sm-table-cell">Otto</td>
+                                            <td class="d-none d-sm-table-cell">@mdo</td>
+                                            <td class="d-none d-md-table-cell">Otto</td>
+                                            <td>
+                                            <select class="form-select" name="status" id="statusSelect{{ $i }}" onchange="openStatusChangeModal(this, 'Administrator')">
+                                                <option value="active" selected>Active</option>
+                                                <option value="inactive">Inactive</option>
+                                            </select>
+                                            </td>
+                                            <td>
+                                                <div class="action-icons">
+                                                    <a href="viewProfileDetails"><i class="fa fa-eye" style="text-decoration: none;"></i></a>
+                                                    <i class='bx bxs-edit'></i>
+                                                </div>
+                                            </td>
+                                        </tr>
                                 @endfor
                             </tbody>
                         </table>

@@ -53,7 +53,14 @@ Route::get('/addAdministrator', function () {
     return view('admin.addAdministrator');
 })->name('addAdministrator');
 
-
 Route::get('/municipality', function () {
     return view('admin.municipality');
 })->name('municipality');
+
+Route::get('/weeklyCareplan', function () {
+    return view('careWorker.weeklyCareplan');
+})->name('weeklyCareplan');
+
+Route::get('/viewProfileDetails', function () {
+    return view('admin.viewProfileDetails');
+})->name('viewProfileDetails');

@@ -57,7 +57,7 @@
                                 <input type="hidden" id="gender" name="gender">
                             </div>
                         </div>
-                        <div class="row mb-3">
+                        <div class="row mb-1">
                             <div class="col-md-3 position-relative">
                                 <label for="civilStatus" class="form-label">Civil Status</label>
                                 <input type="text" class="form-control" id="civilStatusInput" placeholder="Select civil status" autocomplete="off">
@@ -86,6 +86,18 @@
                                     <li><a class="dropdown-item" data-value="municipality3">Municipality 3</a></li>
                                 </ul>
                                 <input type="hidden" id="municipality" name="municipality">
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-3 position-relative">
+                                <label for="educationalBackground" class="form-label">Educational Background</label>
+                                <input type="text" class="form-control" id="educationalBackgroundInput" placeholder="Select Educational Background" autocomplete="off">
+                                <ul class="dropdown-menu w-100" id="educationalBackgroundDropdown">
+                                    <li><a class="dropdown-item" data-value="college">College</a></li>
+                                    <li><a class="dropdown-item" data-value="highschool">High School</a></li>
+                                    <li><a class="dropdown-item" data-value="doctorate">Doctorate</a></li>
+                                </ul>
+                                <input type="hidden" id="civilStatus" name="civil_status">
                             </div>
                         </div>
 
@@ -270,6 +282,7 @@
             // Initialize filtering for each dropdown
             filterDropdown('civilStatusInput', 'civilStatusDropdown');
             filterDropdown('genderInput', 'genderDropdown');
+            filterDropdown('educationalBackgroundInput', 'educationalBackgroundDropdown');
             filterDropdown('municipalityInput', 'municipalityDropdown');
         });
     </script>
