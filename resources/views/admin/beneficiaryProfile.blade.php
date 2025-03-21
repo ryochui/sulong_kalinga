@@ -111,7 +111,9 @@
                                                 <a href="viewProfileDetails" class="text-decoration-none" style="color:black;">
                                                     <i class="fa fa-eye"></i>
                                                 </a>
+                                                <a href="editProfile" class="text-decoration-none" style="color:black;">
                                                 <i class='bx bxs-edit'></i>
+                                                </a>
                                             </div>
                                         </td>
                                     </tr>
