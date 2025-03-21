@@ -73,3 +73,35 @@ Route::get('/editProfile', function () {
 //View and Edit Beneficiary Profile from Table Routing
 Route::post('/viewProfileDetails', [BeneficiaryController::class, 'viewProfileDetails'])->name('viewProfileDetails');
 Route::post('/editProfile', [BeneficiaryController::class, 'editProfile'])->name('editProfile');
+
+Route::get('/viewFamilyDetails', function () {
+    return view('admin.viewFamilyDetails');
+})->name('viewFamilyDetails');
+
+Route::get('/editFamilyProfile', function () {
+    return view('admin.editFamilyProfile');
+})->name('editFamilyProfile');
+
+Route::get('/viewCareworkerDetails', function () {
+    return view('admin.viewCareworkerDetails');
+})->name('viewCareworkerDetails');
+
+Route::get('/editCareworkerProfile', function () {
+    return view('admin.editCareworkerProfile');
+})->name('editCareworkerProfile');
+
+Route::get('/viewCaremanagerDetails', function () {
+    return view('admin.viewCaremanagerDetails');
+})->name('viewCaremanagerDetails');
+
+Route::get('/editCaremanagerProfile', function () {
+    return view('admin.editCaremanagerProfile');
+})->name('editCaremanagerProfile');
+
+Route::get('/viewAdminDetails', function () {
+    return view('admin.viewAdminDetails');
+})->name('viewAdminDetails');
+
+Route::get('/editAdminProfile', function () {
+    return view('admin.editAdminProfile');
+})->name('editAdminProfile');
