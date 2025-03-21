@@ -19,7 +19,7 @@ class CareManagerController extends Controller
         $filter = $request->input('filter');
 
         // Fetch careworkers based on the search query and filters
-        $caremanagers = User::where('role_id', 3)
+        $caremanagers = User::where('role_id', 2)
         ->with('municipality', 'barangay')
         ->when($search, function ($query, $search) {
             return $query->where(function ($query) use ($search) {
@@ -127,12 +127,7 @@ class CareManagerController extends Controller
             // 'Organization_Roles' => 'required|integer|exists:organization_roles,organization_role_id',
             
             // Municipality
-            'municipality' => [
-                'nullable',
-                'string',
-                'max:50',
-                'regex:/^[a-zA-Z\s]*$/', // Only alphabets and spaces allowed
-            ],
+            'municipality' => 'required|integer|exists:municipalities,municipality_id',
         
             // Documents
             'caremanager_photo' => 'required|image|mimes:jpeg,png|max:2048',
@@ -162,7 +157,7 @@ class CareManagerController extends Controller
         }
 
         // Handle file uploads
-        $caremanagerPhotoPath = $request->file('administrator_photo')->store('uploads/caremanager_photos', 'public');
+        $caremanagerPhotoPath = $request->file('caremanager_photo')->store('uploads/caremanager_photos', 'public');
         $governmentIDPath = $request->file('government_ID')->store('uploads/caremanager_government_ids', 'public');
         $resumePath = $request->file('resume')->store('uploads/caremanager_resumes', 'public');
 
@@ -188,7 +183,7 @@ class CareManagerController extends Controller
         $caremanager->volunteer_status = 'Active'; // Status in COSE
         $caremanager->status = 'Active'; // Status for access to the system
         $caremanager->status_start_date = now();
-        $caremanager->municipality_id = $request->input('municipality');
+        $caremanager->assigned_municipality_id = $request->input('municipality');
 
         // Save file paths and IDs
         $caremanager->photo = $caremanagerPhotoPath;

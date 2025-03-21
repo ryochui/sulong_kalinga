@@ -17,7 +17,7 @@ class CareWorkerController extends Controller
         $filter = $request->input('filter');
 
         // Fetch careworkers based on the search query and filters
-        $careworkers = User::where('role_id', 2)
+        $careworkers = User::where('role_id', 3)
         ->with('municipality', 'barangay')
         ->when($search, function ($query, $search) {
             return $query->where(function ($query) use ($search) {

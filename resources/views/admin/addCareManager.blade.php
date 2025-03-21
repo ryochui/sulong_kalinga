@@ -222,9 +222,8 @@
                                 <label for="municipality" class="form-label">Municipality</label>
                                 <input type="text" class="form-control" id="municipalityInput" placeholder="Select municipality" autocomplete="off" readonly>
                                 <ul class="dropdown-menu w-100" id="municipalityDropdown">
-                                @foreach ($municipalities as $municipality)
-                                    <li><a class="dropdown-item" data-value="{{ $municipality->municipality_id }}">{{ $municipality->municipality_name }}</a></li>
-                                @endforeach
+                                    <li><a class="dropdown-item" data-value="1">Mondragon</a></li>
+                                    <li><a class="dropdown-item" data-value="2">San Roque</a></li>
                                 </ul>
                                 <input type="hidden" id="municipality" name="municipality">
                             </div>
@@ -326,7 +325,7 @@
             filterDropdown('civilStatusInput', 'civilStatusDropdown');
             filterDropdown('genderInput', 'genderDropdown');
             filterDropdown('educationalBackgroundInput', 'educationalBackgroundDropdown');
-            filterDropdown('Organization_RolesInput', 'Organization_RolesDropdown');
+            // filterDropdown('Organization_RolesInput', 'Organization_RolesDropdown');
             filterDropdown('municipalityInput', 'municipalityDropdown');
         });
 
@@ -395,6 +394,20 @@
         function validateEmail(input) {
             input.value = input.value.replace(/[^a-zA-Z0-9._%+-@]/g, ''); // Remove invalid characters
         }
+        // document.addEventListener('DOMContentLoaded', function () {
+        //     const municipalityInput = document.getElementById('municipalityInput');
+        //     const municipalityHiddenInput = document.getElementById('municipality');
+        //     const municipalityDropdown = document.getElementById('municipalityDropdown');
+
+        //     // Add click event listeners to dropdown items
+        //     municipalityDropdown.querySelectorAll('.dropdown-item').forEach(item => {
+        //         item.addEventListener('click', function (e) {
+        //             e.preventDefault();
+        //             municipalityInput.value = this.textContent; // Set the visible input value
+        //             municipalityHiddenInput.value = this.getAttribute('data-value'); // Set the hidden input value
+        //         });
+        //     });
+        // }); FOR MUNICIPALITY DROPDOWN IF DYNAMIC WHEN FIXED
         document.addEventListener('DOMContentLoaded', function () {
             const municipalityInput = document.getElementById('municipalityInput');
             const municipalityHiddenInput = document.getElementById('municipality');

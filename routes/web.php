@@ -30,7 +30,7 @@ Route::post('logout', [LoginController::class, 'logout'])->name('logout'); // no
     
 
     Route::post('/admin/addAdministrator', [AdminController::class, 'storeAdministrator'])->name('admin.addAdministrator.store');
-    Route::post('/admin/addCareManager', [AdminController::class, 'storeCareManager'])->name('admin.addCareManager.store');
+    Route::post('/admin/addCareManager', [CareManagerController::class, 'storeCareManager'])->name('admin.addCareManager.store');
     
     Route::get('/', function () {
         return view('publicWeb.landing');
