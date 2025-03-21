@@ -16,28 +16,37 @@
     
     <div class="home-section">
         <div class="container-fluid">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <!-- Original Back Button -->
-                <a href="beneficiaryProfile" class="btn btn-secondary original-back-btn">
-                    <i class="bx bx-arrow-back"></i> Back
-                </a>
-                <div class="mx-auto text-center" style="flex-grow: 1; font-weight: bold; font-size: 20px;">VIEW BENEFICIARY PROFILE DETAILS</div>
-                <div>
-                    <!-- Hidden Back Button -->
-                    <a href="beneficiaryProfile" class="btn btn-secondary hidden-back-btn">
-                        <i class="bx bx-arrow-back"></i> Back
-                    </a>
-                    <a href="editProfile" class="btn btn-primary" onclick="editProfile()">
-                        <i class="bx bxs-edit"></i> Edit
-                    </a>
-                    <button class="btn btn-danger" onclick="deleteProfile()">
-                        <i class="bx bxs-trash"></i> Delete
-                    </button>
-                </div>
-            </div>
-            <div class="row justify-content-center" id="profileDetails">
-                <div class="row justify-content-center">
-                    <div class="col-lg-8 col-md-12 col-sm-12 mb-3" id="profilePic">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+    
+        <!-- Original Back Button -->
+    <a href="beneficiaryProfile" class="btn btn-secondary original-back-btn">
+        <i class="bx bx-arrow-back"></i> Back
+    </a>
+
+    <div class="mx-auto text-center" style="flex-grow: 1; font-weight: bold; font-size: 20px;">VIEW BENEFICIARY PROFILE DETAILS</div>
+
+    <!-- Edit and Delete Buttons -->
+    <div>
+        <!-- Hidden Back Button -->
+        <a href="beneficiaryProfile" class="btn btn-secondary hidden-back-btn">
+            <i class="bx bx-arrow-back"></i> Back
+        </a>
+        <!-- Edit Button with Routing -->
+        <form action="{{ route('editProfile') }}" method="POST" style="display:inline;">
+            @csrf
+            <input type="hidden" name="beneficiary_id" value="{{ $beneficiary->beneficiary_id }}">
+            <button type="submit" class="btn btn-primary">
+            <i class="bx bxs-edit"></i> Edit
+            </button>
+        </form>
+        <button class="btn btn-danger" onclick="deleteProfile()">
+            <i class="bx bxs-trash"></i> Delete
+        </button>
+    </div>
+</div>
+            <div class="row p-lg-3 p-md-2 p-sm-1 justify-content-center" id="profileDetails">
+                <div class="row p-lg-3 p-md-2 p-sm-1 justify-content-center">
+                    <div class="col-lg-8 col-md-12 col-sm-12" id="profilePic">
                         <div class="row justify-content-center align-items-center text-center text-md-start">
                             <!-- Profile Picture Column -->
                             <div class="col-lg-3 col-md-4 col-sm-12 mb-3 mb-md-0">
@@ -50,12 +59,12 @@
                             <div class="col-lg-9 col-md-8 col-sm-12">
                                 <div class="d-flex flex-column flex-md-row align-items-center align-items-md-start">
                                     <!-- Complete Name -->
-                                    <h4 class="me-md-3 mb-2 mb-md-0 mt-2">First Name M.I. Last Name</h4>
+                                    <h4 class="me-md-3 mb-2 mb-md-0 mt-2">{{ $beneficiary->first_name }} {{ $beneficiary->middle_initial }} {{ $beneficiary->last_name }}</h4>
                                     <!-- Dropdown for Status -->
                                     <div class="form-group mb-0 ms-md-auto">
                                         <select class="form-select d-inline-block w-auto" id="status" name="status">
-                                            <option value="active">Active Beneficiary</option>
-                                            <option value="inactive">Inactive</option>
+                                            <option value="active" {{ $beneficiary->status->status_name == 'Active' ? 'selected' : '' }}>Active Beneficiary</option>
+                                            <option value="inactive" {{ $beneficiary->status->status_name == 'Inactive' ? 'selected' : '' }}>Inactive</option>
                                         </select>
                                     </div>
                                 </div>
@@ -73,27 +82,27 @@
                             <tbody>
                                 <tr>
                                     <td style="width:30%;"><strong>Primary Caregiver:</strong></td>
-                                    <td><p><!-- Backend data --></p></td>
+                                    <td><p>{{ $beneficiary->primary_caregiver }}</p></td>
                                 </tr>
                                 <tr>
                                     <td style="width:30%;"><strong>Gender:</strong></td>
-                                    <td><p><!-- Backend data --></p></td>
+                                    <td><p>{{ $beneficiary->gender }}</p></td>
                                 </tr>
                                 <tr>
                                     <td style="width:30%;"><strong>Civil Status:</strong></td>
-                                    <td><p><!-- Backend data --></p></td>
+                                    <td><p>{{ $beneficiary->civil_status }}</p></td>
                                 </tr>
                                 <tr>
                                     <td style="width:30%;"><strong>Mobile Number:</strong></td>
-                                    <td><p><!-- Backend data --></p></td>
+                                    <td><p>{{ $beneficiary->mobile }}</p></td>
                                 </tr>
                                 <tr>
                                     <td style="width:30%;"><strong>Landline Number:</strong></td>
-                                    <td><p><!-- Backend data --></p></td>
+                                    <td><p>{{ $beneficiary->landline ?? 'N/A' }}</p></td>
                                 </tr>
                                 <tr>
                                     <td style="width:30%;"><strong>Current Address:</strong></td>
-                                    <td><p>16905 Brooke View, Glendaburgh, Wyoming - 52932, Hungary</p></td>
+                                    <td><p>{{ $beneficiary->current_address }}</p></td>
                                 </tr>
                             </tbody>
                         </table>
@@ -136,26 +145,22 @@
                             <tbody>
                                 <tr>
                                     <td><strong>Emergency Contact:</strong></td>
-                                    <td><p><!-- Backend data --></p></td>
+                                    <td><p>{{ $beneficiary->emergency_contact_name }}</p></td>
                                 </tr>
                                 <tr>
                                     <td><strong>Relation:</strong></td>
-                                    <td><p><!-- Backend data --></p></td>
-                                </tr>
-                                <tr>
-                                    <td><strong>Civil Status:</strong></td>
-                                    <td><p><!-- Backend data --></p></td>
+                                    <td><p>{{ $beneficiary->emergency_contact_relation ?? 'Not Specified' }}</p></td>
                                 </tr>
                                 <tr>
                                     <td><strong>Mobile Number:</strong></td>
-                                    <td><p><!-- Backend data --></p></td>
+                                    <td><p>{{ $beneficiary->emergency_contact_mobile }}</p></td>
                                 </tr>
                                 <tr>
                                     <td><strong>Email Address:</strong></td>
-                                    <td><p><!-- Backend data --></p></td>                                </tr>
+                                    <td><p>{{ $beneficiary->emergency_email ?? 'N/A'}}</p></td>                                </tr>
                                 <tr>
                                     <td><strong>Emergency Procedure:</strong></td>
-                                    <td><p><!-- Backend data --></p></td>
+                                    <td><p>{{ $beneficiary->emergency_procedure}}</p></td>  
                                 </tr>
                             </tbody>
                         </table>
@@ -298,6 +303,7 @@
                             </tbody>
                         </table>
                     </div>
+                    
                     <!-- Assigned Care Worker Column -->
                     <div class="col-lg-4 col-md-4 col-sm-12">
                         <h5 class="text-center">Assigned Care Worker</h5>
