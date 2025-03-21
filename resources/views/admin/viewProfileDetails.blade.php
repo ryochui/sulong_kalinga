@@ -16,31 +16,28 @@
     
     <div class="home-section">
         <div class="container-fluid">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-    <!-- Original Back Button -->
-    <a href="beneficiaryProfile" class="btn btn-secondary original-back-btn">
-        <i class="bx bx-arrow-back"></i> Back
-    </a>
-
-    <div class="mx-auto text-center" style="flex-grow: 1; font-weight: bold; font-size: 20px;">VIEW BENEFICIARY PROFILE DETAILS</div>
-
-    <!-- Edit and Delete Buttons -->
-    <div>
-        <!-- Hidden Back Button -->
-        <a href="beneficiaryProfile" class="btn btn-secondary hidden-back-btn">
-            <i class="bx bx-arrow-back"></i> Back
-        </a>
-        <a href="editProfile" class="btn btn-primary" onclick="editProfile()">
-            <i class="bx bxs-edit"></i> Edit
-        </a>
-        <button class="btn btn-danger" onclick="deleteProfile()">
-            <i class="bx bxs-trash"></i> Delete
-        </button>
-    </div>
-</div>
-            <div class="row p-lg-3 p-md-2 p-sm-1 justify-content-center" id="profileDetails">
-                <div class="row p-lg-3 p-md-2 p-sm-1 justify-content-center">
-                    <div class="col-lg-8 col-md-12 col-sm-12" id="profilePic">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <!-- Original Back Button -->
+                <a href="beneficiaryProfile" class="btn btn-secondary original-back-btn">
+                    <i class="bx bx-arrow-back"></i> Back
+                </a>
+                <div class="mx-auto text-center" style="flex-grow: 1; font-weight: bold; font-size: 20px;">VIEW BENEFICIARY PROFILE DETAILS</div>
+                <div>
+                    <!-- Hidden Back Button -->
+                    <a href="beneficiaryProfile" class="btn btn-secondary hidden-back-btn">
+                        <i class="bx bx-arrow-back"></i> Back
+                    </a>
+                    <a href="editProfile" class="btn btn-primary" onclick="editProfile()">
+                        <i class="bx bxs-edit"></i> Edit
+                    </a>
+                    <button class="btn btn-danger" onclick="deleteProfile()">
+                        <i class="bx bxs-trash"></i> Delete
+                    </button>
+                </div>
+            </div>
+            <div class="row justify-content-center" id="profileDetails">
+                <div class="row justify-content-center">
+                    <div class="col-lg-8 col-md-12 col-sm-12 mb-3" id="profilePic">
                         <div class="row justify-content-center align-items-center text-center text-md-start">
                             <!-- Profile Picture Column -->
                             <div class="col-lg-3 col-md-4 col-sm-12 mb-3 mb-md-0">
@@ -70,7 +67,7 @@
                 
                 <div class="row">
                     <!-- Personal Details Column -->
-                    <div class="col-lg-6 col-md-6 col-sm-12 p-lg-3 p-md-2 p-sm-1">
+                    <div class="col-lg-6 col-md-6 col-sm-12">
                         <h5 class="text-center">Personal Details</h5>
                         <table class="table table-striped personal-details">                            
                             <tbody>
@@ -102,7 +99,7 @@
                         </table>
                     </div>
                     <!-- Medical History Column -->
-                    <div class="col-lg-6 col-md-6 col-sm-12 p-lg-3 p-md-2 p-sm-1">
+                    <div class="col-lg-6 col-md-6 col-sm-12">
                         <h5 class="text-center">Medical History</h5>
                         <table class="table table-striped medical-history">
                             <tbody>
@@ -133,7 +130,7 @@
 
                 <div class="row">
                     <!-- Emergency Details Column -->
-                    <div class="col-lg-5 col-md-5 col-sm-12 p-lg-3 p-md-2 p-sm-1">
+                    <div class="col-lg-5 col-md-5 col-sm-12">
                         <h5 class="text-center">Emergency Details</h5>
                         <table class="table table-striped emergency-details">
                             <tbody>
@@ -164,7 +161,7 @@
                         </table>
                     </div>
                     <!-- Medication Management Column -->
-                    <div class="col-lg-7 col-md-7 col-sm-12 p-lg-3 p-md-2 p-sm-1">
+                    <div class="col-lg-7 col-md-7 col-sm-12">
                         <h5 class="text-center">Medication Management</h5>
                         <table class="table table-striped medication-management">
                             <thead>
@@ -188,7 +185,7 @@
 
                 <div class="row">
                     <!-- Care Needs Column -->
-                    <div class="col-lg-8 col-md-8 col-sm-12 p-lg-3 p-md-2 p-sm-1">
+                    <div class="col-lg-8 col-md-8 col-sm-12">
                         <h5 class="text-center">Care Needs</h5>
                         <table class="table table-striped care-needs">                            
                             <thead>
@@ -236,7 +233,7 @@
                         </table>
                     </div>
                     <!-- Mobility Column -->
-                    <div class="col-lg-4 col-md-4 col-sm-12 p-lg-3 p-md-2 p-sm-1">
+                    <div class="col-lg-4 col-md-4 col-sm-12">
                         <h5 class="text-center">Mobility</h5>
                         <table class="table table-striped mobility">
                             <tbody>
@@ -258,7 +255,7 @@
                 </div>
                 <!-- Cognitive Function Column -->
                 <div class="row">
-                    <div class="col-lg-4 col-md-4 col-sm-12 p-lg-3 p-md-2 p-sm-1">
+                    <div class="col-lg-4 col-md-4 col-sm-12">
                         <h5 class="text-center">Cognitive Function</h5>
                         <table class="table table-striped cognitive-function">
                             <tbody>
@@ -282,7 +279,7 @@
                         </table>
                     </div>
                     <!-- Emotional Well-being Column -->
-                    <div class="col-lg-4 col-md-4 col-sm-12 p-lg-3 p-md-2 p-sm-1">
+                    <div class="col-lg-4 col-md-4 col-sm-12">
                         <h5 class="text-center">Emotional Well-being</h5>
                         <table class="table table-striped emotional-wellbeing">
                             <tbody>
@@ -302,7 +299,7 @@
                         </table>
                     </div>
                     <!-- Assigned Care Worker Column -->
-                    <div class="col-lg-4 col-md-4 col-sm-12 p-lg-3 p-md-2 p-sm-1">
+                    <div class="col-lg-4 col-md-4 col-sm-12">
                         <h5 class="text-center">Assigned Care Worker</h5>
                         <table class="table table-striped">
                             <tbody>
@@ -325,7 +322,7 @@
                 </div>
 
                 <div class="row">
-                    <div class="col-lg-6 col-md-6 col-sm-12 p-lg-3 p-md-2 p-sm-1">
+                    <div class="col-lg-6 col-md-6 col-sm-12">
                         <h5 class="text-center">Documents</h5>
                         <table class="table table-striped">
                             <tbody>
@@ -340,7 +337,7 @@
                             </tbody>
                         </table>
                     </div>
-                    <div class="col-lg-6 col-md-6 col-sm-12 p-lg-3 p-md-2 p-sm-1">
+                    <div class="col-lg-6 col-md-6 col-sm-12">
                         <h5 class="text-center">Signatures</h5>
                         <table class="table table-striped">
                             <tbody>

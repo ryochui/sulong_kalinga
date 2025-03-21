@@ -58,9 +58,9 @@ input, textarea, button {
     overflow: hidden;
     padding: 10px;
 }
-/* Default layout for larger screens */
+
 #profilePic .d-flex {
-    flex-direction: row; /* Default: Place elements side by side */
+    flex-direction: row; 
 }
 
 #profileDetails {
@@ -72,8 +72,8 @@ input, textarea, button {
 
 .row table{
     border: 1px solid black;
-
 }
+
 table h5 {
     font-size: 18px;
 }
@@ -124,7 +124,7 @@ table p {
     }
 }
 
-/* Hide the 4th <th> and <td> for screens below 768px */
+
 @media (max-width: 542px) {
     .medication-management th:nth-child(4),
     .medication-management td:nth-child(4) {
@@ -141,66 +141,55 @@ table p {
 
 @media (max-width: 1024px) {
     #profilePic h4 {
-        font-size: 18px; /* Adjust h4 font size */
+        font-size: 18px; 
     }
 
     #profilePic .text-muted {
-        font-size: 14px; /* Adjust text-muted font size */
+        font-size: 14px;
     }
 
     #profilePic .form-group select {
-        font-size: 14px; /* Adjust form-group select font size */
+        font-size: 14px;
     }
     #profilePic .d-flex {
-        flex-direction: column; /* Stack elements vertically */
-        align-items: flex-start; /* Align items to the start */
+        flex-direction: column; 
+        align-items: flex-start; 
     }
 
-    #profilePic .form-group {
-        margin-top: 8px; /* Add spacing between h4 and dropdown */
-        width: 100%; /* Make the dropdown take full width */
-    }
-
-    #profilePic select {
-        width: 100%; /* Ensure the dropdown is responsive */
-    }
 }
 
-
-/* Default layout for larger screens */
 .d-flex {
-    flex-wrap: nowrap; /* Keep elements on the same row by default */
+    flex-wrap: nowrap; 
 }
 
 .d-flex .btn {
-    width: auto; /* Default button width */
-    margin-bottom: 0; /* No margin by default */
+    width: auto;
+    margin-bottom: 0; 
 }
 
-/* Breakpoint: 731px and below */
 @media (max-width: 731px) {
     .d-flex {
-        flex-wrap: wrap; /* Allow elements to wrap to the next row */
+        flex-wrap: wrap; 
     }
 
     .d-flex > div:last-child {
-        width: 100%; /* Make the button container take full width */
-        text-align: center; /* Center-align the buttons */
-        margin-top: 8px; /* Add spacing above the buttons */
+        width: 100%;
+        text-align: center;
+        margin-top: 8px; 
     }
 
     .d-flex .btn-primary, .d-flex .btn-danger {
-        width: 100px; /* Set fixed width for buttons */
-        margin-bottom: 8px; /* Add spacing between buttons */
+        width: 100px; 
+        margin-bottom: 8px;
     }
 }
 
-/* Default: Show the original back button and hide the hidden back button */
+
 .original-back-btn {
     display: inline-block;
 }
 
-/* Default: Show the original back button and hide the hidden back button */
+
 .original-back-btn {
     display: inline-block;
 }
@@ -212,24 +201,24 @@ table p {
 /* Breakpoint: 555px and below */
 @media (max-width: 555px) {
     .original-back-btn {
-        display: none; /* Hide the original back button */
+        display: none; 
     }
 
     .hidden-back-btn {
-        display: inline-block; /* Show the hidden back button */
-        margin-bottom: 8px; /* Add spacing below the back button */
-        width: 100px; /* Set a fixed width for consistency */
-        text-align: center; /* Center-align the text */
+        display: inline-block; 
+        margin-bottom: 8px; 
+        width: 100px;
+        text-align: center; 
         transform: translateY(-4px);
     }
 
     .d-flex {
-        flex-wrap: wrap; /* Allow elements to wrap to the next row */
-        justify-content: center; /* Center-align all elements */
+        flex-wrap: wrap; 
+        justify-content: center; 
     }
 
     .d-flex .btn-primary, .d-flex .btn-danger {
-        width: 100px; /* Set fixed width for buttons */
-        margin-bottom: 8px; /* Add spacing between buttons */
+        width: 100px; 
+        margin-bottom: 8px; 
     }
 }

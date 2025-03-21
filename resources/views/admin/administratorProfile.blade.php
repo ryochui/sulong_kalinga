@@ -112,8 +112,12 @@
                                         </td>
                                         <td>
                                             <div class="action-icons">
+                                                <a href="viewAdminDetails" style="color:black;">
                                                 <i class="fa fa-eye"></i>
+                                                </a>
+                                                <a href="editAdminProfile" style="color: black;">
                                                 <i class='bx bxs-edit'></i>
+                                                </a>
                                             </div>
                                         </td>
                                     </tr>

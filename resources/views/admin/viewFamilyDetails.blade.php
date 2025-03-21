@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+    <link rel="stylesheet" href="{{ asset('css/bootstrap.min.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link href='https://unpkg.com/boxicons@2.0.7/css/boxicons.min.css' rel='stylesheet'>
+    <link rel="stylesheet" href="{{ asset('css/viewProfileDetails.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/viewFamilyDetails.css') }}">
+</head>
+<body>
+
+    @include('components.userNavbar')
+    @include('components.sidebar')
+    
+    <div class="home-section">
+        <div class="container-fluid">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <!-- Original Back Button -->
+                <a href="familyProfile" class="btn btn-secondary original-back-btn">
+                    <i class="bx bx-arrow-back"></i> Back
+                </a>
+
+                <div class="mx-auto text-center" style="flex-grow: 1; font-weight: bold; font-size: 20px;">VIEW FAMILY PROFILE DETAILS</div>
+
+                <!-- Edit and Delete Buttons -->
+                <div>
+                    <!-- Hidden Back Button -->
+                    <a href="familyProfile" class="btn btn-secondary hidden-back-btn">
+                        <i class="bx bx-arrow-back"></i> Back
+                    </a>
+                    <a href="editFamilyProfile" class="btn btn-primary">
+                        <i class="bx bxs-edit"></i> Edit
+                    </a>
+                    <button class="btn btn-danger">
+                        <i class="bx bxs-trash"></i> Delete
+                    </button>
+                </div>
+            </div>
+            <div class="row p-lg-3 p-md-2 p-sm-1 justify-content-center" id="profileDetails">
+                <div class="row mb-3 p-lg-3 p-md-2 p-sm-1 justify-content-center">
+                    <div class="col-lg-8 col-md-12 col-sm-12" id="profilePic">
+                        <div class="row justify-content-center align-items-center text-center text-md-start">
+                            <!-- Profile Picture Column -->
+                            <div class="col-lg-4 col-md-4 col-sm-12 mb-md-0 d-flex justify-content-end">
+                                <img src="{{ asset('images/defaultProfile.png') }}" 
+                                    alt="Profile Picture" 
+                                    class="img-fluid rounded-circle" 
+                                    style="width: 150px; height: 150px; border: 1px solid #ced4da;">
+                            </div>
+                            <!-- Name and Details Column -->
+                            <div class="col-lg-8 col-md-8 col-sm-12">
+                                <div class="d-flex flex-column align-items-start">
+                                    <!-- Complete Name -->
+                                    <h4 class="mb-2 mt-1">First Name M.I. Last Name</h4>
+                                    <!-- Dropdown for Status -->
+                                    <div class="form-group">
+                                        <select class="form-select" id="status" name="status">
+                                            <option value="approved">Access Approved</option>
+                                            <option value="denied">Access Denied</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <!-- Personal Details Column -->
+                    <div class="col-lg-12 col-md-12 col-sm-12">
+                        <h5 class="text-center">Personal Details</h5>
+                        <table class="table table-striped personal-details">                            
+                            <tbody>
+                                <tr>
+                                    <td style="width:30%;"><strong>Gender:</strong></td>
+                                    <td><p><!-- Backend data --></p></td>
+                                </tr>
+                                <tr>
+                                    <td style="width:30%;"><strong>Birthday:</strong></td>
+                                    <td><p><!-- Backend data --></p></td>
+                                </tr>
+                                <tr>
+                                    <td style="width:30%;"><strong>Mobile Number:</strong></td>
+                                    <td><p><!-- Backend data --></p></td>
+                                </tr>
+                                <tr>
+                                    <td style="width:30%;"><strong>Landline Number:</strong></td>
+                                    <td><p><!-- Backend data --></p></td>
+                                </tr>
+                                <tr>
+                                    <td style="width:30%;"><strong>Current Address:</strong></td>
+                                    <td>16905 Brooke View, Glendaburgh, Wyoming - 52932, Hungary</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>    
+                <div class="row justify-content-center">
+                    <!-- Personal Details Column -->
+                    <div class="col-lg-12 col-md-12 col-sm-12 d-flex justify-content-center">
+                        <h5 class="text-center">Related Beneficiary</h5>
+                    </div>
+                    <div class="col-lg-12 col-md-12 col-sm-12 d-flex justify-content-center flex-wrap">
+                        <div class="card text-center" style="max-width: 300px;">
+                            <div class="d-flex justify-content-center align-items-center" style="height: 150px;">
+                                <img src=" {{ asset('images/defaultProfile.png') }}" class="img-fluid" alt="..." style="max-width: 150px; max-height: 150px;">
+                            </div>
+                            <div class="card-body">
+                                <p class="card-text">Beneficiary Name</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src=" {{ asset('js/toggleSideBar.js') }}"></script>
+    <script src="{{ asset('js/bootstrap.bundle.min.js') }}"></script>
+   
+</body>
+</html>

@@ -100,8 +100,12 @@
                                         </td>
                                         <td>
                                             <div class="action-icons">
+                                                <a href="viewFamilyDetails" style="color:black;">
                                                 <i class="fa fa-eye"></i>
+                                                </a>
+                                                <a href="editFamilyProfile" style="color:black;">
                                                 <i class='bx bxs-edit'></i>
+                                                </a>
                                             </div>
                                         </td>
                                     </tr>

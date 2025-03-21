@@ -17,10 +17,10 @@
     <div class="home-section">
         <div class="container-fluid">
             <div class="d-flex justify-content-between align-items-center mb-3">
-                <a href="careWorkerProfile" class="btn btn-secondary">
+                <a href="viewCareworkerDetails" class="btn btn-secondary">
                     <i class="bx bx-arrow-back"></i> Back
                 </a>
-                <div class="mx-auto text-center" style="flex-grow: 1; font-weight: bold; font-size: 20px;">ADD CARE WORKER</div>
+                <div class="mx-auto text-center" style="flex-grow: 1; font-weight: bold; font-size: 20px;">EDIT CARE WORKER PROFILE</div>
             </div>
             <div class="row" id="addUserForm">
                 <div class="col-12">
@@ -201,7 +201,7 @@
                             <div class="col-12 d-flex justify-content-center align-items-center">
                                 <button type="submit" class="btn btn-success btn-lg d-flex align-items-center">
                                     <i class='bx bx-save me-2' style="font-size: 24px;"></i>
-                                    Save Care Worker
+                                    Update Care Worker
                                 </button>
                             </div>
                         </div>

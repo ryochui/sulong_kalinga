@@ -109,8 +109,12 @@
                                         </td>
                                         <td>
                                             <div class="action-icons">
+                                                <a href="viewCaremanagerDetails" style="color: black;">
                                                 <i class="fa fa-eye"></i>
+                                                </a>
+                                                <a href="editCaremanagerProfile" style="color: black;">
                                                 <i class='bx bxs-edit'></i>
+                                                </a>
                                             </div>
                                         </td>
                                     </tr>
