@@ -10,7 +10,6 @@
     <link rel="stylesheet" href="{{ asset('css/reportsManagement.css') }}">
 </head>
 <body>
-
     @include('components.userNavbar')
     @include('components.sidebar')
     @include('components.modals.statusChange')
@@ -21,27 +20,32 @@
             <div class="row mb-3 align-items-center">
                 <!-- Search Bar -->
                 <div class="col-12 col-md-6 col-lg-6 mb-2">
-                    <div class="input-group">
-                        <span class="input-group-text">
-                            <i class="bx bx-search-alt"></i>
-                        </span>
-                        <input type="text" class="form-control" placeholder="Search reports..." id="searchBar">
-                    </div>
+                    <form action="{{ route('admin.careWorkerProfile') }}" method="GET">
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="bx bx-search-alt"></i>
+                            </span>
+                            <input type="text" class="form-control" name="search" placeholder="Enter care worker name..." id="searchBar" value="{{ request('search') }}">
+                            <button type="submit" class="btn btn-primary">Search</button>
+                        </div>
+                    </form>
                 </div>
 
                 <!-- Filter Dropdown -->
                 <div class="col-12 col-sm-6 col-md-6 col-lg-2 mb-2">
-                    <div class="input-group">
-                        <span class="input-group-text">
-                            <i class="bx bx-filter-alt"></i>
-                        </span>
-                        <select class="form-select" id="filterDropdown">
-                            <option value="" selected>Filter by</option>
-                            <option value="author">Author</option>
-                            <option value="type">Report Type</option>
-                            <option value="date">Date Uploaded</option>
-                        </select>
-                    </div>
+                    <form action="{{ route('admin.careWorkerProfile') }}" method="GET" id="filterForm">
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="bx bx-filter-alt"></i>
+                            </span>
+                            <select class="form-select" name="filter" id="filterDropdown" onchange="document.getElementById('filterForm').submit()">
+                                <option value="" {{ request('filter') ? '' : 'selected' }}>Filter by</option>
+                                <option value="status" {{ request('filter') == 'status' ? 'selected' : '' }}>Status</option>
+                                <option value="municipality" {{ request('filter') == 'municipality' ? 'selected' : '' }}>Municipality</option>
+                                <option value="barangay" {{ request('filter') == 'barangay' ? 'selected' : '' }}>Barangay</option>
+                            </select>
+                        </div>
+                    </form>
                 </div>
 
                 <!-- Export Dropdown -->
@@ -85,20 +89,20 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                @for ($i = 1; $i <= 33; $i++)
+                                @foreach ($careworkers as $careworker)
                                     <tr>
                                         <td>
                                             <input type="checkbox" class="rowCheckbox" />
                                         </td>
-                                        <td>Mark</td>
-                                        <td>Otto</td>
-                                        <td>@mdo</td>
-                                        <td>Otto</td>
+                                        <td>{{ $careworker->first_name }} {{ $careworker->last_name }}</td>
+                                        <td>{{ $careworker->municipality->municipality_name ?? 'N/A' }}</td>
+                                        <td>{{ $careworker->barangay->barangay_name }}</td>
+                                        <td>{{ $careworker->mobile }}</td>
                                         <td>
-                                        <select class="form-select" name="status" id="statusSelect{{ $i }}" onchange="openStatusChangeModal(this, 'Care Worker')">
-                                            <option value="active" selected>Active</option>
-                                            <option value="inactive">Inactive</option>
-                                        </select>
+                                            <select class="form-select" name="status" id="statusSelect{{ $careworker->id }}" onchange="openStatusChangeModal(this, 'Care Worker')">
+                                                <option value="active" {{ $careworker->volunteer_status == 'Active' ? 'selected' : '' }}>Active</option>
+                                                <option value="inactive" {{ $careworker->volunteer_status == 'Inactive' ? 'selected' : '' }}>Inactive</option>
+                                            </select>
                                         </td>
                                         <td>
                                             <div class="action-icons">
@@ -107,7 +111,7 @@
                                             </div>
                                         </td>
                                     </tr>
-                                @endfor
+                                @endforeach
                             </tbody>
                         </table>
                     </div>

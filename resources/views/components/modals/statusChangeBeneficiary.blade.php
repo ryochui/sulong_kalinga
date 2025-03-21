@@ -83,7 +83,7 @@ document.addEventListener("DOMContentLoaded", function () {
         .then(response => {
             if (!response.ok) {
                 return response.json().then(data => {
-                    throw new Error(data.message || 'Invalid password');
+                    throw new Error(data.message || 'Incorrect password. Please try again.');
                 });
             }
             return response.json();
@@ -104,12 +104,14 @@ document.addEventListener("DOMContentLoaded", function () {
         const newStatus = selectedStatusElement.value;
 
         if (newStatus !== 'Active' && !selectedReason) {
-            alert("Please select a reason for the status change.");
+            errorMessage.textContent = "Please select a reason for the status change.";
+            errorMessage.style.display = 'block';
             return;
         }
 
         if (!password) {
-            alert("Please enter your password.");
+            errorMessage.textContent = "Please enter your password to confirm the status change.";
+            errorMessage.style.display = 'block';
             return;
         }
 
@@ -132,7 +134,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     })
                 });
             } else {
-                throw new Error('Invalid password');
+                throw new Error('Incorrect password. Please try again.');
             }
         })
         .then(response => {

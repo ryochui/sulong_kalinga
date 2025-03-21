@@ -30,8 +30,8 @@ Route::get('/addFamily', function () {
 })->name('addFamily');
 
 Route::get('/caregiverProfile', function () {
-    return view('admin.caregiverProfile');
-})->name('caregiverProfile');
+    return view('admin.careWorkerProfile');
+})->name('careWorkerProfile');
 
 Route::get('/addCareworker', function () {
     return view('admin.addCareworker');

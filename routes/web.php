@@ -9,6 +9,8 @@ use App\Http\Controllers\AdminController;
 use App\Http\Controllers\BeneficiaryController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\FamilyMemberController;
+use App\Http\Controllers\CareWorkerController;
+use App\Http\Controllers\CareManagerController;
 
 
 require __DIR__.'/innerRoutes.php';
@@ -26,7 +28,7 @@ Route::post('logout', [LoginController::class, 'logout'])->name('logout'); // no
 // Route::middleware('auth')->group(function () {
     
 
-    Route::post('/admin/add-administrator', [AdminController::class, 'storeAdministrator'])->name('admin.addAdministrator');
+    Route::post('/admin/addAdministrator', [AdminController::class, 'storeAdministrator'])->name('admin.addAdministrator.store');
     
     Route::get('/', function () {
         return view('publicWeb.landing');
@@ -66,15 +68,23 @@ Route::post('logout', [LoginController::class, 'logout'])->name('logout'); // no
     
     Route::get('/admin/reportsManagement', [ReportsController::class, 'index'])->name('admin.reportsManagement');
 
+    Route::get('/admin/addAdministrator', function () {
+        return view('admin.addAdministrator');
+    })->name('admin.addAdministrator');
+
     //For beneficiary profiles table
     Route::get('/beneficiaryProfile', [BeneficiaryController::class, 'index'])->name('admin.beneficiaryProfile');
     Route::put('/admin/beneficiaries/{id}/status', [BeneficiaryController::class, 'updateStatus']);
     Route::put('/admin/beneficiaries/{id}/activate', [BeneficiaryController::class, 'activate']);
     Route::post('/validate-password', [UserController::class, 'validatePassword']);
 
-
     //For family member profiles table
     Route::get('/familyProfile', [FamilyMemberController::class, 'index'])->name('admin.familyProfile');
-    //Route::put('/admin/beneficiaries/{id}/status', [BeneficiaryController::class, 'updateStatus']);
-    //Route::put('/admin/beneficiaries/{id}/activate', [BeneficiaryController::class, 'activate']);
-    //Route::post('/validate-password', [UserController::class, 'validatePassword']);
+    Route::put('/admin/family-members/{id}/status', [FamilyMemberController::class, 'updateStatus']);
+    Route::put('/admin/family-members/{id}/activate', [FamilyMemberController::class, 'activate']);
+
+    // For careworker profiles table
+    Route::get('/careWorkerProfile', [CareWorkerController::class, 'index'])->name('admin.careWorkerProfile');
+
+    // For caremanager profiles table
+    Route::get('/careManagerProfile', [CareManagerController::class, 'index'])->name('admin.careManagerProfile');

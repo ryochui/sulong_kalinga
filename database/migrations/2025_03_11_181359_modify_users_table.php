@@ -37,12 +37,12 @@ return new class extends Migration
             $table->string('status', 20);
             $table->integer('organization_role_id')->nullable();
             $table->integer('assigned_municipality_id')->nullable();
-            $table->binary('photo')->nullable();
-            $table->binary('government_issued_id')->nullable();
+            $table->text('photo')->nullable();
+            $table->text('government_issued_id')->nullable();
             $table->string('sss_id_number', 20)->nullable();
             $table->string('philhealth_id_number', 20)->nullable();
             $table->string('pagibig_id_number', 20)->nullable();
-            $table->binary('cv_resume')->nullable();
+            $table->text('cv_resume')->nullable();
             $table->integer('updated_by')->nullable(); // Track who updated the record
 
             // Foreign Key Constraints

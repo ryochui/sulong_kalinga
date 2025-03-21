@@ -49,64 +49,17 @@ class User extends Authenticatable
         'status_end_date' => 'date',
     ];
 
-//     /**
-//      * Get the name of the unique identifier for the user.
-//      *
-//      * @return string
-//      */
-//     public function getAuthIdentifierName()
-//     {
-//         return 'email_address';
-//     }
+    /**
+     * Get the municipality associated with the beneficiary.
+     */
+    public function municipality()
+    {
+        return $this->belongsTo(Municipality::class, 'assigned_municipality_id', 'municipality_id');
+    }
 
-//     /**
-//      * Get the unique identifier for the user.
-//      *
-//      * @return mixed
-//      */
-//     public function getAuthIdentifier()
-//     {
-//         return $this->email_address;
-//     }
-
-//     /**
-//      * Get the password for the user.
-//      *
-//      * @return string
-//      */
-//     public function getAuthPassword()
-//     {
-//         return $this->password_hash;
-//     }
-
-//     /**
-//      * Get the token value for the "remember me" session.
-//      *
-//      * @return string|null
-//      */
-//     public function getRememberToken()
-//     {
-//         return $this->remember_token;
-//     }
-
-//     /**
-//      * Set the token value for the "remember me" session.
-//      *
-//      * @param string|null $value
-//      * @return void
-//      */
-//     public function setRememberToken($value)
-//     {
-//         $this->remember_token = $value;
-//     }
-
-//     /**
-//      * Get the column name for the "remember me" token.
-//      *
-//      * @return string
-//      */
-//     public function getRememberTokenName()
-//     {
-//         return 'remember_token';
-//     }
+    // Define the relationship to the Barangay model
+    public function barangay()
+    {
+        return $this->belongsTo(Barangay::class, 'barangay_id');
+    }    
 }

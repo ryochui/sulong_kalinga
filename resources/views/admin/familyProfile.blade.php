@@ -13,7 +13,7 @@
 
     @include('components.userNavbar')
     @include('components.sidebar')
-    @include('components.modals.statusChange')
+    @include('components.modals.statusChangeFamily') <!-- Include the new modal -->
 
     <div class="home-section">
         <div class="text-left">FAMILY OR RELATIVE PROFILES</div>
@@ -57,12 +57,12 @@
                     </div>
                 </div>
 
-                <!-- Add Report Button -->
+                <!-- Add Family Member Button -->
                 <div class="col-6 col-md-3 col-lg-2 mb-2">
                     <a href="addFamily">
-                    <button class="btn btn-primary w-100" id="addButton">
-                        <i class="bx bx-plus"></i> Add Family
-                    </button>
+                        <button class="btn btn-primary w-100" id="addButton">
+                            <i class="bx bx-plus"></i> Add Family
+                        </button>
                     </a>
                 </div>
             </div>
@@ -90,13 +90,13 @@
                                             <input type="checkbox" class="rowCheckbox" />
                                         </td>
                                         <td>{{ $family_member->first_name }} {{ $family_member->last_name }}</td>
-                                        <td>{{ $family_member->mobile }}</td>
+                                        <td>{{ $family_member->mobile}}</td>
                                         <td>{{ $family_member->beneficiary->first_name }} {{ $family_member->beneficiary->last_name }}</td>
                                         <td>
-                                            <select class="form-select text-center" name="status" id="statusSelect{{ $family_member->id }}" onchange="openStatusChangeModal(this, 'Family', {{ $family_member->id }}, '{{ $family_member->status }}')">
-                                                <option value="Approved" {{ $family_member->status == 'Approved' ? 'selected' : '' }}>Approved</option>
-                                                <option value="Denied" {{ $family_member->status == 'Denied' ? 'selected' : '' }}>Denied</option>
-                                            </select>
+                                        <select class="form-select text-center" name="status" id="statusSelect{{ $family_member->family_member_id }}" data-id="{{ $family_member->family_member_id }}" onchange="openFamilyStatusChangeModal(this, 'Family')">
+                                            <option value="Approved" {{ $family_member->status == 'Approved' ? 'selected' : '' }}>Approved</option>
+                                            <option value="Denied" {{ $family_member->status == 'Denied' ? 'selected' : '' }}>Denied</option>
+                                        </select>
                                         </td>
                                         <td>
                                             <div class="action-icons">
