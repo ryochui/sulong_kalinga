@@ -64,3 +64,7 @@ Route::get('/weeklyCareplan', function () {
 Route::get('/viewProfileDetails', function () {
     return view('admin.viewProfileDetails');
 })->name('viewProfileDetails');
+
+Route::get('/editProfile', function () {
+    return view('admin.editProfile');
+})->name('editProfile');
