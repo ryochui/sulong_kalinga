@@ -35,6 +35,7 @@ class BeneficiaryController extends Controller
                     return $query->orderBy('municipality_id');
                 }
             })
+            ->orderBy('first_name') // Order by first name alphabetically by default
             ->get();
 
         // Pass the data to the Blade template

@@ -26,7 +26,7 @@ class FamilyMemberController extends Controller
                     return $query->orderBy('access');
                 }
             })
-            ->orderBy('last_name') // Order by last name alphabetically by default
+            ->orderBy('first_name') // Order by last name alphabetically by default
             ->get()
             ->map(function ($family_member) {
                 $family_member->status = $family_member->access ? 'Approved' : 'Denied';
