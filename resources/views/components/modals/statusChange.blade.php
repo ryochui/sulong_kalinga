@@ -6,7 +6,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <p>Are you sure you want to change the status of this <span id="entityType" style="font-weight: bold;"></span>?</p>
+                <p>Are you sure you want to change the status or access of this <span id="entityType" style="font-weight: bold;"></span>?</p>
                 <form id="statusChangeForm">
                     <div class="mb-3">
                         <label for="passwordInput" class="form-label">Enter Password to Confirm</label>

@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\FamilyMember;
 use App\Models\Beneficiary;
+use Illuminate\Support\Facades\Auth;
+
 
 class FamilyMemberController extends Controller
 {
@@ -24,7 +26,7 @@ class FamilyMemberController extends Controller
                     return $query->orderBy('access');
                 }
             })
-            ->orderBy('last_name') // Order by last name alphabetically by default
+            ->orderBy('first_name') // Order by last name alphabetically by default
             ->get()
             ->map(function ($family_member) {
                 $family_member->status = $family_member->access ? 'Approved' : 'Denied';
@@ -35,4 +37,27 @@ class FamilyMemberController extends Controller
         // Pass the data to the Blade template
         return view('admin.familyProfile', compact('family_members', 'search', 'filter'));
     }
+
+    public function updateStatus($id, Request $request)
+    {
+        $request->validate([
+            'status' => 'required|string'
+        ]);
+
+        \Log::info('Status received: ' . $request->input('status')); // Log the status value
+
+        try {
+            $family_member = FamilyMember::findOrFail($id);
+            $family_member->access = $request->input('status') === 'Approved' ? 1 : 0;
+            $family_member->updated_by = Auth::id(); // Set the updated_by column to the current user's ID
+            $family_member->updated_at = now(); // Set the updated_at column to the current timestamp
+            $family_member->save();
+
+            return response()->json(['success' => true]);
+        } catch (\Exception $e) {
+            \Log::error('Error updating family member status: ' . $e->getMessage());
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
+    }
+
 }
