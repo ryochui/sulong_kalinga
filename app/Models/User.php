@@ -49,9 +49,8 @@ class User extends Authenticatable
         'status_end_date' => 'date',
     ];
 
-    /**
-     * Get the municipality associated with the beneficiary.
-     */
+    
+    // Get the municipality associated with the beneficiary.
     public function municipality()
     {
         return $this->belongsTo(Municipality::class, 'assigned_municipality_id', 'municipality_id');
@@ -61,5 +60,11 @@ class User extends Authenticatable
     public function barangay()
     {
         return $this->belongsTo(Barangay::class, 'barangay_id');
-    }    
+    }
+    
+    // Define the relationship with the OrganizationRole model
+    public function organizationRole()
+    {
+        return $this->belongsTo(OrganizationRole::class, 'organization_role_id');
+    }
 }

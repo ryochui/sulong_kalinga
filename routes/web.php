@@ -88,3 +88,6 @@ Route::post('logout', [LoginController::class, 'logout'])->name('logout'); // no
 
     // For caremanager profiles table
     Route::get('/careManagerProfile', [CareManagerController::class, 'index'])->name('admin.careManagerProfile');
+
+    // For admin profiles table
+    Route::get('/administratorProfile', [AdminController::class, 'index'])->name('admin.administratorProfile');

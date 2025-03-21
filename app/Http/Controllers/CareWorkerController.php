@@ -20,8 +20,10 @@ class CareWorkerController extends Controller
         $careworkers = User::where('role_id', 2)
         ->with('municipality', 'barangay')
         ->when($search, function ($query, $search) {
-            return $query->whereRaw('LOWER(first_name) LIKE ?', ['%' . strtolower($search) . '%'])
-                        ->orWhereRaw('LOWER(last_name) LIKE ?', ['%' . strtolower($search) . '%']);
+            return $query->where(function ($query) use ($search) {
+                $query->whereRaw('LOWER(first_name) LIKE ?', ['%' . strtolower($search) . '%'])
+                      ->orWhereRaw('LOWER(last_name) LIKE ?', ['%' . strtolower($search) . '%']);
+            });
         })
         ->when($filter, function ($query, $filter) {
             if ($filter == 'status') {
