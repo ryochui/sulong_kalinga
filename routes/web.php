@@ -75,6 +75,5 @@ Route::post('logout', [LoginController::class, 'logout'])->name('logout'); // no
 
     //For family member profiles table
     Route::get('/familyProfile', [FamilyMemberController::class, 'index'])->name('admin.familyProfile');
-    //Route::put('/admin/beneficiaries/{id}/status', [BeneficiaryController::class, 'updateStatus']);
-    //Route::put('/admin/beneficiaries/{id}/activate', [BeneficiaryController::class, 'activate']);
-    //Route::post('/validate-password', [UserController::class, 'validatePassword']);
+    Route::put('/admin/family-members/{id}/status', [FamilyMemberController::class, 'updateStatus']);
+Route::put('/admin/family-members/{id}/activate', [FamilyMemberController::class, 'activate']);

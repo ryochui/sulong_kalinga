@@ -7,6 +7,7 @@ use App\Models\Beneficiary;
 use App\Models\BeneficiaryCategory;
 use App\Models\BeneficiaryStatus;
 use App\Models\Municipality;
+use Illuminate\Support\Facades\Auth;
 
 class BeneficiaryController extends Controller
 {
@@ -52,6 +53,8 @@ class BeneficiaryController extends Controller
             $status = BeneficiaryStatus::where('status_name', $request->input('status'))->firstOrFail();
             $beneficiary->beneficiary_status_id = $status->beneficiary_status_id;
             $beneficiary->status_reason = $request->input('reason');
+            $beneficiary->updated_by = Auth::id(); // Set the updated_by column to the current user's ID
+            $beneficiary->updated_at = now(); // Set the updated_at column to the current timestamp
             $beneficiary->save();
 
             return response()->json(['success' => true]);
@@ -66,6 +69,8 @@ class BeneficiaryController extends Controller
         $beneficiary = Beneficiary::findOrFail($id);
         $beneficiary->beneficiary_status_id = 1;
         $beneficiary->status_reason = null;
+        $beneficiary->updated_by = Auth::id(); // Set the updated_by column to the current user's ID
+        $beneficiary->updated_at = now(); // Set the updated_at column to the current timestamp
         $beneficiary->save();
 
         return response()->json(['success' => true]);
