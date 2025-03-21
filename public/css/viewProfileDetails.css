@@ -69,6 +69,11 @@ input, textarea, button {
     background-color: white;
     padding: 10px;
 }
+
+.row table{
+    border: 1px solid black;
+
+}
 table h5 {
     font-size: 18px;
 }
