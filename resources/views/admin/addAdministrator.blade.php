@@ -40,7 +40,7 @@
             <div class="row" id="addUserForm">
                 <div class="col-12">
                     <!-- <form action="{{ route('addBeneficiary') }}" method="POST"> -->
-                    <form action="{{ route('admin.addAdministrator') }}" method="POST">
+                    <form action="{{ route('admin.addAdministrator.store') }}" method="POST" enctype="multipart/form-data">
                         @csrf <!-- Include CSRF token for security -->
                         <!-- Row 1: Personal Details -->
                         <div class="row mb-1 mt-3">
@@ -65,9 +65,9 @@
                                 <label for="gender" class="form-label">Gender</label>
                                 <input type="text" class="form-control" id="genderInput" placeholder="Select gender" autocomplete="off">
                                 <ul class="dropdown-menu w-100" id="genderDropdown">
-                                    <li><a class="dropdown-item" data-value="male">Male</a></li>
-                                    <li><a class="dropdown-item" data-value="female">Female</a></li>
-                                    <li><a class="dropdown-item" data-value="other">Other</a></li>
+                                    <li><a class="dropdown-item" data-value="Male">Male</a></li>
+                                    <li><a class="dropdown-item" data-value="Female">Female</a></li>
+                                    <li><a class="dropdown-item" data-value="Other">Other</a></li>
                                 </ul>
                                 <input type="hidden" id="gender" name="gender">
                             </div>
@@ -77,10 +77,10 @@
                                 <label for="civilStatus" class="form-label">Civil Status</label>
                                 <input type="text" class="form-control" id="civilStatusInput" placeholder="Select civil status" autocomplete="off">
                                 <ul class="dropdown-menu w-100" id="civilStatusDropdown">
-                                    <li><a class="dropdown-item" data-value="single">Single</a></li>
-                                    <li><a class="dropdown-item" data-value="married">Married</a></li>
-                                    <li><a class="dropdown-item" data-value="widowed">Widowed</a></li>
-                                    <li><a class="dropdown-item" data-value="divorced">Divorced</a></li>
+                                    <li><a class="dropdown-item" data-value="Single">Single</a></li>
+                                    <li><a class="dropdown-item" data-value="Married">Married</a></li>
+                                    <li><a class="dropdown-item" data-value="Widowed">Widowed</a></li>
+                                    <li><a class="dropdown-item" data-value="Divorced">Divorced</a></li>
                                 </ul>
                                 <input type="hidden" id="civilStatus" name="civil_status">
                             </div>
@@ -96,11 +96,11 @@
                                 <label for="educationalBackground" class="form-label">Educational Background</label>
                                 <input type="text" class="form-control" id="educationalBackgroundInput" placeholder="Select Educational Background" autocomplete="off">
                                 <ul class="dropdown-menu w-100" id="educationalBackgroundDropdown">
-                                    <li><a class="dropdown-item" data-value="college">College</a></li>
-                                    <li><a class="dropdown-item" data-value="highschool">High School</a></li>
-                                    <li><a class="dropdown-item" data-value="doctorate">Doctorate</a></li>
+                                    <li><a class="dropdown-item" data-value="College">College</a></li>
+                                    <li><a class="dropdown-item" data-value="Highschool">High School</a></li>
+                                    <li><a class="dropdown-item" data-value="Doctorate">Doctorate</a></li>
                                 </ul>
-                                <input type="hidden" id="civilStatus" name="civil_status">
+                                <input type="hidden" id="educationalBackground" name="educational_background">
                             </div>
                         </div>
 
@@ -132,7 +132,10 @@
                             </div>
                             <div class="col-md-4">
                                 <label for="mobileNumber" class="form-label">Mobile Number</label>
-                                <input type="text" class="form-control" id="mobileNumber" name="mobile_number" placeholder="Enter mobile number" required>
+                                <div class="input-group">
+                                    <span class="input-group-text">+63</span>
+                                    <input type="text" class="form-control" id="mobileNumber" name="mobile_number" placeholder="Enter mobile number" maxlength="11 required oninput="validateMobileNumber(this)">
+                                </div>
                             </div>
                             <div class="col-md-4">
                                 <label for="landlineNumber" class="form-label">Landline Number</label>
@@ -308,7 +311,21 @@ e.preventDefault(); // Prevent the default form submission
             filterDropdown('educationalBackgroundInput', 'educationalBackgroundDropdown');
             filterDropdown('Organization_RolesInput', 'Organization_RolesDropdown');
         });
-    </script>
 
+        function validateMobileNumber(input) {
+            // Remove any non-numeric characters
+            input.value = input.value.replace(/[^0-9]/g, '');
+
+            // Limit the input to 11 digits
+            if (input.value.length > 11) {
+                input.value = input.value.slice(0, 11);
+            }
+        }
+    </script>
+    <?php
+    // if ($request->hasFile('administrator_photo')) {
+    //     dd($request->file('administrator_photo')->getClientMimeType());
+    // }
+    ?>
 </body>
 </html>

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
 use App\Models\User;
 
 class AdminController extends Controller
@@ -19,20 +20,21 @@ class AdminController extends Controller
             'gender' => 'required|string',
             'civil_status' => 'required|string',
             'religion' => 'nullable|string|max:50',
-            'nationality' => 'nullable|string|max:50',
+            'nationality' => 'required|string|max:50',
+            'educational_background' => 'required|string|max:20',
             'address_details' => 'required|string',
             'account.email' => 'required|email|unique:cose_users,email',
             'personal_email' => 'required|email|unique:cose_users,personal_email',
-            'mobile_number' => 'required|string|unique:cose_users,mobile|min:11|max:12',
+            'mobile_number' => 'required|string|unique:cose_users,mobile|min:10|max:11',
             'landline_number' => 'nullable|string|min:7|max:10',
             'account.password' => 'required|string|min:8|confirmed',
             'Organization_Roles' => 'required|integer|exists:organization_roles,organization_role_id',
             'administrator_photo' => 'required|image|mimes:jpeg,png|max:2048',
             'government_ID' => 'required|image|mimes:jpeg,png|max:2048',
             'resume' => 'required|mimes:pdf,doc,docx|max:2048',
-            'sss_ID' => 'nullable|string|max:20',
-            'philhealth_ID' => 'nullable|string|max:20',
-            'pagibig_ID' => 'nullable|string|max:20',
+            'sss_ID' => 'required|string|max:20',
+            'philhealth_ID' => 'required|string|max:20',
+            'pagibig_ID' => 'required|string|max:20',
         ]);
 
         if ($validator->fails()) {
@@ -40,7 +42,7 @@ class AdminController extends Controller
         }
 
         // Handle file uploads
-        $administratorPhotoPath = $request->file('care_worker_photo')->store('uploads/care_worker_photos', 'public');
+        $administratorPhotoPath = $request->file('administrator_photo')->store('uploads/administrator_photos', 'public');
         $governmentIDPath = $request->file('government_ID')->store('uploads/government_ids', 'public');
         $resumePath = $request->file('resume')->store('uploads/resumes', 'public');
 
@@ -54,14 +56,15 @@ class AdminController extends Controller
         $administrator->civil_status = $request->input('civil_status');
         $administrator->religion = $request->input('religion');
         $administrator->nationality = $request->input('nationality');
+        $administrator->educational_background = $request->input('educational_background');
         $administrator->address = $request->input('address_details');
         $administrator->email = $request->input('account.email'); // Work email
         $administrator->personal_email = $request->input('personal_email'); // Personal email
-        $administrator->mobile = $request->input('mobile_number');
+        $administrator->mobile = '+63' . $request->input('mobile_number');
         $administrator->landline = $request->input('landline_number');
         $administrator->password = bcrypt($request->input('account.password'));
         $administrator->organization_role_id = $request->input('Organization_Roles');
-        $administrator->role_id = 1; // Assuming 1 is the role ID for administrators
+        $administrator->role_id = 1; // 1 is the role ID for administrators
         $administrator->volunteer_status = 'Active'; // Status in COSE
         $administrator->status = 'Active'; // Status for access to the system
         $administrator->status_start_date = now();
@@ -74,9 +77,13 @@ class AdminController extends Controller
         $administrator->philhealth_id_number = $request->input('philhealth_ID');
         $administrator->pagibig_id_number = $request->input('pagibig_ID');
 
+        // Generate and save the remember_token
+        $administrator->remember_token = Str::random(60);
+
+
         $administrator->save();
 
         // Redirect with success message
-        return redirect()->route('admin.addAdministrator')->with('success', 'Administrator has been successfully added!');
+        return redirect()->route('addAdministrator')->with('success', 'Administrator has been successfully added!');
     }
 }

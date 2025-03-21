@@ -26,7 +26,7 @@ Route::post('logout', [LoginController::class, 'logout'])->name('logout'); // no
 // Route::middleware('auth')->group(function () {
     
 
-    Route::post('/admin/add-administrator', [AdminController::class, 'storeAdministrator'])->name('admin.addAdministrator');
+    Route::post('/admin/addAdministrator', [AdminController::class, 'storeAdministrator'])->name('admin.addAdministrator.store');
     
     Route::get('/', function () {
         return view('publicWeb.landing');
@@ -66,6 +66,10 @@ Route::post('logout', [LoginController::class, 'logout'])->name('logout'); // no
     
     Route::get('/admin/reportsManagement', [ReportsController::class, 'index'])->name('admin.reportsManagement');
 
+    Route::get('/admin/addAdministrator', function () {
+        return view('admin.addAdministrator');
+    })->name('admin.addAdministrator');
+
     //For beneficiary profiles table
     Route::get('/beneficiaryProfile', [BeneficiaryController::class, 'index'])->name('admin.beneficiaryProfile');
     Route::put('/admin/beneficiaries/{id}/status', [BeneficiaryController::class, 'updateStatus']);
@@ -78,3 +82,4 @@ Route::post('logout', [LoginController::class, 'logout'])->name('logout'); // no
     //Route::put('/admin/beneficiaries/{id}/status', [BeneficiaryController::class, 'updateStatus']);
     //Route::put('/admin/beneficiaries/{id}/activate', [BeneficiaryController::class, 'activate']);
     //Route::post('/validate-password', [UserController::class, 'validatePassword']);
+// }
