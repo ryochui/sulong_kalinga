@@ -17,7 +17,7 @@
     <div class="home-section">
         <div class="container-fluid">
             <div class="d-flex justify-content-between align-items-center mb-3">
-                <a href="{{ route('beneficiaryProfile') }}" class="btn btn-secondary">
+                <a href="{{ route('admin.beneficiaryProfile') }}" class="btn btn-secondary">
                     <i class="bx bx-arrow-back"></i> Back
                 </a>
                 <div class="mx-auto text-center" style="flex-grow: 1; font-weight: bold; font-size: 20px;">ADD BENEFICIARY</div>
@@ -418,17 +418,21 @@
                             </div>
                         </div>
                         <div class="row mb-1">
-                            <div class="col-md-4">
+                            <div class="col-md-3">
+                                <label for="beneficiaryProfilePic" class="form-label">Upload Beneficiary Picture</label>
+                                <input type="file" class="form-control" id="beneficiaryProfilePic" name="beneficiaryProfilePic" accept="image/png, image/jpeg" required>
+                            </div>
+                            <div class="col-md-3">
                                 <label for="datePicker" class="form-label">Review Date</label>
                                 <input type="date" class="form-control" id="datePicker" name="date" value="{{ date('Y-m-d') }}" required>
                             </div>
-                            <div class="col-md-4">
+                            <div class="col-md-3">
                                 <label for="careServiceAgreement" class="form-label">Care Service Agreement</label>
                                 <input type="file" class="form-control" id="careServiceAgreement" name="care_service_agreement" accept=".pdf,.doc,.docx" required>
                             </div>
-                            <div class="col-md-4">
-                                <label for="generalCareplan" class="form-label">Care Service Agreement</label>
-                                <input type="file" class="form-control" id="generalCareplan" name="general_careplan" accept=".pdf,.doc,.docx" required>
+                            <div class="col-md-3">
+                                <label for="generalCareplan" class="form-label">General Careplan</label>
+                                <input type="file" class="form-control" id="generalCareplan" name="general_careplan" accept=".pdf,.doc,.docx">
                             </div>
                         </div>
 
