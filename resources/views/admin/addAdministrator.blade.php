@@ -51,11 +51,11 @@
                         <div class="row mb-1">
                             <div class="col-md-3">
                                 <label for="firstName" class="form-label">First Name</label>
-                                <input type="text" class="form-control" id="firstName" name="first_name" placeholder="Enter first name" required>
+                                <input type="text" class="form-control" id="firstName" name="first_name" placeholder="Enter first name" required oninput="validateName(this)" pattern="^[A-Z][a-zA-Z]*(?:-[a-zA-Z]+)?$" title="First letter must be uppercase, and only alphabets are allowed. Hyphen can only be used once per word and not at the end.">
                             </div>
                             <div class="col-md-3">
                                 <label for="lastName" class="form-label">Last Name</label>
-                                <input type="text" class="form-control" id="lastName" name="last_name" placeholder="Enter last name" required>
+                                <input type="text" class="form-control" id="lastName" name="last_name" placeholder="Enter last name" required oninput="validateName(this)" pattern="^[A-Z][a-zA-Z]*(?:-[a-zA-Z]+)?$" title="First letter must be uppercase, and only alphabets are allowed. Hyphen can only be used once per word and not at the end.">
                             </div>
                             <div class="col-md-3">
                                 <label for="birthDate" class="form-label">Birthday</label>
@@ -63,7 +63,7 @@
                             </div>
                             <div class="col-md-3 position-relative">
                                 <label for="gender" class="form-label">Gender</label>
-                                <input type="text" class="form-control" id="genderInput" placeholder="Select gender" autocomplete="off">
+                                <input type="text" class="form-control" id="genderInput" placeholder="Select gender" autocomplete="off" readonly>
                                 <ul class="dropdown-menu w-100" id="genderDropdown">
                                     <li><a class="dropdown-item" data-value="Male">Male</a></li>
                                     <li><a class="dropdown-item" data-value="Female">Female</a></li>
@@ -75,7 +75,7 @@
                         <div class="row mb-3">
                             <div class="col-md-3 position-relative">
                                 <label for="civilStatus" class="form-label">Civil Status</label>
-                                <input type="text" class="form-control" id="civilStatusInput" placeholder="Select civil status" autocomplete="off">
+                                <input type="text" class="form-control" id="civilStatusInput" placeholder="Select civil status" autocomplete="off" readonly >
                                 <ul class="dropdown-menu w-100" id="civilStatusDropdown">
                                     <li><a class="dropdown-item" data-value="Single">Single</a></li>
                                     <li><a class="dropdown-item" data-value="Married">Married</a></li>
@@ -86,15 +86,15 @@
                             </div>
                             <div class="col-md-3">
                                 <label for="religion" class="form-label">Religion</label>
-                                <input type="text" class="form-control" id="religion" name="religion" placeholder="Enter religion">
+                                <input type="text" class="form-control" id="religion" name="religion" placeholder="Enter religion" pattern="^[a-zA-Z\s]*$" title="Only alphabets and spaces are allowed.">
                             </div>
                             <div class="col-md-3">
                                 <label for="nationality" class="form-label">Nationality</label>
-                                <input type="text" class="form-control" id="nationality" name="nationality" placeholder="Enter nationality">
+                                <input type="text" class="form-control" id="nationality" name="nationality" placeholder="Enter nationality" required pattern="^[a-zA-Z\s]*$" title="Only alphabets and spaces are allowed.">
                             </div>
                             <div class="col-md-3 position-relative">
                                 <label for="educationalBackground" class="form-label">Educational Background</label>
-                                <input type="text" class="form-control" id="educationalBackgroundInput" placeholder="Select Educational Background" autocomplete="off">
+                                <input type="text" class="form-control" id="educationalBackgroundInput" placeholder="Select Educational Background" autocomplete="off" readonly>
                                 <ul class="dropdown-menu w-100" id="educationalBackgroundDropdown">
                                     <li><a class="dropdown-item" data-value="College">College</a></li>
                                     <li><a class="dropdown-item" data-value="Highschool">High School</a></li>
@@ -114,7 +114,13 @@
                         <div class="row mb-3">
                             <div class="col-md-12">
                                 <label for="addressDetails" class="form-label">House No., Street, Subdivision, Barangay, City, Province</label>
-                                <textarea class="form-control" id="addressDetails" name="address_details" placeholder="Enter complete current address" rows="2" required></textarea>
+                                <textarea class="form-control" id="addressDetails" name="address_details" 
+                                placeholder="Enter complete current address" 
+                                rows="2" 
+                                required 
+                                pattern="^[a-zA-Z0-9\s,.-]+$" 
+                                title="Only alphanumeric characters, spaces, commas, periods, and hyphens are allowed."
+                                oninput="validateAddress(this)"></textarea>
                             </div>
                         </div>
 
@@ -128,18 +134,23 @@
                         <div class="row mb-3">
                             <div class="col-md-4">
                                 <label for="personalEmail" class="form-label">Personal Email Address</label>
-                                <input type="email" class="form-control" id="personalEmail" name="personal_email" placeholder="Enter personal email" required>
+                                <input type="email" class="form-control" id="personalEmail" name="personal_email" 
+                                       placeholder="Enter personal email" 
+                                       required 
+                                       pattern="^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$" 
+                                       title="Enter a valid email address (e.g., example@domain.com)" 
+                                       oninput="validateEmail(this)">
                             </div>
                             <div class="col-md-4">
                                 <label for="mobileNumber" class="form-label">Mobile Number</label>
                                 <div class="input-group">
                                     <span class="input-group-text">+63</span>
-                                    <input type="text" class="form-control" id="mobileNumber" name="mobile_number" placeholder="Enter mobile number" maxlength="11 required oninput="validateMobileNumber(this)">
+                                    <input type="text" class="form-control" id="mobileNumber" name="mobile_number" placeholder="Enter mobile number" maxlength="10" required oninput="restrictToNumbers(this)" title="Must be 10 digits.">
                                 </div>
                             </div>
                             <div class="col-md-4">
                                 <label for="landlineNumber" class="form-label">Landline Number</label>
-                                <input type="text" class="form-control" id="landlineNumber" name="landline_number" placeholder="Enter Landline number">
+                                <input type="text" class="form-control" id="landlineNumber" name="landline_number" placeholder="Enter Landline number" maxlength="10" required oninput="restrictToNumbers(this)" title="Must be between 7 and 10 digits.">
                             </div>
                         </div>
 
@@ -167,15 +178,15 @@
                         <div class="row mb-1">
                             <div class="col-md-4">
                                 <label for="sssID" class="form-label">SSS ID</label>
-                                <input type="text" class="form-control" id="sssID" name="sss_ID">
+                                <input type="text" class="form-control" id="sssID" name="sss_ID" placeholder="Enter SSS ID" maxlength="10" required oninput="restrictToNumbers(this)" title="Must be 10 digits.">
                             </div>
                             <div class="col-md-4">
                                 <label for="philhealthID" class="form-label">PhilHealth ID</label>
-                                <input type="text" class="form-control" id="philhealthID" name="philhealth_ID">
+                                <input type="text" class="form-control" id="philhealthID" name="philhealth_ID" placeholder="Enter PhilHealth ID" maxlength="12" required oninput="restrictToNumbers(this)" title="Must be 12 digits.">
                             </div>
                             <div class="col-md-4">
                                 <label for="pagibigID" class="form-label">Pag-Ibig ID</label>
-                                <input type="text" class="form-control" id="pagibigID" name="pagibig_ID">
+                                <input type="text" class="form-control" id="pagibigID" name="pagibig_ID" placeholder="Enter Pag-Ibig ID" maxlength="12" required oninput="restrictToNumbers(this)" title="Must be 12 digits.">
                             </div>
                         </div>
 
@@ -189,8 +200,13 @@
                         </div>
                         <div class="row mb-1">
                             <div class="col-md-4">
-                                <label for="email" class="form-label">Email</label>
-                                <input type="email" class="form-control" id="email" name="account[email]" placeholder="Enter email" required>
+                                <label for="email" class="form-label">Work Email Address</label>
+                                <input type="email" class="form-control" id="email" name="account[email]" 
+                                       placeholder="Enter work email" 
+                                       required 
+                                       pattern="^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$" 
+                                       title="Enter a valid email address (e.g., example@domain.com)" 
+                                       oninput="validateEmail(this)">
                             </div>
                             <div class="col-md-4">
                                 <label for="password" class="form-label">Password</label>
@@ -204,7 +220,7 @@
                         <div class="row mb-3">
                             <div class="col-md-4 position-relative">
                                 <label for="organization_Roles" class="form-label">Organization Roles</label>
-                                <input type="text" class="form-control" id="Organization_RolesInput" placeholder="Select organization role" autocomplete="off">
+                                <input type="text" class="form-control" id="Organization_RolesInput" placeholder="Select organization role" autocomplete="off" readonly>
                                 <ul class="dropdown-menu w-100" id="Organization_RolesDropdown">
                                     <li><a class="dropdown-item" data-value="2">Project Coordinator</a></li>
                                     <li><a class="dropdown-item" data-value="3">MEAL Coordinator</a></li>
@@ -320,6 +336,62 @@ e.preventDefault(); // Prevent the default form submission
             if (input.value.length > 11) {
                 input.value = input.value.slice(0, 11);
             }
+        }
+
+        document.querySelectorAll('.dropdown-item').forEach(item => {
+            item.addEventListener('click', function (e) {
+                e.preventDefault();
+                const input = this.closest('.position-relative').querySelector('input[type="text"]');
+                const hiddenInput = this.closest('.position-relative').querySelector('input[type="hidden"]');
+                input.value = this.textContent;
+                hiddenInput.value = this.getAttribute('data-value');
+            });
+        });
+
+        document.querySelectorAll('input[type="text"]').forEach(input => {
+            input.addEventListener('input', function () {
+                this.value = this.value.replace(/[^a-zA-Z0-9\s]/g, ''); // Remove special characters
+            });
+        });
+
+        document.querySelectorAll('input[type="email"]').forEach(input => {
+            input.addEventListener('input', function () {
+                // Allow only characters that match the regex
+                this.value = this.value.replace(/[^a-zA-Z0-9._%+-@]/g, '');
+            });
+        });
+
+        function restrictToNumbers(input) {
+            input.value = input.value.replace(/[^0-9]/g, '');
+        }
+
+        // Restrict input to numbers only
+        function restrictToNumbers(input) {
+            input.value = input.value.replace(/[^0-9]/g, ''); // Remove non-numeric characters
+        }
+
+        // Validate names to allow only one hyphen per word and not at the end
+        function validateName(input) {
+            input.value = input.value.replace(/[^a-zA-Z-]/g, ''); // Remove invalid characters
+            input.value = input.value.replace(/-{2,}/g, '-'); // Prevent multiple consecutive hyphens
+            input.value = input.value.replace(/^-|-$/g, ''); // Remove hyphen at the start or end
+            const words = input.value.split(' ');
+            input.value = words.map(word => word.replace(/-/g, (match, offset) => offset === word.indexOf('-') ? '-' : '')).join(' ');
+        }
+
+        // Prevent spaces in email fields
+        function preventSpaces(input) {
+            input.value = input.value.replace(/\s/g, ''); // Remove spaces
+        }
+
+        // Validate Current Address to allow only alphanumeric characters, spaces, commas, periods, and hyphens
+        function validateAddress(input) {
+            input.value = input.value.replace(/[^a-zA-Z0-9\s,.-]/g, ''); // Remove invalid characters
+        }
+
+        // Validate Email to allow only characters matching the regex
+        function validateEmail(input) {
+            input.value = input.value.replace(/[^a-zA-Z0-9._%+-@]/g, ''); // Remove invalid characters
         }
     </script>
     <?php

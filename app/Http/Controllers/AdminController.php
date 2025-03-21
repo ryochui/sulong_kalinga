@@ -14,27 +14,97 @@ class AdminController extends Controller
     {
         // Validate the input data
         $validator = Validator::make($request->all(), [
-            'first_name' => 'required|string|max:100',
-            'last_name' => 'required|string|max:100',
-            'birth_date' => 'required|date',
-            'gender' => 'required|string',
-            'civil_status' => 'required|string',
-            'religion' => 'nullable|string|max:50',
-            'nationality' => 'required|string|max:50',
-            'educational_background' => 'required|string|max:20',
-            'address_details' => 'required|string',
-            'account.email' => 'required|email|unique:cose_users,email',
-            'personal_email' => 'required|email|unique:cose_users,personal_email',
-            'mobile_number' => 'required|string|unique:cose_users,mobile|min:10|max:11',
-            'landline_number' => 'nullable|string|min:7|max:10',
+            // Personal Details
+            'first_name' => [
+                'required',
+                'string',
+                'max:100',
+                'regex:/^[A-Z][a-zA-Z]*$/', // First character must be uppercase, no digits or symbols
+            ],
+            'last_name' => [
+                'required',
+                'string',
+                'max:100',
+                'regex:/^[A-Z][a-zA-Z]*$/', // First character must be uppercase, no digits or symbols
+            ],
+            'birth_date' => 'required|date|before:today', // Must be a valid date before today
+            'gender' => 'required|string|in:Male,Female,Other', // Must match dropdown options
+            'civil_status' => 'required|string|in:Single,Married,Widowed,Divorced', // Must match dropdown options
+            'religion' => [
+                'nullable',
+                'string',
+                'max:50',
+                'regex:/^[a-zA-Z\s]*$/', // Only alphabets and spaces allowed
+            ],
+            'nationality' => [
+                'required',
+                'string',
+                'max:50',
+                'regex:/^[a-zA-Z\s]*$/', // Only alphabets and spaces allowed
+            ],
+            'educational_background' => 'required|string|in:College,Highschool,Doctorate', // Must match dropdown options
+        
+            // Address
+            'address_details' => [
+                'required',
+                'string',
+                'regex:/^[a-zA-Z0-9\s,.-]+$/', // Allows alphanumeric characters, spaces, commas, periods, and hyphens
+            ],
+        
+            
+            // Email fields
+            'account.email' => [
+                'required',
+                'string',
+                'regex:/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/',
+                'unique:cose_users,email',
+            ],
+            'personal_email' => [
+                'required',
+                'string',
+                'regex:/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/',
+                'unique:cose_users,personal_email',
+            ],
+            // Contact Information
+            'mobile_number' => [
+                'required',
+                'string',
+                'regex:/^[0-9]{10,11}$/', //  10 or 11 digits, +63 preceeding
+                'unique:cose_users,mobile',
+            ],
+            'landline_number' => [
+                'nullable',
+                'string',
+                'regex:/^[0-9]{7,10}$/', // Between 7 and 10 digits
+            ],
+        
+            // Account Registration
             'account.password' => 'required|string|min:8|confirmed',
+        
+            // Organization Roles
             'Organization_Roles' => 'required|integer|exists:organization_roles,organization_role_id',
+        
+            // Documents
             'administrator_photo' => 'required|image|mimes:jpeg,png|max:2048',
             'government_ID' => 'required|image|mimes:jpeg,png|max:2048',
             'resume' => 'required|mimes:pdf,doc,docx|max:2048',
-            'sss_ID' => 'required|string|max:20',
-            'philhealth_ID' => 'required|string|max:20',
-            'pagibig_ID' => 'required|string|max:20',
+        
+            // IDs
+            'sss_ID' => [
+                'required',
+                'string',
+                'regex:/^[0-9]{10}$/', // 10 digits
+            ],
+            'philhealth_ID' => [
+                'required',
+                'string',
+                'regex:/^[0-9]{12}$/', // 12 digits
+            ],
+            'pagibig_ID' => [
+                'required',
+                'string',
+                'regex:/^[0-9]{12}$/', // 12 digits
+            ],
         ]);
 
         if ($validator->fails()) {
