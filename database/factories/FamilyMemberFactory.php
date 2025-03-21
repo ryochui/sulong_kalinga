@@ -27,7 +27,6 @@ class FamilyMemberFactory extends Factory
             'email' => $this->faker->unique()->safeEmail,
             'access' => $this->faker->boolean(80), // 80% chance of being true
             'street_address' => $this->faker->address,
-            'barangay_id' => 1,
             'gender' => $this->faker->randomElement(['Male', 'Female']),
             'related_beneficiary_id' => $this->faker->numberBetween(1, 10),
             'relation_to_beneficiary' => $this->faker->randomElement(['Sister', 'Brother', 'Parent']),

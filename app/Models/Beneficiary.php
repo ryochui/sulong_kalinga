@@ -43,4 +43,10 @@ class Beneficiary extends Model
     {
         return $this->belongsTo(Municipality::class, 'municipality_id', 'municipality_id');
     }
+
+    // Define the relationship to the Barangay model
+    public function barangay()
+    {
+        return $this->belongsTo(Barangay::class, 'barangay_id');
+    }    
 }

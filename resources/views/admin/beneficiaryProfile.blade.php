@@ -82,6 +82,7 @@
                                     <th scope="col">Fullname</th>
                                     <th scope="col">Category</th>
                                     <th scope="col">Mobile Number</th>
+                                    <th scope="col">Barangay</th>
                                     <th scope="col">Municipality</th>
                                     <th scope="col">Status</th>
                                     <th scope="col">Actions</th>
@@ -96,6 +97,7 @@
                                         <td>{{ $beneficiary->first_name }} {{ $beneficiary->last_name }}</td>
                                         <td>{{ $beneficiary->category->category_name }}</td>
                                         <td>{{ $beneficiary->mobile }}</td>
+                                        <td>{{ $beneficiary->barangay->barangay_name }}</td>
                                         <td>{{ $beneficiary->municipality->municipality_name }}</td>
                                         <td>
                                         <select class="form-select" name="status" id="statusSelect{{ $beneficiary->beneficiary_id }}" onchange="openStatusChangeModal(this, 'Beneficiary', {{ $beneficiary->beneficiary_id }}, '{{ $beneficiary->status->status_name }}')">

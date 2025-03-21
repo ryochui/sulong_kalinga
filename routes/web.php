@@ -8,6 +8,7 @@ use App\Http\Controllers\AdminController;
 // for retrieving beneficiaries table
 use App\Http\Controllers\BeneficiaryController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\FamilyMemberController;
 
 
 require __DIR__.'/innerRoutes.php';
@@ -70,3 +71,10 @@ Route::post('logout', [LoginController::class, 'logout'])->name('logout'); // no
     Route::put('/admin/beneficiaries/{id}/status', [BeneficiaryController::class, 'updateStatus']);
     Route::put('/admin/beneficiaries/{id}/activate', [BeneficiaryController::class, 'activate']);
     Route::post('/validate-password', [UserController::class, 'validatePassword']);
+
+
+    //For family member profiles table
+    Route::get('/familyProfile', [FamilyMemberController::class, 'index'])->name('admin.familyProfile');
+    //Route::put('/admin/beneficiaries/{id}/status', [BeneficiaryController::class, 'updateStatus']);
+    //Route::put('/admin/beneficiaries/{id}/activate', [BeneficiaryController::class, 'activate']);
+    //Route::post('/validate-password', [UserController::class, 'validatePassword']);

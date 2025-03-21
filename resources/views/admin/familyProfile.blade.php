@@ -18,15 +18,17 @@
     <div class="home-section">
         <div class="text-left">FAMILY OR RELATIVE PROFILES</div>
         <div class="container-fluid text-center">
-        <div class="row mb-3 align-items-center">
+            <div class="row mb-3 align-items-center">
                 <!-- Search Bar -->
                 <div class="col-12 col-md-6 col-lg-6 mb-2">
-                    <div class="input-group">
-                        <span class="input-group-text">
-                            <i class="bx bx-search-alt"></i>
-                        </span>
-                        <input type="text" class="form-control" placeholder="Search reports..." id="searchBar">
-                    </div>
+                    <form action="{{ route('admin.familyProfile') }}" method="GET" id="filterForm">
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="bx bx-search-alt"></i>
+                            </span>
+                            <input type="text" class="form-control" name="search" placeholder="Search family members..." id="searchBar" value="{{ request('search') }}">
+                        </div>
+                    </form>
                 </div>
 
                 <!-- Filter Dropdown -->
@@ -35,11 +37,9 @@
                         <span class="input-group-text">
                             <i class="bx bx-filter-alt"></i>
                         </span>
-                        <select class="form-select" id="filterDropdown">
+                        <select class="form-select" name="filter" id="filterDropdown" form="filterForm" onchange="document.getElementById('filterForm').submit();">
                             <option value="" selected>Filter by</option>
-                            <option value="author">Author</option>
-                            <option value="type">Report Type</option>
-                            <option value="date">Date Uploaded</option>
+                            <option value="access" {{ request('filter') == 'access' ? 'selected' : '' }}>Access</option>
                         </select>
                     </div>
                 </div>
@@ -67,7 +67,6 @@
                 </div>
             </div>
 
-
             <div class="row" id="recentReports">
                 <div class="col-12">
                     <div class="table-responsive">
@@ -85,19 +84,19 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                @for ($i = 1; $i <= 33; $i++)
+                                @foreach ($family_members as $family_member)
                                     <tr>
                                         <td>
                                             <input type="checkbox" class="rowCheckbox" />
                                         </td>
-                                        <td>Mark</td>
-                                        <td>@mdo</td>
-                                        <td>Otto</td>
+                                        <td>{{ $family_member->first_name }} {{ $family_member->last_name }}</td>
+                                        <td>{{ $family_member->mobile }}</td>
+                                        <td>{{ $family_member->beneficiary->first_name }} {{ $family_member->beneficiary->last_name }}</td>
                                         <td>
-                                        <select class="form-select text-center" name="status" id="statusSelect{{ $i }}" onchange="openStatusChangeModal(this, 'Family')">
-                                            <option value="active" selected>Approved</option>
-                                            <option value="inactive">Denied</option>
-                                        </select>
+                                            <select class="form-select text-center" name="status" id="statusSelect{{ $family_member->id }}" onchange="openStatusChangeModal(this, 'Family', {{ $family_member->id }}, '{{ $family_member->status }}')">
+                                                <option value="Approved" {{ $family_member->status == 'Approved' ? 'selected' : '' }}>Approved</option>
+                                                <option value="Denied" {{ $family_member->status == 'Denied' ? 'selected' : '' }}>Denied</option>
+                                            </select>
                                         </td>
                                         <td>
                                             <div class="action-icons">
@@ -106,7 +105,7 @@
                                             </div>
                                         </td>
                                     </tr>
-                                @endfor
+                                @endforeach
                             </tbody>
                         </table>
                     </div>

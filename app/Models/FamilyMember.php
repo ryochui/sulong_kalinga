@@ -17,4 +17,10 @@ class FamilyMember extends Model
         'street_address', 'barangay_id', 'gender', 'related_beneficiary_id', 'relation_to_beneficiary',
         'is_primary_caregiver', 'portal_account_id', 'created_by', 'updated_by'
     ];
+
+    // Define the relationship to the Beneficiary model
+    public function beneficiary()
+    {
+        return $this->belongsTo(Beneficiary::class, 'related_beneficiary_id');
+    }
 }
