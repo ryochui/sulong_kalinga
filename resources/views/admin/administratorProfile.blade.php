@@ -14,34 +14,42 @@
     @include('components.userNavbar')
     @include('components.sidebar')
     @include('components.modals.statusChange')
+    @php use App\Helpers\StringHelper;
+    @endphp
    
     <div class="home-section">
         <div class="text-left">ADMINISTRATOR PROFILES</div>
         <div class="container-fluid text-center">
             <div class="row mb-3 align-items-center">
+                
                 <!-- Search Bar -->
                 <div class="col-12 col-md-6 col-lg-6 mb-2">
-                    <div class="input-group">
-                        <span class="input-group-text">
-                            <i class="bx bx-search-alt"></i>
-                        </span>
-                        <input type="text" class="form-control" placeholder="Search reports..." id="searchBar">
-                    </div>
+                    <form action="{{ route('admin.administratorProfile') }}" method="GET">
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="bx bx-search-alt"></i>
+                            </span>
+                            <input type="text" class="form-control" name="search" placeholder="Enter administrator name..." id="searchBar" value="{{ request('search') }}">
+                            <button type="submit" class="btn btn-primary">Search</button>
+                        </div>
+                    </form>
                 </div>
 
                 <!-- Filter Dropdown -->
                 <div class="col-12 col-sm-6 col-md-6 col-lg-2 mb-2">
-                    <div class="input-group">
-                        <span class="input-group-text">
-                            <i class="bx bx-filter-alt"></i>
-                        </span>
-                        <select class="form-select" id="filterDropdown">
-                            <option value="" selected>Filter by</option>
-                            <option value="author">Author</option>
-                            <option value="type">Report Type</option>
-                            <option value="date">Date Uploaded</option>
-                        </select>
-                    </div>
+                    <form action="{{ route('admin.administratorProfile') }}" method="GET" id="filterForm">
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="bx bx-filter-alt"></i>
+                            </span>
+                            <select class="form-select" name="filter" id="filterDropdown" onchange="document.getElementById('filterForm').submit()">
+                                <option value="" {{ request('filter') ? '' : 'selected' }}>Filter by</option>
+                                <option value="status" {{ request('filter') == 'status' ? 'selected' : '' }}>Status</option>
+                                <option value="organizationrole" {{ request('filter') == 'organizationrole' ? 'selected' : '' }}>Organization Role</option>
+                                <option value="area" {{ request('filter') == 'area' ? 'selected' : '' }}>Area</option>
+                            </select>
+                        </div>
+                    </form>
                 </div>
 
                 <!-- Export Dropdown -->
@@ -78,6 +86,7 @@
                                     </th>
                                     <th scope="col">Fullname</th>
                                     <th scope="col" class="d-none d-sm-table-cell">Organization Role</th>
+                                    <th scope="col" class="d-none d-sm-table-cell">Area</th>
                                     <th scope="col" class="d-none d-sm-table-cell">Mobile Number</th>
                                     <th scope="col" class="d-none d-md-table-cell">Email Address</Address></th>
                                     <th scope="col">Status</th>
@@ -85,29 +94,30 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                @for ($i = 1; $i <= 33; $i++)
-                                        <tr>
-                                            <td>
-                                                <input type="checkbox" class="rowCheckbox" />
-                                            </td>
-                                            <td>Mark</td>
-                                            <td class="d-none d-sm-table-cell">Otto</td>
-                                            <td class="d-none d-sm-table-cell">@mdo</td>
-                                            <td class="d-none d-md-table-cell">Otto</td>
-                                            <td>
-                                            <select class="form-select" name="status" id="statusSelect{{ $i }}" onchange="openStatusChangeModal(this, 'Administrator')">
-                                                <option value="active" selected>Active</option>
-                                                <option value="inactive">Inactive</option>
+                                @foreach ($administrators as $administrator)
+                                    <tr>
+                                        <td>
+                                            <input type="checkbox" class="rowCheckbox" />
+                                        </td>
+                                        <td>{{ $administrator->first_name }} {{ $administrator->last_name }}</td>
+                                        <td>{{ ucwords(str_replace('_', ' ', $administrator->organizationRole->role_name ?? 'N/A')) }}</td>
+                                        <td>{{ StringHelper::formatArea($administrator->organizationRole->area ?? 'N/A') }}</td>
+                                        <td>{{ $administrator->mobile}}</td>
+                                        <td>{{ $administrator->email}}</td>
+                                        <td>
+                                            <select class="form-select" name="status" id="statusSelect{{ $administrator->id }}" onchange="openStatusChangeModal(this, 'Care Manager')">
+                                                <option value="active" {{ $administrator->volunteer_status == 'Active' ? 'selected' : '' }}>Active</option>
+                                                <option value="inactive" {{ $administrator->volunteer_status == 'Inactive' ? 'selected' : '' }}>Inactive</option>
                                             </select>
-                                            </td>
-                                            <td>
-                                                <div class="action-icons">
-                                                    <a href="viewProfileDetails"><i class="fa fa-eye" style="text-decoration: none;"></i></a>
-                                                    <i class='bx bxs-edit'></i>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                @endfor
+                                        </td>
+                                        <td>
+                                            <div class="action-icons">
+                                                <i class="fa fa-eye"></i>
+                                                <i class='bx bxs-edit'></i>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                @endforeach
                             </tbody>
                         </table>
                     </div>

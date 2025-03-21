@@ -156,4 +156,38 @@ class AdminController extends Controller
         // Redirect with success message
         return redirect()->route('addAdministrator')->with('success', 'Administrator has been successfully added!');
     }
+
+    public function index(Request $request)
+    {
+        $search = $request->input('search');
+        $filter = $request->input('filter');
+
+        // Fetch administrators based on the search query and filters
+        $administrators = User::where('role_id', 1)
+            ->with('organizationRole')
+            ->when($search, function ($query, $search) {
+                return $query->where(function ($query) use ($search) {
+                    $query->whereRaw('LOWER(first_name) LIKE ?', ['%' . strtolower($search) . '%'])
+                          ->orWhereRaw('LOWER(last_name) LIKE ?', ['%' . strtolower($search) . '%']);
+                });
+            })
+            ->when($filter, function ($query, $filter) {
+                if ($filter == 'status') {
+                    return $query->orderBy('volunteer_status');
+                } elseif ($filter == 'organizationrole') {
+                    return $query->orderBy('organization_role_id');
+                } elseif ($filter == 'area') {
+                    return $query->join('organization_roles', 'users.organization_role_id', '=', 'organization_roles.organization_role_id')
+                                 ->orderBy('organization_roles.area');
+                }
+            })
+            ->orderBy('first_name') // Order by first name alphabetically by default
+            ->get();
+
+        // Debugging: Check the data
+        // dd($administrators);
+
+        // Pass the data to the Blade template
+        return view('admin.administratorProfile', compact('administrators'));
+    }
 }
