@@ -16,36 +16,34 @@
     
     <div class="home-section">
         <div class="container-fluid">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-    
-        <!-- Original Back Button -->
-    <a href="beneficiaryProfile" class="btn btn-secondary original-back-btn">
-        <i class="bx bx-arrow-back"></i> Back
-    </a>
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                    <!-- Original Back Button -->
+                <a href="beneficiaryProfile" class="btn btn-secondary original-back-btn">
+                    <i class="bx bx-arrow-back"></i> Back
+                </a>
+                <div class="mx-auto text-center" style="flex-grow: 1; font-weight: bold; font-size: 20px;">VIEW BENEFICIARY PROFILE DETAILS</div>
 
-    <div class="mx-auto text-center" style="flex-grow: 1; font-weight: bold; font-size: 20px;">VIEW BENEFICIARY PROFILE DETAILS</div>
-
-    <!-- Edit and Delete Buttons -->
-    <div>
-        <!-- Hidden Back Button -->
-        <a href="beneficiaryProfile" class="btn btn-secondary hidden-back-btn">
-            <i class="bx bx-arrow-back"></i> Back
-        </a>
-        <!-- Edit Button with Routing -->
-        <form action="{{ route('editProfile') }}" method="POST" style="display:inline;">
-            @csrf
-            <input type="hidden" name="beneficiary_id" value="{{ $beneficiary->beneficiary_id }}">
-            <button type="submit" class="btn btn-primary">
-            <i class="bx bxs-edit"></i> Edit
-            </button>
-        </form>
-        <button class="btn btn-danger" onclick="deleteProfile()">
-            <i class="bx bxs-trash"></i> Delete
-        </button>
-    </div>
-</div>
-            <div class="row p-lg-3 p-md-2 p-sm-1 justify-content-center" id="profileDetails">
-                <div class="row p-lg-3 p-md-2 p-sm-1 justify-content-center">
+                <!-- Edit and Delete Buttons -->
+                <div>
+                    <!-- Hidden Back Button -->
+                    <a href="beneficiaryProfile" class="btn btn-secondary hidden-back-btn">
+                        <i class="bx bx-arrow-back"></i> Back
+                    </a>
+                    <!-- Edit Button with Routing -->
+                    <form action="{{ route('editProfile') }}" method="POST" style="display:inline;">
+                        @csrf
+                        <input type="hidden" name="beneficiary_id" value="{{ $beneficiary->beneficiary_id }}">
+                        <button type="submit" class="btn btn-primary">
+                        <i class="bx bxs-edit"></i> Edit
+                        </button>
+                    </form>
+                    <button class="btn btn-danger" onclick="deleteProfile()">
+                        <i class="bx bxs-trash"></i> Delete
+                    </button>
+                </div>
+            </div>
+            <div class="row justify-content-center" id="profileDetails">
+                <div class="row mb-3 mt-3 justify-content-center">
                     <div class="col-lg-8 col-md-12 col-sm-12" id="profilePic">
                         <div class="row justify-content-center align-items-center text-center text-md-start">
                             <!-- Profile Picture Column -->
@@ -82,27 +80,27 @@
                             <tbody>
                                 <tr>
                                     <td style="width:30%;"><strong>Primary Caregiver:</strong></td>
-                                    <td><p>{{ $beneficiary->primary_caregiver }}</p></td>
+                                    <td>{{ $beneficiary->primary_caregiver }}</td>
                                 </tr>
                                 <tr>
                                     <td style="width:30%;"><strong>Gender:</strong></td>
-                                    <td><p>{{ $beneficiary->gender }}</p></td>
+                                    <td>{{ $beneficiary->gender }}</td>
                                 </tr>
                                 <tr>
                                     <td style="width:30%;"><strong>Civil Status:</strong></td>
-                                    <td><p>{{ $beneficiary->civil_status }}</p></td>
+                                    <td>{{ $beneficiary->civil_status }}</td>
                                 </tr>
                                 <tr>
                                     <td style="width:30%;"><strong>Mobile Number:</strong></td>
-                                    <td><p>{{ $beneficiary->mobile }}</p></td>
+                                    <td>{{ $beneficiary->mobile }}</td>
                                 </tr>
                                 <tr>
                                     <td style="width:30%;"><strong>Landline Number:</strong></td>
-                                    <td><p>{{ $beneficiary->landline ?? 'N/A' }}</p></td>
+                                    <td>{{ $beneficiary->landline ?? 'N/A' }}</td>
                                 </tr>
                                 <tr>
                                     <td style="width:30%;"><strong>Current Address:</strong></td>
-                                    <td><p>{{ $beneficiary->current_address }}</p></td>
+                                    <td>{{ $beneficiary->current_address }}</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -114,23 +112,23 @@
                             <tbody>
                                 <tr>
                                     <td><strong>Medical Conditions:</strong></td>
-                                    <td><p><!-- Backend data --></p></td>
+                                    <td><!-- Backend data --></td>
                                 </tr>
                                 <tr>
                                     <td><strong>Medications:</strong></td>
-                                    <td><p><!-- Backend data --></p></td>
+                                    <td><!-- Backend data --></td>
                                 </tr>
                                 <tr>
                                     <td><strong>Allergies:</strong></td>
-                                    <td><p><!-- Backend data --></p></td>
+                                    <td><!-- Backend data --></td>
                                 </tr>
                                 <tr>
                                     <td><strong>Immunizations:</strong></td>
-                                    <td><p><!-- Backend data --></p></td>
+                                    <td><!-- Backend data --></td>
                                 </tr>
                                 <tr>
                                     <td><strong>Category:</strong></td>
-                                    <td><p><!-- Backend data --></p></td>
+                                    <td><!-- Backend data --></td>
                                 </tr>
                             </tbody>
                         </table>
@@ -145,22 +143,22 @@
                             <tbody>
                                 <tr>
                                     <td><strong>Emergency Contact:</strong></td>
-                                    <td><p>{{ $beneficiary->emergency_contact_name }}</p></td>
+                                    <td>{{ $beneficiary->emergency_contact_name }}</td>
                                 </tr>
                                 <tr>
                                     <td><strong>Relation:</strong></td>
-                                    <td><p>{{ $beneficiary->emergency_contact_relation ?? 'Not Specified' }}</p></td>
+                                    <td>{{ $beneficiary->emergency_contact_relation ?? 'Not Specified' }}</td>
                                 </tr>
                                 <tr>
                                     <td><strong>Mobile Number:</strong></td>
-                                    <td><p>{{ $beneficiary->emergency_contact_mobile }}</p></td>
+                                    <td>{{ $beneficiary->emergency_contact_mobile }}</td>
                                 </tr>
                                 <tr>
                                     <td><strong>Email Address:</strong></td>
-                                    <td><p>{{ $beneficiary->emergency_email ?? 'N/A'}}</p></td>                                </tr>
+                                    <td>{{ $beneficiary->emergency_email ?? 'N/A'}}</td>                                </tr>
                                 <tr>
                                     <td><strong>Emergency Procedure:</strong></td>
-                                    <td><p>{{ $beneficiary->emergency_procedure}}</p></td>  
+                                    <td>{{ $beneficiary->emergency_procedure}}</td>  
                                 </tr>
                             </tbody>
                         </table>
@@ -178,10 +176,10 @@
                             <tbody>
                                 <!-- LOOP -->
                                 <tr>
-                                    <td style="width:30%;"><p><!-- Backend data --></p></td>
-                                    <td style="width:20%;"><p><!-- Backend data --></p></td>
-                                    <td style="width:20%;"><p><!-- Backend data --></p></td>
-                                    <td style="width:30%;"><p><!-- Backend data --></p></td>                                
+                                    <td style="width:30%;"><!-- Backend data --></td>
+                                    <td style="width:20%;"><!-- Backend data --></td>
+                                    <td style="width:20%;"><!-- Backend data --></td>
+                                    <td style="width:30%;"><!-- Backend data --></td>                                
                                 </tr>
                             </tbody>
                         </table>
@@ -201,38 +199,38 @@
                             <tbody>
                                 <tr>
                                     <td style="width:30%;"><strong>Mobility:</strong></td>
-                                    <td style="width:20%;"><p><!-- Backend data --></p></td>
-                                    <td style="width:50%;"><p><!-- Backend data --></p></td>
+                                    <td style="width:20%;"><!-- Backend data --></td>
+                                    <td style="width:50%;"><!-- Backend data --></td>
                                 </tr>
                                 <tr>
                                     <td style="width:30%;"><strong>Cognitive / Communication:</strong></td>
-                                    <td style="width:20%;"><p><!-- Backend data --></p></td>
-                                    <td style="width:50%;"><p><!-- Backend data --></p></td>
+                                    <td style="width:20%;"><!-- Backend data --></td>
+                                    <td style="width:50%;"><!-- Backend data --></td>
                                 </tr>
                                 <tr>
                                     <td style="width:30%;"><strong>Self-sustainability:</strong></td>
-                                    <td style="width:20%;"><p><!-- Backend data --></p></td>
-                                    <td style="width:50%;"><p><!-- Backend data --></p></td>
+                                    <td style="width:20%;"><!-- Backend data --></td>
+                                    <td style="width:50%;"><!-- Backend data --></td>
                                 </tr>
                                 <tr>
                                     <td style="width:30%;"><strong>Disease / Therapy Handling:</strong></td>
-                                    <td style="width:20%;"><p><!-- Backend data --></p></td>
-                                    <td style="width:50%;"><p><!-- Backend data --></p></td>
+                                    <td style="width:20%;"><!-- Backend data --></td>
+                                    <td style="width:50%;"><!-- Backend data --></td>
                                 </tr>
                                 <tr>
                                     <td style="width:30%;"><strong>Daily Life / Social Contact:</strong></td>
-                                    <td style="width:20%;"><p><!-- Backend data --></p></td>
-                                    <td style="width:50%;"><p><!-- Backend data --></p></td>
+                                    <td style="width:20%;"><!-- Backend data --></td>
+                                    <td style="width:50%;"><!-- Backend data --></td>
                                 </tr>
                                 <tr>
                                     <td style="width:30%;"><strong>Outdoor Activities:</strong></td>
-                                    <td style="width:20%;"><p><!-- Backend data --></p></td>
-                                    <td style="width:50%;"><p><!-- Backend data --></p></td>
+                                    <td style="width:20%;"><!-- Backend data --></td>
+                                    <td style="width:50%;"><!-- Backend data --></td>
                                 </tr>
                                 <tr>
                                     <td style="width:30%;"><strong>Household Keeping:</strong></td>
-                                    <td style="width:20%;"><p><!-- Backend data --></p></td>
-                                    <td style="width:50%;"><p><!-- Backend data --></p></td>
+                                    <td style="width:20%;"><!-- Backend data --></td>
+                                    <td style="width:50%;"><!-- Backend data --></td>
                                 </tr>                           
                             </tbody>
                         </table>
@@ -244,15 +242,15 @@
                             <tbody>
                                 <tr>
                                     <td><strong>Walking Ability:</strong></td>
-                                    <td><p><!-- Backend data --></p></td>                                
+                                    <td><!-- Backend data --></td>                                
                                 </tr>
                                 <tr>
                                     <td><strong>Assistive Devices:</strong></td>
-                                    <td><p><!-- Backend data --></p></td>                                
+                                    <td><!-- Backend data --></td>                             
                                 </tr>
                                 <tr>
                                     <td><strong>Transportation Needs:</strong></td>
-                                    <td><p><!-- Backend data --></p></td>                                
+                                    <td><!-- Backend data --></td>                               
                                 </tr>
                             </tbody>
                         </table>
@@ -266,19 +264,19 @@
                             <tbody>
                                 <tr>
                                     <td><strong>Memory:</strong></td>
-                                    <td><p><!-- Backend data --></p></td>                                
+                                    <td><!-- Backend data --></td>                               
                                 </tr>
                                 <tr>
                                     <td><strong>Thinking Skills:</strong></td>
-                                    <td><p><!-- Backend data --></p></td>                                
+                                    <td><!-- Backend data --></td>                               
                                 </tr>
                                 <tr>
                                     <td><strong>Orientation:</strong></td>
-                                    <td><p><!-- Backend data --></p></td>                                
+                                    <td><!-- Backend data --></td>                             
                                 </tr>
                                 <tr>
                                     <td><strong>Behavior:</strong></td>
-                                    <td><p><!-- Backend data --></p></td>                                
+                                    <td><!-- Backend data --></td>                              
                                 </tr>
                             </tbody>
                         </table>
@@ -290,15 +288,15 @@
                             <tbody>
                                 <tr>
                                     <td><strong>Mood:</strong></td>
-                                    <td><p><!-- Backend data --></p></td>                                
+                                    <td><!-- Backend data --></td>                             
                                 </tr>
                                 <tr>
                                     <td><strong>Social Interactions:</strong></td>
-                                    <td><p><!-- Backend data --></p></td>                                
+                                    <td><!-- Backend data --></td>                               
                                 </tr>
                                 <tr>
                                     <td><strong>Emotional Support Need:</strong></td>
-                                    <td><p><!-- Backend data --></p></td>                                
+                                    <td><!-- Backend data --></td>                               
                                 </tr>
                             </tbody>
                         </table>
@@ -311,7 +309,7 @@
                             <tbody>
                                 <tr>
                                     <td style="width: 20%;"><strong>Name:</strong></td>
-                                    <td style="width: 80%;"><p><!-- Backend data --></p></td>                                
+                                    <td style="width: 80%;"><!-- Backend data --></td>                                
                                 </tr>
                                 <tr> 
                                     <td style="width: 100%; text-align:center;"><strong>Tasks and Responsibilities</strong></td> 
@@ -319,7 +317,7 @@
                                 </tr>
                                 <!-- LOOP -->
                                 <tr>
-                                    <td style="width: 100%;"><p><!-- Backend data --></p></td> 
+                                    <td style="width: 100%;"><!-- Backend data --></td> 
                                     <td></td>                            
                                 </tr>
                             </tbody>
@@ -334,11 +332,11 @@
                             <tbody>
                                 <tr>
                                     <td style="width: 40%;"><strong>Care Service Agreement:</strong></td>
-                                    <td style="width: 60%;"><p><!-- Backend data --></p></td>                                
+                                    <td style="width: 60%;"><!-- Backend data --></td>                                
                                 </tr>
                                 <tr>
                                     <td style="width: 40%;"><strong>General Careplan:</strong></td>
-                                    <td style="width: 60%;"><p><!-- Backend data --></p></td>                                
+                                    <td style="width: 60%;"><!-- Backend data --></td>                                
                                 </tr>
                             </tbody>
                         </table>

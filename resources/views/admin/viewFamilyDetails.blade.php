@@ -39,8 +39,8 @@
                     </button>
                 </div>
             </div>
-            <div class="row p-lg-3 p-md-2 p-sm-1 justify-content-center" id="profileDetails">
-                <div class="row mb-3 p-lg-3 p-md-2 p-sm-1 justify-content-center">
+            <div class="row justify-content-center" id="profileDetails">
+                <div class="row mb-3 mt-3 justify-content-center">
                     <div class="col-lg-8 col-md-12 col-sm-12" id="profilePic">
                         <div class="row justify-content-center align-items-center text-center text-md-start">
                             <!-- Profile Picture Column -->
@@ -68,7 +68,7 @@
                     </div>
                 </div>
                 
-                <div class="row">
+                <div class="row mb-1">
                     <!-- Personal Details Column -->
                     <div class="col-lg-12 col-md-12 col-sm-12">
                         <h5 class="text-center">Personal Details</h5>
@@ -76,19 +76,19 @@
                             <tbody>
                                 <tr>
                                     <td style="width:30%;"><strong>Gender:</strong></td>
-                                    <td><p><!-- Backend data --></p></td>
+                                    <td><!-- Backend data --></td>
                                 </tr>
                                 <tr>
                                     <td style="width:30%;"><strong>Birthday:</strong></td>
-                                    <td><p><!-- Backend data --></p></td>
+                                    <td><!-- Backend data --></td>
                                 </tr>
                                 <tr>
                                     <td style="width:30%;"><strong>Mobile Number:</strong></td>
-                                    <td><p><!-- Backend data --></p></td>
+                                    <td><!-- Backend data --></td>
                                 </tr>
                                 <tr>
                                     <td style="width:30%;"><strong>Landline Number:</strong></td>
-                                    <td><p><!-- Backend data --></p></td>
+                                    <td><!-- Backend data --></td>
                                 </tr>
                                 <tr>
                                     <td style="width:30%;"><strong>Current Address:</strong></td>
@@ -99,19 +99,18 @@
                     </div>
                 </div>    
                 <div class="row justify-content-center">
-                    <!-- Personal Details Column -->
                     <div class="col-lg-12 col-md-12 col-sm-12 d-flex justify-content-center">
                         <h5 class="text-center">Related Beneficiary</h5>
                     </div>
                     <div class="col-lg-12 col-md-12 col-sm-12 d-flex justify-content-center flex-wrap">
-                        <div class="card text-center" style="max-width: 300px;">
-                            <div class="d-flex justify-content-center align-items-center" style="height: 150px;">
-                                <img src=" {{ asset('images/defaultProfile.png') }}" class="img-fluid" alt="..." style="max-width: 150px; max-height: 150px;">
+                        <div class="card text-center p-1 m-1" style="max-width: 160px;">
+                            <div class="d-flex justify-content-center align-items-center" style="height: 100px;">
+                                <img src=" {{ asset('images/defaultProfile.png') }}" class="img-fluid" alt="..." style="max-width: 100px; max-height: 100px;">
                             </div>
-                            <div class="card-body">
-                                <p class="card-text">Beneficiary Name</p>
+                            <div class="card-body p-1">
+                                <p class="card-text" style="font-size:14px;">Beneficiary Name</p>
                             </div>
-                        </div>
+                        </div>                           
                     </div>
                 </div>
             </div>

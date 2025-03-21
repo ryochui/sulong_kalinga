@@ -36,7 +36,7 @@
                 </div>
             </div>
             <div class="row justify-content-center" id="profileDetails">
-                <div class="row justify-content-center mb-3">
+                <div class="row justify-content-center mt-3 mb-3">
                     <div class="col-lg-8 col-md-12 col-sm-12 mb-3" id="profilePic">
                         <div class="row justify-content-center align-items-center text-center text-md-start">
                             <!-- Profile Picture Column -->
@@ -73,39 +73,39 @@
                             <tbody>
                                 <tr>
                                     <td style="width:30%;"><strong>Educational Background:</strong></td>
-                                    <td><p><!-- Backend data --></p></td>
+                                    <td><!-- Backend data --></td>
                                 </tr>
                                 <tr>
                                     <td style="width:30%;"><strong>Birthday:</strong></td>
-                                    <td><p><!-- Backend data --></p></td>
+                                    <td><!-- Backend data --></td>
                                 </tr>
                                 <tr>
                                     <td style="width:30%;"><strong>Gender:</strong></td>
-                                    <td><p><!-- Backend data --></p></td>
+                                    <td><!-- Backend data --></td>
                                 </tr>
                                 <tr>
                                     <td style="width:30%;"><strong>Civil Status:</strong></td>
-                                    <td><p><!-- Backend data --></p></td>
+                                    <td><!-- Backend data --></td>
                                 </tr>
                                 <tr>
                                     <td style="width:30%;"><strong>Religion:</strong></td>
-                                    <td><p><!-- Backend data --></p></td>
+                                    <td><!-- Backend data --></td>
                                 </tr>
                                 <tr>
                                     <td style="width:30%;"><strong>Nationality:</strong></td>
-                                    <td><p><!-- Backend data --></p></td>
+                                    <td><!-- Backend data --></td>
                                 </tr>
                                 <tr>
                                     <td style="width:30%;"><strong>Email Address:</strong></td>
-                                    <td><p><!-- Backend data --></p></td>
+                                    <td><!-- Backend data --></td>
                                 </tr>
                                 <tr>
                                     <td style="width:30%;"><strong>Mobile Number:</strong></td>
-                                    <td><p><!-- Backend data --></p></td>
+                                    <td><!-- Backend data --></td>
                                 </tr>
                                 <tr>
                                     <td style="width:30%;"><strong>Landline Number:</strong></td>
-                                    <td><p><!-- Backend data --></p></td>
+                                    <td><!-- Backend data --></td>
                                 </tr>
                                 <tr>
                                     <td style="width:30%;"><strong>Current Address:</strong></td>
@@ -122,11 +122,11 @@
                                     <tbody>
                                         <tr>
                                             <td style="width: 40%;"><strong>Government Issued ID:</strong></td>
-                                            <td style="width: 60%;"><p><!-- Backend data --></p></td>                                
+                                            <td style="width: 60%;"><!-- Backend data --></td>                                
                                         </tr>
                                         <tr>
                                             <td style="width: 40%;"><strong>Resume / CV:</strong></td>
-                                            <td style="width: 60%;"><p><!-- Backend data --></p></td>                                
+                                            <td style="width: 60%;"><!-- Backend data --></td>                               
                                         </tr>
                                     </tbody>
                                 </table>
@@ -139,15 +139,15 @@
                                     <tbody>
                                         <tr>
                                             <td style="width: 40%;"><strong>SSS ID Number:</strong></td>
-                                            <td style="width: 60%;"><p><!-- Backend data --></p></td>                                
+                                            <td style="width: 60%;"><!-- Backend data --></td>                                  
                                         </tr>
                                         <tr>
                                             <td style="width: 40%;"><strong>PhilHealth ID Number:</strong></td>
-                                            <td style="width: 60%;"><p><!-- Backend data --></p></td>                                
+                                            <td style="width: 60%;"><!-- Backend data --></td>                                 
                                         </tr>
                                         <tr>
                                             <td style="width: 40%;"><strong>Pag-Ibig ID Number:</strong></td>
-                                            <td style="width: 60%;"><p><!-- Backend data --></p></td>                                
+                                            <td style="width: 60%;"><!-- Backend data --></td>                                  
                                         </tr>
                                     </tbody>
                                 </table>
@@ -155,8 +155,6 @@
                         </div>
                     </div>
                 </div>
-
-                
             </div>
         </div>
     </div>

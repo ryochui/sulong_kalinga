@@ -37,7 +37,7 @@
             </div>
             <div class="row justify-content-center" id="profileDetails">
                 <div class="row justify-content-center mb-3">
-                    <div class="col-lg-8 col-md-12 col-sm-12 mb-3" id="profilePic">
+                    <div class="col-lg-8 col-md-12 col-sm-12 mt-3 mb-3" id="profilePic">
                         <div class="row justify-content-center align-items-center text-center text-md-start">
                             <!-- Profile Picture Column -->
                             <div class="col-lg-3 col-md-4 col-sm-12 mb-3 mb-md-0">
@@ -73,43 +73,43 @@
                             <tbody>
                                 <tr>
                                     <td style="width:30%;"><strong>Educational Background:</strong></td>
-                                    <td><p><!-- Backend data --></p></td>
+                                    <td><!-- Backend data --></td>
                                 </tr>
                                 <tr>
                                     <td style="width:30%;"><strong>Birthday:</strong></td>
-                                    <td><p><!-- Backend data --></p></td>
+                                    <td><!-- Backend data --></td>
                                 </tr>
                                 <tr>
                                     <td style="width:30%;"><strong>Gender:</strong></td>
-                                    <td><p><!-- Backend data --></p></td>
+                                    <td><!-- Backend data --></td>
                                 </tr>
                                 <tr>
                                     <td style="width:30%;"><strong>Civil Status:</strong></td>
-                                    <td><p><!-- Backend data --></p></td>
+                                    <td><!-- Backend data --></td>
                                 </tr>
                                 <tr>
                                     <td style="width:30%;"><strong>Religion:</strong></td>
-                                    <td><p><!-- Backend data --></p></td>
+                                    <td><!-- Backend data --></td>
                                 </tr>
                                 <tr>
                                     <td style="width:30%;"><strong>Nationality:</strong></td>
-                                    <td><p><!-- Backend data --></p></td>
+                                    <td><!-- Backend data --></td>
                                 </tr>
                                 <tr>
                                     <td style="width:30%;"><strong>Assigned Municipality:</strong></td>
-                                    <td><p><!-- Backend data --></p></td>
+                                    <td><!-- Backend data --></td>
                                 </tr>
                                 <tr>
                                     <td style="width:30%;"><strong>Email Address:</strong></td>
-                                    <td><p><!-- Backend data --></p></td>
+                                    <td><!-- Backend data --></td>
                                 </tr>
                                 <tr>
                                     <td style="width:30%;"><strong>Mobile Number:</strong></td>
-                                    <td><p><!-- Backend data --></p></td>
+                                    <td><!-- Backend data --></td>
                                 </tr>
                                 <tr>
                                     <td style="width:30%;"><strong>Landline Number:</strong></td>
-                                    <td><p><!-- Backend data --></p></td>
+                                    <td><!-- Backend data --></td>
                                 </tr>
                                 <tr>
                                     <td style="width:30%;"><strong>Current Address:</strong></td>
@@ -126,11 +126,11 @@
                                     <tbody>
                                         <tr>
                                             <td style="width: 40%;"><strong>Government Issued ID:</strong></td>
-                                            <td style="width: 60%;"><p><!-- Backend data --></p></td>                                
+                                            <td style="width: 60%;"><!-- Backend data --></td>                                
                                         </tr>
                                         <tr>
                                             <td style="width: 40%;"><strong>Resume / CV:</strong></td>
-                                            <td style="width: 60%;"><p><!-- Backend data --></p></td>                                
+                                            <td style="width: 60%;"><!-- Backend data --></td>                                 
                                         </tr>
                                     </tbody>
                                 </table>
@@ -143,24 +143,77 @@
                                     <tbody>
                                         <tr>
                                             <td style="width: 40%;"><strong>SSS ID Number:</strong></td>
-                                            <td style="width: 60%;"><p><!-- Backend data --></p></td>                                
+                                            <td style="width: 60%;"><!-- Backend data --></td>                                 
                                         </tr>
                                         <tr>
                                             <td style="width: 40%;"><strong>PhilHealth ID Number:</strong></td>
-                                            <td style="width: 60%;"><p><!-- Backend data --></p></td>                                
+                                            <td style="width: 60%;"><!-- Backend data --></td>                                   
                                         </tr>
                                         <tr>
                                             <td style="width: 40%;"><strong>Pag-Ibig ID Number:</strong></td>
-                                            <td style="width: 60%;"><p><!-- Backend data --></p></td>                                
+                                            <td style="width: 60%;"><!-- Backend data --></td>                                 
                                         </tr>
                                     </tbody>
                                 </table>
                             </div>
                         </div>
                     </div>
+                    <div class="row justify-content-center">
+                        <div class="col-lg-12 col-md-12 col-sm-12 d-flex justify-content-center">
+                            <h5 class="text-center">Managed Beneficiary</h5>
+                        </div>
+                        <div class="col-lg-12 col-md-12 col-sm-12 d-flex justify-content-center flex-wrap">
+                            <div class="card text-center p-1 m-1" style="max-width: 160px;">
+                                <div class="d-flex justify-content-center align-items-center" style="height: 100px;">
+                                    <img src=" {{ asset('images/defaultProfile.png') }}" class="img-fluid" alt="..." style="max-width: 100px; max-height: 100px;">
+                                </div>
+                                <div class="card-body p-1">
+                                    <p class="card-text" style="font-size:14px;">Beneficiary Name</p>
+                                </div>
+                            </div>
+                            <div class="card text-center p-1 m-1" style="max-width: 160px;">
+                                <div class="d-flex justify-content-center align-items-center" style="height: 100px;">
+                                    <img src=" {{ asset('images/defaultProfile.png') }}" class="img-fluid" alt="..." style="max-width: 100px; max-height: 100px;">
+                                </div>
+                                <div class="card-body p-1">
+                                    <p class="card-text" style="font-size:14px;">Beneficiary Name</p>
+                                </div>
+                            </div>
+                            <div class="card text-center p-1 m-1" style="max-width: 160px;">
+                                <div class="d-flex justify-content-center align-items-center" style="height: 100px;">
+                                    <img src=" {{ asset('images/defaultProfile.png') }}" class="img-fluid" alt="..." style="max-width: 100px; max-height: 100px;">
+                                </div>
+                                <div class="card-body p-1">
+                                    <p class="card-text" style="font-size:14px;">Beneficiary Name</p>
+                                </div>
+                            </div>
+                            <div class="card text-center p-1 m-2" style="max-width: 160px;">
+                                <div class="d-flex justify-content-center align-items-center" style="height: 100px;">
+                                    <img src=" {{ asset('images/defaultProfile.png') }}" class="img-fluid" alt="..." style="max-width: 100px; max-height: 100px;">
+                                </div>
+                                <div class="card-body p-1">
+                                    <p class="card-text" style="font-size:14px;">Beneficiary Name</p>
+                                </div>
+                            </div>
+                            <div class="card text-center p-1 m-2" style="max-width: 160px;">
+                                <div class="d-flex justify-content-center align-items-center" style="height: 100px;">
+                                    <img src=" {{ asset('images/defaultProfile.png') }}" class="img-fluid" alt="..." style="max-width: 100px; max-height: 100px;">
+                                </div>
+                                <div class="card-body p-1">
+                                    <p class="card-text" style="font-size:14px;">Beneficiary Name</p>
+                                </div>
+                            </div>
+                            <div class="card text-center p-1 m-2" style="max-width: 160px;">
+                                <div class="d-flex justify-content-center align-items-center" style="height: 100px;">
+                                    <img src=" {{ asset('images/defaultProfile.png') }}" class="img-fluid" alt="..." style="max-width: 100px; max-height: 100px;">
+                                </div>
+                                <div class="card-body p-1">
+                                    <p class="card-text" style="font-size:14px;">Beneficiary Name</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-
-                
             </div>
         </div>
     </div>
