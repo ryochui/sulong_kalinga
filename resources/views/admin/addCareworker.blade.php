@@ -22,10 +22,25 @@
                 </a>
                 <div class="mx-auto text-center" style="flex-grow: 1; font-weight: bold; font-size: 20px;">ADD CARE WORKER</div>
             </div>
+            @if (session('success'))
+                <div class="alert alert-success">
+                    {{ session('success') }}
+                </div>
+            @endif
+
+            @if ($errors->any())
+                <div class="alert alert-danger">
+                    <ul>
+                        @foreach ($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
             <div class="row" id="addUserForm">
                 <div class="col-12">
                     <!-- <form action="{{ route('addBeneficiary') }}" method="POST"> -->
-                    <form>
+                    <form action="{{ route('admin.addCareWorker.store') }}" method="POST" enctype="multipart/form-data">
                         @csrf <!-- Include CSRF token for security -->
                         <!-- Row 1: Personal Details -->
                         <div class="row mb-1 mt-3">
@@ -36,11 +51,11 @@
                         <div class="row mb-1">
                             <div class="col-md-3">
                                 <label for="firstName" class="form-label">First Name</label>
-                                <input type="text" class="form-control" id="firstName" name="first_name" placeholder="Enter first name" required>
+                                <input type="text" class="form-control" id="firstName" name="first_name" placeholder="Enter first name" required oninput="validateName(this)" pattern="^[A-Z][a-zA-Z]*(?:-[a-zA-Z]+)?$" title="First letter must be uppercase, and only alphabets are allowed. Hyphen can only be used once per word and not at the end.">
                             </div>
                             <div class="col-md-3">
                                 <label for="lastName" class="form-label">Last Name</label>
-                                <input type="text" class="form-control" id="lastName" name="last_name" placeholder="Enter last name" required>
+                                <input type="text" class="form-control" id="lastName" name="last_name" placeholder="Enter last name" required oninput="validateName(this)" pattern="^[A-Z][a-zA-Z]*(?:-[a-zA-Z]+)?$" title="First letter must be uppercase, and only alphabets are allowed. Hyphen can only be used once per word and not at the end.">
                             </div>
                             <div class="col-md-3">
                                 <label for="birthDate" class="form-label">Birthday</label>
@@ -48,56 +63,44 @@
                             </div>
                             <div class="col-md-3 position-relative">
                                 <label for="gender" class="form-label">Gender</label>
-                                <input type="text" class="form-control" id="genderInput" placeholder="Select gender" autocomplete="off">
+                                <input type="text" class="form-control" id="genderInput" placeholder="Select gender" autocomplete="off" readonly>
                                 <ul class="dropdown-menu w-100" id="genderDropdown">
-                                    <li><a class="dropdown-item" data-value="male">Male</a></li>
-                                    <li><a class="dropdown-item" data-value="female">Female</a></li>
-                                    <li><a class="dropdown-item" data-value="other">Other</a></li>
+                                    <li><a class="dropdown-item" data-value="Male">Male</a></li>
+                                    <li><a class="dropdown-item" data-value="Female">Female</a></li>
+                                    <li><a class="dropdown-item" data-value="Other">Other</a></li>
                                 </ul>
                                 <input type="hidden" id="gender" name="gender">
                             </div>
                         </div>
-                        <div class="row mb-1">
+                        <div class="row mb-3">
                             <div class="col-md-3 position-relative">
                                 <label for="civilStatus" class="form-label">Civil Status</label>
-                                <input type="text" class="form-control" id="civilStatusInput" placeholder="Select civil status" autocomplete="off">
+                                <input type="text" class="form-control" id="civilStatusInput" placeholder="Select civil status" autocomplete="off" readonly >
                                 <ul class="dropdown-menu w-100" id="civilStatusDropdown">
-                                    <li><a class="dropdown-item" data-value="single">Single</a></li>
-                                    <li><a class="dropdown-item" data-value="married">Married</a></li>
-                                    <li><a class="dropdown-item" data-value="widowed">Widowed</a></li>
-                                    <li><a class="dropdown-item" data-value="divorced">Divorced</a></li>
+                                    <li><a class="dropdown-item" data-value="Single">Single</a></li>
+                                    <li><a class="dropdown-item" data-value="Married">Married</a></li>
+                                    <li><a class="dropdown-item" data-value="Widowed">Widowed</a></li>
+                                    <li><a class="dropdown-item" data-value="Divorced">Divorced</a></li>
                                 </ul>
                                 <input type="hidden" id="civilStatus" name="civil_status">
                             </div>
                             <div class="col-md-3">
                                 <label for="religion" class="form-label">Religion</label>
-                                <input type="text" class="form-control" id="religion" name="religion" placeholder="Enter religion">
+                                <input type="text" class="form-control" id="religion" name="religion" placeholder="Enter religion" pattern="^[a-zA-Z\s]*$" title="Only alphabets and spaces are allowed.">
                             </div>
                             <div class="col-md-3">
                                 <label for="nationality" class="form-label">Nationality</label>
-                                <input type="text" class="form-control" id="nationality" name="nationality" placeholder="Enter nationality">
+                                <input type="text" class="form-control" id="nationality" name="nationality" placeholder="Enter nationality" required pattern="^[a-zA-Z\s]*$" title="Only alphabets and spaces are allowed.">
                             </div>
-                            <div class="col-md-3 position-relative">
-                                <label for="municipality" class="form-label">Municipality</label>
-                                <input type="text" class="form-control" id="municipalityInput" placeholder="Select municipality" autocomplete="off">
-                                <ul class="dropdown-menu w-100" id="municipalityDropdown">
-                                    <li><a class="dropdown-item" data-value="municipality1">Municipality 1</a></li>
-                                    <li><a class="dropdown-item" data-value="municipality2">Municipality 2</a></li>
-                                    <li><a class="dropdown-item" data-value="municipality3">Municipality 3</a></li>
-                                </ul>
-                                <input type="hidden" id="municipality" name="municipality">
-                            </div>
-                        </div>
-                        <div class="row mb-3">
                             <div class="col-md-3 position-relative">
                                 <label for="educationalBackground" class="form-label">Educational Background</label>
-                                <input type="text" class="form-control" id="educationalBackgroundInput" placeholder="Select Educational Background" autocomplete="off">
+                                <input type="text" class="form-control" id="educationalBackgroundInput" placeholder="Select Educational Background" autocomplete="off" readonly>
                                 <ul class="dropdown-menu w-100" id="educationalBackgroundDropdown">
-                                    <li><a class="dropdown-item" data-value="college">College</a></li>
-                                    <li><a class="dropdown-item" data-value="highschool">High School</a></li>
-                                    <li><a class="dropdown-item" data-value="doctorate">Doctorate</a></li>
+                                    <li><a class="dropdown-item" data-value="College">College</a></li>
+                                    <li><a class="dropdown-item" data-value="Highschool">High School</a></li>
+                                    <li><a class="dropdown-item" data-value="Doctorate">Doctorate</a></li>
                                 </ul>
-                                <input type="hidden" id="civilStatus" name="civil_status">
+                                <input type="hidden" id="educationalBackground" name="educational_background">
                             </div>
                         </div>
 
@@ -111,7 +114,13 @@
                         <div class="row mb-3">
                             <div class="col-md-12">
                                 <label for="addressDetails" class="form-label">House No., Street, Subdivision, Barangay, City, Province</label>
-                                <textarea class="form-control" id="addressDetails" name="address_details" placeholder="Enter complete current address" rows="2" required></textarea>
+                                <textarea class="form-control" id="addressDetails" name="address_details" 
+                                placeholder="Enter complete current address" 
+                                rows="2" 
+                                required 
+                                pattern="^[a-zA-Z0-9\s,.-]+$" 
+                                title="Only alphanumeric characters, spaces, commas, periods, and hyphens are allowed."
+                                oninput="validateAddress(this)"></textarea>
                             </div>
                         </div>
 
@@ -124,16 +133,24 @@
                         </div> 
                         <div class="row mb-3">
                             <div class="col-md-4">
-                                <label for="emailAddress" class="form-label">Email Address</label>
-                                <input type="email" class="form-control" id="emailAddress" name="emmail_address" placeholder="Enter email" required>
+                                <label for="personalEmail" class="form-label">Personal Email Address</label>
+                                <input type="email" class="form-control" id="personalEmail" name="personal_email" 
+                                       placeholder="Enter personal email" 
+                                       required 
+                                       pattern="^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$" 
+                                       title="Enter a valid email address (e.g., example@domain.com)" 
+                                       oninput="validateEmail(this)">
                             </div>
                             <div class="col-md-4">
                                 <label for="mobileNumber" class="form-label">Mobile Number</label>
-                                <input type="text" class="form-control" id="mobileNumber" name="mobile_number" placeholder="Enter mobile number" required>
+                                <div class="input-group">
+                                    <span class="input-group-text">+63</span>
+                                    <input type="text" class="form-control" id="mobileNumber" name="mobile_number" placeholder="Enter mobile number" maxlength="11" required oninput="restrictToNumbers(this)" title="Must be 10 or 11digits.">
+                                </div>
                             </div>
                             <div class="col-md-4">
                                 <label for="landlineNumber" class="form-label">Landline Number</label>
-                                <input type="text" class="form-control" id="landlineNumber" name="landline_number" placeholder="Enter Landline number">
+                                <input type="text" class="form-control" id="landlineNumber" name="landline_number" placeholder="Enter Landline number" maxlength="10" required oninput="restrictToNumbers(this)" title="Must be between 7 and 10 digits.">
                             </div>
                         </div>
 
@@ -147,7 +164,7 @@
                         <div class="row mb-1">
                             <div class="col-md-4">
                                 <label for="careWorkerPhoto" class="form-label">Care Worker Photo</label>
-                                <input type="file" class="form-control" id="careWorkerPhoto" name="care_worker_photo" accept="image/png, image/jpeg" capture="user" required>
+                                <input type="file" class="form-control" id="careWorkerPhoto" name="careworker_photo" accept="image/png, image/jpeg" capture="user" required>
                             </div>
                             <div class="col-md-4">
                                 <label for="governmentID" class="form-label">Government Issued ID</label>
@@ -160,16 +177,16 @@
                         </div>
                         <div class="row mb-1">
                             <div class="col-md-4">
-                                <label for="generalCarePlan" class="form-label">SSS ID</label>
-                                <input type="text" class="form-control" id="generalCarePlan" name="general_care_plan" accept=".jpg,.png">
+                                <label for="sssID" class="form-label">SSS ID</label>
+                                <input type="text" class="form-control" id="sssID" name="sss_ID" placeholder="Enter SSS ID" maxlength="10" required oninput="restrictToNumbers(this)" title="Must be 10 digits.">
                             </div>
                             <div class="col-md-4">
                                 <label for="philhealthID" class="form-label">PhilHealth ID</label>
-                                <input type="text" class="form-control" id="philhealthID" name="philhealth_ID" accept=".jpg,.png" >
+                                <input type="text" class="form-control" id="philhealthID" name="philhealth_ID" placeholder="Enter PhilHealth ID" maxlength="12" required oninput="restrictToNumbers(this)" title="Must be 12 digits.">
                             </div>
                             <div class="col-md-4">
                                 <label for="pagibigID" class="form-label">Pag-Ibig ID</label>
-                                <input type="text" class="form-control" id="pagibigID" name="pagibig_ID" accept=".jpg,.png">
+                                <input type="text" class="form-control" id="pagibigID" name="pagibig_ID" placeholder="Enter Pag-Ibig ID" maxlength="12" required oninput="restrictToNumbers(this)" title="Must be 12 digits.">
                             </div>
                         </div>
 
@@ -181,10 +198,15 @@
                                 <h5 class="text-start">Care Worker Account Registration</h5> <!-- Row Title -->
                             </div>
                         </div>
-                        <div class="row mb-3">
+                        <div class="row mb-1">
                             <div class="col-md-4">
-                                <label for="accountEmail" class="form-label">Email</label>
-                                <input type="email" class="form-control" id="accountEmail" name="account[email]" placeholder="Enter email" required>
+                                <label for="email" class="form-label">Work Email Address</label>
+                                <input type="email" class="form-control" id="email" name="account[email]" 
+                                       placeholder="Enter work email" 
+                                       required 
+                                       pattern="^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$" 
+                                       title="Enter a valid email address (e.g., example@domain.com)" 
+                                       oninput="validateEmail(this)">
                             </div>
                             <div class="col-md-4">
                                 <label for="password" class="form-label">Password</label>
@@ -192,11 +214,20 @@
                             </div>
                             <div class="col-md-4">
                                 <label for="confirmPassword" class="form-label">Confirm Password</label>
-                                <input type="password" class="form-control" id="confirmPassword" name="account[confirm_password]" placeholder="Confirm password" required>
+                                <input type="password" class="form-control" id="confirmPassword" name="account[password_confirmation]" placeholder="Confirm password" required>
                             </div>
                         </div>
-
-                        
+                        <div class="row mb-3">
+                            <div class="col-md-4 position-relative">
+                                <label for="municipality" class="form-label">Municipality</label>
+                                <input type="text" class="form-control" id="municipalityInput" placeholder="Select municipality" autocomplete="off" readonly>
+                                <ul class="dropdown-menu w-100" id="municipalityDropdown">
+                                    <li><a class="dropdown-item" data-value="1">Mondragon</a></li>
+                                    <li><a class="dropdown-item" data-value="2">San Roque</a></li>
+                                </ul>
+                                <input type="hidden" id="municipality" name="municipality">
+                            </div>
+                        </div>                        
                         <div class="row mt-4">
                             <div class="col-12 d-flex justify-content-center align-items-center">
                                 <button type="submit" class="btn btn-success btn-lg d-flex align-items-center">
@@ -234,11 +265,22 @@
         document.querySelector('form').addEventListener('submit', function (e) {
             e.preventDefault(); // Prevent the default form submission
 
+            // e.preventDefault(); // Prevent the default form submission
+
             // Show the success modal
             const successModal = new bootstrap.Modal(document.getElementById('saveSuccessModal'));
             successModal.show();
         });
     </script>
+<!-- <script>
+        document.querySelector('form').addEventListener('submit', function (e) {
+            e.preventDefault(); // Prevent the default form submission
+
+            // Show the success modal
+            const successModal = new bootstrap.Modal(document.getElementById('saveSuccessModal'));
+            successModal.show();
+        });
+    </script> -->
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             // Function to filter dropdown items
@@ -283,9 +325,108 @@
             filterDropdown('civilStatusInput', 'civilStatusDropdown');
             filterDropdown('genderInput', 'genderDropdown');
             filterDropdown('educationalBackgroundInput', 'educationalBackgroundDropdown');
+            // filterDropdown('Organization_RolesInput', 'Organization_RolesDropdown');
             filterDropdown('municipalityInput', 'municipalityDropdown');
         });
-    </script>
 
+        function validateMobileNumber(input) {
+            // Remove any non-numeric characters
+            input.value = input.value.replace(/[^0-9]/g, '');
+
+            // Limit the input to 11 digits
+            if (input.value.length > 11) {
+                input.value = input.value.slice(0, 11);
+            }
+        }
+
+        document.querySelectorAll('.dropdown-item').forEach(item => {
+            item.addEventListener('click', function (e) {
+                e.preventDefault();
+                const input = this.closest('.position-relative').querySelector('input[type="text"]');
+                const hiddenInput = this.closest('.position-relative').querySelector('input[type="hidden"]');
+                input.value = this.textContent;
+                hiddenInput.value = this.getAttribute('data-value');
+            });
+        });
+
+        document.querySelectorAll('input[type="text"]').forEach(input => {
+            input.addEventListener('input', function () {
+                this.value = this.value.replace(/[^a-zA-Z0-9\s]/g, ''); // Remove special characters
+            });
+        });
+
+        document.querySelectorAll('input[type="email"]').forEach(input => {
+            input.addEventListener('input', function () {
+                // Allow only characters that match the regex
+                this.value = this.value.replace(/[^a-zA-Z0-9._%+-@]/g, '');
+            });
+        });
+
+        function restrictToNumbers(input) {
+            input.value = input.value.replace(/[^0-9]/g, '');
+        }
+
+        // Restrict input to numbers only
+        function restrictToNumbers(input) {
+            input.value = input.value.replace(/[^0-9]/g, ''); // Remove non-numeric characters
+        }
+
+        // Validate names to allow only one hyphen per word and not at the end
+        function validateName(input) {
+            input.value = input.value.replace(/[^a-zA-Z-]/g, ''); // Remove invalid characters
+            input.value = input.value.replace(/-{2,}/g, '-'); // Prevent multiple consecutive hyphens
+            input.value = input.value.replace(/^-|-$/g, ''); // Remove hyphen at the start or end
+            const words = input.value.split(' ');
+            input.value = words.map(word => word.replace(/-/g, (match, offset) => offset === word.indexOf('-') ? '-' : '')).join(' ');
+        }
+
+        // Prevent spaces in email fields
+        function preventSpaces(input) {
+            input.value = input.value.replace(/\s/g, ''); // Remove spaces
+        }
+
+        // Validate Current Address to allow only alphanumeric characters, spaces, commas, periods, and hyphens
+        function validateAddress(input) {
+            input.value = input.value.replace(/[^a-zA-Z0-9\s,.-]/g, ''); // Remove invalid characters
+        }
+
+        // Validate Email to allow only characters matching the regex
+        function validateEmail(input) {
+            input.value = input.value.replace(/[^a-zA-Z0-9._%+-@]/g, ''); // Remove invalid characters
+        }
+        // document.addEventListener('DOMContentLoaded', function () {
+        //     const municipalityInput = document.getElementById('municipalityInput');
+        //     const municipalityHiddenInput = document.getElementById('municipality');
+        //     const municipalityDropdown = document.getElementById('municipalityDropdown');
+
+        //     // Add click event listeners to dropdown items
+        //     municipalityDropdown.querySelectorAll('.dropdown-item').forEach(item => {
+        //         item.addEventListener('click', function (e) {
+        //             e.preventDefault();
+        //             municipalityInput.value = this.textContent; // Set the visible input value
+        //             municipalityHiddenInput.value = this.getAttribute('data-value'); // Set the hidden input value
+        //         });
+        //     });
+        // }); FOR MUNICIPALITY DROPDOWN IF DYNAMIC WHEN FIXED
+        document.addEventListener('DOMContentLoaded', function () {
+            const municipalityInput = document.getElementById('municipalityInput');
+            const municipalityHiddenInput = document.getElementById('municipality');
+            const municipalityDropdown = document.getElementById('municipalityDropdown');
+
+            // Add click event listeners to dropdown items
+            municipalityDropdown.querySelectorAll('.dropdown-item').forEach(item => {
+                item.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    municipalityInput.value = this.textContent; // Set the visible input value
+                    municipalityHiddenInput.value = this.getAttribute('data-value'); // Set the hidden input value
+                });
+            });
+        });
+    </script>
+    <?php
+    // if ($request->hasFile('careWorker_photo')) {
+    //     dd($request->file('careWorker_photo')->getClientMimeType());
+    // }
+    ?>
 </body>
 </html>
