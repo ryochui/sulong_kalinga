@@ -190,4 +190,29 @@ class AdminController extends Controller
         // Pass the data to the Blade template
         return view('admin.administratorProfile', compact('administrators'));
     }
+
+    public function viewAdminDetails(Request $request)
+    {
+        $administrator_id = $request->input('administrator_id');
+        $administrator = User::where('role_id', 1)
+        ->find($administrator_id);
+
+        if (!$administrator) {
+            return redirect()->route('administratorProfile')->with('error', 'Administrator not found.');
+        }
+
+        return view('admin.viewAdminDetails', compact('administrator'));
+    }
+
+    public function editAdminProfile(Request $request)
+    {
+        $administrator_id = $request->input('administrator_id');
+        $administrator = User::where('role_id', 1)->where('id', $administrator_id)->first();
+
+        if (!$administrator) {
+            return redirect()->route('administratorProfile')->with('error', 'Administrator not found.');
+        }
+
+        return view('admin.editAdminProfile', compact('administrator'));    
+    }
 }

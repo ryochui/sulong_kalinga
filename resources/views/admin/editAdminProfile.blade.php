@@ -16,10 +16,15 @@
     
     <div class="home-section">
         <div class="container-fluid">
+            <!-- Back Button Logic -->
             <div class="d-flex justify-content-between align-items-center mb-3">
-                <a href="viewAdminDetails" class="btn btn-secondary">
+                <form action="{{ route('viewAdminDetails') }}" method="POST" style="display:inline;">
+                    @csrf
+                    <input type="hidden" name="administrator_id" value="{{ $administrator->id }}">
+                    <button type="submit" class="btn btn-secondary original-back-btn">
                     <i class="bx bx-arrow-back"></i> Back
-                </a>
+                    </button>
+                </form>
                 <div class="mx-auto text-center" style="flex-grow: 1; font-weight: bold; font-size: 20px;">EDIT ADMINISTRATOR PROFILE</div>
             </div>
             @if (session('success'))
@@ -51,7 +56,7 @@
                         <div class="row mb-1">
                             <div class="col-md-3">
                                 <label for="firstName" class="form-label">First Name</label>
-                                <input type="text" class="form-control" id="firstName" name="first_name" placeholder="Enter first name" required oninput="validateName(this)" pattern="^[A-Z][a-zA-Z]*(?:-[a-zA-Z]+)?$" title="First letter must be uppercase, and only alphabets are allowed. Hyphen can only be used once per word and not at the end.">
+                                <input type="text" class="form-control" id="firstName" name="first_name" placeholder="Enter first name" value = "{{ $administrator->first_name }}"required oninput="validateName(this)" pattern="^[A-Z][a-zA-Z]*(?:-[a-zA-Z]+)?$" title="First letter must be uppercase, and only alphabets are allowed. Hyphen can only be used once per word and not at the end.">
                             </div>
                             <div class="col-md-3">
                                 <label for="lastName" class="form-label">Last Name</label>

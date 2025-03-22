@@ -100,12 +100,20 @@
                                         </td>
                                         <td>
                                             <div class="action-icons">
-                                                <a href="viewFamilyDetails" style="color:black;">
-                                                <i class="fa fa-eye"></i>
-                                                </a>
-                                                <a href="editFamilyProfile" style="color:black;">
-                                                <i class='bx bxs-edit'></i>
-                                                </a>
+                                                <form action="{{ route('viewFamilyDetails') }}" method="POST" style="display:inline;">
+                                                    @csrf
+                                                    <input type="hidden" name="family_member_id" value="{{ $family_member->family_member_id }}">
+                                                    <button type="submit" class="btn btn-link text-decoration-none" style="color:black;">
+                                                        <i class="fa fa-eye"></i>
+                                                    </button>
+                                                </form>
+                                                <form action="{{ route('editFamilyProfile') }}" method="POST" style="display:inline;">
+                                                    @csrf
+                                                    <input type="hidden" name="family_member_id" value="{{ $family_member->family_member_id }}">
+                                                    <button type="submit" class="btn btn-link text-decoration-none" style="color:black;">
+                                                        <i class="bx bxs-edit"></i>
+                                                    </button>
+                                                </form>
                                             </div>
                                         </td>
                                     </tr>

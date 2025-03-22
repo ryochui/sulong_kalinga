@@ -57,7 +57,7 @@
                             <div class="col-lg-9 col-md-8 col-sm-12">
                                 <div class="d-flex flex-column flex-md-row align-items-center align-items-md-start">
                                     <!-- Complete Name -->
-                                    <h4 class="me-md-3 mb-2 mb-md-0 mt-2">{{ $beneficiary->first_name }} {{ $beneficiary->middle_initial }} {{ $beneficiary->last_name }}</h4>
+                                    <h4 class="me-md-3 mb-2 mb-md-0 mt-2">{{ $beneficiary->first_name }} {{ $beneficiary->last_name }}</h4>
                                     <!-- Dropdown for Status -->
                                     <div class="form-group mb-0 ms-md-auto">
                                         <select class="form-select d-inline-block w-auto" id="status" name="status">

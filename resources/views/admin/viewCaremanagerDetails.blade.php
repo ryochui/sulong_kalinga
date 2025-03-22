@@ -27,9 +27,14 @@
                     <a href="viewCareworkerProfile" class="btn btn-secondary hidden-back-btn">
                         <i class="bx bx-arrow-back"></i> Back
                     </a>
-                    <a href="editCaremanagerProfile" class="btn btn-primary" onclick="editProfile()">
+                    <!-- Edit Button with Routing -->
+                    <form action="{{ route('editCaremanagerProfile') }}" method="POST" style="display:inline;">
+                        @csrf
+                        <input type="hidden" name="caremanager_id" value="{{ $caremanager->id }}">
+                        <button type="submit" class="btn btn-primary">
                         <i class="bx bxs-edit"></i> Edit
-                    </a>
+                        </button>
+                    </form>
                     <button class="btn btn-danger" onclick="deleteProfile()">
                         <i class="bx bxs-trash"></i> Delete
                     </button>
@@ -50,7 +55,7 @@
                             <div class="col-lg-9 col-md-8 col-sm-12">
                                 <div class="d-flex flex-column flex-md-row align-items-center align-items-md-start">
                                     <!-- Complete Name -->
-                                    <h4 class="me-md-3 mb-2 mb-md-0 mt-2">First Name M.I. Last Name</h4>
+                                    <h4 class="me-md-3 mb-2 mb-md-0 mt-2">{{ $caremanager->first_name }}</h4>
                                     <!-- Dropdown for Status -->
                                     <div class="form-group mb-0 ms-md-auto">
                                         <select class="form-select d-inline-block w-auto" id="status" name="status">

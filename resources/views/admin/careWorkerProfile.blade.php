@@ -106,12 +106,20 @@
                                         </td>
                                         <td>
                                             <div class="action-icons">
-                                                <a href="viewCareworkerDetails" style="color: black;">
-                                                <i class="fa fa-eye"></i>
-                                                </a>
-                                                <a href="editCareworkerProfile" style="color: black;">
-                                                <i class='bx bxs-edit'></i>
-                                                </a>
+                                            <form action="{{ route('viewCareworkerDetails') }}" method="POST" style="display:inline;">
+                                                @csrf
+                                                <input type="hidden" name="careworker_id" value="{{ $careworker->id }}">
+                                                <button type="submit" class="btn btn-link text-decoration-none" style="color:black;">
+                                                    <i class="fa fa-eye"></i>
+                                                </button>
+                                            </form>
+                                            <form action="{{ route('editCareworkerProfile') }}" method="POST" style="display:inline;">
+                                                @csrf
+                                                <input type="hidden" name="careworker_id" value="{{ $careworker->id }}">
+                                                <button type="submit" class="btn btn-link text-decoration-none" style="color:black;">
+                                                    <i class='bx bxs-edit'></i>
+                                                </button>
+                                            </form>
                                             </div>
                                         </td>
                                     </tr>

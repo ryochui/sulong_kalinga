@@ -31,9 +31,14 @@
                     <a href="familyProfile" class="btn btn-secondary hidden-back-btn">
                         <i class="bx bx-arrow-back"></i> Back
                     </a>
-                    <a href="editFamilyProfile" class="btn btn-primary">
+                    <!-- Edit Button with Routing -->
+                    <form action="{{ route('editFamilyProfile') }}" method="POST" style="display:inline;">
+                        @csrf
+                        <input type="hidden" name="family_member_id" value="{{ $family_member->family_member_id }}">
+                        <button type="submit" class="btn btn-primary">
                         <i class="bx bxs-edit"></i> Edit
-                    </a>
+                        </button>
+                    </form>
                     <button class="btn btn-danger">
                         <i class="bx bxs-trash"></i> Delete
                     </button>
@@ -54,7 +59,7 @@
                             <div class="col-lg-8 col-md-8 col-sm-12">
                                 <div class="d-flex flex-column align-items-start">
                                     <!-- Complete Name -->
-                                    <h4 class="mb-2 mt-1">First Name M.I. Last Name</h4>
+                                    <h4 class="mb-2 mt-1">{{ $family_member->first_name }} {{ $family_member->last_name }}</h4>
                                     <!-- Dropdown for Status -->
                                     <div class="form-group">
                                         <select class="form-select" id="status" name="status">
