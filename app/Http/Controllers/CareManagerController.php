@@ -20,7 +20,7 @@ class CareManagerController extends Controller
 
         // Fetch careworkers based on the search query and filters
         $caremanagers = User::where('role_id', 2)
-        ->with('municipality', 'barangay')
+        ->with('municipality')
         ->when($search, function ($query, $search) {
             return $query->where(function ($query) use ($search) {
                 $query->whereRaw('LOWER(first_name) LIKE ?', ['%' . strtolower($search) . '%'])
@@ -32,8 +32,6 @@ class CareManagerController extends Controller
                 return $query->orderBy('volunteer_status');
             } elseif ($filter == 'municipality') {
                 return $query->orderBy('assigned_municipality_id');
-            } elseif ($filter == 'barangay') {
-                return $query->orderBy('barangay_id');
             }
         })
         ->orderBy('first_name') // Order by first name alphabetically by default
@@ -47,7 +45,7 @@ class CareManagerController extends Controller
     {
         $caremanager_id = $request->input('caremanager_id');
         $caremanager = User::where('role_id', 2)
-        ->with('municipality', 'barangay')->find($caremanager_id);
+        ->with('municipality')->find($caremanager_id);
 
         if (!$caremanager) {
             return redirect()->route('careManagerProfile')->with('error', 'Care manager not found.');
