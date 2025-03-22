@@ -32,6 +32,7 @@ Route::post('logout', [LoginController::class, 'logout'])->name('logout'); // no
     Route::post('/admin/addAdministrator', [AdminController::class, 'storeAdministrator'])->name('admin.addAdministrator.store');
     Route::post('/admin/addCareManager', [CareManagerController::class, 'storeCareManager'])->name('admin.addCareManager.store');
     Route::post('/admin/addCareWorker', [CareWorkerController::class, 'storeCareWorker'])->name('admin.addCareWorker.store');
+    Route::post('/admin/addFamily', [FamilyMemberController::class, 'storeFamily'])->name('admin.addFamily.store');
     
     Route::get('/', function () {
         return view('publicWeb.landing');
@@ -69,9 +70,10 @@ Route::post('logout', [LoginController::class, 'logout'])->name('logout'); // no
         return view ('forgot-password');
     })->name('forgotPass');
     
-    Route::get('/admin/reportsManagement', [ReportsController::class, 'index'])->name('admin.reportsManagement');
+    // NO REPORTSCONTROLLER YET, UNCOMMENT WHEN READY
+    // Route::get('reportsManagement', [ReportsController::class, 'index'])->name('admin.reportsManagement');
 
-    Route::get('/admin/addAdministrator', function () {
+    Route::get('addAdministrator', function () {
         return view('admin.addAdministrator');
     })->name('admin.addAdministrator');
 
@@ -79,9 +81,11 @@ Route::post('logout', [LoginController::class, 'logout'])->name('logout'); // no
     //     return view('admin.addCareManager');
     // })->name('admin.addCareManager');
 
-    Route::get('/admin/addCareManager', [CareManagerController::class, 'create'])->name('admin.addCareManager');
+    Route::get('addCareManager', [CareManagerController::class, 'create'])->name('admin.addCareManager');
     
-    Route::get('/admin/addCareWorker', [CareWorkerController::class, 'create'])->name('admin.addCareWorker');
+    Route::get('addCareWorker', [CareWorkerController::class, 'create'])->name('admin.addCareWorker');
+
+    Route::get('addFamily', [FamilyMemberController::class, 'create'])->name('admin.addFamily');
 
     //For beneficiary profiles table
     Route::get('/beneficiaryProfile', [BeneficiaryController::class, 'index'])->name('admin.beneficiaryProfile');

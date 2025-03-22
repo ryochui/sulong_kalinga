@@ -373,11 +373,12 @@
 
         // Validate names to allow only one hyphen per word and not at the end
         function validateName(input) {
-            input.value = input.value.replace(/[^a-zA-Z-]/g, ''); // Remove invalid characters
-            input.value = input.value.replace(/-{2,}/g, '-'); // Prevent multiple consecutive hyphens
-            input.value = input.value.replace(/^-|-$/g, ''); // Remove hyphen at the start or end
-            const words = input.value.split(' ');
-            input.value = words.map(word => word.replace(/-/g, (match, offset) => offset === word.indexOf('-') ? '-' : '')).join(' ');
+            // NOT WORKING AS INTENDED
+            // input.value = input.value.replace(/[^a-zA-Z-]/g, ''); // Remove invalid characters
+            // input.value = input.value.replace(/-{2,}/g, '-'); // Prevent multiple consecutive hyphens
+            // input.value = input.value.replace(/^-|-$/g, ''); // Remove hyphen at the start or end
+            // const words = input.value.split(' ');
+            // input.value = words.map(word => word.replace(/-/g, (match, offset) => offset === word.indexOf('-') ? '-' : '')).join(' ');
         }
 
         // Prevent spaces in email fields
@@ -421,6 +422,19 @@
                     municipalityHiddenInput.value = this.getAttribute('data-value'); // Set the hidden input value
                 });
             });
+        });
+    </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const birthDateInput = document.getElementById('birthDate');
+
+            // Calculate the maximum allowable date (14 years ago from today)
+            const today = new Date();
+            const maxDate = new Date(today.getFullYear() - 14, today.getMonth(), today.getDate());
+            const formattedMaxDate = maxDate.toISOString().split('T')[0]; // Format as YYYY-MM-DD
+
+            // Set the max attribute for the birth_date input
+            birthDateInput.setAttribute('max', formattedMaxDate);
         });
     </script>
     <?php

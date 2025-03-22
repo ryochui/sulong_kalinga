@@ -51,11 +51,21 @@
                         <div class="row mb-1">
                             <div class="col-md-3">
                                 <label for="firstName" class="form-label">First Name</label>
-                                <input type="text" class="form-control" id="firstName" name="first_name" placeholder="Enter first name" required oninput="validateName(this)" pattern="^[A-Z][a-zA-Z]*(?:-[a-zA-Z]+)?$" title="First letter must be uppercase, and only alphabets are allowed. Hyphen can only be used once per word and not at the end.">
+                                <input type="text" class="form-control" id="firstName" name="first_name" 
+                                        placeholder="Enter first name" 
+                                        required 
+                                        oninput="validateName(this)" 
+                                        pattern="^[A-Z][a-zA-Z]*(?:-[a-zA-Z]+)?(?: [a-zA-Z]+(?:-[a-zA-Z]+)*)*$" 
+                                        title="First letter must be uppercase. Only alphabets, single spaces, and hyphens are allowed. Single-letter words are not allowed.">
                             </div>
                             <div class="col-md-3">
                                 <label for="lastName" class="form-label">Last Name</label>
-                                <input type="text" class="form-control" id="lastName" name="last_name" placeholder="Enter last name" required oninput="validateName(this)" pattern="^[A-Z][a-zA-Z]*(?:-[a-zA-Z]+)?$" title="First letter must be uppercase, and only alphabets are allowed. Hyphen can only be used once per word and not at the end.">
+                                <input type="text" class="form-control" id="lastName" name="last_name" 
+                                        placeholder="Enter last name" 
+                                        required 
+                                        oninput="validateName(this)" 
+                                        pattern="^[A-Z][a-zA-Z]*(?:-[a-zA-Z]+)?(?: [a-zA-Z]+(?:-[a-zA-Z]+)*)*$" 
+                                        title="First letter must be uppercase. Only alphabets, single spaces, and hyphens are allowed. Single-letter words are not allowed.">                            
                             </div>
                             <div class="col-md-3">
                                 <label for="birthDate" class="form-label">Birthday</label>
@@ -349,9 +359,11 @@ e.preventDefault(); // Prevent the default form submission
         });
 
         document.querySelectorAll('input[type="text"]').forEach(input => {
-            input.addEventListener('input', function () {
-                this.value = this.value.replace(/[^a-zA-Z0-9\s]/g, ''); // Remove special characters
-            });
+            if (input.id !== 'firstName' && input.id !== 'lastName') {
+                input.addEventListener('input', function () {
+                    this.value = this.value.replace(/[^a-zA-Z0-9\s]/g, ''); // Remove special characters
+                });
+            }
         });
 
         document.querySelectorAll('input[type="email"]').forEach(input => {
@@ -372,11 +384,26 @@ e.preventDefault(); // Prevent the default form submission
 
         // Validate names to allow only one hyphen per word and not at the end
         function validateName(input) {
-            input.value = input.value.replace(/[^a-zA-Z-]/g, ''); // Remove invalid characters
-            input.value = input.value.replace(/-{2,}/g, '-'); // Prevent multiple consecutive hyphens
-            input.value = input.value.replace(/^-|-$/g, ''); // Remove hyphen at the start or end
-            const words = input.value.split(' ');
-            input.value = words.map(word => word.replace(/-/g, (match, offset) => offset === word.indexOf('-') ? '-' : '')).join(' ');
+            // NOT WORKING AS INTENDED
+            
+            // // Remove invalid characters (anything other than letters, spaces, and hyphens)
+            // input.value = input.value.replace(/[^a-zA-Z\s-]/g, '');
+
+            // // Prevent multiple consecutive spaces
+            // input.value = input.value.replace(/\s{2,}/g, ' ');
+
+            // // Prevent multiple consecutive hyphens
+            // input.value = input.value.replace(/-{2,}/g, '-');
+
+            // // Prevent spaces or hyphens at the start or end of the input
+            // input.value = input.value.trim().replace(/^-|-$/g, '');
+
+            // // Prevent single-letter words
+            // const words = input.value.split(' ');
+            // input.value = words
+            //     .filter(word => word.length > 1 || /^[a-zA-Z]+$/.test(word)) // Remove single-letter words
+            //     .map(word => word.replace(/^-|-$/g, '')) // Remove hyphens at the start or end of each word
+            //     .join(' ');
         }
 
         // Prevent spaces in email fields

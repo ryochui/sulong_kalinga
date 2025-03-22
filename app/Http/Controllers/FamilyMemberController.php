@@ -2,10 +2,19 @@
 
 namespace App\Http\Controllers;
 
+// use Illuminate\Http\Request;
+// use App\Models\FamilyMember;
+// use App\Models\Beneficiary;
+// use Illuminate\Support\Facades\Auth;
+
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
+use App\Models\User;
+use App\Models\Municipality;
 use App\Models\FamilyMember;
 use App\Models\Beneficiary;
-use Illuminate\Support\Facades\Auth;
 
 
 class FamilyMemberController extends Controller
@@ -91,4 +100,102 @@ class FamilyMemberController extends Controller
         return view('admin.editFamilyProfile', compact('family_member'));
     }
 
+    
+    // To revise so that dropdown will be dynamic
+    public function create()
+    {
+        // Fetch all beneficiaries from the database
+        $beneficiaries = Beneficiary::select('beneficiary_id', 'first_name', 'last_name')->get();
+
+        // Pass the beneficiaries to the view
+        return view('admin.addFamily', compact('beneficiaries'));
+    }
+
+    public function storeFamily(Request $request)
+    {
+        // Validate the input data
+        $validator = Validator::make($request->all(), [
+            // Personal Details
+            'family_photo' => 'required|image|mimes:jpeg,png|max:2048',
+            'first_name' => [
+                'required',
+                'string',
+                'max:100',
+                'regex:/^[A-Z][a-zA-Z]{1,}(?:-[a-zA-Z]{1,})?(?: [a-zA-Z]{2,}(?:-[a-zA-Z]{1,})?)*$/'
+            ],
+            'last_name' => [
+                'required',
+                'string',
+                'max:100',
+                'regex:/^[A-Z][a-zA-Z]{1,}(?:-[a-zA-Z]{1,})?(?: [a-zA-Z]{2,}(?:-[a-zA-Z]{1,})?)*$/'
+            ],
+            'gender' => 'required|string|in:Male,Female,Other', // Must match dropdown options
+            'birth_date' => 'required|date|before_or_equal:' . now()->subYears(14)->toDateString(), // Must be older than 14 years
+        
+            // Address
+            'address_details' => [
+                'required',
+                'string',
+                'regex:/^[a-zA-Z0-9\s,.-]+$/', // Allows alphanumeric characters, spaces, commas, periods, and hyphens
+            ],
+        
+            // Contact Information
+            'mobile_number' => [
+                'required',
+                'string',
+                'regex:/^[0-9]{10,11}$/', //  10 or 11 digits, +63 preceeding
+                'unique:cose_users,mobile',
+            ],
+            'landline_number' => [
+                'nullable',
+                'string',
+                'regex:/^[0-9]{7,10}$/', // Between 7 and 10 digits
+            ],
+        
+        ]);
+
+        if ($validator->fails()) {
+            return redirect()->back()->withErrors($validator)->withInput();
+        }
+
+        // Handle file uploads
+        $familyPhotoPath = $request->file('family_photo')->store('uploads/family_photos', 'public');
+
+        // Save the administrator to the database
+        $careworker = new User();
+        $careworker->first_name = $request->input('first_name');
+        $careworker->last_name = $request->input('last_name');
+        // $careworker->name = $request->input('name') . ' ' . $request->input('last_name'); // Combine first and last name
+        $careworker->birthday = $request->input('birth_date');
+        $careworker->gender = $request->input('gender');
+        
+        $careworker->address = $request->input('address_details');
+        
+        $careworker->mobile = '+63' . $request->input('mobile_number');
+        $careworker->landline = $request->input('landline_number');
+        // $careworker->password = bcrypt($request->input('account.password'));
+        // $careworker->organization_role_id = $request->input('Organization_Roles');
+        $careworker->role_id = 3; // 3 is the role ID for care workers
+        $careworker->volunteer_status = 'Active'; // Status in COSE
+        $careworker->status = 'Active'; // Status for access to the system
+        $careworker->status_start_date = now();
+        $careworker->assigned_municipality_id = $request->input('municipality');
+
+        // Save file paths and IDs
+        $careworker->photo = $careworkerPhotoPath;
+        $careworker->government_issued_id = $governmentIDPath;
+        $careworker->cv_resume = $resumePath;
+        $careworker->sss_id_number = $request->input('sss_ID');
+        $careworker->philhealth_id_number = $request->input('philhealth_ID');
+        $careworker->pagibig_id_number = $request->input('pagibig_ID');
+
+        // Generate and save the remember_token
+        $careworker->remember_token = Str::random(60);
+
+
+        $careworker->save();
+
+        // Redirect with success message
+        return redirect()->route('addCareWorker')->with('success', 'Care Worker has been successfully added!');
+    }
 }

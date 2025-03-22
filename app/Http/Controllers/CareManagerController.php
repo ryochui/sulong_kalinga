@@ -88,15 +88,15 @@ class CareManagerController extends Controller
                 'required',
                 'string',
                 'max:100',
-                'regex:/^[A-Z][a-zA-Z]*$/', // First character must be uppercase, no digits or symbols
+                'regex:/^[A-Z][a-zA-Z]{1,}(?:-[a-zA-Z]{1,})?(?: [a-zA-Z]{2,}(?:-[a-zA-Z]{1,})?)*$/'
             ],
             'last_name' => [
                 'required',
                 'string',
                 'max:100',
-                'regex:/^[A-Z][a-zA-Z]*$/', // First character must be uppercase, no digits or symbols
+                'regex:/^[A-Z][a-zA-Z]{1,}(?:-[a-zA-Z]{1,})?(?: [a-zA-Z]{2,}(?:-[a-zA-Z]{1,})?)*$/'
             ],
-            'birth_date' => 'required|date|before:today', // Must be a valid date before today
+            'birth_date' => 'required|date|before_or_equal:' . now()->subYears(14)->toDateString(), // Must be older than 14 years
             'gender' => 'required|string|in:Male,Female,Other', // Must match dropdown options
             'civil_status' => 'required|string|in:Single,Married,Widowed,Divorced', // Must match dropdown options
             'religion' => [
@@ -109,7 +109,7 @@ class CareManagerController extends Controller
                 'required',
                 'string',
                 'max:50',
-                'regex:/^[a-zA-Z\s]*$/', // Only alphabets and spaces allowed
+                'regex:/^[A-Z][a-zA-Z]{1,}(?:-[a-zA-Z]{1,})?(?: [a-zA-Z]{2,}(?:-[a-zA-Z]{1,})?)*$/'
             ],
             'educational_background' => 'required|string|in:College,Highschool,Doctorate', // Must match dropdown options
         
@@ -117,7 +117,7 @@ class CareManagerController extends Controller
             'address_details' => [
                 'required',
                 'string',
-                'regex:/^[a-zA-Z0-9\s,.-]+$/', // Allows alphanumeric characters, spaces, commas, periods, and hyphens
+                'regex:/^[A-Z][a-zA-Z]{1,}(?:-[a-zA-Z]{1,})?(?: [a-zA-Z]{2,}(?:-[a-zA-Z]{1,})?)*$/'
             ],
         
             
@@ -227,6 +227,6 @@ class CareManagerController extends Controller
         $caremanager->save();
 
         // Redirect with success message
-        return redirect()->route('addCareManager')->with('success', 'Care Manager has been successfully added!');
+        return redirect()->route('admin.addCareManager')->with('success', 'Care Manager has been successfully added!');
     }
 }

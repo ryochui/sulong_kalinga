@@ -25,7 +25,7 @@
             <div class="row" id="addUserForm">
                 <div class="col-12">
                     <!-- <form action="{{ route('addBeneficiary') }}" method="POST"> -->
-                    <form>
+                    <form action="{{ route('admin.addFamily.store') }}" method="POST" enctype="multipart/form-data">
                         @csrf <!-- Include CSRF token for security -->
                         <!-- Row 1: Personal Details -->
                         <div class="row mb-1 mt-3">
@@ -34,51 +34,57 @@
                             </div>
                         </div>
                         <div class="row mb-1">
-                            <div class="col-md-3">
-                                <label for="familyProfilePic" class="form-label">Profile Picture</label>
-                                <input type="file" class="form-control" id="familyProfilePic" name="familyProfilePic" accept="image/png, image/jpeg">
+                            <div class="col-md-3 relative">
+                                <label for="familyPhoto" class="form-label">Profile Picture</label>
+                                <input type="file" class="form-control" id="familyPhoto" name="family_photo" accept="image/png, image/jpeg" capture="user" required>
                             </div>
-                            <div class="col-md-3">
+                            <div class="col-md-3 relative">
                                 <label for="firstName" class="form-label">First Name</label>
-                                <input type="text" class="form-control" id="firstName" name="first_name" placeholder="Enter first name" required>
+                                <input type="text" class="form-control" id="firstName" name="first_name" placeholder="Enter first name" required oninput="validateName(this)" pattern="^[A-Z][a-zA-Z]*(?:-[a-zA-Z]+)?$" title="First letter must be uppercase, and only alphabets are allowed. Hyphen can only be used once per word and not at the end.">
                             </div>
-                            <div class="col-md-3">
+                            <div class="col-md-3 relative">
                                 <label for="lastName" class="form-label">Last Name</label>
-                                <input type="text" class="form-control" id="lastName" name="last_name" placeholder="Enter last name" required>
+                                <input type="text" class="form-control" id="lastName" name="last_name" placeholder="Enter last name" required oninput="validateName(this)" pattern="^[A-Z][a-zA-Z]*(?:-[a-zA-Z]+)?$" title="First letter must be uppercase, and only alphabets are allowed. Hyphen can only be used once per word and not at the end.">
                             </div>
-                            <div class="col-md-3 position-relative">
+                            <div class="col-md-3 relative">
                                 <label for="gender" class="form-label">Gender</label>
-                                <input type="text" class="form-control" id="genderInput" placeholder="Select Gender" autocomplete="off">
+                                <input type="text" class="form-control" id="genderInput" placeholder="Select gender" autocomplete="off" readonly>
                                 <ul class="dropdown-menu w-100" id="genderDropdown">
-                                    <li><a class="dropdown-item" data-value="male">Male</a></li>
-                                    <li><a class="dropdown-item" data-value="female">Female</a></li>
-                                    <li><a class="dropdown-item" data-value="other">Other</a></li>
+                                    <li><a class="dropdown-item" data-value="Male">Male</a></li>
+                                    <li><a class="dropdown-item" data-value="Female">Female</a></li>
+                                    <li><a class="dropdown-item" data-value="Other">Other</a></li>
                                 </ul>
                                 <input type="hidden" id="gender" name="gender">
                             </div>
                         </div>
-                        <div class="row mb-3">
-                            <div class="col-md-3">
+                        </div>
+                        <div class="row mb-1">
+                            <div class="col-md-3 relative">
                                 <label for="birthDate" class="form-label">Birthday</label>
                                 <input type="date" class="form-control" id="birthDate" name="birth_date" required onkeydown="return true">
                             </div>
-                            <div class="col-md-3">
+                            <div class="col-md-3 relative">
                                 <label for="mobileNumber" class="form-label">Mobile Number</label>
-                                <input type="text" class="form-control" id="mobileNumber" name="mobile_number" placeholder="Enter mobile number" required>
+                                <div class="input-group">
+                                    <span class="input-group-text">+63</span>
+                                    <input type="text" class="form-control" id="mobileNumber" name="mobile_number" placeholder="Enter mobile number" maxlength="11" required oninput="restrictToNumbers(this)" title="Must be 10 or 11digits.">
+                                </div>
                             </div>
-                            <div class="col-md-3">
+                            <div class="col-md-3 relative">
                                 <label for="landlineNumber" class="form-label">Landline Number</label>
-                                <input type="text" class="form-control" id="landlineNumber" name="landline_number" placeholder="Enter landline number">
+                                <input type="text" class="form-control" id="landlineNumber" name="landline_number" placeholder="Enter Landline number" maxlength="10" required oninput="restrictToNumbers(this)" title="Must be between 7 and 10 digits.">
                             </div>
-                            <div class="col-md-3 position-relative">
-                                <label for="relatedBeneficiary" class="form-label">Related Beneficiary</label>
-                                <input type="text" class="form-control" id="relatedBeneficiaryInput" placeholder="Select related beneficiary" autocomplete="off">
-                                <ul class="dropdown-menu w-100" id="relatedBeneficiaryDropdown">
-                                    <li><a class="dropdown-item" data-value="beneficiary1">Beneficiary 1</a></li>
-                                    <li><a class="dropdown-item" data-value="beneficiary2">Beneficiary 2</a></li>
-                                    <li><a class="dropdown-item" data-value="beneficiary3">Beneficiary 3</a></li>
-                                </ul>
-                                <input type="hidden" id="relatedBeneficiary" name="relatedBeneficiary">
+                            <!-- Change to dynamic -->
+                            <div class="col-md-3 relative">
+                            <label for="relatedBeneficiary" class="form-label">Related Beneficiary</label>
+                            <select class="form-select" id="relatedBeneficiary" name="relatedBeneficiary" required>
+                                    <option value="" disabled selected>Select a beneficiary</option>
+                                    @foreach ($beneficiaries as $beneficiary)
+                                        <option value="{{ $beneficiary->beneficiary_id }}">
+                                            {{ $beneficiary->first_name }} {{ $beneficiary->last_name }}
+                                        </option>
+                                    @endforeach
+                                </select>
                             </div>
                         </div>
 
@@ -92,11 +98,15 @@
                         <div class="row mb-3">
                             <div class="col-md-12">
                                 <label for="addressDetails" class="form-label">House No., Street, Subdivision, Barangay, City, Province</label>
-                                <textarea class="form-control" id="addressDetails" name="address_details" placeholder="Enter complete current address" rows="2" required></textarea>
+                                <textarea class="form-control" id="addressDetails" name="address_details" 
+                                placeholder="Enter complete current address" 
+                                rows="2" 
+                                required 
+                                pattern="^[a-zA-Z0-9\s,.-]+$" 
+                                title="Only alphanumeric characters, spaces, commas, periods, and hyphens are allowed."
+                                oninput="validateAddress(this)"></textarea>
                             </div>
-                        </div>                  
-
-                        <hr class="my-4">
+                        </div>
                         <!-- Account Registration -->
                         <div class="row mb-1">
                             <div class="col-12">
@@ -204,7 +214,52 @@
         // Initialize filtering for each dropdown
         filterDropdown('genderInput', 'genderDropdown');
         filterDropdown('relatedBeneficiaryInput', 'relatedBeneficiaryDropdown');
+
+        // Parse the JSON data passed from the controller
+            const beneficiaries = JSON.parse(@json($beneficiaries));
+
+        // Get the dropdown element
+        const relatedBeneficiaryDropdown = document.getElementById('relatedBeneficiary');
+
+        // Populate the dropdown with beneficiaries
+        beneficiaries.forEach(beneficiary => {
+            const option = document.createElement('option');
+            option.value = beneficiary.beneficiary_id; // Set the value to the beneficiary ID
+            option.textContent = `${beneficiary.first_name} ${beneficiary.last_name}`; // Display full name
+            relatedBeneficiaryDropdown.appendChild(option);
+        });
     });
+    
+    </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const birthDateInput = document.getElementById('birthDate');
+
+            // Calculate the maximum allowable date (14 years ago from today)
+            const today = new Date();
+            const maxDate = new Date(today.getFullYear() - 14, today.getMonth(), today.getDate());
+            const formattedMaxDate = maxDate.toISOString().split('T')[0]; // Format as YYYY-MM-DD
+
+            // Set the max attribute for the birth_date input
+            birthDateInput.setAttribute('max', formattedMaxDate);
+        });
+    </script>
+    <script>
+    // document.addEventListener('DOMContentLoaded', function () {
+    //     // Parse the JSON data passed from the controller
+    //     const beneficiaries = {!! $beneficiaries !!};
+
+    //     // Get the dropdown element
+    //     const relatedBeneficiaryDropdown = document.getElementById('relatedBeneficiary');
+
+    //     // Populate the dropdown with beneficiaries
+    //     beneficiaries.forEach(beneficiary => {
+    //         const option = document.createElement('option');
+    //         option.value = beneficiary.beneficiary_id; // Set the value to the beneficiary ID
+    //         option.textContent = `${beneficiary.first_name} ${beneficiary.last_name}`; // Display full name
+    //         relatedBeneficiaryDropdown.appendChild(option);
+    //     });
+    // });
 </script>
 
 </body>

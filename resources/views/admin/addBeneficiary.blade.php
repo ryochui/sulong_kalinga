@@ -734,6 +734,19 @@
             });
         });
     </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const birthDateInput = document.getElementById('birthDate');
+
+            // Calculate the maximum allowable date (14 years ago from today)
+            const today = new Date();
+            const maxDate = new Date(today.getFullYear() - 14, today.getMonth(), today.getDate());
+            const formattedMaxDate = maxDate.toISOString().split('T')[0]; // Format as YYYY-MM-DD
+
+            // Set the max attribute for the birth_date input
+            birthDateInput.setAttribute('max', formattedMaxDate);
+        });
+    </script>
 
 </body>
 </html>
