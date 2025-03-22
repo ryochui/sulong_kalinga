@@ -29,4 +29,39 @@ class GeneralCarePlan extends Model
     protected $casts = [
         'review_date' => 'date',
     ];
+
+    public function mobility()
+    {
+        return $this->hasOne(Mobility::class, 'general_care_plan_id');
+    }
+
+    public function cognitiveFunction()
+    {
+        return $this->hasOne(CognitiveFunction::class, 'general_care_plan_id');
+    }
+
+    public function emotionalWellbeing()
+    {
+        return $this->hasOne(EmotionalWellbeing::class, 'general_care_plan_id');
+    }
+
+    public function careWorkerResponsibility()
+    {
+        return $this->hasMany(CareWorkerResponsibility::class, 'general_care_plan_id');
+    }
+
+    public function healthHistory()
+    {
+        return $this->hasOne(HealthHistory::class, 'general_care_plan_id');
+    }
+
+    public function careNeeds()
+    {
+        return $this->hasMany(CareNeed::class, 'general_care_plan_id');
+    }
+
+    public function medications()
+    {
+        return $this->hasMany(Medication::class, 'general_care_plan_id');
+    }
 }

@@ -18,7 +18,15 @@ class HealthHistory extends Model
      * @var array<string>
      */
     protected $fillable = [
-        'general_care_plan_id', 'history_category_id', 'history_description'
+        'general_care_plan_id', 'medical_conditions', 'medications', 'allergies', 'immunizations'
     ];
+
+    /**
+     * Get the general care plan that owns the health history.
+     */
+    public function generalCarePlan()
+    {
+        return $this->belongsTo(GeneralCarePlan::class, 'general_care_plan_id');
+    }
 
 }

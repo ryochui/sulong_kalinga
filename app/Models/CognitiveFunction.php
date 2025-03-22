@@ -22,5 +22,13 @@ class CognitiveFunction extends Model
         'general_care_plan_id', 'memory', 'thinking_skills', 'orientation', 'behavior'
     ];
 
+    /**
+     * Get the general care plan that owns this.
+     */
+    public function generalCarePlan()
+    {
+        return $this->belongsTo(GeneralCarePlan::class, 'general_care_plan_id');
+    }
+
     
 }

@@ -79,10 +79,6 @@
                         <table class="table table-striped personal-details">                            
                             <tbody>
                                 <tr>
-                                    <td style="width:30%;"><strong>Primary Caregiver:</strong></td>
-                                    <td>{{ $beneficiary->primary_caregiver }}</td>
-                                </tr>
-                                <tr>
                                     <td style="width:30%;"><strong>Gender:</strong></td>
                                     <td>{{ $beneficiary->gender }}</td>
                                 </tr>
@@ -100,7 +96,11 @@
                                 </tr>
                                 <tr>
                                     <td style="width:30%;"><strong>Current Address:</strong></td>
-                                    <td>{{ $beneficiary->current_address }}</td>
+                                    <td><p>{{ $beneficiary->street_address }}</p></td>
+                                </tr>
+                                <tr>
+                                    <td style="width:30%;"><strong>Primary Caregiver:</strong></td>
+                                    <td><p>{{ $beneficiary->primary_caregiver ?? 'N/A' }}</p></td>
                                 </tr>
                             </tbody>
                         </table>
@@ -112,23 +112,23 @@
                             <tbody>
                                 <tr>
                                     <td><strong>Medical Conditions:</strong></td>
-                                    <td><!-- Backend data --></td>
+                                    <td><p>{{ $beneficiary->generalCarePlan->healthHistory->medical_conditions ?? 'N/A' }}</p></td>   
                                 </tr>
                                 <tr>
                                     <td><strong>Medications:</strong></td>
-                                    <td><!-- Backend data --></td>
+                                    <td><p>{{ $beneficiary->generalCarePlan->healthHistory->medications ?? 'N/A' }}</p></td>   
                                 </tr>
                                 <tr>
                                     <td><strong>Allergies:</strong></td>
-                                    <td><!-- Backend data --></td>
+                                    <td><p>{{ $beneficiary->generalCarePlan->healthHistory->allergies ?? 'N/A' }}</p></td>   
                                 </tr>
                                 <tr>
                                     <td><strong>Immunizations:</strong></td>
-                                    <td><!-- Backend data --></td>
+                                    <td><p>{{ $beneficiary->generalCarePlan->healthHistory->immunizations ?? 'N/A' }}</p></td>   
                                 </tr>
                                 <tr>
                                     <td><strong>Category:</strong></td>
-                                    <td><!-- Backend data --></td>
+                                    <td><p>{{ $beneficiary->category->category_name }}</p></td>
                                 </tr>
                             </tbody>
                         </table>
@@ -174,13 +174,14 @@
                                 <th style="width:30%;">Instructions</th>
                             </thead>
                             <tbody>
-                                <!-- LOOP -->
+                                @foreach ($beneficiary->generalCarePlan->medications as $medication)
                                 <tr>
-                                    <td style="width:30%;"><!-- Backend data --></td>
-                                    <td style="width:20%;"><!-- Backend data --></td>
-                                    <td style="width:20%;"><!-- Backend data --></td>
-                                    <td style="width:30%;"><!-- Backend data --></td>                                
+                                    <td style="width:30%;"><p>{{ $medication->medication }}</p></td>
+                                    <td style="width:20%;"><p>{{ $medication->dosage }}</p></td>
+                                    <td style="width:20%;"><p>{{ $medication->frequency }}</p></td>
+                                    <td style="width:30%;"><p>{{ $medication->administration_instructions }}</p></td>                                
                                 </tr>
+                                @endforeach
                             </tbody>
                         </table>
                     </div>
@@ -197,41 +198,103 @@
                                 <th style="width:50%;">Assistance Required</th>
                             </thead>
                             <tbody>
+                                @php $firstRow = true; @endphp
+                                @foreach ($careNeeds1 as $careNeed)
                                 <tr>
-                                    <td style="width:30%;"><strong>Mobility:</strong></td>
-                                    <td style="width:20%;"><!-- Backend data --></td>
-                                    <td style="width:50%;"><!-- Backend data --></td>
+                                    @if ($firstRow)
+                                        <td style="width:30%;"><strong>Mobility</strong></td>
+                                        @php $firstRow = false; @endphp
+                                    @else
+                                        <td style="width:30%;"></td>
+                                    @endif
+                                    <td style="width:20%;"><p>{{ $careNeed->frequency }}</p></td>
+                                    <td style="width:50%;"><p>{{ $careNeed->assistance_required }}</p></td>
                                 </tr>
+                                @endforeach
+
+                                @php $firstRow = true; @endphp
+                                @foreach ($careNeeds2 as $careNeed)
                                 <tr>
-                                    <td style="width:30%;"><strong>Cognitive / Communication:</strong></td>
-                                    <td style="width:20%;"><!-- Backend data --></td>
-                                    <td style="width:50%;"><!-- Backend data --></td>
+                                    @if ($firstRow)
+                                        <td style="width:30%;"><strong>Cognitive / Communication</strong></td>
+                                        @php $firstRow = false; @endphp
+                                    @else
+                                        <td style="width:30%;"></td>
+                                    @endif
+                                    <td style="width:20%;"><p>{{ $careNeed->frequency }}</p></td>
+                                    <td style="width:50%;"><p>{{ $careNeed->assistance_required }}</p></td>
                                 </tr>
+                                @endforeach
+
+                                @php $firstRow = true; @endphp
+                                @foreach ($careNeeds3 as $careNeed)
                                 <tr>
-                                    <td style="width:30%;"><strong>Self-sustainability:</strong></td>
-                                    <td style="width:20%;"><!-- Backend data --></td>
-                                    <td style="width:50%;"><!-- Backend data --></td>
+                                    @if ($firstRow)
+                                        <td style="width:30%;"><strong>Self-sustainability</strong></td>
+                                        @php $firstRow = false; @endphp
+                                    @else
+                                        <td style="width:30%;"></td>
+                                    @endif
+                                    <td style="width:20%;"><p>{{ $careNeed->frequency }}</p></td>
+                                    <td style="width:50%;"><p>{{ $careNeed->assistance_required }}</p></td>
                                 </tr>
+                                @endforeach
+
+                                @php $firstRow = true; @endphp
+                                @foreach ($careNeeds4 as $careNeed)
                                 <tr>
-                                    <td style="width:30%;"><strong>Disease / Therapy Handling:</strong></td>
-                                    <td style="width:20%;"><!-- Backend data --></td>
-                                    <td style="width:50%;"><!-- Backend data --></td>
+                                    @if ($firstRow)
+                                        <td style="width:30%;"><strong>Disease / Therapy Handling</strong></td>
+                                        @php $firstRow = false; @endphp
+                                    @else
+                                        <td style="width:30%;"></td>
+                                    @endif
+                                    <td style="width:20%;"><p>{{ $careNeed->frequency }}</p></td>
+                                    <td style="width:50%;"><p>{{ $careNeed->assistance_required }}</p></td>
                                 </tr>
+                                @endforeach
+
+                                @php $firstRow = true; @endphp
+                                @foreach ($careNeeds5 as $careNeed)
                                 <tr>
-                                    <td style="width:30%;"><strong>Daily Life / Social Contact:</strong></td>
-                                    <td style="width:20%;"><!-- Backend data --></td>
-                                    <td style="width:50%;"><!-- Backend data --></td>
+                                    @if ($firstRow)
+                                        <td style="width:30%;"><strong>Daily Life / Social Contact</strong></td>
+                                        @php $firstRow = false; @endphp
+                                    @else
+                                        <td style="width:30%;"></td>
+                                    @endif
+                                    <td style="width:20%;"><p>{{ $careNeed->frequency }}</p></td>
+                                    <td style="width:50%;"><p>{{ $careNeed->assistance_required }}</p></td>
                                 </tr>
+                                @endforeach
+
+                                @php $firstRow = true; @endphp
+                                @foreach ($careNeeds6 as $careNeed)
                                 <tr>
-                                    <td style="width:30%;"><strong>Outdoor Activities:</strong></td>
-                                    <td style="width:20%;"><!-- Backend data --></td>
-                                    <td style="width:50%;"><!-- Backend data --></td>
+                                    @if ($firstRow)
+                                        <td style="width:30%;"><strong>Outdoor Activities</strong></td>
+                                        @php $firstRow = false; @endphp
+                                    @else
+                                        <td style="width:30%;"></td>
+                                    @endif
+                                    <td style="width:20%;"><p>{{ $careNeed->frequency }}</p></td>
+                                    <td style="width:50%;"><p>{{ $careNeed->assistance_required }}</p></td>
                                 </tr>
+                                @endforeach
+
+                                @php $firstRow = true; @endphp
+                                @foreach ($careNeeds7 as $careNeed)
                                 <tr>
-                                    <td style="width:30%;"><strong>Household Keeping:</strong></td>
-                                    <td style="width:20%;"><!-- Backend data --></td>
-                                    <td style="width:50%;"><!-- Backend data --></td>
-                                </tr>                           
+                                    @if ($firstRow)
+                                        <td style="width:30%;"><strong>Household Keeping</strong></td>
+                                        @php $firstRow = false; @endphp
+                                    @else
+                                        <td style="width:30%;"></td>
+                                    @endif
+                                    <td style="width:20%;"><p>{{ $careNeed->frequency }}</p></td>
+                                    <td style="width:50%;"><p>{{ $careNeed->assistance_required }}</p></td>
+                                </tr>
+                                @endforeach
                             </tbody>
                         </table>
                     </div>
@@ -242,15 +305,15 @@
                             <tbody>
                                 <tr>
                                     <td><strong>Walking Ability:</strong></td>
-                                    <td><!-- Backend data --></td>                                
+                                    <td><p>{{ $beneficiary->generalCarePlan->mobility->walking_ability ?? 'N/A' }}</p></td>                                
                                 </tr>
                                 <tr>
                                     <td><strong>Assistive Devices:</strong></td>
-                                    <td><!-- Backend data --></td>                             
+                                    <td><p>{{ $beneficiary->generalCarePlan->mobility->assistive_devices ?? 'N/A' }}</p></td>                                
                                 </tr>
                                 <tr>
                                     <td><strong>Transportation Needs:</strong></td>
-                                    <td><!-- Backend data --></td>                               
+                                    <td><p>{{ $beneficiary->generalCarePlan->mobility->transportation_needs ?? 'N/A' }}</p></td>                                
                                 </tr>
                             </tbody>
                         </table>
@@ -264,19 +327,19 @@
                             <tbody>
                                 <tr>
                                     <td><strong>Memory:</strong></td>
-                                    <td><!-- Backend data --></td>                               
+                                    <td><p>{{ $beneficiary->generalCarePlan->cognitiveFunction->memory ?? 'N/A' }}</p></td>                                
                                 </tr>
                                 <tr>
                                     <td><strong>Thinking Skills:</strong></td>
-                                    <td><!-- Backend data --></td>                               
+                                    <td><p>{{ $beneficiary->generalCarePlan->cognitiveFunction->thinking_skills ?? 'N/A' }}</p></td>                                
                                 </tr>
                                 <tr>
                                     <td><strong>Orientation:</strong></td>
-                                    <td><!-- Backend data --></td>                             
+                                    <td><p>{{ $beneficiary->generalCarePlan->cognitiveFunction->orientation ?? 'N/A' }}</p></td>                                
                                 </tr>
                                 <tr>
                                     <td><strong>Behavior:</strong></td>
-                                    <td><!-- Backend data --></td>                              
+                                    <td><p>{{ $beneficiary->generalCarePlan->cognitiveFunction->behavior ?? 'N/A' }}</p></td>                                
                                 </tr>
                             </tbody>
                         </table>
@@ -288,15 +351,15 @@
                             <tbody>
                                 <tr>
                                     <td><strong>Mood:</strong></td>
-                                    <td><!-- Backend data --></td>                             
+                                    <td><p>{{ $beneficiary->generalCarePlan->emotionalWellbeing->mood ?? 'N/A' }}</p></td>                                
                                 </tr>
                                 <tr>
                                     <td><strong>Social Interactions:</strong></td>
-                                    <td><!-- Backend data --></td>                               
+                                    <td><p>{{ $beneficiary->generalCarePlan->emotionalWellbeing->social_interactions ?? 'N/A' }}</p></td>                                
                                 </tr>
                                 <tr>
                                     <td><strong>Emotional Support Need:</strong></td>
-                                    <td><!-- Backend data --></td>                               
+                                    <td><p>{{ $beneficiary->generalCarePlan->emotionalWellbeing->emotional_support_needs ?? 'N/A' }}</p></td>                                
                                 </tr>
                             </tbody>
                         </table>
@@ -308,18 +371,17 @@
                         <table class="table table-striped">
                             <tbody>
                                 <tr>
-                                    <td style="width: 20%;"><strong>Name:</strong></td>
-                                    <td style="width: 80%;"><!-- Backend data --></td>                                
+                                    <td><strong>Name:</strong>   {{ $careWorker->first_name ?? 'N/A' }} {{ $careWorker->last_name ?? 'N/A' }}</td>                             
                                 </tr>
                                 <tr> 
-                                    <td style="width: 100%; text-align:center;"><strong>Tasks and Responsibilities</strong></td> 
-                                    <td></td>                            
+                                    <td style="width: 100%; text-align:center;"><strong>Tasks and Responsibilities</strong></td>                           
                                 </tr>
                                 <!-- LOOP -->
+                                @foreach ($beneficiary->generalCarePlan->careWorkerResponsibility as $responsibility)
                                 <tr>
-                                    <td style="width: 100%;"><!-- Backend data --></td> 
-                                    <td></td>                            
+                                    <td style="width:100%;"><p>{{ $responsibility->task_description }}</p></td>
                                 </tr>
+                                @endforeach
                             </tbody>
                         </table>
                     </div>

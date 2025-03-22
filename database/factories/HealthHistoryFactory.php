@@ -18,8 +18,10 @@ class HealthHistoryFactory extends Factory
     {
         return [
             'general_care_plan_id' => 1, // This will be set in the seeder
-            'history_category_id' => 1, // This will be set in the seeder
-            'history_description' => $this->faker->sentence
+            'medical_conditions' => $this->faker->sentence,
+            'medications' => $this->faker->sentence,
+            'allergies' => $this->faker->sentence,
+            'immunizations' => $this->faker->sentence
         ];
     }
 }

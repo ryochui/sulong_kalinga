@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class CareNeeds extends Model
+class CareNeed extends Model
 {
     use HasFactory;
 
@@ -21,6 +21,17 @@ class CareNeeds extends Model
     protected $fillable = [
         'general_care_plan_id', 'care_category_id', 'frequency', 'assistance_required'
     ];
+
+    public function careCategory()
+    {
+        return $this->hasOne(CareCategory::class, 'care_category_id');
+    }
+
+    // Get the care plan associated with the beneficiary.
+    public function generalCarePlan()
+    {
+        return $this->belongsTo(GeneralCarePlan::class, 'general_care_plan_id');
+    }  
 
     
 }

@@ -22,5 +22,13 @@ class EmotionalWellbeing extends Model
         'general_care_plan_id', 'mood', 'social_interactions', 'emotional_support_needs'
     ];
 
+    /**
+     * Get the general care plan that owns this.
+     */
+    public function generalCarePlan()
+    {
+        return $this->belongsTo(GeneralCarePlan::class, 'general_care_plan_id');
+    }
+
     
 }

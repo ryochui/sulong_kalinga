@@ -12,13 +12,14 @@ use App\Models\HealthHistory;
 use App\Models\EmotionalWellbeing;
 use App\Models\CognitiveFunction;
 use App\Models\Mobility;
-use App\Models\CareNeeds;
-use App\Models\Medications;
+use App\Models\CareNeed;
+use App\Models\Medication;
 use App\Models\VitalSigns;
 use App\Models\WeeklyCarePlan;
 use App\Models\WeeklyCarePlanInterventions;
 use App\Models\Intervention;
 use App\Models\CareCategory;
+use App\Models\CareWorkerResponsibility;
 
 
 class DatabaseSeeder extends Seeder
@@ -44,19 +45,12 @@ class DatabaseSeeder extends Seeder
         // Generate dummy data for general_care_plans
         GeneralCarePlan::factory()->count(10)->create();
 
-        // Generate dummy data for health_histories
-        foreach (range(1, 10) as $generalCarePlanId) {
-            foreach (range(1, 4) as $historyCategoryId) {
-                HealthHistory::factory()->create([
-                    'general_care_plan_id' => $generalCarePlanId,
-                    'history_category_id' => $historyCategoryId,
-                ]);
-            }
-        }
-
-        // Generate dummy data for emotional_wellbeing
+        // Generate dummy data for emotional_wellbeing and health_histories
         foreach (range(1, 10) as $generalCarePlanId) {
             EmotionalWellbeing::factory()->create([
+                'general_care_plan_id' => $generalCarePlanId,
+            ]);
+            HealthHistory::factory()->create([
                 'general_care_plan_id' => $generalCarePlanId,
             ]);
         }
@@ -78,7 +72,7 @@ class DatabaseSeeder extends Seeder
         // Generate dummy data for medications
         foreach (range(1, 10) as $generalCarePlanId) {
             foreach (range(1, 3) as $medicationIndex) {
-                Medications::factory()->create([
+                Medication::factory()->create([
                     'general_care_plan_id' => $generalCarePlanId,
                 ]);
             }
@@ -87,10 +81,12 @@ class DatabaseSeeder extends Seeder
         // Generate dummy data for care_needs
         foreach (range(1, 10) as $generalCarePlanId) {
             foreach (range(1, 7) as $careCategoryId) {
-                CareNeeds::factory()->create([
-                    'general_care_plan_id' => $generalCarePlanId,
-                    'care_category_id' => $careCategoryId,
-                ]);
+                foreach (range(1, 2) as $index) {
+                    CareNeed::factory()->create([
+                        'general_care_plan_id' => $generalCarePlanId,
+                        'care_category_id' => $careCategoryId,
+                    ]);
+                }
             }
         }
 
@@ -115,5 +111,19 @@ class DatabaseSeeder extends Seeder
                 ]);
             }
         }
+
+        // Generate dummy data for care_worker_responsibilities
+        foreach (range(1, 10) as $generalCarePlanId) {
+            // Select a random care worker for this general care plan
+            $careWorkerId = User::where('role_id', 3)->inRandomOrder()->first()->id;
+
+            foreach (range(1, 5) as $index) {
+                CareWorkerResponsibility::factory()->create([
+                    'general_care_plan_id' => $generalCarePlanId,
+                    'care_worker_id' => $careWorkerId,
+                ]);
+            }
+        }
+        
     }
 }

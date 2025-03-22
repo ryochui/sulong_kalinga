@@ -20,33 +20,35 @@ class Beneficiary extends Model
         'portal_account_id', 'beneficiary_signature', 'care_worker_signature', 'created_by', 'updated_by'
     ];
 
-    /**
-     * Get the category associated with the beneficiary.
-     */
+    //Get the category associated with the beneficiary.
+
     public function category()
     {
         return $this->belongsTo(BeneficiaryCategory::class, 'category_id', 'category_id');
     }
 
-    /**
-     * Get the status associated with the beneficiary.
-     */
+    // Get the status associated with the beneficiary.
     public function status()
     {
         return $this->belongsTo(BeneficiaryStatus::class, 'beneficiary_status_id', 'beneficiary_status_id');
     }
 
-     /**
-     * Get the municipality associated with the beneficiary.
-     */
+    // Get the municipality associated with the beneficiary.
+     
     public function municipality()
     {
         return $this->belongsTo(Municipality::class, 'municipality_id', 'municipality_id');
     }
 
-    // Define the relationship to the Barangay model
+    // Get the barangay associated with the beneficiary.
     public function barangay()
     {
         return $this->belongsTo(Barangay::class, 'barangay_id');
-    }    
+    }   
+    
+    // Get the care plan associated with the beneficiary.
+    public function generalCarePlan()
+    {
+        return $this->hasOne(GeneralCarePlan::class, 'general_care_plan_id');
+    }  
 }

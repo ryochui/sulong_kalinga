@@ -14,12 +14,13 @@ return new class extends Migration
         Schema::create('health_histories', function (Blueprint $table) {
             $table->increments('health_history_id');
             $table->integer('general_care_plan_id')->after('health_history_id');
-            $table->integer('history_category_id')->after('general_care_plan_id');
-            $table->text('history_description')->after('history_category_id');
-
+            $table->text('medical_conditions')->nullable();
+            $table->text('medications')->nullable();
+            $table->text('allergies')->nullable();
+            $table->text('immunizations')->nullable();
+            
             // Foreign Key Constraints
             $table->foreign('general_care_plan_id')->references('general_care_plan_id')->on('general_care_plans')->onDelete('cascade');
-            $table->foreign('history_category_id')->references('history_category_id')->on('history_categories')->onDelete('no action');
         });
     }
 
