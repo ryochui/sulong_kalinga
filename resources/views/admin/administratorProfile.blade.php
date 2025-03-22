@@ -112,12 +112,20 @@
                                         </td>
                                         <td>
                                             <div class="action-icons">
-                                                <a href="viewAdminDetails" style="color:black;">
-                                                <i class="fa fa-eye"></i>
-                                                </a>
-                                                <a href="editAdminProfile" style="color: black;">
-                                                <i class='bx bxs-edit'></i>
-                                                </a>
+                                            <form action="{{ route('viewAdminDetails') }}" method="POST" style="display:inline;">
+                                                @csrf
+                                                <input type="hidden" name="administrator_id" value="{{ $administrator->id }}">
+                                                <button type="submit" class="btn btn-link text-decoration-none" style="color:black;">
+                                                    <i class="fa fa-eye"></i>
+                                                </button>
+                                            </form>
+                                            <form action="{{ route('editAdminProfile') }}" method="POST" style="display:inline;">
+                                                @csrf
+                                                <input type="hidden" name="administrator_id" value="{{ $administrator->id }}">
+                                                <button type="submit" class="btn btn-link text-decoration-none" style="color:black;">
+                                                    <i class='bx bxs-edit'></i>
+                                                </button>
+                                            </form>
                                             </div>
                                         </td>
                                     </tr>

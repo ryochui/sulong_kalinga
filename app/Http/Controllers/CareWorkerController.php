@@ -43,4 +43,32 @@ class CareWorkerController extends Controller
         // Pass the data to the Blade template
         return view('admin.careWorkerProfile', compact('careworkers'));
     }
+
+    public function viewCareworkerDetails(Request $request)
+    {
+        $careworker_id = $request->input('careworker_id');
+        $careworker = User::where('role_id', 3)
+        ->with('municipality', 'barangay')->find($careworker_id);
+
+        if (!$careworker) {
+            return redirect()->route('careWorkerProfile')->with('error', 'Care worker not found.');
+        }
+
+        return view('admin.viewCareworkerDetails', compact('careworker'));
+    }
+
+    public function editCareworkerProfile(Request $request)
+    {
+        $careworker_id = $request->input('careworker_id');
+        $careworker = User::where('role_id', 3)->where('id', $careworker_id)->first();
+
+        if (!$careworker) {
+            return redirect()->route('careWorkerProfile')->with('error', 'Care worker not found.');
+        }
+
+        // Update care worker details here
+        // ...
+
+        return view('admin.editCareworkerProfile', compact('careworker'));    
+    }
 }

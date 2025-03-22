@@ -43,6 +43,35 @@ class CareManagerController extends Controller
         return view('admin.careManagerProfile', compact('caremanagers'));
     }
 
+    public function viewCaremanagerDetails(Request $request)
+    {
+        $caremanager_id = $request->input('caremanager_id');
+        $caremanager = User::where('role_id', 2)
+        ->with('municipality', 'barangay')->find($caremanager_id);
+
+        if (!$caremanager) {
+            return redirect()->route('careManagerProfile')->with('error', 'Care manager not found.');
+        }
+
+        return view('admin.viewCaremanagerDetails', compact('caremanager'));
+    }
+
+    public function editCaremanagerProfile(Request $request)
+    {
+        $caremanager_id = $request->input('caremanager_id');
+        $caremanager = User::where('role_id', 2)->where('id', $caremanager_id)->first();
+
+        if (!$caremanager) {
+            return redirect()->route('careManagerProfile')->with('error', 'Care manager not found.');
+        }
+
+        // Update care worker details here
+        // ...
+
+        return view('admin.editCaremanagerProfile', compact('caremanager'));    
+    }
+
+    // To revise so that dropdown will be dynamic
     public function create()
     {
         // Fetch all municipalities from the database

@@ -16,10 +16,15 @@
     
     <div class="home-section">
         <div class="container-fluid">
+            <!-- Back Button Logic -->
             <div class="d-flex justify-content-between align-items-center mb-3">
-                <a href="viewCaremanagerDetails" class="btn btn-secondary">
+                <form action="{{ route('viewCaremanagerDetails') }}" method="POST" style="display:inline;">
+                    @csrf
+                    <input type="hidden" name="caremanager_id" value="{{ $caremanager->id }}">
+                    <button type="submit" class="btn btn-secondary original-back-btn">
                     <i class="bx bx-arrow-back"></i> Back
-                </a>
+                    </button>
+                </form>
                 <div class="mx-auto text-center" style="flex-grow: 1; font-weight: bold; font-size: 20px;">EDIT CARE MANAGER PROFILE</div>
             </div>
             <div class="row" id="addUserForm">
@@ -36,7 +41,7 @@
                         <div class="row mb-1">
                             <div class="col-md-3">
                                 <label for="firstName" class="form-label">First Name</label>
-                                <input type="text" class="form-control" id="firstName" name="first_name" placeholder="Enter first name" required>
+                                <input type="text" class="form-control" id="firstName" name="first_name" placeholder="Enter first name" value="{{ $caremanager->first_name }}" required>
                             </div>
                             <div class="col-md-3">
                                 <label for="lastName" class="form-label">Last Name</label>
