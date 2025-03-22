@@ -44,7 +44,6 @@
                                 <option value="" {{ request('filter') ? '' : 'selected' }}>Filter by</option>
                                 <option value="status" {{ request('filter') == 'status' ? 'selected' : '' }}>Status</option>
                                 <option value="municipality" {{ request('filter') == 'municipality' ? 'selected' : '' }}>Municipality</option>
-                                <option value="barangay" {{ request('filter') == 'barangay' ? 'selected' : '' }}>Barangay</option>
                             </select>
                         </div>
                     </form>
@@ -85,7 +84,6 @@
                                     </th>   
                                     <th scope="col">Fullname</th>
                                     <th scope="col">Municipality</th>
-                                    <th scope="col">Barangay</th>
                                     <th scope="col">Mobile Number</th>
                                     <th scope="col">Status</th>
                                     <th scope="col">Actions</th>
@@ -99,7 +97,6 @@
                                         </td>
                                         <td>{{ $caremanager->first_name }} {{ $caremanager->last_name }}</td>
                                         <td>{{ $caremanager->municipality->municipality_name ?? 'N/A' }}</td>
-                                        <td>{{ $caremanager->barangay->barangay_name }}</td>
                                         <td>{{ $caremanager->mobile }}</td>
                                         <td>
                                             <select class="form-select" name="status" id="statusSelect{{ $caremanager->id }}" onchange="openStatusChangeModal(this, 'Care Manager')">
