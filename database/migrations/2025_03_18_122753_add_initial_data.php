@@ -113,16 +113,6 @@ return new class extends Migration
             ['role_name' => 'coordinator', 'area' => 'meal_coordinator']
         ]);
 
-        // Insert data into the history_categories table
-        DB::table('history_categories')->insert([
-            ['history_category_name' => 'Medical Condition'],
-            ['history_category_name' => 'Medication'],
-            ['history_category_name' => 'Allergy'],
-            ['history_category_name' => 'Immunization']
-        ]);
-
-
-
     }
 
     /**

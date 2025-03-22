@@ -4,9 +4,14 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Beneficiary;
+use App\Models\Medication;
+use App\Models\GeneralCarePlan;
+use App\Models\CareNeed;
 use App\Models\BeneficiaryCategory;
 use App\Models\BeneficiaryStatus;
 use App\Models\Municipality;
+use App\Models\CareWorkerResponsibility;
+use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 
 class BeneficiaryController extends Controller
@@ -79,20 +84,47 @@ class BeneficiaryController extends Controller
 
     public function viewProfileDetails(Request $request)
     {
+        // Fetch care needs with care_category_id = 1
+        $categories = BeneficiaryCategory::all();
         $beneficiary_id = $request->input('beneficiary_id');
-        $beneficiary = Beneficiary::with(['category', 'barangay', 'municipality', 'status'])->find($beneficiary_id);
-
+        $beneficiary = Beneficiary::with([
+            'category', 
+            'barangay', 
+            'municipality', 
+            'status',
+            'generalCarePlan.mobility', 
+            'generalCarePlan.cognitiveFunction', 
+            'generalCarePlan.emotionalWellbeing', 
+            'generalCarePlan.mobility',
+            'generalCarePlan.medications',
+            'generalCarePlan.healthHistory',
+            'generalCarePlan.careWorkerResponsibility',
+            ])->find($beneficiary_id);
         if (!$beneficiary) {
             return redirect()->route('beneficiaryProfile')->with('error', 'Beneficiary not found.');
         }
-        return view('admin.viewProfileDetails', compact('beneficiary')); 
+
+        $careNeeds1 = $beneficiary->generalCarePlan->careNeeds->where('care_category_id', 1);
+        $careNeeds2 = $beneficiary->generalCarePlan->careNeeds->where('care_category_id', 2);
+        $careNeeds3 = $beneficiary->generalCarePlan->careNeeds->where('care_category_id', 3);
+        $careNeeds4 = $beneficiary->generalCarePlan->careNeeds->where('care_category_id', 4);
+        $careNeeds5 = $beneficiary->generalCarePlan->careNeeds->where('care_category_id', 5);
+        $careNeeds6 = $beneficiary->generalCarePlan->careNeeds->where('care_category_id', 6);
+        $careNeeds7 = $beneficiary->generalCarePlan->careNeeds->where('care_category_id', 7);
         
+        // Get the first care worker responsibility for each general care plan
+        $careWorkerResponsibility = $beneficiary->generalCarePlan->careWorkerResponsibility->first();
+        $careWorker = $careWorkerResponsibility ? $careWorkerResponsibility->careWorker : null;
+
+        return view('admin.viewProfileDetails', compact('beneficiary', 'careNeeds1', 'careNeeds2', 'careNeeds3', 'careNeeds4', 'careNeeds5', 'careNeeds6', 'careNeeds7', 'careWorker')); 
     }
 
     public function editProfile(Request $request)
     {
         $beneficiary_id = $request->input('beneficiary_id');
         $beneficiary = Beneficiary::with(['category', 'barangay', 'municipality', 'status'])->find($beneficiary_id);
+        $beneficiary = Beneficiary::with(['generalCarePlan.mobility', 'generalCarePlan.cognitiveFunction', 'generalCarePlan.emotionalWellbeing', 'generalCarePlan.medications'])->find($request->beneficiary_id);
+
 
         if (!$beneficiary) {
             return redirect()->route('beneficiaryProfile')->with('error', 'Beneficiary not found.');

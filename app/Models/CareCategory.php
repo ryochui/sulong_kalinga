@@ -11,6 +11,7 @@ class CareCategory extends Model
 
     protected $table = 'care_categories'; // Table name
     protected $primaryKey = 'care_category_id'; // Explicitly set the primary key
+    public $timestamps = false; // Disable timestamps
 
     /**
      * The attributes that are mass assignable.
@@ -20,4 +21,10 @@ class CareCategory extends Model
     protected $fillable = [
         'care_category_name'
     ];
+
+    public function careNeeds()
+    {
+        return $this->belongsTo(CareNeed::class, 'care_category_id');
+    }
+
 }

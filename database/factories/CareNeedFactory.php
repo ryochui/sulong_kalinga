@@ -3,11 +3,11 @@
 namespace Database\Factories;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
-use App\Models\Medications;
+use App\Models\CareNeed;
 
-class MedicationsFactory extends Factory
+class CareNeedFactory extends Factory
 {
-    protected $model = Medications::class;
+    protected $model = CareNeed::class;
 
     /**
      * Define the model's default state.
@@ -18,10 +18,9 @@ class MedicationsFactory extends Factory
     {
         return [
             'general_care_plan_id' => 1, // This will be set in the seeder
-            'medication' => $this->faker->word,
-            'dosage' => $this->faker->word,
+            'care_category_id' => 1, // This will be set in the seeder
             'frequency' => $this->faker->word,
-            'administration_instructions' => $this->faker->sentence
+            'assistance_required' => $this->faker->sentence
         ];
     }
 }
