@@ -71,4 +71,165 @@ class CareManagerController extends Controller
 
         return view('admin.editCaremanagerProfile', compact('caremanager'));    
     }
+
+    // To revise so that dropdown will be dynamic
+    public function create()
+    {
+        // Fetch all municipalities from the database
+        $municipalities = Municipality::all();
+
+        // Pass the municipalities to the view
+        return view('admin.addCareManager', compact('municipalities'));
+    }
+
+    public function storeCareManager(Request $request)
+    {
+        // Validate the input data
+        $validator = Validator::make($request->all(), [
+            // Personal Details
+            'first_name' => [
+                'required',
+                'string',
+                'max:100',
+                'regex:/^[A-Z][a-zA-Z]*$/', // First character must be uppercase, no digits or symbols
+            ],
+            'last_name' => [
+                'required',
+                'string',
+                'max:100',
+                'regex:/^[A-Z][a-zA-Z]*$/', // First character must be uppercase, no digits or symbols
+            ],
+            'birth_date' => 'required|date|before:today', // Must be a valid date before today
+            'gender' => 'required|string|in:Male,Female,Other', // Must match dropdown options
+            'civil_status' => 'required|string|in:Single,Married,Widowed,Divorced', // Must match dropdown options
+            'religion' => [
+                'nullable',
+                'string',
+                'max:50',
+                'regex:/^[a-zA-Z\s]*$/', // Only alphabets and spaces allowed
+            ],
+            'nationality' => [
+                'required',
+                'string',
+                'max:50',
+                'regex:/^[a-zA-Z\s]*$/', // Only alphabets and spaces allowed
+            ],
+            'educational_background' => 'required|string|in:College,Highschool,Doctorate', // Must match dropdown options
+        
+            // Address
+            'address_details' => [
+                'required',
+                'string',
+                'regex:/^[a-zA-Z0-9\s,.-]+$/', // Allows alphanumeric characters, spaces, commas, periods, and hyphens
+            ],
+        
+            
+            // Email fields
+            'account.email' => [
+                'required',
+                'string',
+                'regex:/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/',
+                'unique:cose_users,email',
+            ],
+            'personal_email' => [
+                'required',
+                'string',
+                'regex:/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/',
+                'unique:cose_users,personal_email',
+            ],
+            // Contact Information
+            'mobile_number' => [
+                'required',
+                'string',
+                'regex:/^[0-9]{10,11}$/', //  10 or 11 digits, +63 preceeding
+                'unique:cose_users,mobile',
+            ],
+            'landline_number' => [
+                'nullable',
+                'string',
+                'regex:/^[0-9]{7,10}$/', // Between 7 and 10 digits
+            ],
+        
+            // Account Registration
+            'account.password' => 'required|string|min:8|confirmed',
+        
+            // // Organization Roles
+            // 'Organization_Roles' => 'required|integer|exists:organization_roles,organization_role_id',
+            
+            // Municipality
+            'municipality' => 'required|integer|exists:municipalities,municipality_id',
+        
+            // Documents
+            'caremanager_photo' => 'required|image|mimes:jpeg,png|max:2048',
+            'government_ID' => 'required|image|mimes:jpeg,png|max:2048',
+            'resume' => 'required|mimes:pdf,doc,docx|max:2048',
+        
+            // IDs
+            'sss_ID' => [
+                'required',
+                'string',
+                'regex:/^[0-9]{10}$/', // 10 digits
+            ],
+            'philhealth_ID' => [
+                'required',
+                'string',
+                'regex:/^[0-9]{12}$/', // 12 digits
+            ],
+            'pagibig_ID' => [
+                'required',
+                'string',
+                'regex:/^[0-9]{12}$/', // 12 digits
+            ],
+        ]);
+
+        if ($validator->fails()) {
+            return redirect()->back()->withErrors($validator)->withInput();
+        }
+
+        // Handle file uploads
+        $caremanagerPhotoPath = $request->file('caremanager_photo')->store('uploads/caremanager_photos', 'public');
+        $governmentIDPath = $request->file('government_ID')->store('uploads/caremanager_government_ids', 'public');
+        $resumePath = $request->file('resume')->store('uploads/caremanager_resumes', 'public');
+
+        // Save the administrator to the database
+        $caremanager = new User();
+        $caremanager->first_name = $request->input('first_name');
+        $caremanager->last_name = $request->input('last_name');
+        // $caremanager->name = $request->input('name') . ' ' . $request->input('last_name'); // Combine first and last name
+        $caremanager->birthday = $request->input('birth_date');
+        $caremanager->gender = $request->input('gender');
+        $caremanager->civil_status = $request->input('civil_status');
+        $caremanager->religion = $request->input('religion');
+        $caremanager->nationality = $request->input('nationality');
+        $caremanager->educational_background = $request->input('educational_background');
+        $caremanager->address = $request->input('address_details');
+        $caremanager->email = $request->input('account.email'); // Work email
+        $caremanager->personal_email = $request->input('personal_email'); // Personal email
+        $caremanager->mobile = '+63' . $request->input('mobile_number');
+        $caremanager->landline = $request->input('landline_number');
+        $caremanager->password = bcrypt($request->input('account.password'));
+        // $caremanager->organization_role_id = $request->input('Organization_Roles');
+        $caremanager->role_id = 2; // 2 is the role ID for care managers
+        $caremanager->volunteer_status = 'Active'; // Status in COSE
+        $caremanager->status = 'Active'; // Status for access to the system
+        $caremanager->status_start_date = now();
+        $caremanager->assigned_municipality_id = $request->input('municipality');
+
+        // Save file paths and IDs
+        $caremanager->photo = $caremanagerPhotoPath;
+        $caremanager->government_issued_id = $governmentIDPath;
+        $caremanager->cv_resume = $resumePath;
+        $caremanager->sss_id_number = $request->input('sss_ID');
+        $caremanager->philhealth_id_number = $request->input('philhealth_ID');
+        $caremanager->pagibig_id_number = $request->input('pagibig_ID');
+
+        // Generate and save the remember_token
+        $caremanager->remember_token = Str::random(60);
+
+
+        $caremanager->save();
+
+        // Redirect with success message
+        return redirect()->route('addCareManager')->with('success', 'Care Manager has been successfully added!');
+    }
 }
