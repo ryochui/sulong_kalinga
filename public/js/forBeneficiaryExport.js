@@ -1,15 +1,21 @@
-// Function to handle checkbox selection
 document.addEventListener('DOMContentLoaded', function() {
-    // Select All functionality
+    // Elements
     const selectAllCheckbox = document.getElementById('selectAll');
     const rowCheckboxes = document.querySelectorAll('.rowCheckbox');
+    const exportPdfButton = document.getElementById('exportPdf');
+    const exportExcelButton = document.getElementById('exportExcel');
+    const exportForm = document.getElementById('exportForm');
+    const selectedBeneficiaries = document.getElementById('selectedBeneficiaries');
     
-    selectAllCheckbox.addEventListener('change', function() {
-        const isChecked = this.checked;
-        rowCheckboxes.forEach(checkbox => {
-            checkbox.checked = isChecked;
+    // Select All functionality
+    if (selectAllCheckbox) {
+        selectAllCheckbox.addEventListener('change', function() {
+            const isChecked = this.checked;
+            rowCheckboxes.forEach(checkbox => {
+                checkbox.checked = isChecked;
+            });
         });
-    });
+    }
     
     // Update select all checkbox when individual checkboxes change
     rowCheckboxes.forEach(checkbox => {
@@ -17,25 +23,52 @@ document.addEventListener('DOMContentLoaded', function() {
             const allChecked = [...rowCheckboxes].every(c => c.checked);
             const someChecked = [...rowCheckboxes].some(c => c.checked);
             
-            selectAllCheckbox.checked = allChecked;
-            selectAllCheckbox.indeterminate = someChecked && !allChecked;
+            if (selectAllCheckbox) {
+                selectAllCheckbox.checked = allChecked;
+                selectAllCheckbox.indeterminate = someChecked && !allChecked;
+            }
         });
     });
     
-    // Handle PDF export
-    document.getElementById('exportPdf').addEventListener('click', function(e) {
-        e.preventDefault();
-        
+    // Get selected IDs
+    function getSelectedIds() {
         const selectedIds = [...rowCheckboxes]
             .filter(checkbox => checkbox.checked)
             .map(checkbox => checkbox.value);
             
         if (selectedIds.length === 0) {
             alert('Please select at least one beneficiary to export.');
-            return;
+            return null;
         }
         
-        document.getElementById('selectedBeneficiaries').value = JSON.stringify(selectedIds);
-        document.getElementById('exportForm').submit();
-    });
+        return selectedIds;
+    }
+    
+    // Handle PDF export
+    if (exportPdfButton) {
+        exportPdfButton.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            const selectedIds = getSelectedIds();
+            if (!selectedIds) return;
+            
+            selectedBeneficiaries.value = JSON.stringify(selectedIds);
+            exportForm.action = exportForm.getAttribute('data-pdf-route');
+            exportForm.submit();
+        });
+    }
+    
+    // Handle Excel export
+    if (exportExcelButton) {
+        exportExcelButton.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            const selectedIds = getSelectedIds();
+            if (!selectedIds) return;
+            
+            selectedBeneficiaries.value = JSON.stringify(selectedIds);
+            exportForm.action = exportForm.getAttribute('data-excel-route');
+            exportForm.submit();
+        });
+    }
 });

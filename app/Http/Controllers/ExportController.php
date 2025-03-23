@@ -9,6 +9,13 @@ use App\Models\User;
 use App\Models\GeneralCarePlan;
 use Illuminate\Http\Request;
 
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\BeneficiariesExport;
+use App\Exports\FamilyMembersExport;
+use App\Exports\CareManagersExport;
+use App\Exports\CareworkersExport;
+use App\Exports\AdministratorsExport;
+
 class ExportController extends Controller
 {
     public function exportBeneficiariesToPdf(Request $request)
@@ -197,5 +204,110 @@ class ExportController extends Controller
         
         // Return PDF for download
         return $pdf->download('administrators-profiles-' . now()->format('Y-m-d') . '.pdf');
+    }
+
+    public function exportBeneficiariesToExcel(Request $request)
+    {
+        // Validate the request
+        $request->validate([
+            'selected_beneficiaries' => 'required',
+        ]);
+        
+        // Get the selected beneficiary IDs
+        $beneficiaryIds = json_decode($request->selected_beneficiaries, true);
+        
+        if (empty($beneficiaryIds)) {
+            return redirect()->back()->with('error', 'No beneficiaries selected for export.');
+        }
+        
+        // Generate filename with current date
+        $filename = 'beneficiaries-' . now()->format('Y-m-d') . '.xlsx';
+        
+        // Return the Excel download
+        return Excel::download(new BeneficiariesExport($beneficiaryIds), $filename);
+    }
+
+    public function exportFamilyMembersToExcel(Request $request)
+    {
+        // Validate the request
+        $request->validate([
+            'selected_family_members' => 'required',
+        ]);
+        
+        // Get the selected family member IDs
+        $familyMemberIds = json_decode($request->selected_family_members, true);
+        
+        if (empty($familyMemberIds)) {
+            return redirect()->back()->with('error', 'No family members selected for export.');
+        }
+        
+        // Generate filename with current date
+        $filename = 'family-members-' . now()->format('Y-m-d') . '.xlsx';
+        
+        // Return the Excel download
+        return Excel::download(new FamilyMembersExport($familyMemberIds), $filename);
+    }
+
+    public function exportCareManagersToExcel(Request $request)
+    {
+        // Validate the request
+        $request->validate([
+            'selected_caremanagers' => 'required',
+        ]);
+        
+        // Get the selected care manager IDs
+        $careManagerIds = json_decode($request->selected_caremanagers, true);
+        
+        if (empty($careManagerIds)) {
+            return redirect()->back()->with('error', 'No care managers selected for export.');
+        }
+        
+        // Generate filename with current date
+        $filename = 'care-managers-' . now()->format('Y-m-d') . '.xlsx';
+        
+        // Return the Excel download
+        return Excel::download(new CareManagersExport($careManagerIds), $filename);
+    }
+
+    public function exportCareworkersToExcel(Request $request)
+    {
+        // Validate the request
+        $request->validate([
+            'selected_careworkers' => 'required',
+        ]);
+        
+        // Get the selected careworker IDs
+        $careworkerIds = json_decode($request->selected_careworkers, true);
+        
+        if (empty($careworkerIds)) {
+            return redirect()->back()->with('error', 'No care workers selected for export.');
+        }
+        
+        // Generate filename with current date
+        $filename = 'careworkers-' . now()->format('Y-m-d') . '.xlsx';
+        
+        // Return the Excel download
+        return Excel::download(new CareworkersExport($careworkerIds), $filename);
+    }
+
+    public function exportAdministratorsToExcel(Request $request)
+    {
+        // Validate the request
+        $request->validate([
+            'selected_administrators' => 'required',
+        ]);
+        
+        // Get the selected administrator IDs
+        $administratorIds = json_decode($request->selected_administrators, true);
+        
+        if (empty($administratorIds)) {
+            return redirect()->back()->with('error', 'No administrators selected for export.');
+        }
+        
+        // Generate filename with current date
+        $filename = 'administrators-' . now()->format('Y-m-d') . '.xlsx';
+        
+        // Return the Excel download
+        return Excel::download(new AdministratorsExport($administratorIds), $filename);
     }
 }
