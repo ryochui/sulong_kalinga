@@ -103,7 +103,7 @@ class CareManagerController extends Controller
                 'nullable',
                 'string',
                 'max:50',
-                'regex:/^[a-zA-Z\s]*$/', // Only alphabets and spaces allowed
+                'regex:/^[A-Z][a-zA-Z]{1,}(?:-[a-zA-Z]{1,})?(?: [a-zA-Z]{2,}(?:-[a-zA-Z]{1,})?)*$/'
             ],
             'nationality' => [
                 'required',
@@ -117,7 +117,7 @@ class CareManagerController extends Controller
             'address_details' => [
                 'required',
                 'string',
-                'regex:/^[A-Z][a-zA-Z]{1,}(?:-[a-zA-Z]{1,})?(?: [a-zA-Z]{2,}(?:-[a-zA-Z]{1,})?)*$/'
+                'regex:/^[a-zA-Z0-9\s,.-]+$/', // Allows alphanumeric characters, spaces, commas, periods, and hyphens
             ],
         
             
