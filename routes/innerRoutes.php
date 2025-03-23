@@ -126,3 +126,7 @@ Route::get('/viewAdminDetails', function () {
 Route::get('/editAdminProfile', function () {
     return view('admin.editAdminProfile');
 })->name('editAdminProfile');*/
+
+Route::get('/weeklyCareplanForm', function () {
+    return view('careWorker.weeklyCareplanForm');
+})->name('weeklyCareplanForm');

@@ -38,7 +38,7 @@ input, textarea, button {
     border-radius: 10px;
 }
 
-#addUserForm {
+#weeklyCareplanForm {
     height: 100%;
     padding: 10px;
     border-radius: 10px;
@@ -59,11 +59,31 @@ input, textarea, button {
     padding: 10px;
 }
 
-#addUserForm {
+#weeklyCareplanForm {
     flex: 1;
     overflow-y: auto;
     background-color: white;
     padding: 10px;
+}
+
+ /* Custom checkbox styling */
+ .form-check-input {
+    width: 20px; /* Increase checkbox size */
+    height: 20px; /* Increase checkbox size */
+    background-color: white; /* Default background */
+    border: 2px solid black; /* Black border */
+    cursor: pointer;
+}
+
+/* Change checkbox color when checked */
+.form-check-input:checked {
+    background-color: black; /* Black background when checked */
+    border-color: black; /* Black border when checked */
+}
+
+/* Custom checkmark color (white when checked) */
+.form-check-input:checked::before {
+    color: white; /* White checkmark */
 }
 
 
@@ -153,7 +173,7 @@ input, textarea, select {
 }
 
 @media (max-width: 1024px) {
-    #addUserForm {
+    #weeklyCareplanForm {
         padding: 15px;
     }
 

@@ -57,9 +57,11 @@
 
                 <!-- Add Report Button -->
                 <div class="col-6 col-md-3 col-lg-2 mb-2">
+                    <a href="weeklyCareplanForm">
                     <button class="btn btn-primary w-100" id="addButton">
                         <i class="bx bx-plus"></i> Add Report
                     </button>
+                    </a>
                 </div>
             </div>
                       
