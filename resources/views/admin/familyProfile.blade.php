@@ -52,13 +52,14 @@
                         </button>
                         <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="exportDropdown">
                             <li><a class="dropdown-item" href="#" id="exportPdf">Export as PDF</a></li>
-                            <li><a class="dropdown-item" href="#">Export as Excel</a></li>
-                        </ul>
+                            <li><a class="dropdown-item" href="#" id="exportExcel">Export as Excel</a></li>                        </ul>
                     </div>
                 </div>
 
                 <!-- Hidden form for exporting -->
-                <form id="exportForm" action="{{ route('export.family.pdf') }}" method="POST" style="display: none;">
+                <form id="exportForm" action="{{ route('export.family.pdf') }}" method="POST" style="display: none;"
+                    data-pdf-route="{{ route('export.family.pdf') }}" 
+                    data-excel-route="{{ route('export.family.excel') }}">
                     @csrf
                     <input type="hidden" name="selected_family_members" id="selectedFamilyMembers">
                 </form>

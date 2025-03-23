@@ -116,3 +116,8 @@ Route::post('logout', [LoginController::class, 'logout'])->name('logout'); // no
     Route::post('/export/careworkers-pdf', [ExportController::class, 'exportCareworkersToPdf'])->name('export.careworkers.pdf');
     Route::post('/export/caremanagers-pdf', [ExportController::class, 'exportCaremanagersToPdf'])->name('export.caremanagers.pdf');
     Route::post('/export/administrators-pdf', [ExportController::class, 'exportAdministratorsToPdf'])->name('export.administrators.pdf');
+    Route::post('/export/beneficiaries-excel', [ExportController::class, 'exportBeneficiariesToExcel'])->name('export.beneficiaries.excel');
+    Route::post('/export/family-excel', [ExportController::class, 'exportFamilyMembersToExcel'])->name('export.family.excel');
+    Route::post('/export/caremanagers-excel', [ExportController::class, 'exportCareManagersToExcel'])->name('export.caremanagers.excel');
+    Route::post('/export/careworkers-excel', [ExportController::class, 'exportCareworkersToExcel'])->name('export.careworkers.excel');
+    Route::post('/export/administrators-excel', [ExportController::class, 'exportAdministratorsToExcel'])->name('export.administrators.excel');
