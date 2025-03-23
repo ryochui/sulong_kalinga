@@ -195,6 +195,15 @@ class FamilyMemberController extends Controller
                     'is_primary_caregiver' => 'There is already a primary caregiver for this beneficiary. Please update the existing caregiver or set this family member as not the primary caregiver.'
                 ])->withInput();
             }
+
+            // Check if the beneficiary's primary_caregiver is null or not tied to a family member
+            if (is_null($beneficiary->primary_caregiver) || !FamilyMember::where('related_beneficiary_id', $beneficiary->beneficiary_id)
+                ->where('is_primary_caregiver', true)
+                ->exists()) {
+                // Update the beneficiary's primary_caregiver field
+                $beneficiary->primary_caregiver = $request->input('first_name') . ' ' . $request->input('last_name');
+                $beneficiary->save();
+            }
         }
 
         // Save the administrator to the database
