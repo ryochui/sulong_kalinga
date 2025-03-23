@@ -13,7 +13,7 @@
 
     @include('components.userNavbar')
     @include('components.sidebar')
-    @include('components.modals.statusChange')
+    @include('components.modals.statusChangeCaremanager')
     
     <div class="home-section">
         <div class="text-left">CARE MANAGER PROFILES</div>
@@ -99,9 +99,9 @@
                                         <td>{{ $caremanager->municipality->municipality_name ?? 'N/A' }}</td>
                                         <td>{{ $caremanager->mobile }}</td>
                                         <td>
-                                            <select class="form-select" name="status" id="statusSelect{{ $caremanager->id }}" onchange="openStatusChangeModal(this, 'Care Manager')">
-                                                <option value="active" {{ $caremanager->volunteer_status == 'Active' ? 'selected' : '' }}>Active</option>
-                                                <option value="inactive" {{ $caremanager->volunteer_status == 'Inactive' ? 'selected' : '' }}>Inactive</option>
+                                            <select class="form-select" name="status" id="statusSelect{{ $caremanager->id }}" onchange="openStatusChangeCaremanagerModal(this, 'Care Manager', {{ $caremanager->id }}, '{{ $caremanager->volunteer_status }}')">
+                                                <option value="Active" {{ $caremanager->volunteer_status == 'Active' ? 'selected' : '' }}>Active</option>
+                                                <option value="Inactive" {{ $caremanager->volunteer_status == 'Inactive' ? 'selected' : '' }}>Inactive</option>
                                             </select>
                                         </td>
                                         <td>

@@ -13,6 +13,9 @@
 
     @include('components.userNavbar')
     @include('components.sidebar')
+    @include('components.modals.statusChangeAdmin')
+    @php use App\Helpers\StringHelper;
+    @endphp
     
     <div class="home-section">
         <div class="container-fluid">
@@ -46,7 +49,7 @@
                         <div class="row justify-content-center align-items-center text-center text-md-start">
                             <!-- Profile Picture Column -->
                             <div class="col-lg-3 col-md-4 col-sm-12 mb-3 mb-md-0">
-                                <img src="{{ asset('images/defaultProfile.png') }}" 
+                                <img src="{{ $administrator->photo ? asset('storage/' . $administrator->photo) : asset('images/defaultProfile.png') }}" 
                                     alt="Profile Picture" 
                                     class="img-fluid rounded-circle mx-auto d-block d-md-inline" 
                                     style="width: 150px; height: 150px; border: 1px solid #ced4da;">
@@ -55,16 +58,27 @@
                             <div class="col-lg-9 col-md-8 col-sm-12">
                                 <div class="d-flex flex-column flex-md-row align-items-center align-items-md-start">
                                     <!-- Complete Name -->
-                                    <h4 class="me-md-3 mb-2 mb-md-0 mt-2">{{ $administrator->first_name }}</h4>
+                                    <h4 class="me-md-3 mb-2 mb-md-0 mt-2">{{ $administrator->first_name }} {{ $administrator->last_name }}</h4>
                                     <!-- Dropdown for Status -->
-                                    <div class="form-group mb-0 ms-md-auto">
-                                        <select class="form-select d-inline-block w-auto" id="status" name="status">
-                                            <option value="active">Active Care Manager</option>
-                                            <option value="inactive">Inactive Care Manager</option>
-                                        </select>
+                                    <div class="form-group mb-0 ms-md-auto" {{ isset($administrator->organizationRole) && $administrator->organizationRole->role_name == 'executive_director' ? 'data-bs-toggle="tooltip" data-bs-placement="top" title="Executive Director status cannot be changed."' : '' }}>
+                                        @if(isset($administrator->organizationRole) && $administrator->organizationRole->role_name == 'executive_director')
+                                            <!-- For executive directors, use a static badge instead of a dropdown -->
+                                            <span style="width: 200px"  class="badge bg-primary">Active Executive Director</span>
+                                            <!-- Hidden select just to maintain data consistency if needed -->
+                                            <select class="form-select d-none" name="status" id="statusSelect{{ $administrator->id }}" disabled>
+                                                <option value="Active" selected>Active</option>
+                                            </select>
+                                        @else
+                                            <!-- For non-executive directors, use the normal dropdown -->
+                                            <select class="form-select d-inline-block w-auto" name="status" id="statusSelect{{ $administrator->id }}" 
+                                                    onchange="openStatusChangeAdminModal(this, 'Administrator', {{ $administrator->id }}, '{{ $administrator->volunteer_status ?? 'Active' }}')">
+                                                <option value="Active" {{ ($administrator->volunteer_status ?? 'Active') == 'Active' ? 'selected' : '' }}>Active Administrator</option>
+                                                <option value="Inactive" {{ ($administrator->volunteer_status ?? 'Active') == 'Inactive' ? 'selected' : '' }}>Inactive Administrator</option>
+                                            </select>
+                                        @endif
                                     </div>
                                 </div>
-                                <p class="text-muted mt-2 text-center text-md-start">A (Organization Role) since 00-00-0000</p>
+                                <p class="text-muted mt-2 text-center text-md-start">A {{ StringHelper::formatArea($administrator->organizationRole->area ?? 'N/A')}} since {{ $administrator->status_start_date->format('F j, Y')  }}</p>
                             </div>
                         </div>
                     </div>
@@ -78,43 +92,43 @@
                             <tbody>
                                 <tr>
                                     <td style="width:30%;"><strong>Educational Background:</strong></td>
-                                    <td><!-- Backend data --></td>
+                                    <td>{{$administrator->educational_background}}</td>
                                 </tr>
                                 <tr>
                                     <td style="width:30%;"><strong>Birthday:</strong></td>
-                                    <td><!-- Backend data --></td>
+                                    <td>{{$administrator->birthday->format('F j, Y')}}</td>
                                 </tr>
                                 <tr>
                                     <td style="width:30%;"><strong>Gender:</strong></td>
-                                    <td><!-- Backend data --></td>
+                                    <td>{{$administrator->gender}}</td>
                                 </tr>
                                 <tr>
                                     <td style="width:30%;"><strong>Civil Status:</strong></td>
-                                    <td><!-- Backend data --></td>
+                                    <td>{{$administrator->civil_status}}</td>
                                 </tr>
                                 <tr>
                                     <td style="width:30%;"><strong>Religion:</strong></td>
-                                    <td><!-- Backend data --></td>
+                                    <td>{{$administrator->religion ?? 'Prefer Not To Say'}}</td>
                                 </tr>
                                 <tr>
                                     <td style="width:30%;"><strong>Nationality:</strong></td>
-                                    <td><!-- Backend data --></td>
+                                    <td>{{$administrator->nationality}}</td>
                                 </tr>
                                 <tr>
                                     <td style="width:30%;"><strong>Email Address:</strong></td>
-                                    <td><!-- Backend data --></td>
+                                    <td>{{$administrator->email}}</td>
                                 </tr>
                                 <tr>
                                     <td style="width:30%;"><strong>Mobile Number:</strong></td>
-                                    <td><!-- Backend data --></td>
+                                    <td>{{$administrator->mobile}}</td>
                                 </tr>
                                 <tr>
                                     <td style="width:30%;"><strong>Landline Number:</strong></td>
-                                    <td><!-- Backend data --></td>
+                                    <td>{{$administrator->landline ?? 'N/A'}}</td>
                                 </tr>
                                 <tr>
                                     <td style="width:30%;"><strong>Current Address:</strong></td>
-                                    <td><p>16905 Brooke View, Glendaburgh, Wyoming - 52932, Hungary</p></td>
+                                    <td><p>{{$administrator->address}}</p></td>
                                 </tr>
                             </tbody>
                         </table>
@@ -127,11 +141,23 @@
                                     <tbody>
                                         <tr>
                                             <td style="width: 40%;"><strong>Government Issued ID:</strong></td>
-                                            <td style="width: 60%;"><!-- Backend data --></td>                                
+                                            <td style="width: 60%;">
+                                                @if($administrator->government_issued_id)
+                                                    <a href="{{ asset('storage/' . $administrator->government_issued_id) }}" download>Download</a>
+                                                @else
+                                                    N/A
+                                                @endif
+                                            </td>                                  
                                         </tr>
                                         <tr>
                                             <td style="width: 40%;"><strong>Resume / CV:</strong></td>
-                                            <td style="width: 60%;"><!-- Backend data --></td>                               
+                                            <td style="width: 60%;">
+                                                @if($administrator->cv_resume)
+                                                    <a href="{{ asset('storage/' . $administrator->cv_resume) }}" download>Download</a>
+                                                @else
+                                                    N/A
+                                                @endif
+                                            </td>                               
                                         </tr>
                                     </tbody>
                                 </table>
@@ -144,15 +170,15 @@
                                     <tbody>
                                         <tr>
                                             <td style="width: 40%;"><strong>SSS ID Number:</strong></td>
-                                            <td style="width: 60%;"><!-- Backend data --></td>                                  
+                                            <td style="width: 60%;">{{$administrator->sss_id_number ?? 'N/A'}}</td>                                  
                                         </tr>
                                         <tr>
                                             <td style="width: 40%;"><strong>PhilHealth ID Number:</strong></td>
-                                            <td style="width: 60%;"><!-- Backend data --></td>                                 
+                                            <td style="width: 60%;">{{$administrator->philhealth_id_number ?? 'N/A'}}</td>                                 
                                         </tr>
                                         <tr>
                                             <td style="width: 40%;"><strong>Pag-Ibig ID Number:</strong></td>
-                                            <td style="width: 60%;"><!-- Backend data --></td>                                  
+                                            <td style="width: 60%;">{{$administrator->pagibig_id_number ?? 'N/A'}}</td>                                  
                                         </tr>
                                     </tbody>
                                 </table>

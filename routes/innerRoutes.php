@@ -7,6 +7,7 @@ use App\Http\Controllers\FamilyMemberController;
 use App\Http\Controllers\CareWorkerController;
 use App\Http\Controllers\CareManagerController;
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\UserController;
 
 
 Route::get('/dashboard', function () {

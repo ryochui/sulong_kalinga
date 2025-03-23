@@ -19,7 +19,7 @@ class UserFactory extends Factory
     public function definition(): array
     {
         $role_id = $this->faker->randomElement([1, 2, 3]);
-        $organization_role_id = $role_id == 1 ? $this->faker->randomElement([1, 2, 3]) : null;
+        $organization_role_id = $role_id == 1 ? $this->faker->randomElement([2, 3]) : null;
         $municipalityId = $this->faker->randomElement([1, 2]);
         $barangayId = $municipalityId == 1 ? $this->faker->numberBetween(1, 24) : $this->faker->numberBetween(1, 16);
 

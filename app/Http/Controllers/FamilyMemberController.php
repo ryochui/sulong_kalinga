@@ -78,6 +78,9 @@ class FamilyMemberController extends Controller
             return redirect()->route('familyProfile')->with('error', 'Family member not found.');
         }
 
+        // Add the status property based on the access value
+        $family_member->status = $family_member->access ? 'Approved' : 'Denied';
+
         return view('admin.viewFamilyDetails', compact('family_member'));
     }
 
@@ -85,13 +88,6 @@ class FamilyMemberController extends Controller
     {
         $family_member_id = $request->input('family_member_id');
         $family_member = FamilyMember::find($family_member_id);
-
-        if (!$family_member) {
-            return redirect()->route('familyProfile')->with('error', 'Family member not found.');
-        }
-
-        $family_member_id = $request->input('family_member_id');
-        $family_member = FamilyMember::with('beneficiary')->find($family_member_id);
 
         if (!$family_member) {
             return redirect()->route('familyProfile')->with('error', 'Family member not found.');

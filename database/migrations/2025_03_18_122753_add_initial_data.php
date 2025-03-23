@@ -108,9 +108,45 @@ return new class extends Migration
 
         // Insert data into the organization_roles table
         DB::table('organization_roles')->insert([
-            ['role_name' => 'executive_director', 'area' => null],
+            ['role_name' => 'executive_director', 'area' => 'executive_director'],
             ['role_name' => 'coordinator', 'area' => 'project_coordinator'],
             ['role_name' => 'coordinator', 'area' => 'meal_coordinator']
+        ]);
+
+        // Insert an administrator user with executive director organization role
+        DB::table('cose_users')->insert([
+            'first_name' => 'Emily',
+            'last_name' => 'Beridico',
+            'birthday' => '1990-01-01',
+            'civil_status' => 'Single',
+            'educational_background' => 'Graduate',
+            'mobile' => '+639154952153 ',
+            'landline' => '87096567',
+            'personal_email' => 'emily.beridico@gmail.com',
+            'email' => 'emily.beridico@cose.org.ph',
+            'password' => Hash::make('12312312'),
+            'address' => '123 Admin Street',
+            'barangay_id' => null,
+            'gender' => 'Female',
+            'religion' => 'Christian',
+            'nationality' => 'Filipino',
+            'volunteer_status' => 'Active',
+            'status_start_date' => now(),
+            'status_end_date' => null,
+            'role_id' => 1, // Administrator role
+            'status' => 'Active',
+            'organization_role_id' => 1, // Executive Director organization role
+            'assigned_municipality_id' => null,
+            'photo' => null,
+            'government_issued_id' => null,
+            'sss_id_number' => '1234567890',
+            'philhealth_id_number' => '123456789011',
+            'pagibig_id_number' => '123456789000',
+            'cv_resume' => null,
+            'updated_by' => null,
+            'remember_token' => Str::random(10),
+            'created_at' => now(),
+            'updated_at' => now(),
         ]);
 
     }
@@ -163,5 +199,8 @@ return new class extends Migration
         DB::table('history_categories')->whereIn('history_category_name', [
             'Medical Condition', 'Medication', 'Allergy', 'Immunization'
         ])->delete();
+
+        // Delete data from the cose_users table
+        DB::table('cose_users')->where('organization_role_id', 1)->delete();
     }
 };

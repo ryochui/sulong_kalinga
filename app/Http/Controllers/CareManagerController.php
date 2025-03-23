@@ -229,4 +229,26 @@ class CareManagerController extends Controller
         // Redirect with success message
         return redirect()->route('admin.addCareManager')->with('success', 'Care Manager has been successfully added!');
     }
+
+    public function updateStatus(Request $request, $id)
+    {
+        $caremanager = User::where('role_id', 2)->find($id);
+
+        if (!$caremanager) {
+            return redirect()->route('admin.careManagerProfile')->with('error', 'Care manager not found.');
+        }
+
+        $status = $request->input('status');
+        $caremanager->volunteer_status = $status;
+
+        if ($status == 'Inactive') {
+            $caremanager->status_end_date = now();
+        } else {
+            $caremanager->status_end_date = null;
+        }
+
+        $caremanager->save();
+
+        return response()->json(['success' => true, 'message' => 'Care manager status updated successfully.']);
+    }
 }

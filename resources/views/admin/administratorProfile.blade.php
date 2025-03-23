@@ -13,7 +13,7 @@
 
     @include('components.userNavbar')
     @include('components.sidebar')
-    @include('components.modals.statusChange')
+    @include('components.modals.statusChangeAdmin')
     @php use App\Helpers\StringHelper;
     @endphp
    
@@ -105,10 +105,24 @@
                                         <td>{{ $administrator->mobile}}</td>
                                         <td>{{ $administrator->email}}</td>
                                         <td>
-                                            <select class="form-select" name="status" id="statusSelect{{ $administrator->id }}" onchange="openStatusChangeModal(this, 'Care Manager')">
-                                                <option value="active" {{ $administrator->volunteer_status == 'Active' ? 'selected' : '' }}>Active</option>
-                                                <option value="inactive" {{ $administrator->volunteer_status == 'Inactive' ? 'selected' : '' }}>Inactive</option>
-                                            </select>
+                                            <div class="position-relative" 
+                                                {{ isset($administrator->organizationRole) && $administrator->organizationRole->role_name == 'executive_director' ? 'data-bs-toggle="tooltip" data-bs-placement="top" title="Executive Director status cannot be changed."' : '' }}>
+                                                @if(isset($administrator->organizationRole) && $administrator->organizationRole->role_name == 'executive_director')
+                                                    <!-- For executive directors, use a static badge instead of a dropdown -->
+                                                    <span class="badge bg-primary">Active</span>
+                                                    <!-- Hidden select just to maintain data consistency if needed -->
+                                                    <select class="form-select d-none" name="status" id="statusSelect{{ $administrator->id }}" disabled>
+                                                        <option value="Active" selected>Active</option>
+                                                    </select>
+                                                @else
+                                                    <!-- For non-executive directors, use the normal dropdown -->
+                                                    <select class="form-select" name="status" id="statusSelect{{ $administrator->id }}" 
+                                                        onchange="openStatusChangeAdminModal(this, 'Administrator', {{ $administrator->id }}, '{{ $administrator->volunteer_status }}')">
+                                                        <option value="Active" {{ $administrator->volunteer_status == 'Active' ? 'selected' : '' }}>Active</option>
+                                                        <option value="Inactive" {{ $administrator->volunteer_status == 'Inactive' ? 'selected' : '' }}>Inactive</option>
+                                                    </select>
+                                                @endif
+                                            </div>
                                         </td>
                                         <td>
                                             <div class="action-icons">

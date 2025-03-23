@@ -14,6 +14,8 @@
 
     @include('components.userNavbar')
     @include('components.sidebar')
+    @include('components.modals.statusChangeFamily')
+
     
     <div class="home-section">
         <div class="container-fluid">
@@ -62,9 +64,9 @@
                                     <h4 class="mb-2 mt-1">{{ $family_member->first_name }} {{ $family_member->last_name }}</h4>
                                     <!-- Dropdown for Status -->
                                     <div class="form-group">
-                                        <select class="form-select" id="status" name="status">
-                                            <option value="approved">Access Approved</option>
-                                            <option value="denied">Access Denied</option>
+                                        <select class="form-select text-center" name="status" id="statusSelect{{ $family_member->family_member_id }}" data-id="{{ $family_member->family_member_id }}" onchange="openFamilyStatusChangeModal(this, 'Family')">
+                                            <option value="Approved" {{ $family_member->status == 'Approved' ? 'selected' : '' }} >Access Approved</option>
+                                            <option value="Denied" {{ $family_member->status == 'Denied' ? 'selected' : '' }} >Access Denied</option>
                                         </select>
                                     </div>
                                 </div>
@@ -81,23 +83,23 @@
                             <tbody>
                                 <tr>
                                     <td style="width:30%;"><strong>Gender:</strong></td>
-                                    <td><!-- Backend data --></td>
+                                    <td>{{ $family_member->gender }}</td>
                                 </tr>
                                 <tr>
                                     <td style="width:30%;"><strong>Birthday:</strong></td>
-                                    <td><!-- Backend data --></td>
+                                    <td>{{ \Carbon\Carbon::parse($family_member->birthday)->format('F j, Y') }}</td>
                                 </tr>
                                 <tr>
                                     <td style="width:30%;"><strong>Mobile Number:</strong></td>
-                                    <td><!-- Backend data --></td>
+                                    <td>{{ $family_member->mobile ?? 'N/A'}}</td>
                                 </tr>
                                 <tr>
                                     <td style="width:30%;"><strong>Landline Number:</strong></td>
-                                    <td><!-- Backend data --></td>
+                                    <td>{{ $family_member->landline ?? 'N/A' }}</td>
                                 </tr>
                                 <tr>
                                     <td style="width:30%;"><strong>Current Address:</strong></td>
-                                    <td>16905 Brooke View, Glendaburgh, Wyoming - 52932, Hungary</td>
+                                    <td>{{ $family_member->street_address }}</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -113,7 +115,7 @@
                                 <img src=" {{ asset('images/defaultProfile.png') }}" class="img-fluid" alt="..." style="max-width: 100px; max-height: 100px;">
                             </div>
                             <div class="card-body p-1">
-                                <p class="card-text" style="font-size:14px;">Beneficiary Name</p>
+                                <p class="card-text" style="font-size:14px;">{{ $family_member->beneficiary->first_name }} {{ $family_member->beneficiary->last_name }}</p>
                             </div>
                         </div>                           
                     </div>

@@ -94,8 +94,8 @@
                                         <td>{{ $family_member->beneficiary->first_name }} {{ $family_member->beneficiary->last_name }}</td>
                                         <td>
                                         <select class="form-select text-center" name="status" id="statusSelect{{ $family_member->family_member_id }}" data-id="{{ $family_member->family_member_id }}" onchange="openFamilyStatusChangeModal(this, 'Family')">
-                                            <option value="Approved" {{ $family_member->status == 'Approved' ? 'selected' : '' }}>Approved</option>
-                                            <option value="Denied" {{ $family_member->status == 'Denied' ? 'selected' : '' }}>Denied</option>
+                                            <option value="Approved" {{ $family_member->status == 'Approved' ? 'selected' : '' }} >Approved</option>
+                                            <option value="Denied" {{ $family_member->status == 'Denied' ? 'selected' : '' }} >Denied</option>
                                         </select>
                                         </td>
                                         <td>

@@ -64,4 +64,9 @@ class GeneralCarePlan extends Model
     {
         return $this->hasMany(Medication::class, 'general_care_plan_id');
     }
+
+    public function beneficiary()
+    {
+        return $this->belongsTo(Beneficiary::class, 'beneficiary_id');
+    }
 }

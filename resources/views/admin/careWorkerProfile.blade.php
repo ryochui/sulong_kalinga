@@ -8,11 +8,12 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <link href='https://unpkg.com/boxicons@2.0.7/css/boxicons.min.css' rel='stylesheet'>
     <link rel="stylesheet" href="{{ asset('css/reportsManagement.css') }}">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
 </head>
 <body>
     @include('components.userNavbar')
     @include('components.sidebar')
-    @include('components.modals.statusChange')
+    @include('components.modals.statusChangeCareworker')
     
     <div class="home-section">
         <div class="text-left">CARE WORKER PROFILES</div>
@@ -96,9 +97,9 @@
                                         <td>{{ $careworker->municipality->municipality_name ?? 'N/A' }}</td>
                                         <td>{{ $careworker->mobile }}</td>
                                         <td>
-                                            <select class="form-select" name="status" id="statusSelect{{ $careworker->id }}" onchange="openStatusChangeModal(this, 'Care Worker')">
-                                                <option value="active" {{ $careworker->volunteer_status == 'Active' ? 'selected' : '' }}>Active</option>
-                                                <option value="inactive" {{ $careworker->volunteer_status == 'Inactive' ? 'selected' : '' }}>Inactive</option>
+                                            <select class="form-select" name="status" id="statusSelect{{ $careworker->id }}" onchange="openStatusChangeCareworkerModal(this, 'Care Worker', {{ $careworker->id }}, '{{ $careworker->volunteer_status }}')">
+                                                <option value="Active" {{ $careworker->volunteer_status == 'Active' ? 'selected' : '' }}>Active</option>
+                                                <option value="Inactive" {{ $careworker->volunteer_status == 'Inactive' ? 'selected' : '' }}>Inactive</option>
                                             </select>
                                         </td>
                                         <td>

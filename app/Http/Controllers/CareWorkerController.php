@@ -8,6 +8,8 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use App\Models\User;
 use App\Models\Municipality;
+use App\Models\GeneralCarePlan;
+use App\Models\Beneficiary;
 
 
 class CareWorkerController extends Controller
@@ -55,7 +57,13 @@ class CareWorkerController extends Controller
             return redirect()->route('careWorkerProfile')->with('error', 'Care worker not found.');
         }
 
-        return view('admin.viewCareworkerDetails', compact('careworker'));
+        // Fetch all general care plans associated with this care worker
+        $generalCarePlans = GeneralCarePlan::where('care_worker_id', $careworker_id)->get();
+
+        // Fetch all beneficiaries associated with these general care plans
+        $beneficiaries = Beneficiary::whereIn('general_care_plan_id', $generalCarePlans->pluck('general_care_plan_id'))->get();
+
+        return view('admin.viewCareworkerDetails', compact('careworker', 'beneficiaries'));
     }
 
     public function editCareworkerProfile(Request $request)
@@ -232,5 +240,27 @@ class CareWorkerController extends Controller
 
         // Redirect with success message
         return redirect()->route('admin.addCareWorker')->with('success', 'Care Worker has been successfully added!');
+    }
+
+    public function updateStatus(Request $request, $id)
+    {
+        $careworker = User::where('role_id', 3)->find($id);
+
+        if (!$careworker) {
+            return redirect()->route('admin.careWorkerProfile')->with('error', 'Care worker not found.');
+        }
+
+        $status = $request->input('status');
+        $careworker->volunteer_status = $status;
+
+        if ($status == 'Inactive') {
+            $careworker->status_end_date = now();
+        } else {
+            $careworker->status_end_date = null;
+        }
+
+        $careworker->save();
+
+        return response()->json(['success' => true, 'message' => 'Care worker status updated successfully.']);
     }
 }

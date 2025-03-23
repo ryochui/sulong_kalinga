@@ -195,6 +195,7 @@ class AdminController extends Controller
     {
         $administrator_id = $request->input('administrator_id');
         $administrator = User::where('role_id', 1)
+        ->with('organizationRole')
         ->find($administrator_id);
 
         if (!$administrator) {
@@ -214,5 +215,27 @@ class AdminController extends Controller
         }
 
         return view('admin.editAdminProfile', compact('administrator'));    
+    }
+
+    public function updateStatus(Request $request, $id)
+    {
+        $administrator = User::where('role_id', 1)->find($id);
+
+        if (!$administrator) {
+            return redirect()->route('admin.careManagerProfile')->with('error', 'Administrator not found.');
+        }
+
+        $status = $request->input('status');
+        $administrator->volunteer_status = $status;
+
+        if ($status == 'Inactive') {
+            $administrator->status_end_date = now();
+        } else {
+            $administrator->status_end_date = null;
+        }
+
+        $administrator->save();
+
+        return response()->json(['success' => true, 'message' => 'Administrator status updated successfully.']);
     }
 }

@@ -13,6 +13,7 @@
 
     @include('components.userNavbar')
     @include('components.sidebar')
+    @include('components.modals.statusChangeCaremanager')
     
     <div class="home-section">
         <div class="container-fluid">
@@ -46,7 +47,7 @@
                         <div class="row justify-content-center align-items-center text-center text-md-start">
                             <!-- Profile Picture Column -->
                             <div class="col-lg-3 col-md-4 col-sm-12 mb-3 mb-md-0">
-                                <img src="{{ asset('images/defaultProfile.png') }}" 
+                                <img src="{{ $caremanager->photo ? asset('storage/' . $caremanager->photo) : asset('images/defaultProfile.png') }}" 
                                     alt="Profile Picture" 
                                     class="img-fluid rounded-circle mx-auto d-block d-md-inline" 
                                     style="width: 150px; height: 150px; border: 1px solid #ced4da;">
@@ -55,16 +56,16 @@
                             <div class="col-lg-9 col-md-8 col-sm-12">
                                 <div class="d-flex flex-column flex-md-row align-items-center align-items-md-start">
                                     <!-- Complete Name -->
-                                    <h4 class="me-md-3 mb-2 mb-md-0 mt-2">{{ $caremanager->first_name }}</h4>
+                                    <h4 class="me-md-3 mb-2 mb-md-0 mt-2">{{ $caremanager->first_name }} {{ $caremanager->last_name }}</h4>
                                     <!-- Dropdown for Status -->
                                     <div class="form-group mb-0 ms-md-auto">
-                                        <select class="form-select d-inline-block w-auto" id="status" name="status">
-                                            <option value="active">Active Care Manager</option>
-                                            <option value="inactive">Inactive Care Manager</option>
-                                        </select>
+                                        <select class="form-select" name="status" id="statusSelect{{ $caremanager->id }}" onchange="openStatusChangeCaremanagerModal(this, 'Care Manager', {{ $caremanager->id }}, '{{ $caremanager->volunteer_status }}')">
+                                                <option value="Active" {{ $caremanager->volunteer_status == 'Active' ? 'selected' : '' }}>Active Care Manager</option>
+                                                <option value="Inactive" {{ $caremanager->volunteer_status == 'Inactive' ? 'selected' : '' }}>Inactive Care Manager</option>
+                                            </select>
                                     </div>
                                 </div>
-                                <p class="text-muted mt-2 text-center text-md-start">A Care Manager since 00-00-0000</p>
+                                <p class="text-muted mt-2 text-center text-md-start">A Care Manager since {{ $caremanager->status_start_date->format('F j, Y') }}</p>
                             </div>
                         </div>
                     </div>
@@ -78,47 +79,47 @@
                             <tbody>
                                 <tr>
                                     <td style="width:30%;"><strong>Educational Background:</strong></td>
-                                    <td><!-- Backend data --></td>
+                                    <td>{{$caremanager->educational_background}}</td>
                                 </tr>
                                 <tr>
                                     <td style="width:30%;"><strong>Birthday:</strong></td>
-                                    <td><!-- Backend data --></td>
+                                    <td>{{$caremanager->birthday->format('F j, Y')}}</td>
                                 </tr>
                                 <tr>
                                     <td style="width:30%;"><strong>Gender:</strong></td>
-                                    <td><!-- Backend data --></td>
+                                    <td>{{$caremanager->gender}}</td>
                                 </tr>
                                 <tr>
                                     <td style="width:30%;"><strong>Civil Status:</strong></td>
-                                    <td><!-- Backend data --></td>
+                                    <td>{{$caremanager->civil_status}}</td>
                                 </tr>
                                 <tr>
                                     <td style="width:30%;"><strong>Religion:</strong></td>
-                                    <td><!-- Backend data --></td>
+                                    <td>{{$caremanager->religion ?? 'Prefer Not To Say'}}</td>
                                 </tr>
                                 <tr>
                                     <td style="width:30%;"><strong>Nationality:</strong></td>
-                                    <td><!-- Backend data --></td>
+                                    <td>{{$caremanager->nationality}}</td>
                                 </tr>
                                 <tr>
                                     <td style="width:30%;"><strong>Assigned Municipality:</strong></td>
-                                    <td><!-- Backend data --></td>
+                                    <td>{{$caremanager->municipality->municipality_name}}</td>
                                 </tr>
                                 <tr>
                                     <td style="width:30%;"><strong>Email Address:</strong></td>
-                                    <td><!-- Backend data --></td>
+                                    <td>{{$caremanager->email}}</td>
                                 </tr>
                                 <tr>
                                     <td style="width:30%;"><strong>Mobile Number:</strong></td>
-                                    <td><!-- Backend data --></td>
+                                    <td>{{$caremanager->mobile}}</td>
                                 </tr>
                                 <tr>
                                     <td style="width:30%;"><strong>Landline Number:</strong></td>
-                                    <td><!-- Backend data --></td>
+                                    <td>{{$caremanager->landline ?? 'N/A'}}</td>
                                 </tr>
                                 <tr>
                                     <td style="width:30%;"><strong>Current Address:</strong></td>
-                                    <td><p>16905 Brooke View, Glendaburgh, Wyoming - 52932, Hungary</p></td>
+                                    <td><p>{{$caremanager->address}}</p></td>
                                 </tr>
                             </tbody>
                         </table>
@@ -148,77 +149,22 @@
                                     <tbody>
                                         <tr>
                                             <td style="width: 40%;"><strong>SSS ID Number:</strong></td>
-                                            <td style="width: 60%;"><!-- Backend data --></td>                                
+                                            <td style="width: 60%;">{{$caremanager->sss_id_number ?? 'N/A'}}</td>                                
                                         </tr>
                                         <tr>
                                             <td style="width: 40%;"><strong>PhilHealth ID Number:</strong></td>
-                                            <td style="width: 60%;"><!-- Backend data --></td>                                
+                                            <td style="width: 60%;">{{$caremanager->philhealth_id_number ?? 'N/A'}}</td>                                
                                         </tr>
                                         <tr>
                                             <td style="width: 40%;"><strong>Pag-Ibig ID Number:</strong></td>
-                                            <td style="width: 60%;"><!-- Backend data --></td>                             
+                                            <td style="width: 60%;">{{$caremanager->pagibig_id_number ?? 'N/A'}}</td>                             
                                         </tr>
                                     </tbody>
                                 </table>
                             </div>
                         </div>
                     </div>
-                </div>
-                <div class="row justify-content-center">
-                        <div class="col-lg-12 col-md-12 col-sm-12 d-flex justify-content-center">
-                            <h5 class="text-center">Managed Care Worker</h5>
-                        </div>
-                        <div class="col-lg-12 col-md-12 col-sm-12 d-flex justify-content-center flex-wrap">
-                            <div class="card text-center p-1 m-1" style="max-width: 160px;">
-                                <div class="d-flex justify-content-center align-items-center" style="height: 100px;">
-                                    <img src=" {{ asset('images/defaultProfile.png') }}" class="img-fluid" alt="..." style="max-width: 100px; max-height: 100px;">
-                                </div>
-                                <div class="card-body p-1">
-                                    <p class="card-text" style="font-size:14px;">Care Worker Name</p>
-                                </div>
-                            </div>
-                            <div class="card text-center p-1 m-1" style="max-width: 160px;">
-                                <div class="d-flex justify-content-center align-items-center" style="height: 100px;">
-                                    <img src=" {{ asset('images/defaultProfile.png') }}" class="img-fluid" alt="..." style="max-width: 100px; max-height: 100px;">
-                                </div>
-                                <div class="card-body p-1">
-                                    <p class="card-text" style="font-size:14px;">Care Worker Name</p>
-                                </div>
-                            </div>
-                            <div class="card text-center p-1 m-1" style="max-width: 160px;">
-                                <div class="d-flex justify-content-center align-items-center" style="height: 100px;">
-                                    <img src=" {{ asset('images/defaultProfile.png') }}" class="img-fluid" alt="..." style="max-width: 100px; max-height: 100px;">
-                                </div>
-                                <div class="card-body p-1">
-                                    <p class="card-text" style="font-size:14px;">Care Worker Name</p>
-                                </div>
-                            </div>
-                            <div class="card text-center p-1 m-2" style="max-width: 160px;">
-                                <div class="d-flex justify-content-center align-items-center" style="height: 100px;">
-                                    <img src=" {{ asset('images/defaultProfile.png') }}" class="img-fluid" alt="..." style="max-width: 100px; max-height: 100px;">
-                                </div>
-                                <div class="card-body p-1">
-                                    <p class="card-text" style="font-size:14px;">Care Worker Name</p>
-                                </div>
-                            </div>
-                            <div class="card text-center p-1 m-2" style="max-width: 160px;">
-                                <div class="d-flex justify-content-center align-items-center" style="height: 100px;">
-                                    <img src=" {{ asset('images/defaultProfile.png') }}" class="img-fluid" alt="..." style="max-width: 100px; max-height: 100px;">
-                                </div>
-                                <div class="card-body p-1">
-                                    <p class="card-text" style="font-size:14px;">Care Worker Name</p>
-                                </div>
-                            </div>
-                            <div class="card text-center p-1 m-2" style="max-width: 160px;">
-                                <div class="d-flex justify-content-center align-items-center" style="height: 100px;">
-                                    <img src=" {{ asset('images/defaultProfile.png') }}" class="img-fluid" alt="..." style="max-width: 100px; max-height: 100px;">
-                                </div>
-                                <div class="card-body p-1">
-                                    <p class="card-text" style="font-size:14px;">Care Worker Name</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>                
+                </div>             
             </div>
         </div>
     </div>

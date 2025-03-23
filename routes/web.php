@@ -96,13 +96,15 @@ Route::post('logout', [LoginController::class, 'logout'])->name('logout'); // no
     //For family member profiles table
     Route::get('/familyProfile', [FamilyMemberController::class, 'index'])->name('admin.familyProfile');
     Route::put('/admin/family-members/{id}/status', [FamilyMemberController::class, 'updateStatus']);
-    Route::put('/admin/family-members/{id}/activate', [FamilyMemberController::class, 'activate']);
-
+    
     // For careworker profiles table
     Route::get('/careWorkerProfile', [CareWorkerController::class, 'index'])->name('admin.careWorkerProfile');
-
+    Route::put('/admin/careworkers/{id}/status', [CareWorkerController::class, 'updateStatus']);
+   
     // For caremanager profiles table
     Route::get('/careManagerProfile', [CareManagerController::class, 'index'])->name('admin.careManagerProfile');
+    Route::put('/admin/caremanagers/{id}/status', [CareManagerController::class, 'updateStatus']);
 
     // For admin profiles table
     Route::get('/administratorProfile', [AdminController::class, 'index'])->name('admin.administratorProfile');
+    Route::put('/admin/administrators/{id}/status', [AdminController::class, 'updateStatus']);

@@ -13,6 +13,7 @@
 
     @include('components.userNavbar')
     @include('components.sidebar')
+    @include('components.modals.statusChangeBeneficiary')
     
     <div class="home-section">
         <div class="container-fluid">
@@ -60,13 +61,15 @@
                                     <h4 class="me-md-3 mb-2 mb-md-0 mt-2">{{ $beneficiary->first_name }} {{ $beneficiary->last_name }}</h4>
                                     <!-- Dropdown for Status -->
                                     <div class="form-group mb-0 ms-md-auto">
-                                        <select class="form-select d-inline-block w-auto" id="status" name="status">
-                                            <option value="active" {{ $beneficiary->status->status_name == 'Active' ? 'selected' : '' }}>Active Beneficiary</option>
-                                            <option value="inactive" {{ $beneficiary->status->status_name == 'Inactive' ? 'selected' : '' }}>Inactive</option>
+                                        <select class="form-select d-inline-block w-auto" id="statusSelect{{ $beneficiary->beneficiary_id }}" 
+                                                name="status" 
+                                                onchange="openStatusChangeModal(this, 'Beneficiary', {{ $beneficiary->beneficiary_id }}, '{{ $beneficiary->status->status_name }}')">
+                                            <option value="Active" {{ $beneficiary->status->status_name == 'Active' ? 'selected' : '' }}>Active Beneficiary</option>
+                                            <option value="Inactive" {{ $beneficiary->status->status_name == 'Inactive' ? 'selected' : '' }}>Inactive Beneficiary</option>
                                         </select>
                                     </div>
                                 </div>
-                                <p class="text-muted mt-2 text-center text-md-start">A Beneficiary since 00-00-0000</p>
+                                <p class="text-muted mt-2 text-center text-md-start">A Beneficiary since {{ $beneficiary->created_at->format('F j, Y') }}</p>
                             </div>
                         </div>
                     </div>
@@ -78,6 +81,14 @@
                         <h5 class="text-center">Personal Details</h5>
                         <table class="table table-striped personal-details">                            
                             <tbody>
+                                <tr>
+                                    <td style="width:30%;"><strong>Age:</strong></td>
+                                    <td>{{ \Carbon\Carbon::parse($beneficiary->birthday)->age }} years old</td>
+                                </tr>
+                                <tr>
+                                    <td style="width:30%;"><strong>Birthday:</strong></td>
+                                    <td>{{ \Carbon\Carbon::parse($beneficiary->birthday)->format('F j, Y') }}</td>
+                                </tr>
                                 <tr>
                                     <td style="width:30%;"><strong>Gender:</strong></td>
                                     <td>{{ $beneficiary->gender }}</td>

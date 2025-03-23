@@ -67,4 +67,22 @@ class User extends Authenticatable
     {
         return $this->belongsTo(OrganizationRole::class, 'organization_role_id');
     }
+
+    // Define the relationship with the OrganizationRole model
+    public function beneficiary()
+    {
+        return $this->belongsTo(Beneficiary::class, 'organization_role_id');
+    }
+
+     // Define the relationship with the GeneralCarePlan model
+     public function generalCarePlans()
+     {
+         return $this->hasMany(GeneralCarePlan::class, 'care_worker_id');
+     }
+ 
+     // Define the relationship with the CareWorkerResponsibility model
+     public function careWorkerResponsibilities()
+     {
+         return $this->hasManyThrough(GeneralCarePlan::class, CareWorkerResponsibility::class, 'care_worker_id', 'id', 'id', 'general_care_plan_id');
+     }
 }
