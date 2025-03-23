@@ -55,11 +55,17 @@
                             <i class="bx bx-export"></i> Export
                         </button>
                         <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="exportDropdown">
-                            <li><a class="dropdown-item" href="#">Export as PDF</a></li>
+                            <li><a class="dropdown-item" href="#" id="exportPdf">Export as PDF</a></li>
                             <li><a class="dropdown-item" href="#">Export as Excel</a></li>
                         </ul>
                     </div>
                 </div>
+
+                <!-- Hidden form for exporting -->
+                <form id="exportForm" action="{{ route('export.careworkers.pdf') }}" method="POST" style="display: none;">
+                    @csrf
+                    <input type="hidden" name="selected_careworkers" id="selectedCareworkers">
+                </form>
 
                 <!-- Add Report Button -->
                 <div class="col-6 col-md-3 col-lg-2 mb-2">
@@ -91,7 +97,7 @@
                                 @foreach ($careworkers as $careworker)
                                     <tr>
                                         <td>
-                                            <input type="checkbox" class="rowCheckbox" />
+                                            <input type="checkbox" class="rowCheckbox" value="{{ $careworker->id }}"/>
                                         </td>
                                         <td>{{ $careworker->first_name }} {{ $careworker->last_name }}</td>
                                         <td>{{ $careworker->municipality->municipality_name ?? 'N/A' }}</td>
@@ -133,5 +139,7 @@
     <script src=" {{ asset('js/toggleSideBar.js') }}"></script>
     <script src="{{ asset('js/bootstrap.bundle.min.js') }}"></script>
     <script src="{{ asset('js/forCheckbox.js') }}"></script>
+    <script src="{{ asset('js/forCareworkerExport.js') }}"></script>
+
 </body>
 </html>

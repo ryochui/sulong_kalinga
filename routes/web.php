@@ -12,6 +12,7 @@ use App\Http\Controllers\FamilyMemberController;
 use App\Http\Controllers\CareWorkerController;
 use App\Http\Controllers\CareManagerController;
 use App\Http\Controllers\MunicipalityController;
+use App\Http\Controllers\ExportController;
 
 
 require __DIR__.'/innerRoutes.php';
@@ -108,3 +109,10 @@ Route::post('logout', [LoginController::class, 'logout'])->name('logout'); // no
     // For admin profiles table
     Route::get('/administratorProfile', [AdminController::class, 'index'])->name('admin.administratorProfile');
     Route::put('/admin/administrators/{id}/status', [AdminController::class, 'updateStatus']);
+
+    // For exporting to pdf/excel files
+    Route::post('/export/beneficiaries-pdf', [ExportController::class, 'exportBeneficiariesToPdf'])->name('export.beneficiaries.pdf');
+    Route::post('/export/family-pdf', [ExportController::class, 'exportFamilyToPdf'])->name('export.family.pdf');
+    Route::post('/export/careworkers-pdf', [ExportController::class, 'exportCareworkersToPdf'])->name('export.careworkers.pdf');
+    Route::post('/export/caremanagers-pdf', [ExportController::class, 'exportCaremanagersToPdf'])->name('export.caremanagers.pdf');
+    Route::post('/export/administrators-pdf', [ExportController::class, 'exportAdministratorsToPdf'])->name('export.administrators.pdf');

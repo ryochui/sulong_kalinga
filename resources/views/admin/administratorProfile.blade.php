@@ -59,11 +59,17 @@
                             <i class="bx bx-export"></i> Export
                         </button>
                         <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="exportDropdown">
-                            <li><a class="dropdown-item" href="#">Export as PDF</a></li>
+                            <li><a class="dropdown-item" href="#" id="exportPdf">Export as PDF</a></li>
                             <li><a class="dropdown-item" href="#">Export as Excel</a></li>
                         </ul>
                     </div>
                 </div>
+
+                <!-- Hidden form for exporting -->
+                <form id="exportForm" action="{{ route('export.administrators.pdf') }}" method="POST" style="display: none;">
+                    @csrf
+                    <input type="hidden" name="selected_administrators" id="selectedAdministrators">
+                </form>
 
                 <!-- Add Report Button -->
                 <div class="col-6 col-md-3 col-lg-2 mb-2">
@@ -97,7 +103,7 @@
                                 @foreach ($administrators as $administrator)
                                     <tr>
                                         <td>
-                                            <input type="checkbox" class="rowCheckbox" />
+                                            <input type="checkbox" class="rowCheckbox" value="{{ $administrator->id }}"/>
                                         </td>
                                         <td>{{ $administrator->first_name }} {{ $administrator->last_name }}</td>
                                         <td>{{ ucwords(str_replace('_', ' ', $administrator->organizationRole->role_name ?? 'N/A')) }}</td>
@@ -155,5 +161,7 @@
     <script src=" {{ asset('js/toggleSideBar.js') }}"></script>
     <script src="{{ asset('js/bootstrap.bundle.min.js') }}"></script>
     <script src="{{ asset('js/forCheckbox.js') }}"></script>
+    <script src="{{ asset('js/forAdministratorExport.js') }}"></script>
+
 </body>
 </html>
