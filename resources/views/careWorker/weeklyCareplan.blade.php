@@ -107,11 +107,30 @@
                                         <div class="row mb-3 mt-2">
                                             <div class="col-lg-6 col-md-6 col-sm-12 text-center">
                                                 <label for="assessment" class="form-label"><h5>Assessment</h5></label>
-                                                <textarea class="form-control" id="assessment" rows="3"></textarea>
+                                                <textarea class="form-control" id="assessment" rows="5"></textarea>
                                             </div>
-                                            <div class="col-lg-6 col-md-6 col-sm-12 text-center">
-                                                <label for="vitalSigns" class="form-label"><h5>Vital Signs</h5></label>
-                                                <textarea class="form-control" id="vitalSigns" rows="3"></textarea>
+                                            <div class="col-lg-6 col-md-6 col-sm-12">
+                                                <h5>Vital Signs</h5>
+                                                <div class="row">
+                                                    <div class="col-md-6 col-sm-6">
+                                                        <label for="bloodPressure" class="form-label">Blood Pressure</label>
+                                                        <input type="text" class="form-control" id="bloodPressure" name="bloodPressure" placeholder="Enter Blood pressure" required>
+                                                    </div>
+                                                    <div class="col-md-6 col-sm-6 position-relative">
+                                                        <label for="bodyTemp" class="form-label">Body Temperature</label>
+                                                        <input type="text" class="form-control" id="bodyTemp" placeholder="Enter Body temperature">
+                                                    </div>
+                                                </div>
+                                                <div class="row">
+                                                    <div class="col-md-6 col-sm-6">
+                                                        <label for="pulse" class="form-label">Pulse Rate</label>
+                                                        <input type="text" class="form-control" id="pulse" name="pulse" placeholder="Enter Pulse rate" required>
+                                                    </div>
+                                                    <div class="col-md-6 col-sm-6 position-relative">
+                                                        <label for="respiratory" class="form-label">Respiratory Rate</label>
+                                                        <input type="text" class="form-control" id="respiratory" placeholder="Enter Respiratory rate">
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
                                         <div class="row mt-4">

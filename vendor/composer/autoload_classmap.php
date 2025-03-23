@@ -6,7 +6,11 @@ $vendorDir = dirname(__DIR__);
 $baseDir = dirname($vendorDir);
 
 return array(
+    'App\\Exports\\AdministratorsExport' => $baseDir . '/app/Exports/AdministratorsExport.php',
     'App\\Exports\\BeneficiariesExport' => $baseDir . '/app/Exports/BeneficiariesExport.php',
+    'App\\Exports\\CareManagersExport' => $baseDir . '/app/Exports/CareManagersExport.php',
+    'App\\Exports\\CareworkersExport' => $baseDir . '/app/Exports/CareworkersExport.php',
+    'App\\Exports\\FamilyMembersExport' => $baseDir . '/app/Exports/FamilyMembersExport.php',
     'App\\Helpers\\StringHelper' => $baseDir . '/app/Helpers/StringHelper.php',
     'App\\Http\\Controllers\\AdminController' => $baseDir . '/app/Http/Controllers/AdminController.php',
     'App\\Http\\Controllers\\AuthController' => $baseDir . '/app/Http/Controllers/AuthController.php',
