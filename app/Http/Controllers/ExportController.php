@@ -153,30 +153,41 @@ class ExportController extends Controller
             'selected_careworkers' => 'required',
         ]);
         
-        // Get the selected care worker IDs
+        // Get the selected careworker IDs
         $careworkerIds = json_decode($request->selected_careworkers, true);
         
         if (empty($careworkerIds)) {
             return redirect()->back()->with('error', 'No care workers selected for export.');
         }
         
-        // Fetch the care workers with their relationships
-        $careworkers = User::where('role_id', 3)
-            ->with(['municipality'])
-            ->whereIn('id', $careworkerIds)
-            ->get();
+        // Fetch the careworkers with their relationships
+        $careworkers = User::with([
+            'municipality',
+            'barangay'
+        ])->whereIn('id', $careworkerIds)
+        ->where('role_id', '3') // Only care workers
+        ->get();
         
-        // For each care worker, get their assigned beneficiaries
+        // Process each careworker
+        $allData = [];
         foreach ($careworkers as $careworker) {
-            // Fetch all general care plans associated with this care worker
-            $generalCarePlans = GeneralCarePlan::where('care_worker_id', $careworker->id)->get();
+            // Get assigned beneficiaries for this careworker
+            $assignedBeneficiaries = Beneficiary::whereHas('generalCarePlan.careWorkerResponsibility', function($query) use ($careworker) {
+                $query->where('care_worker_id', $careworker->id);
+            })->get();
             
-            // Fetch all beneficiaries associated with these general care plans
-            $careworker->assignedBeneficiaries = Beneficiary::whereIn('general_care_plan_id', $generalCarePlans->pluck('general_care_plan_id'))->get();
+            // Create data structure for this careworker
+            $data = [
+                'careworker' => $careworker,
+                'assignedBeneficiaries' => $assignedBeneficiaries
+            ];
+            
+            $allData[] = $data;
         }
         
         // Generate PDF
-        $pdf = Pdf::loadView('exports.careworkers-pdf', [
+        $pdf = PDF::loadView('exports.careworkers-pdf', [
+            'allData' => $allData,
             'careworkers' => $careworkers,
             'exportDate' => now()->format('F j, Y')
         ]);
