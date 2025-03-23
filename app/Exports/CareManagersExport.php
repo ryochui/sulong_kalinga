@@ -37,11 +37,20 @@ class CareManagersExport implements FromCollection, WithHeadings, WithMapping, S
     {
         return [
             'Full Name',
+            'Status',
+            'Assigned Municipality',
+            'Age',
+            'Birthday',
+            'Gender',
             'Email',
             'Mobile',
-            'Municipality',
+            'Landline',
             'Address',
-            'Status'
+            'Nationality',
+            'Civil Status',
+            'SSS Number',
+            'PhilHealth Number',
+            'Pag-Ibig Number',
         ];
     }
 
@@ -49,17 +58,25 @@ class CareManagersExport implements FromCollection, WithHeadings, WithMapping, S
     {
         return [
             $careManager->first_name . ' ' . $careManager->last_name,
+            $careManager->volunteer_status ?? 'N/A',
+            $careManager->municipality->municipality_name ?? 'N/A',
+            \Carbon\Carbon::parse($careManager->birthday)->age . ' years old',
+            \Carbon\Carbon::parse($careManager->birthday)->format('F j, Y') ?? 'N/A',
+            $careManager->gender ?? 'N/A',
             $careManager->email ?? 'N/A',
             $careManager->mobile ?? 'N/A',
-            $careManager->municipality->municipality_name ?? 'N/A',
+            $careManager->landline ?? 'N/A',
             $careManager->address ?? 'N/A',
-            $careManager->volunteer_status ?? 'N/A'
+            $careManager->nationality ?? 'N/A',
+            $careManager->civil_status ?? 'N/A',
+            $careManager->sss_id_number ?? 'N/A',
+            $careManager->philhealth_id_number ?? 'N/A',
+            $careManager->pagibig_id_number ?? 'N/A',
         ];
     }
 
     public function styles(Worksheet $sheet)
     {
-        // Get the highest row number
         $highestRow = $sheet->getHighestRow();
         
         return [
@@ -86,8 +103,8 @@ class CareManagersExport implements FromCollection, WithHeadings, WithMapping, S
                 ]
             ],
             
-            // Style for all cells
-            'A1:F'.$highestRow => [
+            // Style for all cells - updated to include all columns A through P
+            'A1:P'.$highestRow => [
                 'alignment' => [
                     'vertical' => Alignment::VERTICAL_CENTER,
                     'horizontal' => Alignment::HORIZONTAL_LEFT,
@@ -112,14 +129,13 @@ class CareManagersExport implements FromCollection, WithHeadings, WithMapping, S
     {
         return [
             AfterSheet::class => function(AfterSheet $event) {
-                // Get worksheet
                 $sheet = $event->sheet->getDelegate();
                 
-                // Apply striped rows for better readability
+                // Apply striped rows for better readability - updated to include all columns
                 $highestRow = $sheet->getHighestRow();
                 for ($row = 2; $row <= $highestRow; $row++) {
                     if ($row % 2 == 0) {
-                        $sheet->getStyle('A'.$row.':F'.$row)->applyFromArray([
+                        $sheet->getStyle('A'.$row.':P'.$row)->applyFromArray([
                             'fill' => [
                                 'fillType' => Fill::FILL_SOLID,
                                 'startColor' => ['rgb' => 'F5F5F5'] // Light grey for even rows
@@ -132,16 +148,25 @@ class CareManagersExport implements FromCollection, WithHeadings, WithMapping, S
                 $sheet->getDefaultRowDimension()->setRowHeight(22);
                 $sheet->getRowDimension(1)->setRowHeight(26);
                 
-                // Adjust column widths
-                $event->sheet->getColumnDimension('A')->setWidth(30); // Full Name
-                $event->sheet->getColumnDimension('B')->setWidth(30); // Email
-                $event->sheet->getColumnDimension('C')->setWidth(15); // Mobile
-                $event->sheet->getColumnDimension('D')->setWidth(20); // Municipality
-                $event->sheet->getColumnDimension('E')->setWidth(40); // Address
-                $event->sheet->getColumnDimension('F')->setWidth(15); // Status
+                // Adjust column widths - updated to include all columns
+                $event->sheet->getColumnDimension('A')->setWidth(25); // Full Name
+                $event->sheet->getColumnDimension('B')->setWidth(15); // Status 
+                $event->sheet->getColumnDimension('C')->setWidth(15); // Assigned Municipality
+                $event->sheet->getColumnDimension('D')->setWidth(10); // Age
+                $event->sheet->getColumnDimension('E')->setWidth(15); // Birthday
+                $event->sheet->getColumnDimension('F')->setWidth(10); // Gender
+                $event->sheet->getColumnDimension('G')->setWidth(25); // Email
+                $event->sheet->getColumnDimension('H')->setWidth(15); // Mobile
+                $event->sheet->getColumnDimension('I')->setWidth(15); // Landline
+                $event->sheet->getColumnDimension('J')->setWidth(30); // Address
+                $event->sheet->getColumnDimension('K')->setWidth(15); // Nationality
+                $event->sheet->getColumnDimension('L')->setWidth(15); // Civil Status
+                $event->sheet->getColumnDimension('M')->setWidth(15); // SSS Number
+                $event->sheet->getColumnDimension('N')->setWidth(15); // PhilHealth Number
+                $event->sheet->getColumnDimension('O')->setWidth(15); // Pag-Ibig Number
                 
-                // Add auto-filter
-                $sheet->setAutoFilter('A1:F' . $highestRow);
+                // Add auto-filter - updated to include all columns
+                $sheet->setAutoFilter('A1:P' . $highestRow);
                 
                 // Freeze the header row
                 $sheet->freezePane('A2');

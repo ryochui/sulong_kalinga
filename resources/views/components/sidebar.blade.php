@@ -53,10 +53,10 @@
         <li>
           <a href="weeklyCareplan" class="{{ Request::routeIs('weeklyCareplan') ? 'active' : '' }}">
             <i class='bx bx-task'></i>
-            <span class="link_name">Weekly Care Task</span>
+            <span class="link_name">Weekly Care Plan</span>
           </a>
           <ul class="sub-menu blank">
-            <li><a class="link_name" href="weeklyCareplan">Weekly Care Task</a></li>
+            <li><a class="link_name" href="weeklyCareplan">Municipality</a></li>
           </ul>
         </li>
       </ul>

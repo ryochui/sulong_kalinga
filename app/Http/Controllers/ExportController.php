@@ -109,16 +109,33 @@ class ExportController extends Controller
         
         // Fetch the family members with their relationships
         $familyMembers = FamilyMember::with([
-            'beneficiary',
-        ])->whereIn('family_member_id', $familyMemberIds)->get()
-        ->map(function ($family_member) {
+            'beneficiary.category', // Include beneficiary's category
+        ])->whereIn('family_member_id', $familyMemberIds)->get();
+        
+        // Process each family member (similar to how we process beneficiaries)
+        $allData = [];
+        foreach ($familyMembers as $family_member) {
+            // Set the status
             $family_member->status = $family_member->access ? 'Approved' : 'Denied';
-            return $family_member;
-        });
+            
+            // Prepare data structure for this family member
+            $data = [
+                'family_member' => $family_member,
+                // Add any additional processed data here if needed
+                'relatedBeneficiaryInfo' => $family_member->beneficiary ? [
+                    'name' => $family_member->beneficiary->first_name . ' ' . $family_member->beneficiary->last_name,
+                    'category' => $family_member->beneficiary->category->category_name ?? 'N/A',
+                    'status' => $family_member->beneficiary->status->status_name ?? 'N/A'
+                ] : null
+            ];
+            
+            $allData[] = $data;
+        }
         
         // Generate PDF
         $pdf = Pdf::loadView('exports.family-pdf', [
-            'familyMembers' => $familyMembers,
+            'allData' => $allData,
+            'familyMembers' => $familyMembers, // Pass all family members for TOC
             'exportDate' => now()->format('F j, Y')
         ]);
         
@@ -136,30 +153,41 @@ class ExportController extends Controller
             'selected_careworkers' => 'required',
         ]);
         
-        // Get the selected care worker IDs
+        // Get the selected careworker IDs
         $careworkerIds = json_decode($request->selected_careworkers, true);
         
         if (empty($careworkerIds)) {
             return redirect()->back()->with('error', 'No care workers selected for export.');
         }
         
-        // Fetch the care workers with their relationships
-        $careworkers = User::where('role_id', 3)
-            ->with(['municipality'])
-            ->whereIn('id', $careworkerIds)
-            ->get();
+        // Fetch the careworkers with their relationships
+        $careworkers = User::with([
+            'municipality',
+            'barangay'
+        ])->whereIn('id', $careworkerIds)
+        ->where('role_id', '3') // Only care workers
+        ->get();
         
-        // For each care worker, get their assigned beneficiaries
+        // Process each careworker
+        $allData = [];
         foreach ($careworkers as $careworker) {
-            // Fetch all general care plans associated with this care worker
-            $generalCarePlans = GeneralCarePlan::where('care_worker_id', $careworker->id)->get();
+            // Get assigned beneficiaries for this careworker
+            $assignedBeneficiaries = Beneficiary::whereHas('generalCarePlan.careWorkerResponsibility', function($query) use ($careworker) {
+                $query->where('care_worker_id', $careworker->id);
+            })->get();
             
-            // Fetch all beneficiaries associated with these general care plans
-            $careworker->assignedBeneficiaries = Beneficiary::whereIn('general_care_plan_id', $generalCarePlans->pluck('general_care_plan_id'))->get();
+            // Create data structure for this careworker
+            $data = [
+                'careworker' => $careworker,
+                'assignedBeneficiaries' => $assignedBeneficiaries
+            ];
+            
+            $allData[] = $data;
         }
         
         // Generate PDF
-        $pdf = Pdf::loadView('exports.careworkers-pdf', [
+        $pdf = PDF::loadView('exports.careworkers-pdf', [
+            'allData' => $allData,
             'careworkers' => $careworkers,
             'exportDate' => now()->format('F j, Y')
         ]);
@@ -178,29 +206,36 @@ class ExportController extends Controller
             'selected_caremanagers' => 'required',
         ]);
         
-        // Get the selected care manager IDs
+        // Get the selected caremanager IDs
         $caremanagerIds = json_decode($request->selected_caremanagers, true);
         
         if (empty($caremanagerIds)) {
             return redirect()->back()->with('error', 'No care managers selected for export.');
         }
         
-        // Fetch the care managers with their relationships
-        $caremanagers = User::where('role_id', 2)
-            ->with(['municipality'])
-            ->whereIn('id', $caremanagerIds)
-            ->get();
+        // Fetch the caremanagers with their relationships
+        $caremanagers = User::with([
+            'municipality',
+            'barangay'
+        ])->whereIn('id', $caremanagerIds)
+        ->where('role_id', '2') // Only care managers
+        ->get();
         
-        // For each care manager, get their assigned care workers
+        // Process each caremanager
+        $allData = [];
         foreach ($caremanagers as $caremanager) {
-            // Fetch all care workers assigned to this care manager
-            $caremanager->assignedCareWorkers = User::where('role_id', 3)
-                ->where('id', $caremanager->id)
-                ->get();
+            // Create data structure for this care manager
+            $data = [
+                'caremanager' => $caremanager,
+                // Add any additional processed data here if needed
+            ];
+            
+            $allData[] = $data;
         }
         
         // Generate PDF
-        $pdf = Pdf::loadView('exports.caremanagers-pdf', [
+        $pdf = PDF::loadView('exports.caremanagers-pdf', [
+            'allData' => $allData,
             'caremanagers' => $caremanagers,
             'exportDate' => now()->format('F j, Y')
         ]);
@@ -227,13 +262,27 @@ class ExportController extends Controller
         }
         
         // Fetch the administrators with their relationships
-        $administrators = User::where('role_id', 1)
-            ->with(['organizationRole'])
-            ->whereIn('id', $administratorIds)
-            ->get();
+        $administrators = User::with([
+            'organizationRole'
+        ])->whereIn('id', $administratorIds)
+        ->where('role_id', '1') // Only administrators
+        ->get();
+        
+        // Process each administrator
+        $allData = [];
+        foreach ($administrators as $administrator) {
+            // Create data structure for this administrator
+            $data = [
+                'administrator' => $administrator,
+                // Add any additional processed data here if needed
+            ];
+            
+            $allData[] = $data;
+        }
         
         // Generate PDF
-        $pdf = Pdf::loadView('exports.administrators-pdf', [
+        $pdf = PDF::loadView('exports.administrators-pdf', [
+            'allData' => $allData,
             'administrators' => $administrators,
             'exportDate' => now()->format('F j, Y')
         ]);
