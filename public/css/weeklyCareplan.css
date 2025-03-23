@@ -101,6 +101,11 @@ label {
     color: #000;
 }
 
+h4 {
+    font-size: 20px;
+    font-weight: bold;
+}
+
 h5{
     font-size: 18px;
     text-align: center;
@@ -119,6 +124,54 @@ input, textarea, select {
 .form-control, .form-select {
     font-size: 16px;
     height: auto;
+}
+
+.form-page {
+    display: none; /* Hide all pages by default */
+}
+.form-page.active {
+    display: block; /* Show the active page */
+}
+/* Ensure breadcrumbs stay in a single line */
+.breadcrumb-container {
+    overflow-x: auto; /* Enable horizontal scrolling */
+    white-space: nowrap; /* Prevent wrapping */
+    padding: 10px 0; /* Add some padding */
+    margin-bottom: 15px;
+    background-color: #f8f9fa; /* Light background */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+    scrollbar-width: none;
+}
+.breadcrumb-container::-webkit-scrollbar {
+    display: none;
+}
+
+.breadcrumb {
+    display: inline-block; /* Keep breadcrumbs in a single line */
+    padding: 0.5rem 1rem; /* Add padding */
+    margin: 0; /* Remove default margin */
+    font-size: clamp(0.5rem, 2.5vw, 1rem);
+}
+
+.breadcrumb-item {
+    display: inline-block; /* Keep items in a single line */
+}
+
+.breadcrumb-item + .breadcrumb-item::before {
+    content: ">"; /* Use ">" as the separator */
+    padding: 0 0.5rem; /* Add spacing around the separator */
+}
+
+/* Optional: Style for active breadcrumb item */
+.breadcrumb-item.active {
+    font-weight: bold;
+    color: #000; /* Darker color for active item */
+    scale: 1.1;
+    text-decoration: underline;
+}
+.breadcrumb a{
+    color: black;
+    text-decoration: none;
 }
 
 @media (max-width: 768px) {
