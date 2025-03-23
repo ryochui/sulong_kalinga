@@ -51,11 +51,18 @@
                             <i class="bx bx-export"></i> Export
                         </button>
                         <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="exportDropdown">
-                            <li><a class="dropdown-item" href="#">Export as PDF</a></li>
-                            <li><a class="dropdown-item" href="#">Export as Excel</a></li>
-                        </ul>
+                            <li><a class="dropdown-item" href="#" id="exportPdf">Export as PDF</a></li>
+                            <li><a class="dropdown-item" href="#" id="exportExcel">Export as Excel</a></li>                        </ul>
                     </div>
                 </div>
+
+                <!-- Hidden form for exporting -->
+                <form id="exportForm" action="{{ route('export.family.pdf') }}" method="POST" style="display: none;"
+                    data-pdf-route="{{ route('export.family.pdf') }}" 
+                    data-excel-route="{{ route('export.family.excel') }}">
+                    @csrf
+                    <input type="hidden" name="selected_family_members" id="selectedFamilyMembers">
+                </form>
 
                 <!-- Add Family Member Button -->
                 <div class="col-6 col-md-3 col-lg-2 mb-2">
@@ -87,7 +94,7 @@
                                 @foreach ($family_members as $family_member)
                                     <tr>
                                         <td>
-                                            <input type="checkbox" class="rowCheckbox" />
+                                            <input type="checkbox" class="rowCheckbox" value="{{ $family_member->family_member_id }}" />
                                         </td>
                                         <td>{{ $family_member->first_name }} {{ $family_member->last_name }}</td>
                                         <td>{{ $family_member->mobile}}</td>
@@ -129,5 +136,7 @@
     <script src=" {{ asset('js/toggleSideBar.js') }}"></script>
     <script src="{{ asset('js/bootstrap.bundle.min.js') }}"></script>
     <script src="{{ asset('js/forCheckbox.js') }}"></script>
+    <script src="{{ asset('js/forFamilyExport.js') }}"></script>
+
 </body>
 </html>

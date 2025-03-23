@@ -56,11 +56,19 @@
                             <i class="bx bx-export"></i> Export
                         </button>
                         <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="exportDropdown">
-                            <li><a class="dropdown-item" href="#">Export as PDF</a></li>
-                            <li><a class="dropdown-item" href="#">Export as Excel</a></li>
+                            <li><a class="dropdown-item" href="#" id="exportPdf">Export as PDF</a></li>
+                            <li><a class="dropdown-item" href="#" id="exportExcel">Export as Excel</a></li>
                         </ul>
                     </div>
                 </div>
+
+                <!-- Hidden form for exporting -->
+                <form id="exportForm" action="{{ route('export.caremanagers.pdf') }}" method="POST" style="display: none;"
+                    data-pdf-route="{{ route('export.caremanagers.pdf') }}" 
+                    data-excel-route="{{ route('export.caremanagers.excel') }}">
+                    @csrf
+                    <input type="hidden" name="selected_caremanagers" id="selectedCaremanagers">
+                </form>
 
                 <!-- Add Report Button -->
                 <div class="col-6 col-md-3 col-lg-2 mb-2">
@@ -93,7 +101,7 @@
                                 @foreach ($caremanagers as $caremanager)
                                     <tr>
                                         <td>
-                                            <input type="checkbox" class="rowCheckbox" />
+                                            <input type="checkbox" class="rowCheckbox" value="{{ $caremanager->id }}"/>
                                         </td>
                                         <td>{{ $caremanager->first_name }} {{ $caremanager->last_name }}</td>
                                         <td>{{ $caremanager->municipality->municipality_name ?? 'N/A' }}</td>
@@ -135,5 +143,7 @@
     <script src=" {{ asset('js/toggleSideBar.js') }}"></script>
     <script src="{{ asset('js/bootstrap.bundle.min.js') }}"></script>
     <script src="{{ asset('js/forCheckbox.js') }}"></script>
+    <script src="{{ asset('js/forCaremanagerExport.js') }}"></script>
+
 </body>
 </html>

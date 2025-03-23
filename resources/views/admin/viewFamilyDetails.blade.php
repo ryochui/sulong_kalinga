@@ -101,6 +101,10 @@
                                     <td style="width:30%;"><strong>Current Address:</strong></td>
                                     <td>{{ $family_member->street_address }}</td>
                                 </tr>
+                                <tr>
+                                    <td style="width:30%;"><strong>Relation to Beneficiary:</strong></td>
+                                    <td>{{ $family_member->relation_to_beneficiary }}</td>
+                                </tr>
                             </tbody>
                         </table>
                     </div>

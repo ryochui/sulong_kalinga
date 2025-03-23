@@ -54,13 +54,21 @@
                             <i class="bx bx-export"></i> Export
                         </button>
                         <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="exportDropdown">
-                            <li><a class="dropdown-item" href="#">Export as PDF</a></li>
-                            <li><a class="dropdown-item" href="#">Export as Excel</a></li>
+                            <li><a class="dropdown-item" href="#" id="exportPdf">Export as PDF</a></li>
+                            <li><a class="dropdown-item" href="#" id="exportExcel">Export as Excel</a></li>
                         </ul>
                     </div>
                 </div>
 
-                <!-- Add Report Button -->
+                <!-- Hidden form for exporting -->
+                <form id="exportForm" action="{{ route('export.beneficiaries.pdf') }}" method="POST" style="display: none;"
+                    data-pdf-route="{{ route('export.beneficiaries.pdf') }}" 
+                    data-excel-route="{{ route('export.beneficiaries.excel') }}">
+                    @csrf
+                    <input type="hidden" name="selected_beneficiaries" id="selectedBeneficiaries">
+                </form>
+
+                <!-- Add Beneficiary Button -->
                 <div class="col-6 col-md-3 col-lg-2 mb-2">
                     <a href="addBeneficiary">
                     <button class="btn btn-primary w-100" id="addButton">
@@ -92,7 +100,7 @@
                                 @foreach ($beneficiaries as $beneficiary)
                                     <tr>
                                         <td>
-                                            <input type="checkbox" class="rowCheckbox" />
+                                            <input type="checkbox" class="rowCheckbox" value="{{ $beneficiary->beneficiary_id }}" />
                                         </td>
                                         <td>{{ $beneficiary->first_name }} {{ $beneficiary->last_name }}</td>
                                         <td>{{ $beneficiary->category->category_name }}</td>
@@ -137,5 +145,6 @@
     <script src="{{ asset('js/toggleSideBar.js') }}"></script>
     <script src="{{ asset('js/bootstrap.bundle.min.js') }}"></script>
     <script src="{{ asset('js/forCheckbox.js') }}"></script>
+    <script src="{{ asset('js/forBeneficiaryExport.js') }}"></script>
 </body>
 </html>
