@@ -109,16 +109,33 @@ class ExportController extends Controller
         
         // Fetch the family members with their relationships
         $familyMembers = FamilyMember::with([
-            'beneficiary',
-        ])->whereIn('family_member_id', $familyMemberIds)->get()
-        ->map(function ($family_member) {
+            'beneficiary.category', // Include beneficiary's category
+        ])->whereIn('family_member_id', $familyMemberIds)->get();
+        
+        // Process each family member (similar to how we process beneficiaries)
+        $allData = [];
+        foreach ($familyMembers as $family_member) {
+            // Set the status
             $family_member->status = $family_member->access ? 'Approved' : 'Denied';
-            return $family_member;
-        });
+            
+            // Prepare data structure for this family member
+            $data = [
+                'family_member' => $family_member,
+                // Add any additional processed data here if needed
+                'relatedBeneficiaryInfo' => $family_member->beneficiary ? [
+                    'name' => $family_member->beneficiary->first_name . ' ' . $family_member->beneficiary->last_name,
+                    'category' => $family_member->beneficiary->category->category_name ?? 'N/A',
+                    'status' => $family_member->beneficiary->status->status_name ?? 'N/A'
+                ] : null
+            ];
+            
+            $allData[] = $data;
+        }
         
         // Generate PDF
         $pdf = Pdf::loadView('exports.family-pdf', [
-            'familyMembers' => $familyMembers,
+            'allData' => $allData,
+            'familyMembers' => $familyMembers, // Pass all family members for TOC
             'exportDate' => now()->format('F j, Y')
         ]);
         
