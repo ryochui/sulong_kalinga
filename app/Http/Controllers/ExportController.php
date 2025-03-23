@@ -206,29 +206,36 @@ class ExportController extends Controller
             'selected_caremanagers' => 'required',
         ]);
         
-        // Get the selected care manager IDs
+        // Get the selected caremanager IDs
         $caremanagerIds = json_decode($request->selected_caremanagers, true);
         
         if (empty($caremanagerIds)) {
             return redirect()->back()->with('error', 'No care managers selected for export.');
         }
         
-        // Fetch the care managers with their relationships
-        $caremanagers = User::where('role_id', 2)
-            ->with(['municipality'])
-            ->whereIn('id', $caremanagerIds)
-            ->get();
+        // Fetch the caremanagers with their relationships
+        $caremanagers = User::with([
+            'municipality',
+            'barangay'
+        ])->whereIn('id', $caremanagerIds)
+        ->where('role_id', '2') // Only care managers
+        ->get();
         
-        // For each care manager, get their assigned care workers
+        // Process each caremanager
+        $allData = [];
         foreach ($caremanagers as $caremanager) {
-            // Fetch all care workers assigned to this care manager
-            $caremanager->assignedCareWorkers = User::where('role_id', 3)
-                ->where('id', $caremanager->id)
-                ->get();
+            // Create data structure for this care manager
+            $data = [
+                'caremanager' => $caremanager,
+                // Add any additional processed data here if needed
+            ];
+            
+            $allData[] = $data;
         }
         
         // Generate PDF
-        $pdf = Pdf::loadView('exports.caremanagers-pdf', [
+        $pdf = PDF::loadView('exports.caremanagers-pdf', [
+            'allData' => $allData,
             'caremanagers' => $caremanagers,
             'exportDate' => now()->format('F j, Y')
         ]);
