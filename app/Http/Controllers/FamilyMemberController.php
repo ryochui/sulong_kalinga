@@ -11,10 +11,12 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Auth;
 // use App\Models\User;
 use App\Models\Municipality;
 use App\Models\FamilyMember;
 use App\Models\Beneficiary;
+
 
 
 class FamilyMemberController extends Controller
@@ -176,6 +178,25 @@ class FamilyMemberController extends Controller
         // Handle file uploads
         $familyPhotoPath = $request->file('family_photo')->store('uploads/family_photos', 'public');
 
+        // Retrieve the portal_account_id from the selected beneficiary
+        $beneficiary = Beneficiary::find($request->input('relatedBeneficiary'));
+        if (!$beneficiary) {
+            return redirect()->back()->withErrors(['relatedBeneficiary' => 'The selected beneficiary does not exist.'])->withInput();
+        }
+
+        // Check if another family member is already the primary caregiver for the same beneficiary
+        if ($request->input('is_primary_caregiver')) {
+            $existingPrimaryCaregiver = FamilyMember::where('related_beneficiary_id', $request->input('relatedBeneficiary'))
+                ->where('is_primary_caregiver', true)
+                ->first();
+
+            if ($existingPrimaryCaregiver) {
+                return redirect()->back()->withErrors([
+                    'is_primary_caregiver' => 'There is already a primary caregiver for this beneficiary. Please update the existing caregiver or set this family member as not the primary caregiver.'
+                ])->withInput();
+            }
+        }
+
         // Save the administrator to the database
         $familymember = new FamilyMember();
         $familymember->first_name = $request->input('first_name');
@@ -193,10 +214,14 @@ class FamilyMemberController extends Controller
         $familymember->street_address = $request->input('address_details');
         $familymember->access = True; // Status for access to the system
         $familymember->created_at = now();
+        $familymember->created_by = Auth::id(); // Set the created_by column to the current user's ID   
         // $familymember->assigned_municipality_id = $request->input('municipality');
 
         // Save file paths and IDs
         $familymember->photo = $familyPhotoPath;
+
+        // Assign the portal_account_id from the beneficiary
+        $familymember->portal_account_id = $beneficiary->portal_account_id;
 
         // Generate and save the remember_token
         $familymember->remember_token = Str::random(60);
@@ -205,6 +230,6 @@ class FamilyMemberController extends Controller
         $familymember->save();
 
         // Redirect with success message
-        return redirect()->route('addCareWorker')->with('success', 'Care Worker has been successfully added!');
+        return redirect()->route('admin.addFamily')->with('success', 'Family Member or Relative has been successfully added!');
     }
 }

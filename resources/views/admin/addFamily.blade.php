@@ -22,6 +22,21 @@
                 </a>
                 <div class="mx-auto text-center" style="flex-grow: 1; font-weight: bold; font-size: 20px;">ADD FAMILY MEMBER</div>
             </div>
+            @if (session('success'))
+                <div class="alert alert-success">
+                    {{ session('success') }}
+                </div>
+            @endif
+
+            @if ($errors->any())
+                <div class="alert alert-danger">
+                    <ul>
+                        @foreach ($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
             <div class="row" id="addUserForm">
                 <div class="col-12">
                     <!-- <form action="{{ route('addBeneficiary') }}" method="POST"> -->
@@ -40,11 +55,21 @@
                             </div>
                             <div class="col-md-3 relative">
                                 <label for="firstName" class="form-label">First Name</label>
-                                <input type="text" class="form-control" id="firstName" name="first_name" placeholder="Enter first name" required oninput="validateName(this)" pattern="^[A-Z][a-zA-Z]*(?:-[a-zA-Z]+)?$" title="First letter must be uppercase, and only alphabets are allowed. Hyphen can only be used once per word and not at the end.">
+                                <input type="text" class="form-control" id="firstName" name="first_name" 
+                                        placeholder="Enter first name" 
+                                        required 
+                                        oninput="validateName(this)" 
+                                        pattern="^[A-Z][a-zA-Z]*(?:-[a-zA-Z]+)?(?: [a-zA-Z]+(?:-[a-zA-Z]+)*)*$" 
+                                        title="First letter must be uppercase. Only alphabets, single spaces, and hyphens are allowed. Single-letter words are not allowed.">
                             </div>
                             <div class="col-md-3 relative">
                                 <label for="lastName" class="form-label">Last Name</label>
-                                <input type="text" class="form-control" id="lastName" name="last_name" placeholder="Enter last name" required oninput="validateName(this)" pattern="^[A-Z][a-zA-Z]*(?:-[a-zA-Z]+)?$" title="First letter must be uppercase, and only alphabets are allowed. Hyphen can only be used once per word and not at the end.">
+                                <input type="text" class="form-control" id="lastName" name="last_name" 
+                                        placeholder="Enter last name" 
+                                        required 
+                                        oninput="validateName(this)" 
+                                        pattern="^[A-Z][a-zA-Z]*(?:-[a-zA-Z]+)?(?: [a-zA-Z]+(?:-[a-zA-Z]+)*)*$" 
+                                        title="First letter must be uppercase. Only alphabets, single spaces, and hyphens are allowed. Single-letter words are not allowed.">
                             </div>
                             <div class="col-md-3 relative">
                                 <label for="gender" class="form-label">Gender</label>

@@ -30,10 +30,10 @@ Route::post('logout', [LoginController::class, 'logout'])->name('logout'); // no
 // Route::middleware('auth')->group(function () {
     
 
-    Route::post('/admin/addAdministrator', [AdminController::class, 'storeAdministrator'])->name('admin.addAdministrator.store');
-    Route::post('/admin/addCareManager', [CareManagerController::class, 'storeCareManager'])->name('admin.addCareManager.store');
-    Route::post('/admin/addCareWorker', [CareWorkerController::class, 'storeCareWorker'])->name('admin.addCareWorker.store');
-    Route::post('/admin/addFamily', [FamilyMemberController::class, 'storeFamily'])->name('admin.addFamily.store');
+    Route::post('addAdministrator', [AdminController::class, 'storeAdministrator'])->name('admin.addAdministrator.store');
+    Route::post('addCareManager', [CareManagerController::class, 'storeCareManager'])->name('admin.addCareManager.store');
+    Route::post('addCareWorker', [CareWorkerController::class, 'storeCareWorker'])->name('admin.addCareWorker.store');
+    Route::post('addFamily', [FamilyMemberController::class, 'storeFamily'])->name('admin.addFamily.store');
     
     Route::get('/', function () {
         return view('publicWeb.landing');
