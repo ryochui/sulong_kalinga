@@ -183,10 +183,28 @@ class CareManagerController extends Controller
             return redirect()->back()->withErrors($validator)->withInput();
         }
 
-        // Handle file uploads
-        $caremanagerPhotoPath = $request->file('caremanager_photo')->store('uploads/caremanager_photos', 'public');
-        $governmentIDPath = $request->file('government_ID')->store('uploads/caremanager_government_ids', 'public');
-        $resumePath = $request->file('resume')->store('uploads/caremanager_resumes', 'public');
+        // Handle file uploads and rename files
+       $firstName = $request->input('first_name');
+       $lastName = $request->input('last_name');
+       $uniqueIdentifier = time() . '_' . Str::random(5);
+
+       $caremanagerPhotoPath = $request->file('caremanager_photo')->storeAs(
+           'uploads/caremanager_photos', 
+           $firstName . '' . $lastName . '_photo' . $uniqueIdentifier . '.' . $request->file('caremanager_photo')->getClientOriginalExtension(),
+           'public'
+       );
+
+       $governmentIDPath = $request->file('government_ID')->storeAs(
+           'uploads/caremanager_government_ids', 
+           $firstName . '' . $lastName . '_government_id' . $uniqueIdentifier . '.' . $request->file('government_ID')->getClientOriginalExtension(),
+           'public'
+       );
+
+       $resumePath = $request->file('resume')->storeAs(
+        'uploads/caremanager_resumes', 
+        $firstName . '' . $lastName . '_resume' . $uniqueIdentifier . '.' . $request->file('resume')->getClientOriginalExtension(),
+        'public'
+    );
 
         // Save the administrator to the database
         $caremanager = new User();

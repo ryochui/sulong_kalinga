@@ -132,11 +132,23 @@
                                     <tbody>
                                         <tr>
                                             <td style="width: 40%;"><strong>Government Issued ID:</strong></td>
-                                            <td style="width: 60%;"><!-- Backend data --></td>                               
+                                            <td style="width: 60%;">
+                                                @if($caremanager->government_issued_id)
+                                                    <a href="{{ asset('storage/' . $caremanager->government_issued_id) }}" download>Download</a>
+                                                @else
+                                                    N/A
+                                                @endif
+                                            </td>                                    
                                         </tr>
                                         <tr>
                                             <td style="width: 40%;"><strong>Resume / CV:</strong></td>
-                                            <td style="width: 60%;"><!-- Backend data --></td>                                 
+                                            <td style="width: 60%;">
+                                                @if($caremanager->cv_resume)
+                                                    <a href="{{ asset('storage/' . $caremanager->cv_resume) }}" download>Download</a>
+                                                @else
+                                                    N/A
+                                                @endif
+                                            </td>                                                
                                         </tr>
                                     </tbody>
                                 </table>
