@@ -37,12 +37,20 @@ class CareworkersExport implements FromCollection, WithHeadings, WithMapping, Sh
     {
         return [
             'Full Name',
+            'Status',
+            'Assigned Municipality',
+            'Age',
+            'Birthday',
+            'Gender',
             'Email',
             'Mobile',
-            'Barangay',
-            'Municipality',
+            'Landline',
             'Address',
-            'Status'
+            'Nationality',
+            'Civil Status',
+            'SSS Number',
+            'PhilHealth Number',
+            'Pag-Ibig Number',
         ];
     }
 
@@ -50,12 +58,20 @@ class CareworkersExport implements FromCollection, WithHeadings, WithMapping, Sh
     {
         return [
             $careworker->first_name . ' ' . $careworker->last_name,
+            $careworker->volunteer_status ?? 'N/A',
+            $careworker->municipality->municipality_name ?? 'N/A',
+            \Carbon\Carbon::parse($careworker->birthday)->age . ' years old',
+            \Carbon\Carbon::parse($careworker->birthday)->format('F j, Y') ?? 'N/A',
+            $careworker->gender ?? 'N/A',
             $careworker->email ?? 'N/A',
             $careworker->mobile ?? 'N/A',
-            $careworker->barangay->barangay_name ?? 'N/A',
-            $careworker->municipality->municipality_name ?? 'N/A',
+            $careworker->landline ?? 'N/A',
             $careworker->address ?? 'N/A',
-            $careworker->volunteer_status ?? 'N/A'
+            $careworker->nationality ?? 'N/A',
+            $careworker->civil_status ?? 'N/A',
+            $careworker->sss_id_number ?? 'N/A',
+            $careworker->philhealth_id_number ?? 'N/A',
+            $careworker->pagibig_id_number ?? 'N/A',
         ];
     }
 
@@ -64,7 +80,7 @@ class CareworkersExport implements FromCollection, WithHeadings, WithMapping, Sh
         $highestRow = $sheet->getHighestRow();
         
         return [
-            // Style header row
+            // Style the header row
             1 => [
                 'font' => [
                     'bold' => true, 
@@ -87,8 +103,8 @@ class CareworkersExport implements FromCollection, WithHeadings, WithMapping, Sh
                 ]
             ],
             
-            // Style for all cells
-            'A1:G'.$highestRow => [
+            // Style for all cells - updated to include all columns A through P
+            'A1:P'.$highestRow => [
                 'alignment' => [
                     'vertical' => Alignment::VERTICAL_CENTER,
                     'horizontal' => Alignment::HORIZONTAL_LEFT,
@@ -115,36 +131,44 @@ class CareworkersExport implements FromCollection, WithHeadings, WithMapping, Sh
             AfterSheet::class => function(AfterSheet $event) {
                 $sheet = $event->sheet->getDelegate();
                 
-                // Apply striped rows
+                // Apply striped rows for better readability - updated to include all columns
                 $highestRow = $sheet->getHighestRow();
                 for ($row = 2; $row <= $highestRow; $row++) {
                     if ($row % 2 == 0) {
-                        $sheet->getStyle('A'.$row.':G'.$row)->applyFromArray([
+                        $sheet->getStyle('A'.$row.':P'.$row)->applyFromArray([
                             'fill' => [
                                 'fillType' => Fill::FILL_SOLID,
-                                'startColor' => ['rgb' => 'F5F5F5']
+                                'startColor' => ['rgb' => 'F5F5F5'] // Light grey for even rows
                             ]
                         ]);
                     }
                 }
                 
-                // Set row heights
+                // Set row height for better padding
                 $sheet->getDefaultRowDimension()->setRowHeight(22);
                 $sheet->getRowDimension(1)->setRowHeight(26);
                 
-                // Set column widths
-                $event->sheet->getColumnDimension('A')->setWidth(30); // Full Name
-                $event->sheet->getColumnDimension('B')->setWidth(35); // Email
-                $event->sheet->getColumnDimension('C')->setWidth(15); // Mobile
-                $event->sheet->getColumnDimension('D')->setWidth(20); // Barangay
-                $event->sheet->getColumnDimension('E')->setWidth(20); // Municipality
-                $event->sheet->getColumnDimension('F')->setWidth(40); // Address
-                $event->sheet->getColumnDimension('G')->setWidth(15); // Status
+                // Adjust column widths - updated to include all columns
+                $event->sheet->getColumnDimension('A')->setWidth(25); // Full Name
+                $event->sheet->getColumnDimension('B')->setWidth(15); // Status 
+                $event->sheet->getColumnDimension('C')->setWidth(15); // Assigned Municipality
+                $event->sheet->getColumnDimension('D')->setWidth(10); // Age
+                $event->sheet->getColumnDimension('E')->setWidth(15); // Birthday
+                $event->sheet->getColumnDimension('F')->setWidth(10); // Gender
+                $event->sheet->getColumnDimension('G')->setWidth(25); // Email
+                $event->sheet->getColumnDimension('H')->setWidth(15); // Mobile
+                $event->sheet->getColumnDimension('I')->setWidth(15); // Landline
+                $event->sheet->getColumnDimension('J')->setWidth(30); // Address
+                $event->sheet->getColumnDimension('K')->setWidth(15); // Nationality
+                $event->sheet->getColumnDimension('L')->setWidth(15); // Civil Status
+                $event->sheet->getColumnDimension('M')->setWidth(15); // SSS Number
+                $event->sheet->getColumnDimension('N')->setWidth(15); // PhilHealth Number
+                $event->sheet->getColumnDimension('O')->setWidth(15); // Pag-Ibig Number
                 
-                // Add auto-filter
-                $sheet->setAutoFilter('A1:G' . $highestRow);
+                // Add auto-filter - updated to include all columns
+                $sheet->setAutoFilter('A1:P' . $highestRow);
                 
-                // Freeze header row
+                // Freeze the header row
                 $sheet->freezePane('A2');
             },
         ];
