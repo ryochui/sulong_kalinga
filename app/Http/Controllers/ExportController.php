@@ -32,18 +32,57 @@ class ExportController extends Controller
             return redirect()->back()->with('error', 'No beneficiaries selected for export.');
         }
         
-        // Fetch the beneficiaries with their relationships
+        // Fetch the beneficiaries with all their relationships
         $beneficiaries = Beneficiary::with([
             'category', 
             'barangay', 
             'municipality', 
             'status',
-            'generalCarePlan'
+            'generalCarePlan.mobility', 
+            'generalCarePlan.cognitiveFunction', 
+            'generalCarePlan.emotionalWellbeing',
+            'generalCarePlan.medications',
+            'generalCarePlan.healthHistory',
+            'generalCarePlan.careNeeds',
+            'generalCarePlan.careWorkerResponsibility'
         ])->whereIn('beneficiary_id', $beneficiaryIds)->get();
         
-        // Generate PDF
+        // Prepare care needs and care worker data for each beneficiary
+        $allData = [];
+        foreach ($beneficiaries as $beneficiary) {
+            $data = [
+                'beneficiary' => $beneficiary,
+                'careNeeds1' => [],
+                'careNeeds2' => [],
+                'careNeeds3' => [],
+                'careNeeds4' => [],
+                'careNeeds5' => [],
+                'careNeeds6' => [],
+                'careNeeds7' => [],
+                'careWorker' => null
+            ];
+            
+            if ($beneficiary->generalCarePlan) {
+                $data['careNeeds1'] = $beneficiary->generalCarePlan->careNeeds->where('care_category_id', 1);
+                $data['careNeeds2'] = $beneficiary->generalCarePlan->careNeeds->where('care_category_id', 2);
+                $data['careNeeds3'] = $beneficiary->generalCarePlan->careNeeds->where('care_category_id', 3);
+                $data['careNeeds4'] = $beneficiary->generalCarePlan->careNeeds->where('care_category_id', 4);
+                $data['careNeeds5'] = $beneficiary->generalCarePlan->careNeeds->where('care_category_id', 5);
+                $data['careNeeds6'] = $beneficiary->generalCarePlan->careNeeds->where('care_category_id', 6);
+                $data['careNeeds7'] = $beneficiary->generalCarePlan->careNeeds->where('care_category_id', 7);
+                
+                // Get the care worker
+                $careWorkerResponsibility = $beneficiary->generalCarePlan->careWorkerResponsibility->first();
+                $data['careWorker'] = $careWorkerResponsibility ? User::find($careWorkerResponsibility->care_worker_id) : null;
+            }
+            
+            $allData[] = $data;
+        }
+        
+        // Generate PDF with all beneficiaries' data
         $pdf = PDF::loadView('exports.beneficiaries-pdf', [
-            'beneficiaries' => $beneficiaries,
+            'allData' => $allData,
+            'beneficiaries' => $beneficiaries, // All beneficiaries
             'exportDate' => now()->format('F j, Y')
         ]);
         
