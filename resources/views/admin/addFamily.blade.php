@@ -86,6 +86,38 @@
                                 </select>
                             </div>
                         </div>
+                        <div class="row mb-1">
+                            <div class="col-md-3 relative">
+                                <label for="relationToBeneficiary" class="form-label">Relation to Beneficiary</label>
+                                <select class="form-select" id="relationToBeneficiary" name="relation_to_beneficiary" required>
+                                    <option value="" disabled selected>Select relation</option>
+                                    <option value="Son">Son</option>
+                                    <option value="Daughter">Daughter</option>
+                                    <option value="Spouse">Spouse</option>
+                                    <option value="Sibling">Sibling</option>
+                                    <option value="Grandchild">Grandchild</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label for="personalEmail" class="form-label">Personal Email Address</label>
+                                <input type="email" class="form-control" id="personalEmail" name="personal_email" 
+                                       placeholder="Enter personal email" 
+                                       required 
+                                       pattern="^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$" 
+                                       title="Enter a valid email address (e.g., example@domain.com)" 
+                                       oninput="validateEmail(this)">
+                            </div>
+                            <div class="col-md-3 relative">
+                                <label for="isPrimaryCaregiver" class="form-label">Is Primary Caregiver?</label>
+                                <select class="form-select" id="isPrimaryCaregiver" name="is_primary_caregiver" required>
+                                    <option value="" disabled selected>Select an option</option>
+                                    <option value="1">Yes</option>
+                                    <option value="0">No</option>
+                                </select>
+                            </div>
+                        </div>
+                        
 
                         <hr class="my-4">
                         <!-- Row 2: Address -->

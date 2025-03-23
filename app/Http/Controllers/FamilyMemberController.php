@@ -127,7 +127,26 @@ class FamilyMemberController extends Controller
             ],
             'gender' => 'required|string|in:Male,Female,Other', // Must match dropdown options
             'birth_date' => 'required|date|before_or_equal:' . now()->subYears(14)->toDateString(), // Must be older than 14 years
-        
+            
+            'relatedBeneficiary' => 'required|integer|exists:beneficiaries,beneficiary_id',
+            'relation_to_beneficiary' => [
+                'required',
+                'string',
+                'in:Son,Daughter,Spouse,Sibling,Grandchild,Other',
+            ],
+
+            'personal_email' => [
+                'required',
+                'string',
+                'regex:/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/',
+                'unique:cose_users,personal_email',
+            ],
+
+            'is_primary_caregiver' => [
+                'required',
+                'boolean',
+            ],
+
             // Address
             'address_details' => [
                 'required',
@@ -158,38 +177,32 @@ class FamilyMemberController extends Controller
         $familyPhotoPath = $request->file('family_photo')->store('uploads/family_photos', 'public');
 
         // Save the administrator to the database
-        $careworker = new FamilyMember();
-        $careworker->first_name = $request->input('first_name');
-        $careworker->last_name = $request->input('last_name');
-        // $careworker->name = $request->input('name') . ' ' . $request->input('last_name'); // Combine first and last name
-        $careworker->birthday = $request->input('birth_date');
-        $careworker->gender = $request->input('gender');
-        
-        $careworker->address = $request->input('address_details');
-        
-        $careworker->mobile = '+63' . $request->input('mobile_number');
-        $careworker->landline = $request->input('landline_number');
-        // $careworker->password = bcrypt($request->input('account.password'));
-        // $careworker->organization_role_id = $request->input('Organization_Roles');
-        $careworker->role_id = 3; // 3 is the role ID for care workers
-        $careworker->volunteer_status = 'Active'; // Status in COSE
-        $careworker->status = 'Active'; // Status for access to the system
-        $careworker->status_start_date = now();
-        $careworker->assigned_municipality_id = $request->input('municipality');
+        $familymember = new FamilyMember();
+        $familymember->first_name = $request->input('first_name');
+        $familymember->last_name = $request->input('last_name');
+        // $familymember->name = $request->input('name') . ' ' . $request->input('last_name'); // Combine first and last name
+        $familymember->gender = $request->input('gender');
+        $familymember->birthday = $request->input('birth_date');
+        $familymember->mobile = '+63' . $request->input('mobile_number');
+        $familymember->landline = $request->input('landline_number');
+        $familymember->is_primary_caregiver = $request->input('is_primary_caregiver');
+        $familymember->related_beneficiary_id = $request->input('relatedBeneficiary');
+        $familymember->relation_to_beneficiary = $request->input('relation_to_beneficiary');
+        $familymember->email = $request->input('personal_email');
+        // $familymember->password = bcrypt($request->input('account.password'));
+        $familymember->street_address = $request->input('address_details');
+        $familymember->access = True; // Status for access to the system
+        $familymember->created_at = now();
+        // $familymember->assigned_municipality_id = $request->input('municipality');
 
         // Save file paths and IDs
-        $careworker->photo = $careworkerPhotoPath;
-        $careworker->government_issued_id = $governmentIDPath;
-        $careworker->cv_resume = $resumePath;
-        $careworker->sss_id_number = $request->input('sss_ID');
-        $careworker->philhealth_id_number = $request->input('philhealth_ID');
-        $careworker->pagibig_id_number = $request->input('pagibig_ID');
+        $familymember->photo = $familyPhotoPath;
 
         // Generate and save the remember_token
-        $careworker->remember_token = Str::random(60);
+        $familymember->remember_token = Str::random(60);
 
 
-        $careworker->save();
+        $familymember->save();
 
         // Redirect with success message
         return redirect()->route('addCareWorker')->with('success', 'Care Worker has been successfully added!');
