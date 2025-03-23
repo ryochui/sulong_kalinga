@@ -191,8 +191,7 @@
                 
                 <div class="profile-details">
                     <h2>{{ $caremanager->first_name }} {{ $caremanager->last_name }}</h2>
-                    <div class="registration-date">Care Manager since {{ \Carbon\Carbon::parse($caremanager->status_start_date)->format('F j, Y') }}</div>
-                    
+                                        
                     <div class="status {{ $caremanager->volunteer_status == 'Active' ? 'status-active' : 'status-inactive' }}">
                         {{ $caremanager->volunteer_status }} Care Manager
                     </div>

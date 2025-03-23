@@ -262,13 +262,27 @@ class ExportController extends Controller
         }
         
         // Fetch the administrators with their relationships
-        $administrators = User::where('role_id', 1)
-            ->with(['organizationRole'])
-            ->whereIn('id', $administratorIds)
-            ->get();
+        $administrators = User::with([
+            'organizationRole'
+        ])->whereIn('id', $administratorIds)
+        ->where('role_id', '1') // Only administrators
+        ->get();
+        
+        // Process each administrator
+        $allData = [];
+        foreach ($administrators as $administrator) {
+            // Create data structure for this administrator
+            $data = [
+                'administrator' => $administrator,
+                // Add any additional processed data here if needed
+            ];
+            
+            $allData[] = $data;
+        }
         
         // Generate PDF
-        $pdf = Pdf::loadView('exports.administrators-pdf', [
+        $pdf = PDF::loadView('exports.administrators-pdf', [
+            'allData' => $allData,
             'administrators' => $administrators,
             'exportDate' => now()->format('F j, Y')
         ]);
