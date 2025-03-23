@@ -11,7 +11,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
-use App\Models\User;
+// use App\Models\User;
 use App\Models\Municipality;
 use App\Models\FamilyMember;
 use App\Models\Beneficiary;
@@ -158,7 +158,7 @@ class FamilyMemberController extends Controller
         $familyPhotoPath = $request->file('family_photo')->store('uploads/family_photos', 'public');
 
         // Save the administrator to the database
-        $careworker = new User();
+        $careworker = new FamilyMember();
         $careworker->first_name = $request->input('first_name');
         $careworker->last_name = $request->input('last_name');
         // $careworker->name = $request->input('name') . ' ' . $request->input('last_name'); // Combine first and last name
