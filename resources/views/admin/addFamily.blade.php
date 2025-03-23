@@ -48,13 +48,12 @@
                             </div>
                             <div class="col-md-3 relative">
                                 <label for="gender" class="form-label">Gender</label>
-                                <input type="text" class="form-control" id="genderInput" placeholder="Select gender" autocomplete="off" readonly>
-                                <ul class="dropdown-menu w-100" id="genderDropdown">
-                                    <li><a class="dropdown-item" data-value="Male">Male</a></li>
-                                    <li><a class="dropdown-item" data-value="Female">Female</a></li>
-                                    <li><a class="dropdown-item" data-value="Other">Other</a></li>
-                                </ul>
-                                <input type="hidden" id="gender" name="gender">
+                                <select class="form-select" id="gender" name="gender" required>
+                                    <option value="" disabled selected>Select gender</option>
+                                    <option value="Male">Male</option>
+                                    <option value="Female">Female</option>
+                                    <option value="Other">Other</option>
+                                </select>
                             </div>
                         </div>
                         </div>
@@ -212,7 +211,7 @@
         }
 
         // Initialize filtering for each dropdown
-        filterDropdown('genderInput', 'genderDropdown');
+        // filterDropdown('genderInput', 'genderDropdown');
         filterDropdown('relatedBeneficiaryInput', 'relatedBeneficiaryDropdown');
 
         // Parse the JSON data passed from the controller

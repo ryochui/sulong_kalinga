@@ -71,28 +71,26 @@
                                 <label for="birthDate" class="form-label">Birthday</label>
                                 <input type="date" class="form-control" id="birthDate" name="birth_date" required onkeydown="return true">
                             </div>
-                            <div class="col-md-3 position-relative">
+                            <div class="col-md-3">
                                 <label for="gender" class="form-label">Gender</label>
-                                <input type="text" class="form-control" id="genderInput" placeholder="Select gender" autocomplete="off" readonly>
-                                <ul class="dropdown-menu w-100" id="genderDropdown">
-                                    <li><a class="dropdown-item" data-value="Male">Male</a></li>
-                                    <li><a class="dropdown-item" data-value="Female">Female</a></li>
-                                    <li><a class="dropdown-item" data-value="Other">Other</a></li>
-                                </ul>
-                                <input type="hidden" id="gender" name="gender">
+                                <select class="form-select" id="gender" name="gender" required>
+                                    <option value="" disabled selected>Select gender</option>
+                                    <option value="Male">Male</option>
+                                    <option value="Female">Female</option>
+                                    <option value="Other">Other</option>
+                                </select>
                             </div>
                         </div>
                         <div class="row mb-3">
-                            <div class="col-md-3 position-relative">
+                            <div class="col-md-3">
                                 <label for="civilStatus" class="form-label">Civil Status</label>
-                                <input type="text" class="form-control" id="civilStatusInput" placeholder="Select civil status" autocomplete="off" readonly >
-                                <ul class="dropdown-menu w-100" id="civilStatusDropdown">
-                                    <li><a class="dropdown-item" data-value="Single">Single</a></li>
-                                    <li><a class="dropdown-item" data-value="Married">Married</a></li>
-                                    <li><a class="dropdown-item" data-value="Widowed">Widowed</a></li>
-                                    <li><a class="dropdown-item" data-value="Divorced">Divorced</a></li>
-                                </ul>
-                                <input type="hidden" id="civilStatus" name="civil_status">
+                                <select class="form-select" id="civilStatus" name="civil_status" required>
+                                    <option value="" disabled selected>Select civil status</option>
+                                    <option value="Single">Single</option>
+                                    <option value="Married">Married</option>
+                                    <option value="Widowed">Widowed</option>
+                                    <option value="Divorced">Divorced</option>
+                                </select>
                             </div>
                             <div class="col-md-3">
                                 <label for="religion" class="form-label">Religion</label>
@@ -102,15 +100,14 @@
                                 <label for="nationality" class="form-label">Nationality</label>
                                 <input type="text" class="form-control" id="nationality" name="nationality" placeholder="Enter nationality" required pattern="^[a-zA-Z\s]*$" title="Only alphabets and spaces are allowed.">
                             </div>
-                            <div class="col-md-3 position-relative">
+                            <div class="col-md-3">
                                 <label for="educationalBackground" class="form-label">Educational Background</label>
-                                <input type="text" class="form-control" id="educationalBackgroundInput" placeholder="Select Educational Background" autocomplete="off" readonly>
-                                <ul class="dropdown-menu w-100" id="educationalBackgroundDropdown">
-                                    <li><a class="dropdown-item" data-value="College">College</a></li>
-                                    <li><a class="dropdown-item" data-value="Highschool">High School</a></li>
-                                    <li><a class="dropdown-item" data-value="Doctorate">Doctorate</a></li>
-                                </ul>
-                                <input type="hidden" id="educationalBackground" name="educational_background">
+                                <select class="form-select" id="educationalBackground" name="educational_background" required>
+                                    <option value="" disabled selected>Select educational background</option>
+                                    <option value="College">College</option>
+                                    <option value="Highschool">High School</option>
+                                    <option value="Doctorate">Doctorate</option>
+                                </select>
                             </div>
                         </div>
 
@@ -292,50 +289,50 @@ e.preventDefault(); // Prevent the default form submission
         });
     </script> -->
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            // Function to filter dropdown items
-            function filterDropdown(inputId, dropdownId) {
-                const input = document.getElementById(inputId);
-                const dropdown = document.getElementById(dropdownId);
-                const items = dropdown.querySelectorAll('.dropdown-item');
+        // document.addEventListener('DOMContentLoaded', function () {
+        //     // Function to filter dropdown items
+        //     function filterDropdown(inputId, dropdownId) {
+        //         const input = document.getElementById(inputId);
+        //         const dropdown = document.getElementById(dropdownId);
+        //         const items = dropdown.querySelectorAll('.dropdown-item');
 
-                input.addEventListener('input', function () {
-                    const filter = input.value.toLowerCase();
-                    let hasVisibleItems = false;
+        //         input.addEventListener('input', function () {
+        //             const filter = input.value.toLowerCase();
+        //             let hasVisibleItems = false;
 
-                    items.forEach(item => {
-                        if (item.textContent.toLowerCase().includes(filter)) {
-                            item.style.display = 'block';
-                            hasVisibleItems = true;
-                        } else {
-                            item.style.display = 'none';
-                        }
-                    });
-                    dropdown.style.display = hasVisibleItems ? 'block' : 'none';
-                });
-                input.addEventListener('blur', function () {
-                    setTimeout(() => dropdown.style.display = 'none', 200);
-                });
-                input.addEventListener('focus', function () {
-                    dropdown.style.display = 'block';
-                });
+        //             items.forEach(item => {
+        //                 if (item.textContent.toLowerCase().includes(filter)) {
+        //                     item.style.display = 'block';
+        //                     hasVisibleItems = true;
+        //                 } else {
+        //                     item.style.display = 'none';
+        //                 }
+        //             });
+        //             dropdown.style.display = hasVisibleItems ? 'block' : 'none';
+        //         });
+        //         input.addEventListener('blur', function () {
+        //             setTimeout(() => dropdown.style.display = 'none', 200);
+        //         });
+        //         input.addEventListener('focus', function () {
+        //             dropdown.style.display = 'block';
+        //         });
 
-                // Handle item selection
-                items.forEach(item => {
-                    item.addEventListener('click', function (e) {
-                        e.preventDefault();
-                        input.value = item.textContent;
-                        document.getElementById(inputId.replace('Input', '')).value = item.getAttribute('data-value');
-                        dropdown.style.display = 'none';
-                    });
-                });
-            }
+        //         // Handle item selection
+        //         items.forEach(item => {
+        //             item.addEventListener('click', function (e) {
+        //                 e.preventDefault();
+        //                 input.value = item.textContent;
+        //                 document.getElementById(inputId.replace('Input', '')).value = item.getAttribute('data-value');
+        //                 dropdown.style.display = 'none';
+        //             });
+        //         });
+        //     }
 
             // Initialize filtering for each dropdown
-            filterDropdown('civilStatusInput', 'civilStatusDropdown');
-            filterDropdown('genderInput', 'genderDropdown');
-            filterDropdown('educationalBackgroundInput', 'educationalBackgroundDropdown');
-            filterDropdown('Organization_RolesInput', 'Organization_RolesDropdown');
+            // filterDropdown('civilStatusInput', 'civilStatusDropdown');
+            // filterDropdown('genderInput', 'genderDropdown');
+            // filterDropdown('educationalBackgroundInput', 'educationalBackgroundDropdown');
+            // filterDropdown('Organization_RolesInput', 'Organization_RolesDropdown');
         });
 
         function validateMobileNumber(input) {
