@@ -13,7 +13,6 @@
 
     @include('components.userNavbar')
     @include('components.sidebar')
-    @include('components.modals.statusChangeFamily') <!-- Include the new modal -->
 
     <div class="home-section">
         <div class="text-left">FAMILY OR RELATIVE PROFILES</div>
@@ -86,7 +85,6 @@
                                     <th scope="col">Fullname</th>
                                     <th scope="col">Mobile Number</th>
                                     <th scope="col">Registered Beneficiary</th>
-                                    <th scope="col">Access</th>
                                     <th scope="col">Actions</th>
                                 </tr>
                             </thead>
@@ -99,12 +97,6 @@
                                         <td>{{ $family_member->first_name }} {{ $family_member->last_name }}</td>
                                         <td>{{ $family_member->mobile}}</td>
                                         <td>{{ $family_member->beneficiary->first_name }} {{ $family_member->beneficiary->last_name }}</td>
-                                        <td>
-                                        <select class="form-select text-center" name="status" id="statusSelect{{ $family_member->family_member_id }}" data-id="{{ $family_member->family_member_id }}" onchange="openFamilyStatusChangeModal(this, 'Family')">
-                                            <option value="Approved" {{ $family_member->status == 'Approved' ? 'selected' : '' }} >Approved</option>
-                                            <option value="Denied" {{ $family_member->status == 'Denied' ? 'selected' : '' }} >Denied</option>
-                                        </select>
-                                        </td>
                                         <td>
                                             <div class="action-icons">
                                                 <form action="{{ route('viewFamilyDetails') }}" method="POST" style="display:inline;">

@@ -95,9 +95,7 @@ Route::post('logout', [LoginController::class, 'logout'])->name('logout'); // no
     Route::post('/validate-password', [UserController::class, 'validatePassword']);
 
     //For family member profiles table
-    Route::get('/familyProfile', [FamilyMemberController::class, 'index'])->name('admin.familyProfile');
-    Route::put('/admin/family-members/{id}/status', [FamilyMemberController::class, 'updateStatus']);
-    
+    Route::get('/familyProfile', [FamilyMemberController::class, 'index'])->name('admin.familyProfile');    
     // For careworker profiles table
     Route::get('/careWorkerProfile', [CareWorkerController::class, 'index'])->name('admin.careWorkerProfile');
     Route::put('/admin/careworkers/{id}/status', [CareWorkerController::class, 'updateStatus']);
@@ -133,3 +131,9 @@ Route::post('logout', [LoginController::class, 'logout'])->name('logout'); // no
 
     Route::post('/admin/delete-careworker', [AdminController::class, 'deleteCareworker'])->middleware(['auth']);
     Route::post('/caremanager/delete-careworker', [CareManagerController::class, 'deleteCareworker'])->middleware(['auth']);
+    
+    Route::post('/admin/delete-family-member', [AdminController::class, 'deleteFamilyMember'])->middleware(['auth']);
+    Route::post('/caremanager/delete-family-member', [CareManagerController::class, 'deleteFamilyMember'])->middleware(['auth']);
+
+    Route::post('/admin/delete-beneficiary', [AdminController::class, 'deleteBeneficiary'])->middleware(['auth']);
+Route::post('/caremanager/delete-beneficiary', [CareManagerController::class, 'deleteBeneficiary'])->middleware(['auth']);

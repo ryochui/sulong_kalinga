@@ -25,7 +25,6 @@ class FamilyMemberFactory extends Factory
             'mobile' => $this->faker->unique()->numerify('+63##########'),
             'landline' => $this->faker->numerify('#######'),
             'email' => $this->faker->unique()->safeEmail,
-            'access' => $this->faker->boolean(80), // 80% chance of being true
             'street_address' => $this->faker->address,
             'gender' => $this->faker->randomElement(['Male', 'Female']),
             'related_beneficiary_id' => $this->faker->numberBetween(1, 10),

@@ -14,7 +14,7 @@
 
     @include('components.userNavbar')
     @include('components.sidebar')
-    @include('components.modals.statusChangeFamily')
+    @include('components.modals.deleteFamilyMember')
 
     
     <div class="home-section">
@@ -41,7 +41,8 @@
                         <i class="bx bxs-edit"></i> Edit
                         </button>
                     </form>
-                    <button class="btn btn-danger">
+                    <!-- Delete button to call the delete function -->
+                    <button type="button" class="btn btn-danger" onclick="openDeleteFamilyMemberModal('{{ $family_member->family_member_id }}', '{{ $family_member->first_name }} {{ $family_member->last_name }}')">
                         <i class="bx bxs-trash"></i> Delete
                     </button>
                 </div>
@@ -62,13 +63,13 @@
                                 <div class="d-flex flex-column align-items-start">
                                     <!-- Complete Name -->
                                     <h4 class="mb-2 mt-1">{{ $family_member->first_name }} {{ $family_member->last_name }}</h4>
-                                    <!-- Dropdown for Status -->
+                                    <!-- Dropdown for Status 
                                     <div class="form-group">
                                         <select class="form-select text-center" name="status" id="statusSelect{{ $family_member->family_member_id }}" data-id="{{ $family_member->family_member_id }}" onchange="openFamilyStatusChangeModal(this, 'Family')">
                                             <option value="Approved" {{ $family_member->status == 'Approved' ? 'selected' : '' }} >Access Approved</option>
                                             <option value="Denied" {{ $family_member->status == 'Denied' ? 'selected' : '' }} >Access Denied</option>
                                         </select>
-                                    </div>
+                                    </div>-->
                                 </div>
                             </div>
                         </div>
