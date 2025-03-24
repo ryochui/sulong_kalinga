@@ -453,57 +453,61 @@ class UserManagementService
                 ];
             }
             
-            // 3. Check for general care plan - but this is okay for deletion
-            $generalCarePlan = DB::table('general_care_plans')
-                ->where('beneficiary_id', $id)
-                ->first();
+            // Get the general care plan ID from the beneficiary record
+            $generalCarePlanId = $beneficiary->general_care_plan_id;      
             
             // Begin database transaction
             DB::beginTransaction();
-            
+
             try {
-                // First delete the general care plan if it exists
-                if ($generalCarePlan) {
-                    Log::info('Deleting associated general care plan ID: ' . $generalCarePlan->general_care_plan_id);
+                // First NULL the general_care_plan_id in the beneficiary record
+                // This breaks the reference to allow deletion of the care plan
+                DB::table('beneficiaries')
+                    ->where('beneficiary_id', $id)
+                    ->update(['general_care_plan_id' => null]);
+                    
+                // Now it's safe to delete the general care plan
+                if ($generalCarePlanId) {
+                    Log::info('Deleting associated general care plan ID: ' . $generalCarePlanId);
                     
                     // Delete related care needs
                     DB::table('care_needs')
-                        ->where('general_care_plan_id', $generalCarePlan->general_care_plan_id)
+                        ->where('general_care_plan_id', $generalCarePlanId)
                         ->delete();
                     
                     // Delete related care worker responsibilities
                     DB::table('care_worker_responsibilities')
-                        ->where('general_care_plan_id', $generalCarePlan->general_care_plan_id)
+                        ->where('general_care_plan_id', $generalCarePlanId)
                         ->delete();
                     
                     // Delete related medications
                     DB::table('medications')
-                        ->where('general_care_plan_id', $generalCarePlan->general_care_plan_id)
+                        ->where('general_care_plan_id', $generalCarePlanId)
                         ->delete();
                     
                     // Delete related health history
                     DB::table('health_histories')
-                        ->where('general_care_plan_id', $generalCarePlan->general_care_plan_id)
+                        ->where('general_care_plan_id', $generalCarePlanId)
                         ->delete();
                     
                     // Delete related mobility
-                    DB::table('mobilities')
-                        ->where('general_care_plan_id', $generalCarePlan->general_care_plan_id)
+                    DB::table('mobility')
+                        ->where('general_care_plan_id', $generalCarePlanId)
                         ->delete();
                     
                     // Delete related cognitive function
-                    DB::table('cognitive_functions')
-                        ->where('general_care_plan_id', $generalCarePlan->general_care_plan_id)
+                    DB::table('cognitive_function')
+                        ->where('general_care_plan_id', $generalCarePlanId)
                         ->delete();
                     
                     // Delete related emotional wellbeing
-                    DB::table('emotional_wellbeings')
-                        ->where('general_care_plan_id', $generalCarePlan->general_care_plan_id)
+                    DB::table('emotional_wellbeing')
+                        ->where('general_care_plan_id', $generalCarePlanId)
                         ->delete();
                     
                     // Finally delete the general care plan itself
                     DB::table('general_care_plans')
-                        ->where('general_care_plan_id', $generalCarePlan->general_care_plan_id)
+                        ->where('general_care_plan_id', $generalCarePlanId)
                         ->delete();
                 }
                 
@@ -525,7 +529,7 @@ class UserManagementService
                 return [
                     'success' => true,
                     'message' => 'Beneficiary deleted successfully.',
-                    'deleted_care_plan' => $generalCarePlan ? true : false
+                    'deleted_care_plan' => $generalCarePlanId ? true : false
                 ];
                 
             } catch (Exception $innerException) {
@@ -562,7 +566,7 @@ class UserManagementService
                     ];
                 }
                 
-                // Generic dependency message for other tables (for future dependencies)
+                //Generic dependency message for other tables (for future dependencies)
                 return [
                     'success' => false,
                     'message' => 'This beneficiary has records in the system that require audit history to be maintained.',
