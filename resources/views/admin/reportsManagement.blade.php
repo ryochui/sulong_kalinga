@@ -88,7 +88,7 @@
                                     <td>Otto Otto</td>
                                     <td class="d-none d-sm-table-cell">@mdo</td>
                                     <td>
-                                        <div class="action-icons">
+                                        <div class="action-icons" style="gap: 20px !important;">
                                             <i class="fa fa-eye"></i>
                                             <i class='bx bxs-edit'></i>
                                         </div>

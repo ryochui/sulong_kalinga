@@ -110,8 +110,8 @@
                                                 <textarea class="form-control" id="assessment" rows="5"></textarea>
                                             </div>
                                             <div class="col-lg-6 col-md-6 col-sm-12">
-                                                <h5>Vital Signs</h5>
-                                                <div class="row">
+                                                <h5 class="">Vital Signs</h5>
+                                                <div class="row mb-1">
                                                     <div class="col-md-6 col-sm-6">
                                                         <label for="bloodPressure" class="form-label">Blood Pressure</label>
                                                         <input type="text" class="form-control" id="bloodPressure" name="bloodPressure" placeholder="Enter Blood pressure" required>

@@ -56,7 +56,7 @@
             <span class="link_name">Weekly Care Plan</span>
           </a>
           <ul class="sub-menu blank">
-            <li><a class="link_name" href="weeklyCareplan">Municipality</a></li>
+            <li><a class="link_name" href="weeklyCareplan">Weekly Care Plan</a></li>
           </ul>
         </li>
       </ul>
