@@ -17,7 +17,7 @@ return new class extends Migration
             $table->integer('intervention_id')->nullable()->after('weekly_care_plan_id'); // For pre-populated interventions
             $table->integer('care_category_id')->nullable()->after('intervention_id'); // For custom interventions
             $table->string('intervention_description', 255)->nullable()->after('intervention_id'); // For custom interventions
-            $table->decimal('duration_minutes', 4, 2)->after('intervention_description');
+            $table->decimal('duration_minutes', 10, 2)->after('intervention_description');
             $table->boolean('implemented')->default(false);
 
             // Foreign Key Constraints

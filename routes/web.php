@@ -13,6 +13,8 @@ use App\Http\Controllers\CareWorkerController;
 use App\Http\Controllers\CareManagerController;
 use App\Http\Controllers\MunicipalityController;
 use App\Http\Controllers\ExportController;
+use App\Http\Controllers\WeeklyCareController;
+
 
 
 
@@ -144,3 +146,8 @@ Route::post('logout', [LoginController::class, 'logout'])->name('logout'); // no
 
     //Reports Management
     Route::get('/reports', [ReportsController::class, 'index'])->name('reports')->middleware('auth');
+
+    //Weekly Care Plan Routes
+    Route::get('/weekly-care-plans/create', [WeeklyCareController::class, 'create'])->name('weeklycareplans.create');
+Route::post('/weekly-care-plans', [WeeklyCareController::class, 'store'])->name('weeklycareplans.store');
+Route::get('/weekly-care-plans/beneficiary/{id}', [WeeklyCareController::class, 'getBeneficiaryDetails']);

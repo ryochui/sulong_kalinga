@@ -96,11 +96,23 @@ class DatabaseSeeder extends Seeder
         // Generate dummy data for family_members
         FamilyMember::factory()->count(10)->create();
 
-        // Generate dummy data for vital_signs
-        VitalSigns::factory()->count(10)->create();
-
-        // Generate dummy data for weekly_care_plans
-        WeeklyCarePlan::factory()->count(10)->create();
+        // Generate vital signs and weekly care plans together to ensure same creator
+        foreach (range(1, 10) as $index) {
+            // Get a random care worker to be the creator of both records
+            $careWorkerId = User::where('role_id', 3)->inRandomOrder()->first()->id;
+            
+            // Create vital signs with the care worker as creator
+            $vitalSigns = VitalSigns::factory()->create([
+                'created_by' => $careWorkerId,
+            ]);
+            
+            // Create weekly care plan with the same care worker as creator and reference the vital signs
+            $weeklyCarePlan = WeeklyCarePlan::factory()->create([
+                'care_worker_id' => $careWorkerId,
+                'vital_signs_id' => $vitalSigns->vital_signs_id,
+                'created_by' => $careWorkerId,
+            ]);
+        }
 
         // Generate dummy data for weekly_care_plan_interventions
         foreach (range(1, 10) as $weeklyCarePlanId) {

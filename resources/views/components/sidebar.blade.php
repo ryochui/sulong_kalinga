@@ -51,13 +51,13 @@
           </ul>
         </li>
         <li>
-          <a href="weeklyCareplan" class="{{ Request::routeIs('weeklyCareplan') ? 'active' : '' }}">
-            <i class='bx bx-task'></i>
-            <span class="link_name">Weekly Care Plan</span>
-          </a>
-          <ul class="sub-menu blank">
-            <li><a class="link_name" href="weeklyCareplan">Municipality</a></li>
-          </ul>
+            <a href="{{ route('weeklycareplans.create') }}" class="{{ Request::routeIs('weeklycareplans.create') ? 'active' : '' }}">
+                <i class='bx bx-task'></i>
+                <span class="link_name">Weekly Care Plan</span>
+            </a>
+            <ul class="sub-menu blank">
+                <li><a class="link_name" href="{{ route('weeklycareplans.create') }}">Weekly Care Plan</a></li>
+            </ul>
         </li>
       </ul>
     </div>
