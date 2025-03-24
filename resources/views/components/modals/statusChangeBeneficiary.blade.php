@@ -9,6 +9,12 @@
                 <div id="successMessage" class="alert alert-success" style="display: none;">Status updated successfully!</div>
                 <div id="errorMessage" class="alert alert-danger" style="display: none;"></div>
                 <p>Are you sure you want to change the status of this <span id="entityType" style="font-weight: bold;"></span>?</p>
+                
+                <div class="alert alert-warning">
+                    <i class="bx bx-info-circle"></i> 
+                    <strong>Note:</strong> Changing the status of this beneficiary will affect (allow or prevent) their access to the system, as well as their registered family members.
+                </div>
+
                 <form id="statusChangeForm">
                     <div class="mb-3" id="reasonDiv">
                         <label for="reasonSelect" class="form-label">Reason for Status Change</label>

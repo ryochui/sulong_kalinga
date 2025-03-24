@@ -14,6 +14,7 @@
     @include('components.userNavbar')
     @include('components.sidebar')
     @include('components.modals.statusChangeBeneficiary')
+    @include('components.modals.deleteBeneficiary')
     
     <div class="home-section">
         <div class="container-fluid">
@@ -38,7 +39,7 @@
                         <i class="bx bxs-edit"></i> Edit
                         </button>
                     </form>
-                    <button class="btn btn-danger" onclick="deleteProfile()">
+                    <button type="button" class="btn btn-danger" onclick="openDeleteBeneficiaryModal('{{ $beneficiary->beneficiary_id }}', '{{ $beneficiary->first_name }} {{ $beneficiary->last_name }}')">
                         <i class="bx bxs-trash"></i> Delete
                     </button>
                 </div>
