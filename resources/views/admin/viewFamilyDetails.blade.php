@@ -98,6 +98,10 @@
                                     <td>{{ $family_member->landline ?? 'N/A' }}</td>
                                 </tr>
                                 <tr>
+                                    <td style="width:30%;"><strong>Email:</strong></td>
+                                    <td>{{ $family_member->email ?? 'N/A' }}</td>
+                                </tr>
+                                <tr>
                                     <td style="width:30%;"><strong>Current Address:</strong></td>
                                     <td>{{ $family_member->street_address }}</td>
                                 </tr>
