@@ -24,7 +24,7 @@ class GeneralCarePlanFactory extends Factory
             'care_worker_id' => $care_worker_id,
             'emergency_plan' => $this->faker->paragraph,
             'review_date' => $this->faker->date,
-            'created_at' => now(),
+            'created_at' => $this->faker->date(),
             'updated_at' => now(),
         ];
     }

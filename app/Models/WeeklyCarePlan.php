@@ -20,4 +20,14 @@ class WeeklyCarePlan extends Model
     protected $fillable = [
         'beneficiary_id', 'care_worker_id', 'care_manager_id', 'vital_signs_id', 'date', 'assessment', 'evaluation_recommendations', 'assessment_summary_draft', 'assessment_translation_draft', 'evaluation_summary_draft', 'evaluation_translation_draft', 'created_by', 'updated_by'
     ];
+
+    public function author()
+    {
+        return $this->belongsTo(User::class, 'created_by', 'id');
+    }
+
+    public function beneficiary()
+    {
+        return $this->belongsTo(Beneficiary::class, 'beneficiary_id', 'beneficiary_id');
+    }
 }

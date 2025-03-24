@@ -1,7 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Admin\ReportsController;
+use App\Http\Controllers\ReportsController;
 // use App\Http\Controllers\AuthController; // old auth
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\AdminController;
@@ -13,6 +13,7 @@ use App\Http\Controllers\CareWorkerController;
 use App\Http\Controllers\CareManagerController;
 use App\Http\Controllers\MunicipalityController;
 use App\Http\Controllers\ExportController;
+
 
 
 require __DIR__.'/innerRoutes.php';
@@ -139,4 +140,7 @@ Route::post('logout', [LoginController::class, 'logout'])->name('logout'); // no
     Route::post('/caremanager/delete-family-member', [CareManagerController::class, 'deleteFamilyMember'])->middleware(['auth']);
 
     Route::post('/admin/delete-beneficiary', [AdminController::class, 'deleteBeneficiary'])->middleware(['auth']);
-Route::post('/caremanager/delete-beneficiary', [CareManagerController::class, 'deleteBeneficiary'])->middleware(['auth']);
+    Route::post('/caremanager/delete-beneficiary', [CareManagerController::class, 'deleteBeneficiary'])->middleware(['auth']);
+
+    //Reports Management
+    Route::get('/reports', [ReportsController::class, 'index'])->name('reports')->middleware('auth');
