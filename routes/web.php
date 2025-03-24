@@ -34,6 +34,7 @@ Route::post('logout', [LoginController::class, 'logout'])->name('logout'); // no
     Route::post('addCareManager', [CareManagerController::class, 'storeCareManager'])->name('admin.addCareManager.store');
     Route::post('addCareWorker', [CareWorkerController::class, 'storeCareWorker'])->name('admin.addCareWorker.store');
     Route::post('addFamily', [FamilyMemberController::class, 'storeFamily'])->name('admin.addFamily.store');
+    Route::post('addBeneficiary', [BeneficiaryController::class, 'storeBeneficiary'])->name('admin.addBeneficiary.store');
     
     Route::get('/', function () {
         return view('publicWeb.landing');
@@ -87,6 +88,8 @@ Route::post('logout', [LoginController::class, 'logout'])->name('logout'); // no
     Route::get('addCareworker', [CareWorkerController::class, 'create'])->name('admin.addCareworker');
 
     Route::get('addFamily', [FamilyMemberController::class, 'create'])->name('admin.addFamily');
+
+    Route::get('addBeneficiary', [BeneficiaryController::class, 'create'])->name('admin.addBeneficiary');
 
     //For beneficiary profiles table
     Route::get('/beneficiaryProfile', [BeneficiaryController::class, 'index'])->name('admin.beneficiaryProfile');

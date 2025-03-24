@@ -24,7 +24,6 @@
             </div>
             <div class="row" id="addUserForm">
                 <div class="col-12">
-                    <!-- <form action="{{ route('addBeneficiary') }}" method="POST"> -->
                     <form id="addBeneficiaryForm">
                         @csrf
                         <!-- Row 1: Personal Details -->
@@ -34,38 +33,46 @@
                             </div>
                         </div>
                         <div class="row mb-1">
-                            <div class="col-md-3">
+                            <div class="col-md-3 relative">
                                 <label for="firstName" class="form-label">First Name</label>
-                                <input type="text" class="form-control" id="firstName" name="first_name" placeholder="Enter first name" required>
+                                <input type="text" class="form-control" id="firstName" name="first_name" 
+                                        placeholder="Enter first name" 
+                                        required 
+                                        oninput="validateName(this)" 
+                                        pattern="^[A-Z][a-zA-Z]*(?:-[a-zA-Z]+)?(?: [a-zA-Z]+(?:-[a-zA-Z]+)*)*$" 
+                                        title="First letter must be uppercase. Only alphabets, single spaces, and hyphens are allowed. Single-letter words are not allowed.">
                             </div>
-                            <div class="col-md-3">
+                            <div class="col-md-3 relative">
                                 <label for="lastName" class="form-label">Last Name</label>
-                                <input type="text" class="form-control" id="lastName" name="last_name" placeholder="Enter last name" required>
+                                <input type="text" class="form-control" id="lastName" name="last_name" 
+                                        placeholder="Enter last name" 
+                                        required 
+                                        oninput="validateName(this)" 
+                                        pattern="^[A-Z][a-zA-Z]*(?:-[a-zA-Z]+)?(?: [a-zA-Z]+(?:-[a-zA-Z]+)*)*$" 
+                                        title="First letter must be uppercase. Only alphabets, single spaces, and hyphens are allowed. Single-letter words are not allowed.">
                             </div>
-                            <div class="col-md-3 position-relative">
+                            <div class="col-md-3 relative">
                                 <label for="civilStatus" class="form-label">Civil Status</label>
-                                <input type="text" class="form-control" id="civilStatusInput" placeholder="Select civil status" autocomplete="off">
-                                <ul class="dropdown-menu w-100" id="civilStatusDropdown">
-                                    <li><a class="dropdown-item" data-value="single">Single</a></li>
-                                    <li><a class="dropdown-item" data-value="married">Married</a></li>
-                                    <li><a class="dropdown-item" data-value="widowed">Widowed</a></li>
-                                    <li><a class="dropdown-item" data-value="divorced">Divorced</a></li>
-                                </ul>
-                                <input type="hidden" id="civilStatus" name="civil_status">
+                                <select class="form-select" id="civilStatus" name="civil_status" required>
+                                    <option value="" disabled selected>Select civil status</option>
+                                    <option value="Single">Single</option>
+                                    <option value="Married">Married</option>
+                                    <option value="Widowed">Widowed</option>
+                                    <option value="Divorced">Divorced</option>
+                                </select>
                             </div>
-                            <div class="col-md-3 position-relative">
+                            <div class="col-md-3 relative">
                                 <label for="gender" class="form-label">Gender</label>
-                                <input type="text" class="form-control" id="genderInput" placeholder="Select gender" autocomplete="off">
-                                <ul class="dropdown-menu w-100" id="genderDropdown">
-                                    <li><a class="dropdown-item" data-value="male">Male</a></li>
-                                    <li><a class="dropdown-item" data-value="female">Female</a></li>
-                                    <li><a class="dropdown-item" data-value="other">Other</a></li>
-                                </ul>
-                                <input type="hidden" id="gender" name="gender">
+                                <select class="form-select" id="gender" name="gender" required>
+                                    <option value="" disabled selected>Select gender</option>
+                                    <option value="Male">Male</option>
+                                    <option value="Female">Female</option>
+                                    <option value="Other">Other</option>
+                                </select>
                             </div>
                         </div>
                         <div class="row mb-3">
-                            <div class="col-md-3">
+                        <div class="col-md-3">
                                 <label for="birthDate" class="form-label">Birthday</label>
                                 <input type="date" class="form-control" id="birthDate" name="birth_date" required onkeydown="return true">
                             </div>
@@ -96,16 +103,6 @@
                                 <input type="text" class="form-control" id="addressDetails" name="address_details" placeholder="Enter house no., street, subdivision" required>
                             </div>
                             <div class="col-md-3 position-relative">
-                                <label for="barangay" class="form-label">Barangay</label>
-                                <input type="text" class="form-control" id="barangayInput" placeholder="Select barangay" autocomplete="off">
-                                <ul class="dropdown-menu w-100" id="barangayDropdown">
-                                    <li><a class="dropdown-item" data-value="barangay1">Barangay 1</a></li>
-                                    <li><a class="dropdown-item" data-value="barangay2">Barangay 2</a></li>
-                                    <li><a class="dropdown-item" data-value="barangay3">Barangay 3</a></li>
-                                </ul>
-                                <input type="hidden" id="barangay" name="barangay">
-                            </div>
-                            <div class="col-md-3 position-relative">
                                 <label for="municipality" class="form-label">Municipality</label>
                                 <input type="text" class="form-control" id="municipalityInput" placeholder="Select municipality" autocomplete="off">
                                 <ul class="dropdown-menu w-100" id="municipalityDropdown">
@@ -114,6 +111,16 @@
                                     <li><a class="dropdown-item" data-value="municipality3">Municipality 3</a></li>
                                 </ul>
                                 <input type="hidden" id="municipality" name="municipality">
+                            </div>
+                            <div class="col-md-3 position-relative">
+                                <label for="barangay" class="form-label">Barangay</label>
+                                <input type="text" class="form-control" id="barangayInput" placeholder="Select barangay" autocomplete="off">
+                                <ul class="dropdown-menu w-100" id="barangayDropdown">
+                                    <li><a class="dropdown-item" data-value="barangay1">Barangay 1</a></li>
+                                    <li><a class="dropdown-item" data-value="barangay2">Barangay 2</a></li>
+                                    <li><a class="dropdown-item" data-value="barangay3">Barangay 3</a></li>
+                                </ul>
+                                <input type="hidden" id="barangay" name="barangay">
                             </div>
                         </div>
 
