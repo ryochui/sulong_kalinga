@@ -36,11 +36,16 @@ class FamilyMembersExport implements FromCollection, WithHeadings, WithMapping, 
     {
         return [
             'Full Name',
-            'Mobile Number',
-            'Relationship',
             'Registered Beneficiary',
+            'Relation to Beneficiary',
             'Access Status',
-            'Address'
+            'Age',
+            'Birthday',
+            'Gender',
+            'Mobile Number',
+            'Landline Number',
+            'Email Address',
+            'Current Address'
         ];
     }
 
@@ -48,11 +53,16 @@ class FamilyMembersExport implements FromCollection, WithHeadings, WithMapping, 
     {
         return [
             $familyMember->first_name . ' ' . $familyMember->last_name,
-            $familyMember->mobile ?? 'N/A',
-            $familyMember->relationship ?? 'N/A',
             $familyMember->beneficiary->first_name . ' ' . $familyMember->beneficiary->last_name,
-            $familyMember->status ?? 'N/A',
-            $familyMember->address ?? 'N/A'
+            $familyMember->relation_to_beneficiary ?? 'N/A',
+            $familyMember->access ? 'Approved' : 'Denied',
+            \Carbon\Carbon::parse($familyMember->birthday)->age ?? 'N/A',
+            $familyMember->birthday ? \Carbon\Carbon::parse($familyMember->birthday)->format('m/d/Y') : 'N/A',
+            $familyMember->gender ?? 'N/A',
+            $familyMember->mobile ?? 'N/A',
+            $familyMember->landline ?? 'N/A',
+            $familyMember->email ?? 'N/A',
+            $familyMember->street_address ?? 'N/A'
         ];
     }
 
@@ -85,8 +95,8 @@ class FamilyMembersExport implements FromCollection, WithHeadings, WithMapping, 
                 ]
             ],
             
-            // Style for all cells - add padding, borders, and alignment
-            'A1:F'.$highestRow => [
+            // Style for all cells - UPDATED from F to K for all 11 columns
+            'A1:K'.$highestRow => [
                 'alignment' => [
                     'vertical' => Alignment::VERTICAL_CENTER,
                     'horizontal' => Alignment::HORIZONTAL_LEFT,
@@ -114,11 +124,11 @@ class FamilyMembersExport implements FromCollection, WithHeadings, WithMapping, 
                 // Get worksheet
                 $sheet = $event->sheet->getDelegate();
                 
-                // Apply striped rows for better readability
+                // Apply striped rows for better readability - UPDATED from F to K
                 $highestRow = $sheet->getHighestRow();
                 for ($row = 2; $row <= $highestRow; $row++) {
                     if ($row % 2 == 0) {
-                        $sheet->getStyle('A'.$row.':F'.$row)->applyFromArray([
+                        $sheet->getStyle('A'.$row.':K'.$row)->applyFromArray([
                             'fill' => [
                                 'fillType' => Fill::FILL_SOLID,
                                 'startColor' => ['rgb' => 'F5F5F5'] // Light grey for even rows
@@ -131,16 +141,21 @@ class FamilyMembersExport implements FromCollection, WithHeadings, WithMapping, 
                 $sheet->getDefaultRowDimension()->setRowHeight(22);
                 $sheet->getRowDimension(1)->setRowHeight(26);
                 
-                // Adjust column widths
-                $event->sheet->getColumnDimension('A')->setWidth(30); // Full Name
-                $event->sheet->getColumnDimension('B')->setWidth(20); // Mobile
-                $event->sheet->getColumnDimension('C')->setWidth(20); // Relationship
-                $event->sheet->getColumnDimension('D')->setWidth(30); // Beneficiary
-                $event->sheet->getColumnDimension('E')->setWidth(15); // Status
-                $event->sheet->getColumnDimension('F')->setWidth(40); // Address
+                // Adjust column widths - UPDATED to include all 11 columns with correct descriptions
+                $event->sheet->getColumnDimension('A')->setWidth(25); // Full Name
+                $event->sheet->getColumnDimension('B')->setWidth(25); // Registered Beneficiary
+                $event->sheet->getColumnDimension('C')->setWidth(20); // Relation to Beneficiary
+                $event->sheet->getColumnDimension('D')->setWidth(15); // Access Status
+                $event->sheet->getColumnDimension('E')->setWidth(10); // Age
+                $event->sheet->getColumnDimension('F')->setWidth(15); // Birthday
+                $event->sheet->getColumnDimension('G')->setWidth(12); // Gender
+                $event->sheet->getColumnDimension('H')->setWidth(15); // Mobile Number
+                $event->sheet->getColumnDimension('I')->setWidth(15); // Landline Number
+                $event->sheet->getColumnDimension('J')->setWidth(25); // Email Address
+                $event->sheet->getColumnDimension('K')->setWidth(30); // Current Address
                 
-                // Add auto-filter
-                $sheet->setAutoFilter('A1:F' . $highestRow);
+                // Add auto-filter - UPDATED from F to K
+                $sheet->setAutoFilter('A1:K' . $highestRow);
                 
                 // Freeze the header row
                 $sheet->freezePane('A2');

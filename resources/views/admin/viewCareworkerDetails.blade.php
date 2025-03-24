@@ -14,6 +14,7 @@
     @include('components.userNavbar')
     @include('components.sidebar')
     @include('components.modals.statusChangeCareworker')
+    @include('components.modals.deleteCareworker')
 
     <div class="home-section">
         <div class="container-fluid">
@@ -36,7 +37,7 @@
                         <i class="bx bxs-edit"></i> Edit
                         </button>
                     </form>
-                    <button class="btn btn-danger" onclick="deleteProfile()">
+                    <button class="btn btn-danger" onclick="openDeleteCareworkerModal('{{ $careworker->id }}', '{{ $careworker->first_name }} {{ $careworker->last_name }}')">
                         <i class="bx bxs-trash"></i> Delete
                     </button>
                 </div>
