@@ -170,13 +170,31 @@ class BeneficiaryController extends Controller
                 'max:50',
                 'regex:/^[A-Z][a-zA-Z]{1,}(?:-[a-zA-Z]{1,})?(?: [a-zA-Z]{2,}(?:-[a-zA-Z]{1,})?)*$/'
             ],
-            'nationality' => [
-                'required',
+            // Medical History  
+            'medical_conditions' => [
+                'nullable',
                 'string',
-                'max:50',
-                'regex:/^[A-Z][a-zA-Z]{1,}(?:-[a-zA-Z]{1,})?(?: [a-zA-Z]{2,}(?:-[a-zA-Z]{1,})?)*$/'
+                'regex:/^[A-Za-z0-9\s.,\-()]+$/', // Allows letters, numbers, spaces, commas, periods, hyphens, and parentheses
+                'max:500', // Optional: Limit the length to 500 characters
             ],
-            'educational_background' => 'required|string|in:College,Highschool,Doctorate', // Must match dropdown options
+            'medications' => [
+                'nullable',
+                'string',
+                'regex:/^[A-Za-z0-9\s.,\-()]+$/',
+                'max:500',
+            ],
+            'allergies' => [
+                'nullable',
+                'string',
+                'regex:/^[A-Za-z0-9\s.,\-()]+$/',
+                'max:500',
+            ],
+            'immunizations' => [
+                'nullable',
+                'string',
+                'regex:/^[A-Za-z0-9\s.,\-()]+$/',
+                'max:500',
+            ],
         
             // Address
             'address_details' => [
@@ -220,6 +238,9 @@ class BeneficiaryController extends Controller
             
             // Municipality
             'municipality' => 'required|integer|exists:municipalities,municipality_id',
+
+            // Barangay
+            'barangay' => 'required|integer|exists:barangays,barangay_id',
         
             // Documents
             'careworker_photo' => 'required|image|mimes:jpeg,png|max:2048',
@@ -248,31 +269,13 @@ class BeneficiaryController extends Controller
             return redirect()->back()->withErrors($validator)->withInput();
         }
 
-         // Handle file uploads and rename files
-       $firstName = $request->input('first_name');
-       $lastName = $request->input('last_name');
-       $uniqueIdentifier = time() . '_' . Str::random(5);
-
-       $careworkerPhotoPath = $request->file('careworker_photo')->storeAs(
-           'uploads/careworker_photos', 
-           $firstName . '' . $lastName . '_photo' . $uniqueIdentifier . '.' . $request->file('careworker_photo')->getClientOriginalExtension(),
-           'public'
-       );
-
-       $governmentIDPath = $request->file('government_ID')->storeAs(
-           'uploads/careworker_government_ids', 
-           $firstName . '' . $lastName . '_government_id' . $uniqueIdentifier . '.' . $request->file('government_ID')->getClientOriginalExtension(),
-           'public'
-       );
-
-       $resumePath = $request->file('resume')->storeAs(
-        'uploads/careworker_resumes', 
-        $firstName . '' . $lastName . '_resume' . $uniqueIdentifier . '.' . $request->file('resume')->getClientOriginalExtension(),
-        'public'
-    );
+         // Handle file uploads and rename files(removed the handling of file uploads for now)
+        $firstName = $request->input('first_name');
+        $lastName = $request->input('last_name');
+        $uniqueIdentifier = time() . '_' . Str::random(5);
 
         // Save the administrator to the database
-        $careworker = new User();
+        $careworker = new Beneficiary();
         $careworker->first_name = $request->input('first_name');
         $careworker->last_name = $request->input('last_name');
         // $careworker->name = $request->input('name') . ' ' . $request->input('last_name'); // Combine first and last name

@@ -24,7 +24,7 @@
             </div>
             <div class="row" id="addUserForm">
                 <div class="col-12">
-                    <form id="addBeneficiaryForm">
+                    <form action="{{ route('admin.addBeneficiary.store') }}" method="POST" enctype="multipart/form-data">
                         @csrf
                         <!-- Row 1: Personal Details -->
                         <div class="row mb-1 mt-3">
@@ -82,11 +82,14 @@
                             </div>
                             <div class="col-md-3">
                                 <label for="mobileNumber" class="form-label">Mobile Number</label>
-                                <input type="text" class="form-control" id="mobileNumber" name="mobile_number" placeholder="Enter mobile number" required>
+                                <div class="input-group">
+                                    <span class="input-group-text">+63</span>
+                                    <input type="text" class="form-control" id="mobileNumber" name="mobile_number" placeholder="Enter mobile number" maxlength="11" required oninput="restrictToNumbers(this)" title="Must be 10 or 11digits.">
+                                </div>
                             </div>
                             <div class="col-md-3">
                                 <label for="landlineNumber" class="form-label">Landline Number</label>
-                                <input type="text" class="form-control" id="landlineNumber" name="landline_number" placeholder="Enter landline number">
+                                <input type="text" class="form-control" id="landlineNumber" name="landline_number" placeholder="Enter Landline number" maxlength="10" required oninput="restrictToNumbers(this)" title="Must be between 7 and 10 digits.">
                             </div>
                         </div>
 
@@ -99,28 +102,32 @@
                         </div>
                         <div class="row mb-3">
                             <div class="col-md-6">
-                                <label for="addressDetails" class="form-label">House No., Street, Subdivision</label>
-                                <input type="text" class="form-control" id="addressDetails" name="address_details" placeholder="Enter house no., street, subdivision" required>
+                                <label for="addressDetails" class="form-label">House No., Street, Subdivision, Barangay, City, Province</label>
+                                <textarea class="form-control" id="addressDetails" name="address_details" 
+                                placeholder="Enter complete current address" 
+                                rows="2" 
+                                required 
+                                pattern="^[a-zA-Z0-9\s,.-]+$" 
+                                title="Only alphanumeric characters, spaces, commas, periods, and hyphens are allowed."
+                                oninput="validateAddress(this)"></textarea>
                             </div>
-                            <div class="col-md-3 position-relative">
+                            <div class="col-md-3">
                                 <label for="municipality" class="form-label">Municipality</label>
-                                <input type="text" class="form-control" id="municipalityInput" placeholder="Select municipality" autocomplete="off">
-                                <ul class="dropdown-menu w-100" id="municipalityDropdown">
-                                    <li><a class="dropdown-item" data-value="municipality1">Municipality 1</a></li>
-                                    <li><a class="dropdown-item" data-value="municipality2">Municipality 2</a></li>
-                                    <li><a class="dropdown-item" data-value="municipality3">Municipality 3</a></li>
-                                </ul>
-                                <input type="hidden" id="municipality" name="municipality">
-                            </div>
-                            <div class="col-md-3 position-relative">
+                                <select class="form-select" id="municipality" name="municipality" required>
+                                    <option value="" disabled selected>Select municipality</option>
+                                    @foreach ($municipalities as $municipality)
+                                        <option value="{{ $municipality->municipality_id }}">{{ $municipality->municipality_name }}</option>
+                                    @endforeach
+                                </select>
+                            </div> 
+                            <div class="col-md-3">
                                 <label for="barangay" class="form-label">Barangay</label>
-                                <input type="text" class="form-control" id="barangayInput" placeholder="Select barangay" autocomplete="off">
-                                <ul class="dropdown-menu w-100" id="barangayDropdown">
-                                    <li><a class="dropdown-item" data-value="barangay1">Barangay 1</a></li>
-                                    <li><a class="dropdown-item" data-value="barangay2">Barangay 2</a></li>
-                                    <li><a class="dropdown-item" data-value="barangay3">Barangay 3</a></li>
-                                </ul>
-                                <input type="hidden" id="barangay" name="barangay">
+                                <select class="form-select" id="barangay" name="barangay" required>
+                                    <option value="" disabled selected>Select barangay</option>
+                                    @foreach ($barangays as $b)
+                                        <option value="{{ $b->barangay_id }}" data-municipality-id="{{ $b->municipality_id }}">{{ $b->barangay_name }}</option>
+                                    @endforeach
+                                </select>
                             </div>
                         </div>
 
@@ -752,6 +759,35 @@
 
             // Set the max attribute for the birth_date input
             birthDateInput.setAttribute('max', formattedMaxDate);
+        });
+    </script>
+    <script>
+        // for connecting the municipality dropdown to the barangay dropdown
+        document.addEventListener('DOMContentLoaded', function () {
+            const municipalityDropdown = document.getElementById('municipality');
+            const barangayDropdown = document.getElementById('barangay');
+            const barangayOptions = Array.from(barangayDropdown.options); // Store all barangay options
+
+            // Event listener for municipality dropdown change
+            municipalityDropdown.addEventListener('change', function () {
+                const selectedMunicipalityId = this.value;
+
+                // Clear the barangay dropdown
+                barangayDropdown.innerHTML = '<option value="" disabled selected>Select barangay</option>';
+
+                // Filter and add barangay options that match the selected municipality
+                barangayOptions.forEach(option => {
+                    if (option.getAttribute('data-municipality-id') === selectedMunicipalityId) {
+                        barangayDropdown.appendChild(option);
+                    }
+                });
+
+                // Enable the barangay dropdown
+                barangayDropdown.disabled = false;
+            });
+
+            // Initially disable the barangay dropdown
+            barangayDropdown.disabled = true;
         });
     </script>
 
