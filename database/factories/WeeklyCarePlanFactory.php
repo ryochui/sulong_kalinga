@@ -46,6 +46,7 @@ class WeeklyCarePlanFactory extends Factory
             'evaluation_translation_draft' => $this->faker->paragraph,
             'created_by' => $userIdWithRole2,
             'updated_by' => $userIdWithRole2,
+            'created_at' => $this->faker->date()
         ];
 
         // Sometimes add acknowledgement by beneficiary (30% chance)
