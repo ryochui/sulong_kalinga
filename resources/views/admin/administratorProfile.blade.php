@@ -14,7 +14,9 @@
     @include('components.userNavbar')
     @include('components.sidebar')
     @include('components.modals.statusChangeAdmin')
-    @php use App\Helpers\StringHelper;
+    @php 
+    use App\Helpers\StringHelper;
+    use Illuminate\Support\Facades\Auth;
     @endphp
    
     <div class="home-section">
@@ -73,13 +75,15 @@
                     <input type="hidden" name="selected_administrators" id="selectedAdministrators">
                 </form>
 
-                <!-- Add Report Button -->
+                <!-- Add Report Button - Only visible to Executive Admin -->
                 <div class="col-6 col-md-3 col-lg-2 mb-2">
-                    <a href="{{ route('admin.addAdministrator') }}">
-                    <button class="btn btn-primary w-100" id="addButton">
-                        <i class="bx bx-plus"></i> Add Admin
-                    </button>
-                    </a>
+                    @if(Auth::user()->organization_role_id == 1)
+                        <a href="{{ route('admin.addAdministrator') }}">
+                            <button class="btn btn-primary w-100" id="addButton">
+                                <i class="bx bx-plus"></i> Add Admin
+                            </button>
+                        </a>
+                    @endif
                 </div>
             </div>
 
@@ -133,7 +137,8 @@
                                             </div>
                                         </td>
                                         <td>
-                                            <div class="action-icons">
+                                        <div class="action-icons">
+                                            <!-- View button - visible to everyone -->
                                             <form action="{{ route('viewAdminDetails') }}" method="POST" style="display:inline;">
                                                 @csrf
                                                 <input type="hidden" name="administrator_id" value="{{ $administrator->id }}">
@@ -141,14 +146,18 @@
                                                     <i class="fa fa-eye"></i>
                                                 </button>
                                             </form>
-                                            <form action="{{ route('editAdminProfile') }}" method="POST" style="display:inline;">
-                                                @csrf
-                                                <input type="hidden" name="administrator_id" value="{{ $administrator->id }}">
-                                                <button type="submit" class="btn btn-link text-decoration-none" style="color:black;">
-                                                    <i class='bx bxs-edit'></i>
-                                                </button>
-                                            </form>
-                                            </div>
+                                            
+                                            <!-- Edit button - only visible to Executive Admin -->
+                                            @if(Auth::user()->organization_role_id == 1)
+                                                <form action="{{ route('editAdminProfile') }}" method="POST" style="display:inline;">
+                                                    @csrf
+                                                    <input type="hidden" name="administrator_id" value="{{ $administrator->id }}">
+                                                    <button type="submit" class="btn btn-link text-decoration-none" style="color:black;">
+                                                        <i class='bx bxs-edit'></i>
+                                                    </button>
+                                                </form>
+                                            @endif
+                                        </div>
                                         </td>
                                     </tr>
                                 @endforeach
