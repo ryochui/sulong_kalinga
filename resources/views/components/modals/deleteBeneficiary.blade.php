@@ -149,31 +149,36 @@ function showDependencyError(message, errorType) {
 function showSuccess(deletedCarePlan) {
     document.getElementById('deleteConfirmation').classList.add('d-none');
     
-    // Create success message with details about what was deleted
-    let successContent = `
-        <div class="d-flex align-items-center mb-2">
-            <i class="bx bx-check-circle me-2" style="font-size: 1.5rem;"></i>
-            <strong>Success!</strong>
+    // Create enhanced success message without animations
+    const successElement = document.getElementById('deleteSuccess');
+    successElement.innerHTML = `
+        <div class="text-center mb-3">
+            <div class="mb-3">
+                <i class="bx bx-check-circle text-success" style="font-size: 3rem;"></i>
+            </div>
+            <h4 class="text-success mb-3">Successfully Deleted</h4>
+            <div class="alert alert-light border py-3">
+                <p class="mb-1">The beneficiary profile has been permanently removed from the system.</p>
+                <div class="mt-2 pt-2 border-top">
+                    <p class="mb-0 text-muted">
+                        <i class="bx bx-info-circle"></i> The associated general care plan and related records have also been deleted.
+                    </p>
+                </div>
+            </div>
+            <p class="text-muted mt-3">
+                <i class="bx bx-time-five"></i> You will be redirected to the beneficiary list in a few seconds...
+            </p>
         </div>
-        <p>The beneficiary profile has been deleted successfully.</p>
     `;
     
-    if (deletedCarePlan) {
-        successContent += `
-            <p>The associated general care plan and all related records have also been deleted.</p>
-        `;
-    }
-    
-    successContent += `<p>You will be redirected to the beneficiary list shortly.</p>`;
-    
-    // Set the success message
-    const successElement = document.getElementById('deleteSuccess');
-    successElement.innerHTML = successContent;
+    // Show the success message
     successElement.classList.remove('d-none');
     
+    // Hide delete button and change cancel button text
     document.getElementById('confirmBeneficiaryDeleteButton').classList.add('d-none');
     document.getElementById('cancelDeleteButton').textContent = 'Close';
     
+    // Redirect after a delay
     setTimeout(function() {
         window.location.href = "{{ route('admin.beneficiaryProfile') }}";
     }, 3000);
