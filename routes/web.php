@@ -130,3 +130,6 @@ Route::post('logout', [LoginController::class, 'logout'])->name('logout'); // no
     Route::post('/admin/delete-caremanager', [AdminController::class, 'deleteCaremanager'])
     ->name('admin.deleteCaremanager')
     ->middleware(['auth']); 
+
+    Route::post('/admin/delete-careworker', [AdminController::class, 'deleteCareworker'])->middleware(['auth']);
+    Route::post('/caremanager/delete-careworker', [CareManagerController::class, 'deleteCareworker'])->middleware(['auth']);

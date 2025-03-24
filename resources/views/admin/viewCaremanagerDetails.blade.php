@@ -38,10 +38,10 @@
                             <i class="bx bxs-edit"></i> Edit
                             </button>
                         </form>
-                        <!-- Delete Button - Only visible to administrators -->
-                        <button type="button" class="btn btn-danger" onclick="openDeleteCaremanagerModal('{{ $caremanager->id }}', '{{ $caremanager->first_name }} {{ $caremanager->last_name }}')">
-                            <i class="bx bxs-trash"></i> Delete
-                        </button>
+                    <!-- Delete Button - Only visible to administrators -->
+                    <button type="button" class="btn btn-danger" onclick="openDeleteCaremanagerModal('{{ $caremanager->id }}', '{{ $caremanager->first_name }} {{ $caremanager->last_name }}')">
+                        <i class="bx bxs-trash"></i> Delete
+                    </button>
                     @endif
                 </div>
             </div>

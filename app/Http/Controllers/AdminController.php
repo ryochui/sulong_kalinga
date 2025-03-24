@@ -10,8 +10,17 @@ use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Log;
 use App\Models\User;
 
+use App\Services\UserManagementService;
+
 class AdminController extends Controller
 {
+    protected $userManagementService;
+    
+    public function __construct(UserManagementService $userManagementService)
+    {
+        $this->userManagementService = $userManagementService;
+    }
+
     public function storeAdministrator(Request $request)
     {
         // Validate the input data
@@ -705,6 +714,16 @@ class AdminController extends Controller
                 'error_type' => 'general'
             ]);
         }
+    }
+
+    public function deleteCareworker(Request $request)
+    {
+        $result = $this->userManagementService->deleteCareworker(
+            $request->input('careworker_id'),
+            Auth::user()
+        );
+        
+        return response()->json($result);
     }
 
 }
