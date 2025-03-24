@@ -15,6 +15,7 @@
     @include('components.userNavbar')
     @include('components.sidebar')
     @include('components.modals.statusChangeFamily')
+    @include('components.modals.deleteFamilyMember')
 
     
     <div class="home-section">
@@ -41,7 +42,8 @@
                         <i class="bx bxs-edit"></i> Edit
                         </button>
                     </form>
-                    <button class="btn btn-danger">
+                    <!-- Delete button to call the delete function -->
+                    <button type="button" class="btn btn-danger" onclick="openDeleteFamilyMemberModal('{{ $family_member->family_member_id }}', '{{ $family_member->first_name }} {{ $family_member->last_name }}')">
                         <i class="bx bxs-trash"></i> Delete
                     </button>
                 </div>

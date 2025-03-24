@@ -22,6 +22,10 @@ return new class extends Migration
             $table->text('evaluation_recommendations');
             $table->integer('created_by');
             $table->integer('updated_by');
+            $table->integer('acknowledged_by_beneficiary')->nullable(); // family member registered
+            $table->integer('acknowledged_by_family')->nullable(); // family member registered
+            $table->text('acknowledgement_signature')->nullable(); // for beneficiary or witness without system access
+
             $table->timestamps();
 
              // Foreign Key Constraints
@@ -29,6 +33,8 @@ return new class extends Migration
              $table->foreign('care_worker_id')->references('id')->on('cose_users')->onDelete('no action');
              $table->foreign('care_manager_id')->references('id')->on('cose_users')->onDelete('no action');
              $table->foreign('vital_signs_id')->references('vital_signs_id')->on('vital_signs')->onDelete('no action');
+             $table->foreign('acknowledged_by_beneficiary')->references('beneficiary_id')->on('beneficiaries')->onDelete('no action');
+             $table->foreign('acknowledged_by_family')->references('family_member_id')->on('family_members')->onDelete('no action');
         });
     }
 
