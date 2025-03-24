@@ -14,7 +14,9 @@
     @include('components.userNavbar')
     @include('components.sidebar')
     @include('components.modals.statusChangeAdmin')
+    @include('components.modals.deleteAdmin')
     @php use App\Helpers\StringHelper;
+    use Illuminate\Support\Facades\Auth;
     @endphp
     
     <div class="home-section">
@@ -30,17 +32,23 @@
                     <a href="viewCareworkerProfile" class="btn btn-secondary hidden-back-btn">
                         <i class="bx bx-arrow-back"></i> Back
                     </a>
-                    <!-- Edit Button with Routing -->
-                    <form action="{{ route('editAdminProfile') }}" method="POST" style="display:inline;">
-                        @csrf
-                        <input type="hidden" name="administrator_id" value="{{ $administrator->id }}">
-                        <button type="submit" class="btn btn-primary">
-                        <i class="bx bxs-edit"></i> Edit
+
+                    <!-- Only show Edit and Delete buttons to Executive Director -->
+                    @if(Auth::user()->organization_role_id == 1)
+                        <!-- Edit Button with Routing -->
+                        <form action="{{ route('editAdminProfile') }}" method="POST" style="display:inline;">
+                            @csrf
+                            <input type="hidden" name="administrator_id" value="{{ $administrator->id }}">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bx bxs-edit"></i> Edit
+                            </button>
+                        </form>
+
+                        <!-- Delete Button -->
+                        <button class="btn btn-danger" onclick="openDeleteAdminModal('{{ $administrator->id }}', '{{ $administrator->first_name }} {{ $administrator->last_name }}')">
+                            <i class="bx bxs-trash"></i> Delete
                         </button>
-                    </form>
-                    <button class="btn btn-danger" onclick="deleteProfile()">
-                        <i class="bx bxs-trash"></i> Delete
-                    </button>
+                    @endif
                 </div>
             </div>
             <div class="row justify-content-center" id="profileDetails">

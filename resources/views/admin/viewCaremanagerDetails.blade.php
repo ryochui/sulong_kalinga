@@ -14,6 +14,7 @@
     @include('components.userNavbar')
     @include('components.sidebar')
     @include('components.modals.statusChangeCaremanager')
+    @include('components.modals.deleteCaremanager')
     
     <div class="home-section">
         <div class="container-fluid">
@@ -28,17 +29,20 @@
                     <a href="viewCareworkerProfile" class="btn btn-secondary hidden-back-btn">
                         <i class="bx bx-arrow-back"></i> Back
                     </a>
-                    <!-- Edit Button with Routing -->
-                    <form action="{{ route('editCaremanagerProfile') }}" method="POST" style="display:inline;">
-                        @csrf
-                        <input type="hidden" name="caremanager_id" value="{{ $caremanager->id }}">
-                        <button type="submit" class="btn btn-primary">
-                        <i class="bx bxs-edit"></i> Edit
-                        </button>
-                    </form>
-                    <button class="btn btn-danger" onclick="deleteProfile()">
+                    <!-- Edit Button with Routing - Only visible to administrators -->
+                    @if(Auth::user()->role_id == 1)
+                        <form action="{{ route('editCaremanagerProfile') }}" method="POST" style="display:inline;">
+                            @csrf
+                            <input type="hidden" name="caremanager_id" value="{{ $caremanager->id }}">
+                            <button type="submit" class="btn btn-primary">
+                            <i class="bx bxs-edit"></i> Edit
+                            </button>
+                        </form>
+                    <!-- Delete Button - Only visible to administrators -->
+                    <button type="button" class="btn btn-danger" onclick="openDeleteCaremanagerModal('{{ $caremanager->id }}', '{{ $caremanager->first_name }} {{ $caremanager->last_name }}')">
                         <i class="bx bxs-trash"></i> Delete
                     </button>
+                    @endif
                 </div>
             </div>
             <div class="row justify-content-center" id="profileDetails">

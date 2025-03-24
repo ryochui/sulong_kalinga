@@ -121,3 +121,15 @@ Route::post('logout', [LoginController::class, 'logout'])->name('logout'); // no
     Route::post('/export/caremanagers-excel', [ExportController::class, 'exportCareManagersToExcel'])->name('export.caremanagers.excel');
     Route::post('/export/careworkers-excel', [ExportController::class, 'exportCareworkersToExcel'])->name('export.careworkers.excel');
     Route::post('/export/administrators-excel', [ExportController::class, 'exportAdministratorsToExcel'])->name('export.administrators.excel');
+
+   // For deletion of entities
+   Route::post('/admin/delete-administrator', [AdminController::class, 'deleteAdministrator'])
+    ->name('admin.deleteAdministrator')
+    ->middleware(['auth']);
+
+    Route::post('/admin/delete-caremanager', [AdminController::class, 'deleteCaremanager'])
+    ->name('admin.deleteCaremanager')
+    ->middleware(['auth']); 
+
+    Route::post('/admin/delete-careworker', [AdminController::class, 'deleteCareworker'])->middleware(['auth']);
+    Route::post('/caremanager/delete-careworker', [CareManagerController::class, 'deleteCareworker'])->middleware(['auth']);

@@ -10,8 +10,16 @@ use Illuminate\Support\Str;
 use App\Models\User;
 use App\Models\Municipality;
 
+use App\Services\UserManagementService;
+
 class CareManagerController extends Controller
 {
+    protected $userManagementService;
+    
+    public function __construct(UserManagementService $userManagementService)
+    {
+        $this->userManagementService = $userManagementService;
+    }
 
     public function index(Request $request)
     {
@@ -271,5 +279,15 @@ class CareManagerController extends Controller
         $caremanager->save();
 
         return response()->json(['success' => true, 'message' => 'Care manager status updated successfully.']);
+    }
+
+    public function deleteCareworker(Request $request)
+    {
+        $result = $this->userManagementService->deleteCareworker(
+            $request->input('careworker_id'),
+            Auth::user()
+        );
+        
+        return response()->json($result);
     }
 }
