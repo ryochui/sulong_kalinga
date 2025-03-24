@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use App\Models\User;
 
@@ -245,6 +246,8 @@ class AdminController extends Controller
 
         $status = $request->input('status');
         $administrator->volunteer_status = $status;
+        $administrator->updated_by = Auth::id(); // Set the updated_by column to the current user's ID
+        $administrator->updated_at = now(); // Set the updated_at column to the current timestamp
 
         if ($status == 'Inactive') {
             $administrator->status_end_date = now();

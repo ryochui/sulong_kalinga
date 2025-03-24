@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use App\Models\User;
 use App\Models\Municipality;
@@ -258,6 +259,8 @@ class CareManagerController extends Controller
 
         $status = $request->input('status');
         $caremanager->volunteer_status = $status;
+        $caremanager->updated_by = Auth::id(); // Set the updated_by column to the current user's ID
+        $caremanager->updated_at = now(); // Set the updated_at column to the current timestamp
 
         if ($status == 'Inactive') {
             $caremanager->status_end_date = now();

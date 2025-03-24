@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Auth;
 use App\Models\User;
 use App\Models\Municipality;
 use App\Models\GeneralCarePlan;
@@ -270,6 +271,8 @@ class CareWorkerController extends Controller
 
         $status = $request->input('status');
         $careworker->volunteer_status = $status;
+        $careworker->updated_by = Auth::id(); // Set the updated_by column to the current user's ID
+        $careworker->updated_at = now(); // Set the updated_at column to the current timestamp
 
         if ($status == 'Inactive') {
             $careworker->status_end_date = now();
