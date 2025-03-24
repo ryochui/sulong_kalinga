@@ -266,16 +266,16 @@
                         <div id="medicationManagement">
                             <div class="row mb-1 align-items-center medication-row">
                                 <div class="col-md-3">
-                                    <input type="text" class="form-control" name="medication_name[]" placeholder="Medication name" >
+                                    <input type="text" class="form-control" name="medication_name[]" placeholder="Enter Medication name" >
                                 </div>
                                 <div class="col-md-2">
-                                    <input type="text" class="form-control" name="dosage[]" placeholder="Dosage" >
+                                    <input type="text" class="form-control" name="dosage[]" placeholder="Enter Dosage" >
                                 </div>
                                 <div class="col-md-2">
-                                    <input type="text" class="form-control" name="frequency[]" placeholder="Frequency" >
+                                    <input type="text" class="form-control" name="frequency[]" placeholder="Enter Frequency" >
                                 </div>
                                 <div class="col-md-4">
-                                    <textarea class="form-control" name="administration_instructions[]" placeholder="Administration Instructions" rows="1" ></textarea>
+                                    <textarea class="form-control" name="administration_instructions[]" placeholder="Enter Administration Instructions" rows="1" ></textarea>
                                 </div>
                                 <div class="col-md-1 d-flex text-start">
                                     <button type="button" class="btn btn-danger" onclick="removeMedicationRow(this)">Delete</button>
@@ -295,49 +295,83 @@
                                 <h5 class="text-start">Mobility</h5>
                                 <div class="mb-1">
                                     <label for="walkingAbility" class="form-label">Walking Ability</label>
-                                    <textarea class="form-control" id="walkingAbility" name="mobility[walking_ability]" placeholder="Enter details about walking ability" rows="2"></textarea>
+                                    <textarea class="form-control" id="walkingAbility" name="mobility[walking_ability]" 
+                                            placeholder="Enter details about walking ability" rows="2" 
+                                            pattern="^[A-Za-z0-9\s.,\-()]+$" 
+                                            title="Only letters, numbers, spaces, commas, periods, hyphens, and parentheses are allowed."></textarea>
                                 </div>
                                 <div class="mb-1">
                                     <label for="assistiveDevices" class="form-label">Assistive Devices</label>
-                                    <textarea class="form-control" id="assistiveDevices" name="mobility[assistive_devices]" placeholder="Enter details about assistive devices" rows="2"></textarea>
+                                    <textarea class="form-control" id="assistiveDevices" name="mobility[assistive_devices]" 
+                                            placeholder="Enter details about assistive devices" rows="2" 
+                                            pattern="^[A-Za-z0-9\s.,\-()]+$" 
+                                            title="Only letters, numbers, spaces, commas, periods, hyphens, and parentheses are allowed."></textarea>
                                 </div>
                                 <div class="mb-3">
                                     <label for="transportationNeeds" class="form-label">Transportation Needs</label>
-                                    <textarea class="form-control" id="transportationNeeds" name="mobility[transportation_needs]" placeholder="Enter details about transportation needs" rows="2"></textarea>
+                                    <textarea class="form-control" id="transportationNeeds" name="mobility[transportation_needs]" 
+                                            placeholder="Enter details about transportation needs" rows="2" 
+                                            pattern="^[A-Za-z0-9\s.,\-()]+$" 
+                                            title="Only letters, numbers, spaces, commas, periods, hyphens, and parentheses are allowed."></textarea>
                                 </div>
                             </div>
+
+                            <!-- Cognitive Function Section -->
                             <div class="col-md-4">
                                 <h5 class="text-start">Cognitive Function</h5>
                                 <div class="mb-1">
                                     <label for="memory" class="form-label">Memory</label>
-                                    <textarea class="form-control" id="memory" name="cognitive[memory]" placeholder="Enter details about memory" rows="2"></textarea>
+                                    <textarea class="form-control" id="memory" name="cognitive[memory]" 
+                                            placeholder="Enter details about memory" rows="2" 
+                                            pattern="^[A-Za-z0-9\s.,\-()]+$" 
+                                            title="Only letters, numbers, spaces, commas, periods, hyphens, and parentheses are allowed."></textarea>
                                 </div>
                                 <div class="mb-1">
                                     <label for="thinkingSkills" class="form-label">Thinking Skills</label>
-                                    <textarea class="form-control" id="thinkingSkills" name="cognitive[thinking_skills]" placeholder="Enter details about thinking skills" rows="2"></textarea>
+                                    <textarea class="form-control" id="thinkingSkills" name="cognitive[thinking_skills]" 
+                                            placeholder="Enter details about thinking skills" rows="2" 
+                                            pattern="^[A-Za-z0-9\s.,\-()]+$" 
+                                            title="Only letters, numbers, spaces, commas, periods, hyphens, and parentheses are allowed."></textarea>
                                 </div>
                                 <div class="mb-1">
                                     <label for="orientation" class="form-label">Orientation</label>
-                                    <textarea class="form-control" id="orientation" name="cognitive[orientation]" placeholder="Enter details about orientation" rows="2"></textarea>
+                                    <textarea class="form-control" id="orientation" name="cognitive[orientation]" 
+                                            placeholder="Enter details about orientation" rows="2" 
+                                            pattern="^[A-Za-z0-9\s.,\-()]+$" 
+                                            title="Only letters, numbers, spaces, commas, periods, hyphens, and parentheses are allowed."></textarea>
                                 </div>
                                 <div class="mb-3">
                                     <label for="behavior" class="form-label">Behavior</label>
-                                    <textarea class="form-control" id="behavior" name="cognitive[behavior]" placeholder="Enter details about behavior" rows="2"></textarea>
+                                    <textarea class="form-control" id="behavior" name="cognitive[behavior]" 
+                                            placeholder="Enter details about behavior" rows="2" 
+                                            pattern="^[A-Za-z0-9\s.,\-()]+$" 
+                                            title="Only letters, numbers, spaces, commas, periods, hyphens, and parentheses are allowed."></textarea>
                                 </div>
                             </div>
+
+                            <!-- Emotional Well-being Section -->
                             <div class="col-md-4">
                                 <h5 class="text-start">Emotional Well-being</h5>
                                 <div class="mb-1">
                                     <label for="mood" class="form-label">Mood</label>
-                                    <textarea class="form-control" id="mood" name="emotional[mood]" placeholder="Enter details about mood" rows="2"></textarea>
+                                    <textarea class="form-control" id="mood" name="emotional[mood]" 
+                                            placeholder="Enter details about mood" rows="2" 
+                                            pattern="^[A-Za-z0-9\s.,\-()]+$" 
+                                            title="Only letters, numbers, spaces, commas, periods, hyphens, and parentheses are allowed."></textarea>
                                 </div>
                                 <div class="mb-1">
                                     <label for="socialInteractions" class="form-label">Social Interactions</label>
-                                    <textarea class="form-control" id="socialInteractions" name="emotional[social_interactions]" placeholder="Enter details about social interactions" rows="2"></textarea>
+                                    <textarea class="form-control" id="socialInteractions" name="emotional[social_interactions]" 
+                                            placeholder="Enter details about social interactions" rows="2" 
+                                            pattern="^[A-Za-z0-9\s.,\-()]+$" 
+                                            title="Only letters, numbers, spaces, commas, periods, hyphens, and parentheses are allowed."></textarea>
                                 </div>
                                 <div class="mb-3">
                                     <label for="emotionalSupport" class="form-label">Emotional Support Need</label>
-                                    <textarea class="form-control" id="emotionalSupport" name="emotional[emotional_support]" placeholder="Enter details about emotional support need" rows="2"></textarea>
+                                    <textarea class="form-control" id="emotionalSupport" name="emotional[emotional_support]" 
+                                            placeholder="Enter details about emotional support need" rows="2" 
+                                            pattern="^[A-Za-z0-9\s.,\-()]+$" 
+                                            title="Only letters, numbers, spaces, commas, periods, hyphens, and parentheses are allowed."></textarea>
                                 </div>
                             </div>
                         </div>
@@ -350,27 +384,48 @@
                             </div>
                         </div>
                         <div class="row mb-3">
+                            <!-- Contact Name -->
                             <div class="col-md-3">
                                 <label for="contactName" class="form-label">Contact Name</label>
-                                <input type="text" class="form-control" id="contactName" name="emergency_contact[name]" placeholder="Enter contact name" required>
+                                <input type="text" class="form-control" id="contactName" name="emergency_contact[name]" 
+                                    placeholder="Enter contact name" 
+                                    required 
+                                    pattern="^[A-Z][a-zA-Z]*(?: [A-Z][a-zA-Z]*)+$" 
+                                    title="Must be a valid full name with each word starting with an uppercase letter.">
                             </div>
-                            <div class="col-md-3 position-relative">
+
+                            <!-- Relation -->
+                            <div class="col-md-3">
                                 <label for="relation" class="form-label">Relation</label>
-                                <input type="text" class="form-control" id="relationInput" placeholder="Select relation" autocomplete="off">
-                                <ul class="dropdown-menu w-100" id="relationDropdown">
-                                    <li><a class="dropdown-item" data-value="son">Son</a></li>
-                                    <li><a class="dropdown-item" data-value="daughter">Daughter</a></li>
-                                    <li><a class="dropdown-item" data-value="grandchild">Grandchild</a></li>
-                                </ul>
-                                <input type="hidden" id="relation" name="relation">
+                                <select class="form-select" id="relation" name="emergency_contact[relation]" required>
+                                    <option value="" disabled selected>Select relation</option>
+                                    <option value="Parent">Parent</option>
+                                    <option value="Sibling">Sibling</option>
+                                    <option value="Spouse">Spouse</option>
+                                    <option value="Child">Child</option>
+                                    <option value="Relative">Relative</option>
+                                    <option value="Friend">Friend</option>
+                                    <option value="Other">Other</option>
+                                </select>
                             </div>
+
+                            <!-- Mobile Number -->
                             <div class="col-md-3">
                                 <label for="mobileNumber" class="form-label">Mobile Number</label>
-                                <input type="text" class="form-control" id="mobileNumber" name="emergency_contact[mobile]" placeholder="Enter mobile number" required>
+                                <input type="text" class="form-control" id="mobileNumber" name="emergency_contact[mobile]" 
+                                    placeholder="Enter mobile number" 
+                                    maxlength="11" 
+                                    required 
+                                    pattern="^[0-9]{10,11}$" 
+                                    title="Must be 10 or 11 digits.">
                             </div>
+
+                            <!-- Email Address -->
                             <div class="col-md-3">
                                 <label for="emailAddress" class="form-label">Email Address</label>
-                                <input type="email" class="form-control" id="emailAddress" name="emergency_contact[email]" placeholder="Enter email address" >
+                                <input type="email" class="form-control" id="emailAddress" name="emergency_contact[email]" 
+                                    placeholder="Enter email address" 
+                                    required>
                             </div>
                         </div>
 

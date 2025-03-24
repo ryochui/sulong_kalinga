@@ -170,6 +170,7 @@ class BeneficiaryController extends Controller
                 'max:50',
                 'regex:/^[A-Z][a-zA-Z]{1,}(?:-[a-zA-Z]{1,})?(?: [a-zA-Z]{2,}(?:-[a-zA-Z]{1,})?)*$/'
             ],
+
             // Medical History  
             'medical_conditions' => [
                 'nullable',
@@ -195,6 +196,52 @@ class BeneficiaryController extends Controller
                 'regex:/^[A-Za-z0-9\s.,\-()]+$/',
                 'max:500',
             ],
+
+            // Medications Management
+            'medication_name' => 'nullable|array',
+            'medication_name.*' => [
+                'nullable',
+                'string',
+                'max:100',
+                'regex:/^[A-Za-z0-9\s.,\-()]+$/',
+            ],
+            'dosage' => 'nullable|array',
+            'dosage.*' => [
+                'nullable',
+                'string',
+                'max:100',
+                'regex:/^[A-Za-z0-9\s.,\-()]+$/',
+            ],
+            'frequency' => 'nullable|array',
+            'frequency.*' => [
+                'nullable',
+                'string',
+                'max:100',
+                'regex:/^[A-Za-z0-9\s.,\-()]+$/',
+            ],
+            'administration_instructions' => 'nullable|array',
+            'administration_instructions.*' => [
+                'nullable',
+                'string',
+                'max:500',
+                'regex:/^[A-Za-z0-9\s.,\-()]+$/',
+            ],
+
+            // Mobility
+            'mobility.walking_ability' => 'nullable|string|max:500|regex:/^[A-Za-z0-9\s.,\-()]+$/',
+            'mobility.assistive_devices' => 'nullable|string|max:500|regex:/^[A-Za-z0-9\s.,\-()]+$/',
+            'mobility.transportation_needs' => 'nullable|string|max:500|regex:/^[A-Za-z0-9\s.,\-()]+$/',
+
+            // Cognitive Function
+            'cognitive.memory' => 'nullable|string|max:500|regex:/^[A-Za-z0-9\s.,\-()]+$/',
+            'cognitive.thinking_skills' => 'nullable|string|max:500|regex:/^[A-Za-z0-9\s.,\-()]+$/',
+            'cognitive.orientation' => 'nullable|string|max:500|regex:/^[A-Za-z0-9\s.,\-()]+$/',
+            'cognitive.behavior' => 'nullable|string|max:500|regex:/^[A-Za-z0-9\s.,\-()]+$/',
+
+            // Emotional Well-being
+            'emotional.mood' => 'nullable|string|max:500|regex:/^[A-Za-z0-9\s.,\-()]+$/',
+            'emotional.social_interactions' => 'nullable|string|max:500|regex:/^[A-Za-z0-9\s.,\-()]+$/',
+            'emotional.emotional_support' => 'nullable|string|max:500|regex:/^[A-Za-z0-9\s.,\-()]+$/',
         
             // Address
             'address_details' => [
@@ -202,8 +249,24 @@ class BeneficiaryController extends Controller
                 'string',
                 'regex:/^[a-zA-Z0-9\s,.-]+$/', // Allows alphanumeric characters, spaces, commas, periods, and hyphens
             ],
+
+            // Emergency Contact
+            'emergency_contact.name' => [
+                'required',
+                'string',
+                'regex:/^[A-Z][a-zA-Z]*(?: [A-Z][a-zA-Z]*)+$/', // Valid full name
+                'max:100',
+            ],
+            'emergency_contact.relation' => 'required|string|in:Parent,Sibling,Spouse,Child,Relative,Friend',
+            'emergency_contact.mobile' => [
+                'required',
+                'string',
+                'regex:/^[0-9]{10,11}$/', // 10 or 11 digits
+            ],
+            'emergency_contact.email' => 'required|email|max:100',
         
-            
+            // CORRECT UP, WRONG DOWN
+
             // Email fields
             'account.email' => [
                 'required',
@@ -268,11 +331,33 @@ class BeneficiaryController extends Controller
         if ($validator->fails()) {
             return redirect()->back()->withErrors($validator)->withInput();
         }
+        
+        // Save the beneficiary and get the general_care_plan_id
+        $generalCarePlanId = GeneralCarePlan::create([
+            // Add necessary fields for the general care plan
+        ])->id;
+        
+        // Save medications only if data is provided
+        if ($request->has('medication_name') && is_array($request->input('medication_name'))) {
+            foreach ($request->input('medication_name') as $index => $medicationName) {
+                if (!empty($medicationName)) { // Ensure the medication name is not empty
+                    Medication::create([
+                        'general_care_plan_id' => $generalCarePlanId,
+                        'medication' => $medicationName,
+                        'dosage' => $request->input('dosage')[$index] ?? null,
+                        'frequency' => $request->input('frequency')[$index] ?? null,
+                        'administration_instructions' => $request->input('administration_instructions')[$index] ?? null,
+                    ]);
+                }
+            }
+        }
 
          // Handle file uploads and rename files(removed the handling of file uploads for now)
         $firstName = $request->input('first_name');
         $lastName = $request->input('last_name');
         $uniqueIdentifier = time() . '_' . Str::random(5);
+
+        
 
         // Save the administrator to the database
         $careworker = new Beneficiary();
