@@ -3,6 +3,7 @@
 namespace App\Exports;
 
 use App\Models\Beneficiary;
+use App\Models\User;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
@@ -26,9 +27,13 @@ class BeneficiariesExport implements FromCollection, WithHeadings, WithMapping, 
 
     public function collection()
     {
-        return Beneficiary::with(['category', 'barangay', 'municipality', 'status'])
-            ->whereIn('beneficiary_id', $this->beneficiaryIds)
-            ->get();
+        return Beneficiary::with([
+            'category', 
+            'barangay', 
+            'municipality', 
+            'status',
+            'generalCarePlan.careWorkerResponsibility.careWorker' // Add this relationship
+        ])->whereIn('beneficiary_id', $this->beneficiaryIds)->get();
     }
 
     public function headings(): array
@@ -36,28 +41,58 @@ class BeneficiariesExport implements FromCollection, WithHeadings, WithMapping, 
         return [
             'Full Name',
             'Category',
-            'Mobile',
+            'Status',
             'Barangay',
             'Municipality',
-            'Status',
+            'Primary Caregiver',
+            'Age',
             'Birth Date',
             'Gender',
-            'Address'
+            'Civil Status',
+            'Mobile',
+            'Landline',
+            'Address',
+            'Emergency Contact',
+            'Emergency Contact Relation',
+            'Emergency Contact Number',
+            'Emergency Contact Email',
+            'Assigned Care Worker',
+            'Care Worker Contact'
         ];
     }
 
     public function map($beneficiary): array
     {
+        // Get the first care worker responsibility for each general care plan
+        $careWorker = null;
+        $careWorkerContact = 'N/A';
+        
+        if ($beneficiary->generalCarePlan) {
+            $careWorkerResponsibility = $beneficiary->generalCarePlan->careWorkerResponsibility->first();
+            $careWorker = $careWorkerResponsibility ? $careWorkerResponsibility->careWorker : null;
+            $careWorkerContact = $careWorker ? $careWorker->mobile : 'N/A';
+        }
+
         return [
             $beneficiary->first_name . ' ' . $beneficiary->last_name,
             $beneficiary->category->category_name ?? 'N/A',
-            $beneficiary->mobile ?? 'N/A',
+            $beneficiary->status->status_name ?? 'N/A',
             $beneficiary->barangay->barangay_name ?? 'N/A',
             $beneficiary->municipality->municipality_name ?? 'N/A',
-            $beneficiary->status->status_name ?? 'N/A',
-            $beneficiary->birthday ? date('F j, Y', strtotime($beneficiary->birthday)) : 'N/A',
+            $beneficiary->primary_caregiver ?? 'N/A',
+            \Carbon\Carbon::parse($beneficiary->birthday)->age ?? 'N/A',
+            $beneficiary->birthday ? \Carbon\Carbon::parse($beneficiary->birthday)->format('m/d/Y') : 'N/A',
             $beneficiary->gender ?? 'N/A',
+            $beneficiary->civil_status ?? 'N/A',
+            $beneficiary->mobile ?? 'N/A',
+            $beneficiary->landline ?? 'N/A',
             $beneficiary->street_address ?? 'N/A',
+            $beneficiary->emergency_contact_name ?? 'N/A',
+            $beneficiary->emergency_contact_relation ?? 'N/A',
+            $beneficiary->emergency_contact_mobile ?? 'N/A',
+            $beneficiary->emergency_contact_email ?? 'N/A',
+            $careWorker ? $careWorker->first_name . ' ' . $careWorker->last_name : 'Not Assigned', // Add care worker name
+            $careWorkerContact // Add care worker contact
         ];
     }
 
@@ -90,8 +125,8 @@ class BeneficiariesExport implements FromCollection, WithHeadings, WithMapping, 
                 ]
             ],
             
-            // Style for all cells - add padding, borders, and alignment
-            'A1:I'.$highestRow => [
+            // Style for all cells - update range to cover all 19 columns (A-S)
+            'A1:S'.$highestRow => [
                 'alignment' => [
                     'vertical' => Alignment::VERTICAL_CENTER,
                     'horizontal' => Alignment::HORIZONTAL_LEFT,
@@ -119,11 +154,11 @@ class BeneficiariesExport implements FromCollection, WithHeadings, WithMapping, 
                 // Get worksheet
                 $sheet = $event->sheet->getDelegate();
                 
-                // Apply striped rows for better readability
+                // Apply striped rows for better readability - update range to cover all columns
                 $highestRow = $sheet->getHighestRow();
                 for ($row = 2; $row <= $highestRow; $row++) {
                     if ($row % 2 == 0) {
-                        $sheet->getStyle('A'.$row.':I'.$row)->applyFromArray([
+                        $sheet->getStyle('A'.$row.':S'.$row)->applyFromArray([
                             'fill' => [
                                 'fillType' => Fill::FILL_SOLID,
                                 'startColor' => ['rgb' => 'F5F5F5'] // Light grey for even rows
@@ -136,20 +171,30 @@ class BeneficiariesExport implements FromCollection, WithHeadings, WithMapping, 
                 $sheet->getDefaultRowDimension()->setRowHeight(22);
                 $sheet->getRowDimension(1)->setRowHeight(26); // Make header slightly taller
                 
-                // Adjust column widths (slightly increased for better readability)
-                $event->sheet->getColumnDimension('A')->setWidth(30); // Full Name
-                $event->sheet->getColumnDimension('B')->setWidth(20); // Category
-                $event->sheet->getColumnDimension('C')->setWidth(15); // Mobile
+                // Adjust column widths for all columns
+                $event->sheet->getColumnDimension('A')->setWidth(25); // Full Name
+                $event->sheet->getColumnDimension('B')->setWidth(15); // Category
+                $event->sheet->getColumnDimension('C')->setWidth(15); // Status
                 $event->sheet->getColumnDimension('D')->setWidth(20); // Barangay
                 $event->sheet->getColumnDimension('E')->setWidth(20); // Municipality
-                $event->sheet->getColumnDimension('F')->setWidth(15); // Status
-                $event->sheet->getColumnDimension('G')->setWidth(20); // Birth Date
-                $event->sheet->getColumnDimension('H')->setWidth(12); // Gender
-                $event->sheet->getColumnDimension('I')->setWidth(40); // Address
+                $event->sheet->getColumnDimension('F')->setWidth(20); // Primary Caregiver
+                $event->sheet->getColumnDimension('G')->setWidth(10); // Age
+                $event->sheet->getColumnDimension('H')->setWidth(15); // Birth Date
+                $event->sheet->getColumnDimension('I')->setWidth(12); // Gender
+                $event->sheet->getColumnDimension('J')->setWidth(15); // Civil Status
+                $event->sheet->getColumnDimension('K')->setWidth(15); // Mobile
+                $event->sheet->getColumnDimension('L')->setWidth(15); // Landline
+                $event->sheet->getColumnDimension('M')->setWidth(30); // Address
+                $event->sheet->getColumnDimension('N')->setWidth(20); // Emergency Contact
+                $event->sheet->getColumnDimension('O')->setWidth(20); // Emergency Contact Relation
+                $event->sheet->getColumnDimension('P')->setWidth(20); // Emergency Contact Number
+                $event->sheet->getColumnDimension('Q')->setWidth(20); // Emergency Contact Email
+                $event->sheet->getColumnDimension('R')->setWidth(25); // Assigned Care Worker
+                $event->sheet->getColumnDimension('S')->setWidth(15); // Care Worker Contact
                 
-                // Add auto-filter
+                // Add auto-filter - update range to cover all columns
                 $lastRow = $sheet->getHighestRow();
-                $sheet->setAutoFilter('A1:I' . $lastRow);
+                $sheet->setAutoFilter('A1:S' . $lastRow);
                 
                 // Add a bit of top/bottom padding using margin
                 $sheet->getPageMargins()->setTop(0.5);
