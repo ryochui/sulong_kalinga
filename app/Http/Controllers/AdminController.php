@@ -8,9 +8,11 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Log;
+
 use App\Models\User;
 use App\Models\Municipality;
 use App\Models\Barangay;
+use App\Models\Beneficiary;
 
 use App\Services\UserManagementService;
 
@@ -749,48 +751,86 @@ class AdminController extends Controller
     }
 
     public function municipality()
-{
-    // Get all municipalities for the dropdown
-    $municipalities = Municipality::orderBy('municipality_name')->get();
-    
-    // Get all barangays with their associated municipality and beneficiary count
-    $barangays = Barangay::with('municipality')
-        ->withCount('beneficiaries')
-        ->orderBy('municipality_id')
-        ->orderBy('barangay_name')
-        ->get();
-    
-    return view('admin.municipality', compact('municipalities', 'barangays'));
-}
-
-public function deleteBarangay(Request $request, $id)
-{
-    // Validate the request
-    $request->validate([
-        'password' => 'required'
-    ]);
-    
-    // Verify user password
-    if (!Hash::check($request->password, Auth::user()->password)) {
-        return back()->with('error', 'Incorrect password. Deletion cancelled.');
-    }
-    
-    try {
-        // Check if the barangay has associated beneficiaries
-        $barangay = Barangay::findOrFail($id);
+    {
+        // Get all municipalities for the dropdown
+        $municipalities = Municipality::orderBy('municipality_name')->get();
         
-        if ($barangay->beneficiaries()->count() > 0) {
-            return back()->with('error', 'This barangay cannot be deleted because it has associated beneficiaries.');
+        // Get all barangays with their associated municipality and beneficiary count
+        $barangays = Barangay::with('municipality')
+            ->withCount('beneficiaries')
+            ->orderBy('municipality_id')
+            ->orderBy('barangay_name')
+            ->get();
+        
+        return view('admin.municipality', compact('municipalities', 'barangays'));
+    }
+
+    /**
+     * Delete a barangay
+     */
+    public function deleteBarangay(Request $request, $id)
+    {
+        // Check if user is authorized (admin only)
+        if (Auth::user()->role_id != 1) {
+            return response()->json([
+                'success' => false,
+                'message' => 'You do not have permission to delete barangays.',
+                'error_type' => 'permission_denied'
+            ]);
         }
         
-        // Delete the barangay if no beneficiaries are linked
-        $barangay->delete();
+        // Validate the request
+        $validatedData = $request->validate([
+            'password' => 'required'
+        ]);
         
-        return back()->with('success', 'Barangay deleted successfully.');
-    } catch (\Exception $e) {
-        return back()->with('error', 'An error occurred while deleting the barangay: ' . $e->getMessage());
+        // Verify user password
+        if (!Hash::check($validatedData['password'], Auth::user()->password)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Incorrect password. Deletion cancelled.'
+            ]);
+        }
+        
+        try {
+            // Find the barangay
+            $barangay = Barangay::findOrFail($id);
+            
+            // Check if this barangay has beneficiaries
+            $beneficiaryCount = Beneficiary::where('barangay_id', $id)->count();
+            if ($beneficiaryCount > 0) {
+                return response()->json([
+                    'success' => false,
+                    'message' => "Cannot delete this barangay because it has {$beneficiaryCount} beneficiaries assigned to it.",
+                    'error_type' => 'dependency_beneficiaries'
+                ]);
+            }
+            
+            // Check if this is the last barangay for its municipality
+            $barangayCount = Barangay::where('municipality_id', $barangay->municipality_id)->count();
+            if ($barangayCount <= 1) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Cannot delete this barangay because it is the only barangay for its municipality.',
+                    'error_type' => 'last_barangay'
+                ]);
+            }
+            
+            // All checks passed, delete the barangay
+            $barangay->delete();
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Barangay deleted successfully.'
+            ]);
+            
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'An error occurred while deleting the barangay: ' . $e->getMessage()
+            ]);
+        }
     }
-}
 
 /**
  * Delete a municipality

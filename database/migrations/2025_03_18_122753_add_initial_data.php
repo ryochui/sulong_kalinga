@@ -126,7 +126,6 @@ return new class extends Migration
             'email' => 'emily.beridico@cose.org.ph',
             'password' => Hash::make('12312312'),
             'address' => '123 Admin Street',
-            'barangay_id' => null,
             'gender' => 'Female',
             'religion' => 'Christian',
             'nationality' => 'Filipino',

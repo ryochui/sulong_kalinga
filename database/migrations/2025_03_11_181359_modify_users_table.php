@@ -26,7 +26,6 @@ return new class extends Migration
             // $table->string('email_address', 100)->unique();
             // $table->string('password_hash', 255);
             $table->text('address')->nullable();
-            $table->integer('barangay_id')->nullable();
             $table->string('gender', 10)->nullable();
             $table->string('religion', 50)->nullable();
             $table->string('nationality', 50)->nullable();

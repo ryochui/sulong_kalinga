@@ -11,8 +11,8 @@
 <body>
     @include('components.userNavbar')
     @include('components.sidebar')
-    @include('components.modals.confirmDelete')
-    
+    @include('components.modals.deleteBarangay')
+        
     <div class="home-section">
         <div class="text-left">MUNICIPALITY</div>
         <div class="container-fluid text-center">
@@ -70,10 +70,10 @@
                                         <td>{{ $barangay->beneficiaries_count }}</td>
                                         <td>
                                             <div class="action-icons">
-                                            <i class='bx bx-trash' data-bs-toggle="modal" data-bs-target="#deleteModal" 
+                                            <i class='bx bx-trash' 
                                                 data-id="{{ $barangay->barangay_id }}" 
                                                 data-name="{{ $barangay->barangay_name }}"
-                                                onclick="setDeleteTarget(this, '{{ route('admin.deleteBarangay', $barangay->barangay_id) }}')"></i>
+                                                onclick="openDeleteBarangayModal('{{ $barangay->barangay_id }}', '{{ $barangay->barangay_name }}')"></i>
                                                 <i class='bx bxs-edit' data-bs-toggle="modal" data-bs-target="#"
                                                     data-id="{{ $barangay->barangay_id }}"
                                                     data-name="{{ $barangay->barangay_name }}"
