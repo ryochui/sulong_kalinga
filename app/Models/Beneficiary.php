@@ -17,7 +17,7 @@ class Beneficiary extends Model
         'mobile', 'landline', 'street_address', 'barangay_id', 'municipality_id', 'category_id',
         'emergency_contact_name', 'emergency_contact_relation', 'emergency_contact_mobile',
         'emergency_contact_email', 'emergency_procedure', 'beneficiary_status_id', 'status_reason', 'general_care_plan_id',
-        'portal_account_id', 'beneficiary_signature', 'care_worker_signature', 'created_by', 'updated_by'
+        'portal_account_id', 'beneficiary_signature', 'care_worker_signature', 'created_by', 'updated_by', 'photo'
     ];
 
     //Get the category associated with the beneficiary.

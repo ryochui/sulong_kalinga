@@ -24,6 +24,21 @@
             </div>
             <div class="row" id="addUserForm">
                 <div class="col-12">
+                    @if ($errors->any())
+                        <div class="alert alert-danger">
+                            <ul>
+                                @foreach ($errors->all() as $error)
+                                    <li>{{ $error }}</li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    @endif
+
+                    @if (session('success'))
+                        <div class="alert alert-success">
+                            {{ session('success') }}
+                        </div>
+                    @endif
                     <form action="{{ route('admin.addBeneficiary.store') }}" method="POST" enctype="multipart/form-data">
                         @csrf
                         <!-- Row 1: Personal Details -->
@@ -157,16 +172,16 @@
                             </div>
                         </div>
                         <div class="row mb-3">
-                        <div class="col-md-3 position-relative">
-                            <label for="category" class="form-label">Category</label>
-                            <input type="text" class="form-control" id="categoryInput" placeholder="Select category" autocomplete="off">
-                            <ul class="dropdown-menu w-100" id="categoryDropdown">
-                                <li><a class="dropdown-item" data-value="frail">Frail</a></li>
-                                <li><a class="dropdown-item" data-value="bedridden">Bedridden</a></li>
-                                <li><a class="dropdown-item" data-value="dementia">Dementia</a></li>
-                            </ul>
-                            <input type="hidden" id="category" name="category">
-                        </div>
+                            <!-- Category Dropdown -->
+                            <div class="col-md-3 position-relative">
+                                <label for="category" class="form-label">Category</label>
+                                <select class="form-select" id="category" name="category" required>
+                                    <option value="" disabled selected>Select category</option>
+                                    @foreach ($categories as $category)
+                                        <option value="{{ $category->category_id }}">{{ $category->category_name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
                         </div>
 
                         <hr class="my-4">
@@ -560,6 +575,8 @@
                                         <input type="file" class="form-control" id="beneficiarySignatureUpload" name="beneficiary_signature_upload" accept="image/png, image/jpeg">
                                     </div>
                                 </div>
+                                <!-- Hidden input to store the canvas signature as base64 -->
+                                <input type="hidden" id="beneficiarySignatureCanvas" name="beneficiary_signature_canvas">
                             </div>
 
                             <!-- Care Worker Signature Column -->
@@ -581,10 +598,12 @@
                                 </div>
                                 <div class="row mb-1">
                                     <div class="col-md-12">
-                                        <label for="beneficiarySignatureUpload" class="form-label">Upload Care Worker Signature</label>
-                                        <input type="file" class="form-control" id="beneficiarySignatureUpload" name="beneficiary_signature_upload" accept="image/png, image/jpeg">
+                                        <label for="careWorkerSignatureUpload" class="form-label">Upload Care Worker Signature</label>
+                                        <input type="file" class="form-control" id="careWorkerSignatureUpload" name="care_worker_signature_upload" accept="image/png, image/jpeg">
                                     </div>
                                 </div>
+                                <!-- Hidden input to store the canvas signature as base64 -->
+                                <input type="hidden" id="careWorkerSignatureCanvas" name="care_worker_signature_canvas">
                             </div>
                         </div>
 
@@ -596,17 +615,34 @@
                             </div>
                         </div>
                         <div class="row mb-3">
+                            <!-- Email -->
                             <div class="col-md-4">
                                 <label for="accountEmail" class="form-label">Email</label>
-                                <input type="email" class="form-control" id="accountEmail" name="account[email]" placeholder="Enter email" required>
+                                <input type="email" class="form-control" id="accountEmail" name="account[email]" 
+                                    placeholder="Enter email" 
+                                    required 
+                                    pattern="^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$" 
+                                    title="Enter a valid email address (e.g., example@domain.com)" 
+                                    oninput="validateEmail(this)">
                             </div>
+
+                            <!-- Password -->
                             <div class="col-md-4">
                                 <label for="password" class="form-label">Password</label>
-                                <input type="password" class="form-control" id="password" name="account[password]" placeholder="Enter password" required>
+                                <input type="password" class="form-control" id="password" name="account[password]" 
+                                    placeholder="Enter password" 
+                                    required 
+                                    minlength="8" 
+                                    title="Password must be at least 8 characters long.">
                             </div>
+
+                            <!-- Confirm Password -->
                             <div class="col-md-4">
                                 <label for="confirmPassword" class="form-label">Confirm Password</label>
-                                <input type="password" class="form-control" id="confirmPassword" name="account[confirm_password]" placeholder="Confirm password" required>
+                                <input type="password" class="form-control" id="confirmPassword" name="account[password_confirmation]" 
+                                    placeholder="Confirm password" 
+                                    required 
+                                    title="Passwords must match.">
                             </div>
                         </div>
 
@@ -772,7 +808,6 @@
     </script>
    <script>
         document.addEventListener("DOMContentLoaded", function () {
-            // Initialize Signature Pads
             const canvas1 = document.getElementById("canvas1");
             const canvas2 = document.getElementById("canvas2");
 
@@ -797,39 +832,46 @@
             window.addEventListener("resize", initializeCanvas);
             initializeCanvas();
 
-            // Clear First Signature
+            // Clear Beneficiary Signature
             document.getElementById("clear-signature-1").addEventListener("click", function () {
                 signaturePad1.clear();
+                document.getElementById("beneficiarySignatureCanvas").value = ""; // Clear the hidden input
             });
 
-            // Clear Second Signature
+            // Clear Care Worker Signature
             document.getElementById("clear-signature-2").addEventListener("click", function () {
                 signaturePad2.clear();
+                document.getElementById("careWorkerSignatureCanvas").value = ""; // Clear the hidden input
             });
 
-            // Handle Form Submission
-            document.getElementById("addBeneficiaryForm").addEventListener("submit", function (e) {
-                e.preventDefault();
-
-                if (signaturePad1.isEmpty()) {
-                    alert("Please draw the first signature.");
-                    return;
+            // Save Beneficiary Signature as base64 when a drawing is detected
+            canvas1.addEventListener("mouseup", function () {
+                if (!signaturePad1.isEmpty()) {
+                    const signatureDataURL = signaturePad1.toDataURL("image/png");
+                    document.getElementById("beneficiarySignatureCanvas").value = signatureDataURL;
                 }
+            });
 
-                if (signaturePad2.isEmpty()) {
-                    alert("Please draw the second signature.");
-                    return;
+            canvas1.addEventListener("touchend", function () {
+                if (!signaturePad1.isEmpty()) {
+                    const signatureDataURL = signaturePad1.toDataURL("image/png");
+                    document.getElementById("beneficiarySignatureCanvas").value = signatureDataURL;
                 }
+            });
 
-                // Save signatures as base64 images
-                const signatureDataURL1 = signaturePad1.toDataURL();
-                const signatureDataURL2 = signaturePad2.toDataURL();
+            // Save Care Worker Signature as base64 when a drawing is detected
+            canvas2.addEventListener("mouseup", function () {
+                if (!signaturePad2.isEmpty()) {
+                    const signatureDataURL = signaturePad2.toDataURL("image/png");
+                    document.getElementById("careWorkerSignatureCanvas").value = signatureDataURL;
+                }
+            });
 
-                // Log the signatures (you can send these to the backend)
-                console.log("First Signature (Base64):", signatureDataURL1);
-                console.log("Second Signature (Base64):", signatureDataURL2);
-
-                alert("Both signatures submitted successfully!");
+            canvas2.addEventListener("touchend", function () {
+                if (!signaturePad2.isEmpty()) {
+                    const signatureDataURL = signaturePad2.toDataURL("image/png");
+                    document.getElementById("careWorkerSignatureCanvas").value = signatureDataURL;
+                }
             });
         });
     </script>
@@ -873,6 +915,19 @@
 
             // Initially disable the barangay dropdown
             barangayDropdown.disabled = true;
+        });
+
+        document.addEventListener("DOMContentLoaded", function () {
+            const password = document.getElementById("password");
+            const confirmPassword = document.getElementById("confirmPassword");
+
+            confirmPassword.addEventListener("input", function () {
+                if (confirmPassword.value !== password.value) {
+                    confirmPassword.setCustomValidity("Passwords do not match.");
+                } else {
+                    confirmPassword.setCustomValidity("");
+                }
+            });
         });
     </script>
 

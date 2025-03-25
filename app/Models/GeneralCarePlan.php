@@ -18,7 +18,7 @@ class GeneralCarePlan extends Model
      * @var array<string>
      */
     protected $fillable = [
-        'care_worker_id', 'emergency_plan', 'review_date'
+        'care_worker_id', 'emergency_plan', 'review_date', 'created_at', 'updated_at'
     ];
 
     /**
