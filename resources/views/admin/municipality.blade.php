@@ -3,17 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard</title>
+    <title>Municipality Management</title>
     <link rel="stylesheet" href="{{ asset('css/bootstrap.min.css') }}">
     <link href='https://unpkg.com/boxicons@2.0.7/css/boxicons.min.css' rel='stylesheet'>
     <link rel="stylesheet" href="{{ asset('css/municipality.css') }}">
 </head>
 <body>
-
     @include('components.userNavbar')
     @include('components.sidebar')
-    @include('components.modals.confirmDelete')
-    
+    @include('components.modals.deleteBarangay')
+    @include('components.modals.deleteMunicipality')
+    @include('components.modals.selectMunicipality')
+
     <div class="home-section">
         <div class="text-left">MUNICIPALITY</div>
         <div class="container-fluid text-center">
@@ -24,31 +25,37 @@
                         <span class="input-group-text">
                             <i class="bx bx-search-alt"></i>
                         </span>
-                        <input type="text" class="form-control" placeholder="Search reports..." id="searchBar">
+                        <input type="text" class="form-control" placeholder="Search barangay..." id="searchBar">
                     </div>
                 </div>
 
                 <!-- Filter Dropdown -->
-                <div class="col-12 col-md-6 col-lg-4 mb-2">
+                <div class="col-12 col-md-6 col-lg-3 mb-2">
                     <div class="input-group">
                         <span class="input-group-text">
                             <i class="bx bx-filter-alt"></i>
                         </span>
                         <select class="form-select" id="filterDropdown">
-                            <option value="mondragon" selected>Municipality of Mondragon</option>
-                            <option value="author">Municipality of SanRoque</option>
+                            <option value="">All Municipalities</option>
+                            @foreach($municipalities as $municipality)
+                                <option value="{{ $municipality->municipality_id }}">{{ $municipality->municipality_name }}</option>
+                            @endforeach
                         </select>
                     </div>
                 </div>
 
-                <!-- Add Report Button -->
-                <div class="col-12 col-md-6 col-lg-3 mb-2">
-                    <button class="btn btn-primary w-100" id="addButton">
-                        <i class="bx bx-plus"></i> Add Municipality
-                    </button>
+                <!-- Add/Delete Municipality Buttons -->
+                <div class="col-12 col-md-6 col-lg-4 mb-2">
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-primary flex-grow-1" id="addButton" data-bs-toggle="modal" data-bs-target="#">
+                            <i class="bx bx-plus"></i> Add Municipality
+                        </button>
+                        <button class="btn btn-danger flex-grow-1" id="deleteMunicipalityButton">
+                            <i class="bx bx-trash"></i> Delete Municipality
+                        </button>
+                    </div>
                 </div>
             </div>
-
 
             <div class="row" id="recentReports">
                 <div class="col-12">
@@ -56,28 +63,37 @@
                         <table class="table table-striped w-100 align-middle">
                             <thead>
                                 <tr>
+                                    <th scope="col">Municipality</th>
                                     <th scope="col">Barangay</th>
-                                    <th scope="col">Assigned Caregiver</th>
-                                    <th scope="col">Assigned Care Manager</th>
                                     <th scope="col">Beneficiaries</th>
                                     <th scope="col">Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                @for ($i = 1; $i <= 33; $i++)
-                                    <tr>
-                                        <td>Barangay</td>
-                                        <td>Mark</td>
-                                        <td>@mdo</td>
-                                        <td>Otto</td>
+                                @forelse($barangays as $barangay)
+                                    <tr class="municipality-row" data-municipality="{{ $barangay->municipality->municipality_id }}">
+                                        <td>{{ $barangay->municipality->municipality_name }}</td>
+                                        <td>{{ $barangay->barangay_name }}</td>
+                                        <td>{{ $barangay->beneficiaries_count }}</td>
                                         <td>
                                             <div class="action-icons">
-                                                <i class='bx bx-trash' data-bs-toggle="modal" data-bs-target="#deleteModal" onclick="setDeleteTarget(this)"></i>
-                                                <i class='bx bxs-edit'></i>
-                                            </div>
+                                            <i class='bx bx-trash' 
+                                                data-id="{{ $barangay->barangay_id }}" 
+                                                data-name="{{ $barangay->barangay_name }}"
+                                                onclick="openDeleteBarangayModal('{{ $barangay->barangay_id }}', '{{ $barangay->barangay_name }}')"></i>
+                                                <i class='bx bxs-edit' data-bs-toggle="modal" data-bs-target="#"
+                                                    data-id="{{ $barangay->barangay_id }}"
+                                                    data-name="{{ $barangay->barangay_name }}"
+                                                    data-municipality="{{ $barangay->municipality_id }}"
+                                                    onclick="prepareEdit(this)"></i>
+                                            </div>          
                                         </td>
                                     </tr>
-                                @endfor
+                                @empty
+                                    <tr>
+                                        <td colspan="4" class="text-center">No barangays found</td>
+                                    </tr>
+                                @endforelse
                             </tbody>
                         </table>
                     </div>
@@ -86,8 +102,75 @@
         </div>
     </div>
 
-    <script src=" {{ asset('js/toggleSideBar.js') }}"></script>
+    {{-- Add Municipality Modal --}}
+    {{-- @include('components.modals.addMunicipality') --}}
+    
+    {{-- Edit Barangay Modal --}}
+    {{-- @include('components.modals.editBarangay') --}}
+
+    <script src="{{ asset('js/toggleSideBar.js') }}"></script>
     <script src="{{ asset('js/bootstrap.bundle.min.js') }}"></script>
     <script src="{{ asset('js/deleteModal.js') }}"></script>
+    
+    <script>
+        // Search functionality
+        document.getElementById('searchBar').addEventListener('input', function() {
+            const searchText = this.value.toLowerCase();
+            const rows = document.querySelectorAll('.municipality-row');
+            
+            rows.forEach(row => {
+                const barangayName = row.querySelector('td:nth-child(2)').textContent.toLowerCase();
+                const municipalityName = row.querySelector('td:first-child').textContent.toLowerCase();
+                
+                if (barangayName.includes(searchText) || municipalityName.includes(searchText)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        });
+        
+        // Filter functionality
+        document.getElementById('filterDropdown').addEventListener('change', function() {
+            const municipalityId = this.value;
+            const rows = document.querySelectorAll('.municipality-row');
+            
+            if (!municipalityId) {
+                // Show all rows if "All Municipalities" is selected
+                rows.forEach(row => {
+                    row.style.display = '';
+                });
+                return;
+            }
+            
+            rows.forEach(row => {
+                if (row.dataset.municipality === municipalityId) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        });
+        
+        // Set up delete target
+        function setDeleteTarget(element) {
+            const id = element.dataset.id;
+            const name = element.dataset.name;
+            
+            document.getElementById('deleteForm').action = `/admin/delete-barangay/${id}`;
+            document.getElementById('deleteItemName').textContent = name;
+        }
+        
+        // Prepare edit modal
+        function prepareEdit(element) {
+            const id = element.dataset.id;
+            const name = element.dataset.name;
+            const municipalityId = element.dataset.municipality;
+            
+            document.getElementById('editBarangayId').value = id;
+            document.getElementById('editBarangayName').value = name;
+            document.getElementById('editMunicipalityId').value = municipalityId;
+        }
+    </script>
 </body>
 </html>

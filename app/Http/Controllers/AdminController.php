@@ -8,7 +8,11 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Log;
+
 use App\Models\User;
+use App\Models\Municipality;
+use App\Models\Barangay;
+use App\Models\Beneficiary;
 
 use App\Services\UserManagementService;
 
@@ -744,6 +748,173 @@ class AdminController extends Controller
         );
         
         return response()->json($result);
+    }
+
+    public function municipality()
+    {
+        try {
+            // Get all municipalities for the dropdown
+            $municipalities = Municipality::orderBy('municipality_name')->get();
+            
+            // Get all barangays with their associated municipality and beneficiary count
+            $barangays = Barangay::with('municipality')
+                ->withCount('beneficiaries')
+                ->orderBy('municipality_id')
+                ->orderBy('barangay_name')
+                ->get();
+            
+            return view('admin.municipality', compact('municipalities', 'barangays'));
+        } catch (\Exception $e) {
+            dd($e->getMessage()); // This will show the error message
+        }
+    }
+
+    /**
+     * Delete a barangay
+     */
+    public function deleteBarangay(Request $request, $id)
+    {
+        // Check if user is authorized (admin only)
+        if (Auth::user()->role_id != 1) {
+            return response()->json([
+                'success' => false,
+                'message' => 'You do not have permission to delete barangays.',
+                'error_type' => 'permission_denied'
+            ]);
+        }
+        
+        // Validate the request
+        $validatedData = $request->validate([
+            'password' => 'required'
+        ]);
+        
+        // Verify user password
+        if (!Hash::check($validatedData['password'], Auth::user()->password)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Incorrect password. Deletion cancelled.'
+            ]);
+        }
+        
+        try {
+            // Find the barangay
+            $barangay = Barangay::findOrFail($id);
+            
+            // Check if this barangay has beneficiaries
+            $beneficiaryCount = Beneficiary::where('barangay_id', $id)->count();
+            if ($beneficiaryCount > 0) {
+                return response()->json([
+                    'success' => false,
+                    'message' => "Cannot delete this barangay because it has {$beneficiaryCount} beneficiaries assigned to it.",
+                    'error_type' => 'dependency_beneficiaries'
+                ]);
+            }
+            
+            // Check if this is the last barangay for its municipality
+            $barangayCount = Barangay::where('municipality_id', $barangay->municipality_id)->count();
+            if ($barangayCount <= 1) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Cannot delete this barangay because it is the only barangay for its municipality.',
+                    'error_type' => 'last_barangay'
+                ]);
+            }
+            
+            // All checks passed, delete the barangay
+            $barangay->delete();
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Barangay deleted successfully.'
+            ]);
+            
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'An error occurred while deleting the barangay: ' . $e->getMessage()
+            ]);
+        }
+    }
+
+    /**
+     * Delete a municipality
+     */
+    public function deleteMunicipality(Request $request, $id)
+    {
+        // Check if user is authorized (admin only)
+        if (Auth::user()->role_id != 1) {
+            return response()->json([
+                'success' => false,
+                'message' => 'You do not have permission to delete municipalities.',
+                'error_type' => 'permission_denied'
+            ]);
+        }
+        
+        // Validate the request
+        $validatedData = $request->validate([
+            'password' => 'required'
+        ]);
+        
+        // Verify user password
+        if (!Hash::check($validatedData['password'], Auth::user()->password)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Incorrect password. Deletion cancelled.'
+            ]);
+        }
+        
+        try {
+            // Find the municipality
+            $municipality = Municipality::findOrFail($id);
+            
+            // Check if this municipality has barangays
+            $barangayCount = Barangay::where('municipality_id', $id)->count();
+            if ($barangayCount > 0) {
+                return response()->json([
+                    'success' => false,
+                    'message' => "Cannot delete this municipality because it has {$barangayCount} barangays assigned to it.",
+                    'error_type' => 'dependency_barangays'
+                ]);
+            }
+            
+            // Check if this municipality has beneficiaries directly assigned to it
+            $beneficiaryCount = Beneficiary::where('municipality_id', $id)->count();
+            if ($beneficiaryCount > 0) {
+                return response()->json([
+                    'success' => false,
+                    'message' => "Cannot delete this municipality because it has {$beneficiaryCount} beneficiaries assigned to it.",
+                    'error_type' => 'dependency_beneficiaries'
+                ]);
+            }
+            
+            // Check if this municipality has care users (workers, managers) assigned to it
+            // Adjust the column name if it's different in your database
+            $careUsersCount = User::whereIn('role_id', [2, 3]) // Role IDs for care managers and care workers
+                                ->where('municipality_id', $id)
+                                ->count();
+            
+            if ($careUsersCount > 0) {
+                return response()->json([
+                    'success' => false,
+                    'message' => "Cannot delete this municipality because it has {$careUsersCount} care users assigned to it.",
+                    'error_type' => 'dependency_care_users'
+                ]);
+            }
+            
+            // All checks passed, delete the municipality
+            $municipality->delete();
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Municipality deleted successfully.'
+            ]);
+            
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'An error occurred while deleting the municipality: ' . $e->getMessage()
+            ]);
+        }
     }
 
 }

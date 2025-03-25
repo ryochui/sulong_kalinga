@@ -27,7 +27,7 @@ return new class extends Migration
             $table->integer('category_id');
             $table->string('emergency_contact_name', 255);
             $table->string('emergency_contact_relation', 50)->nullable();
-            $table->string('emergency_contact_mobile', 11);
+            $table->string('emergency_contact_mobile', 18);
             $table->string('emergency_contact_email', 100)->nullable();
             $table->text('emergency_procedure');
             $table->integer('beneficiary_status_id');

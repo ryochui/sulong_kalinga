@@ -1,8 +1,8 @@
 <div class="modal fade" id="deleteCareworkerModal" tabindex="-1" aria-labelledby="deleteCareworkerModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="deleteCareworkerModalLabel">Confirm Care Worker Deletion</h5>
+            <div class="modal-header" style="background-color:rgb(251, 68, 68);">
+                <h5 class="modal-title text-white" id="deleteCareworkerModalLabel">Confirm Care Worker Deletion</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">

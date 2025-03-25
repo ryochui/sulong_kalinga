@@ -59,9 +59,14 @@ Route::get('/addAdministrator', function () {
     return view('admin.addAdministrator');
 })->name('addAdministrator');
 
-Route::get('/municipality', function () {
-    return view('admin.municipality');
-})->name('municipality');
+// Municipality table view
+Route::get('/municipality', [AdminController::class, 'municipality'])->name('municipality');
+
+// Barangay deletion route
+Route::delete('/admin/delete-barangay/{id}', [AdminController::class, 'deleteBarangay'])->name('admin.deleteBarangay');
+
+// Municipality deletion route
+Route::delete('/admin/delete-municipality/{id}', [AdminController::class, 'deleteMunicipality'])->name('admin.deleteMunicipality');
 
 Route::get('/weeklyCareplan', function () {
     return view('careWorker.weeklyCareplan');

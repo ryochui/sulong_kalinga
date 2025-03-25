@@ -70,8 +70,8 @@ class BeneficiariesExport implements FromCollection, WithHeadings, WithMapping, 
         if ($beneficiary->generalCarePlan) {
             $careWorkerResponsibility = $beneficiary->generalCarePlan->careWorkerResponsibility->first();
             $careWorker = $careWorkerResponsibility ? $careWorkerResponsibility->careWorker : null;
-            $careWorkerContact = $careWorker ? $careWorker->mobile : 'N/A';
-        }
+            $careWorkerContact = $careWorker ? "'".$careWorker->mobile."'" : 'N/A'; // Add single quote prefix        
+            }
 
         return [
             $beneficiary->first_name . ' ' . $beneficiary->last_name,
@@ -84,12 +84,11 @@ class BeneficiariesExport implements FromCollection, WithHeadings, WithMapping, 
             $beneficiary->birthday ? \Carbon\Carbon::parse($beneficiary->birthday)->format('m/d/Y') : 'N/A',
             $beneficiary->gender ?? 'N/A',
             $beneficiary->civil_status ?? 'N/A',
-            $beneficiary->mobile ?? 'N/A',
-            $beneficiary->landline ?? 'N/A',
+            ($beneficiary->mobile ? "'".$beneficiary->mobile."'" : 'N/A'),            $beneficiary->landline ?? 'N/A',
             $beneficiary->street_address ?? 'N/A',
             $beneficiary->emergency_contact_name ?? 'N/A',
             $beneficiary->emergency_contact_relation ?? 'N/A',
-            $beneficiary->emergency_contact_mobile ?? 'N/A',
+            ($beneficiary->emergency_contact_mobile ? "'".$beneficiary->emergency_contact_mobile."'" : 'N/A'),
             $beneficiary->emergency_contact_email ?? 'N/A',
             $careWorker ? $careWorker->first_name . ' ' . $careWorker->last_name : 'Not Assigned', // Add care worker name
             $careWorkerContact // Add care worker contact
@@ -202,6 +201,11 @@ class BeneficiariesExport implements FromCollection, WithHeadings, WithMapping, 
                 
                 // Freeze the header row
                 $sheet->freezePane('A2');
+
+                // Format columns with mobile numbers as text
+$sheet->getStyle('K2:K'.$highestRow)->getNumberFormat()->setFormatCode('@');
+$sheet->getStyle('P2:P'.$highestRow)->getNumberFormat()->setFormatCode('@');
+$sheet->getStyle('S2:S'.$highestRow)->getNumberFormat()->setFormatCode('@');
             },
         ];
     }

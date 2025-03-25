@@ -21,7 +21,6 @@ class UserFactory extends Factory
         $role_id = $this->faker->randomElement([1, 2, 3]);
         $organization_role_id = $role_id == 1 ? $this->faker->randomElement([2, 3]) : null;
         $municipalityId = $this->faker->randomElement([1, 2]);
-        $barangayId = $municipalityId == 1 ? $this->faker->numberBetween(1, 24) : $this->faker->numberBetween(1, 16);
 
         return [
             'first_name' => $this->faker->firstName,
@@ -29,13 +28,12 @@ class UserFactory extends Factory
             'birthday' => $this->faker->date(),
             'civil_status' => $this->faker->randomElement(['Single', 'Married', 'Widowed']),
             'educational_background' => $this->faker->randomElement(['High School', 'College', 'Graduate']),
-            'mobile' => $this->faker->unique()->numerify('+63##########'),
+            'mobile' => '+63' . $this->faker->numerify('##########'),
             'landline' => $this->faker->unique()->numerify('########'),
             'personal_email' => $this->faker->unique()->safeEmail,
             'email' => $this->faker->unique()->safeEmail,
             'password' => Hash::make('12312312'), // Set the password to '12312312' and hash it
             'address' => $this->faker->address,
-            'barangay_id' => $barangayId,
             'gender' => $this->faker->randomElement(['Male', 'Female']),
             'religion' => $this->faker->randomElement(['Christian', 'Muslim', 'Other']),
             'nationality' => 'Filipino',
