@@ -11,7 +11,7 @@
 <body>
 
     @include('components.userNavbar')
-    @include('components.sidebar')
+    @include('components.careManagerSidebar')
 
     <div class="home-section">
       <div class="text-left">DASHBOARD</div>

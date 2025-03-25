@@ -67,6 +67,10 @@ Route::get('/weeklyCareplan', function () {
     return view('careWorker.weeklyCareplan');
 })->name('weeklyCareplan');
 
+Route::get('/viewWeeklyCareplan', function () {
+    return view('careWorker.viewWeeklyCareplan');
+})->name('viewWeeklyCareplan');
+
 /*Route::get('/viewProfileDetails', function () {
     return view('admin.viewProfileDetails');
 })->name('viewProfileDetails');*/
