@@ -1,7 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Admin\ReportsController;
+use App\Http\Controllers\ReportsController;
 // use App\Http\Controllers\AuthController; // old auth
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\AdminController;
@@ -13,6 +13,9 @@ use App\Http\Controllers\CareWorkerController;
 use App\Http\Controllers\CareManagerController;
 use App\Http\Controllers\MunicipalityController;
 use App\Http\Controllers\ExportController;
+use App\Http\Controllers\WeeklyCareController;
+
+
 
 
 require __DIR__.'/innerRoutes.php';
@@ -34,6 +37,7 @@ Route::post('logout', [LoginController::class, 'logout'])->name('logout'); // no
     Route::post('addCareManager', [CareManagerController::class, 'storeCareManager'])->name('admin.addCareManager.store');
     Route::post('addCareWorker', [CareWorkerController::class, 'storeCareWorker'])->name('admin.addCareWorker.store');
     Route::post('addFamily', [FamilyMemberController::class, 'storeFamily'])->name('admin.addFamily.store');
+    Route::post('addBeneficiary', [BeneficiaryController::class, 'storeBeneficiary'])->name('admin.addBeneficiary.store');
     
     Route::get('/', function () {
         return view('publicWeb.landing');
@@ -88,6 +92,8 @@ Route::post('logout', [LoginController::class, 'logout'])->name('logout'); // no
 
     Route::get('addFamily', [FamilyMemberController::class, 'create'])->name('admin.addFamily');
 
+    Route::get('addBeneficiary', [BeneficiaryController::class, 'create'])->name('admin.addBeneficiary');
+
     //For beneficiary profiles table
     Route::get('/beneficiaryProfile', [BeneficiaryController::class, 'index'])->name('admin.beneficiaryProfile');
     Route::put('/admin/beneficiaries/{id}/status', [BeneficiaryController::class, 'updateStatus']);
@@ -95,9 +101,7 @@ Route::post('logout', [LoginController::class, 'logout'])->name('logout'); // no
     Route::post('/validate-password', [UserController::class, 'validatePassword']);
 
     //For family member profiles table
-    Route::get('/familyProfile', [FamilyMemberController::class, 'index'])->name('admin.familyProfile');
-    Route::put('/admin/family-members/{id}/status', [FamilyMemberController::class, 'updateStatus']);
-    
+    Route::get('/familyProfile', [FamilyMemberController::class, 'index'])->name('admin.familyProfile');    
     // For careworker profiles table
     Route::get('/careWorkerProfile', [CareWorkerController::class, 'index'])->name('admin.careWorkerProfile');
     Route::put('/admin/careworkers/{id}/status', [CareWorkerController::class, 'updateStatus']);
@@ -133,3 +137,17 @@ Route::post('logout', [LoginController::class, 'logout'])->name('logout'); // no
 
     Route::post('/admin/delete-careworker', [AdminController::class, 'deleteCareworker'])->middleware(['auth']);
     Route::post('/caremanager/delete-careworker', [CareManagerController::class, 'deleteCareworker'])->middleware(['auth']);
+    
+    Route::post('/admin/delete-family-member', [AdminController::class, 'deleteFamilyMember'])->middleware(['auth']);
+    Route::post('/caremanager/delete-family-member', [CareManagerController::class, 'deleteFamilyMember'])->middleware(['auth']);
+
+    Route::post('/admin/delete-beneficiary', [AdminController::class, 'deleteBeneficiary'])->middleware(['auth']);
+    Route::post('/caremanager/delete-beneficiary', [CareManagerController::class, 'deleteBeneficiary'])->middleware(['auth']);
+
+    //Reports Management
+    Route::get('/reports', [ReportsController::class, 'index'])->name('reports')->middleware('auth');
+
+    //Weekly Care Plan Routes
+    Route::get('/weekly-care-plans/create', [WeeklyCareController::class, 'create'])->name('weeklycareplans.create');
+Route::post('/weekly-care-plans', [WeeklyCareController::class, 'store'])->name('weeklycareplans.store');
+Route::get('/weekly-care-plans/beneficiary/{id}', [WeeklyCareController::class, 'getBeneficiaryDetails']);

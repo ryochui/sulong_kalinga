@@ -49,28 +49,6 @@ class FamilyMemberController extends Controller
         return view('admin.familyProfile', compact('family_members', 'search', 'filter'));
     }
 
-    public function updateStatus($id, Request $request)
-    {
-        $request->validate([
-            'status' => 'required|string'
-        ]);
-
-        \Log::info('Status received: ' . $request->input('status')); // Log the status value
-
-        try {
-            $family_member = FamilyMember::findOrFail($id);
-            $family_member->access = $request->input('status') === 'Approved' ? 1 : 0;
-            $family_member->updated_by = Auth::id(); // Set the updated_by column to the current user's ID
-            $family_member->updated_at = now(); // Set the updated_at column to the current timestamp
-            $family_member->save();
-
-            return response()->json(['success' => true]);
-        } catch (\Exception $e) {
-            \Log::error('Error updating family member status: ' . $e->getMessage());
-            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
-        }
-    }
-
     public function viewFamilyDetails(Request $request)
     {
         $family_member_id = $request->input('family_member_id');
@@ -221,9 +199,10 @@ class FamilyMemberController extends Controller
         $familymember->email = $request->input('personal_email');
         // $familymember->password = bcrypt($request->input('account.password'));
         $familymember->street_address = $request->input('address_details');
-        $familymember->access = True; // Status for access to the system
+        // $familymember->access = True; // Status for access to the system (REMOVED BECAUSE 'access' COLUMN WILL BE REMOVED)
         $familymember->created_at = now();
         $familymember->created_by = Auth::id(); // Set the created_by column to the current user's ID   
+        $family_member->updated_by = Auth::id(); // Set the updated_by column to the current user's ID
         // $familymember->assigned_municipality_id = $request->input('municipality');
 
         // Save file paths and IDs

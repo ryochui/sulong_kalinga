@@ -20,4 +20,9 @@ class Intervention extends Model
     protected $fillable = [
         'care_category_id', 'intervention_description'
     ];
+
+    public function careCategory()
+    {
+        return $this->belongsTo(CareCategory::class, 'care_category_id', 'care_category_id');
+    }
 }

@@ -16,13 +16,13 @@
           </ul>
         </li>
         <li>
-          <a href="reportsManagement" class="{{ Request::routeIs('reportsManagement') ? 'active' : '' }}">
+        <a href="{{ route('reports') }}" class="{{ Request::routeIs('reports') ? 'active' : '' }}">
             <i class='bx bx-file'></i>
             <span class="link_name">Reports Management</span>
-          </a>
-          <ul class="sub-menu blank">
-            <li><a class="link_name" href="reportsManagement">Reports Management</a></li>
-          </ul>
+        </a>
+        <ul class="sub-menu blank">
+            <li><a class="link_name" href="{{ route('reports') }}">Reports Management</a></li>
+        </ul>
         </li>
         <li>
           <div class="iocn-link">
@@ -51,13 +51,13 @@
           </ul>
         </li>
         <li>
-          <a href="weeklyCareplan" class="{{ Request::routeIs('weeklyCareplan') ? 'active' : '' }}">
-            <i class='bx bx-task'></i>
-            <span class="link_name">Weekly Care Plan</span>
-          </a>
-          <ul class="sub-menu blank">
-            <li><a class="link_name" href="weeklyCareplan">Weekly Care Plan</a></li>
-          </ul>
+            <a href="{{ route('weeklycareplans.create') }}" class="{{ Request::routeIs('weeklycareplans.create') ? 'active' : '' }}">
+                <i class='bx bx-task'></i>
+                <span class="link_name">Weekly Care Plan</span>
+            </a>
+            <ul class="sub-menu blank">
+                <li><a class="link_name" href="{{ route('weeklycareplans.create') }}">Weekly Care Plan</a></li>
+            </ul>
         </li>
       </ul>
     </div>

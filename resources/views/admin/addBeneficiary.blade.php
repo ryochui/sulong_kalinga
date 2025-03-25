@@ -24,8 +24,7 @@
             </div>
             <div class="row" id="addUserForm">
                 <div class="col-12">
-                    <!-- <form action="{{ route('addBeneficiary') }}" method="POST"> -->
-                    <form id="addBeneficiaryForm">
+                    <form action="{{ route('admin.addBeneficiary.store') }}" method="POST" enctype="multipart/form-data">
                         @csrf
                         <!-- Row 1: Personal Details -->
                         <div class="row mb-1 mt-3">
@@ -34,38 +33,46 @@
                             </div>
                         </div>
                         <div class="row mb-1">
-                            <div class="col-md-3">
+                            <div class="col-md-3 relative">
                                 <label for="firstName" class="form-label">First Name</label>
-                                <input type="text" class="form-control" id="firstName" name="first_name" placeholder="Enter first name" required>
+                                <input type="text" class="form-control" id="firstName" name="first_name" 
+                                        placeholder="Enter first name" 
+                                        required 
+                                        oninput="validateName(this)" 
+                                        pattern="^[A-Z][a-zA-Z]*(?:-[a-zA-Z]+)?(?: [a-zA-Z]+(?:-[a-zA-Z]+)*)*$" 
+                                        title="First letter must be uppercase. Only alphabets, single spaces, and hyphens are allowed. Single-letter words are not allowed.">
                             </div>
-                            <div class="col-md-3">
+                            <div class="col-md-3 relative">
                                 <label for="lastName" class="form-label">Last Name</label>
-                                <input type="text" class="form-control" id="lastName" name="last_name" placeholder="Enter last name" required>
+                                <input type="text" class="form-control" id="lastName" name="last_name" 
+                                        placeholder="Enter last name" 
+                                        required 
+                                        oninput="validateName(this)" 
+                                        pattern="^[A-Z][a-zA-Z]*(?:-[a-zA-Z]+)?(?: [a-zA-Z]+(?:-[a-zA-Z]+)*)*$" 
+                                        title="First letter must be uppercase. Only alphabets, single spaces, and hyphens are allowed. Single-letter words are not allowed.">
                             </div>
-                            <div class="col-md-3 position-relative">
+                            <div class="col-md-3 relative">
                                 <label for="civilStatus" class="form-label">Civil Status</label>
-                                <input type="text" class="form-control" id="civilStatusInput" placeholder="Select civil status" autocomplete="off">
-                                <ul class="dropdown-menu w-100" id="civilStatusDropdown">
-                                    <li><a class="dropdown-item" data-value="single">Single</a></li>
-                                    <li><a class="dropdown-item" data-value="married">Married</a></li>
-                                    <li><a class="dropdown-item" data-value="widowed">Widowed</a></li>
-                                    <li><a class="dropdown-item" data-value="divorced">Divorced</a></li>
-                                </ul>
-                                <input type="hidden" id="civilStatus" name="civil_status">
+                                <select class="form-select" id="civilStatus" name="civil_status" required>
+                                    <option value="" disabled selected>Select civil status</option>
+                                    <option value="Single">Single</option>
+                                    <option value="Married">Married</option>
+                                    <option value="Widowed">Widowed</option>
+                                    <option value="Divorced">Divorced</option>
+                                </select>
                             </div>
-                            <div class="col-md-3 position-relative">
+                            <div class="col-md-3 relative">
                                 <label for="gender" class="form-label">Gender</label>
-                                <input type="text" class="form-control" id="genderInput" placeholder="Select gender" autocomplete="off">
-                                <ul class="dropdown-menu w-100" id="genderDropdown">
-                                    <li><a class="dropdown-item" data-value="male">Male</a></li>
-                                    <li><a class="dropdown-item" data-value="female">Female</a></li>
-                                    <li><a class="dropdown-item" data-value="other">Other</a></li>
-                                </ul>
-                                <input type="hidden" id="gender" name="gender">
+                                <select class="form-select" id="gender" name="gender" required>
+                                    <option value="" disabled selected>Select gender</option>
+                                    <option value="Male">Male</option>
+                                    <option value="Female">Female</option>
+                                    <option value="Other">Other</option>
+                                </select>
                             </div>
                         </div>
                         <div class="row mb-3">
-                            <div class="col-md-3">
+                        <div class="col-md-3">
                                 <label for="birthDate" class="form-label">Birthday</label>
                                 <input type="date" class="form-control" id="birthDate" name="birth_date" required onkeydown="return true">
                             </div>
@@ -75,11 +82,14 @@
                             </div>
                             <div class="col-md-3">
                                 <label for="mobileNumber" class="form-label">Mobile Number</label>
-                                <input type="text" class="form-control" id="mobileNumber" name="mobile_number" placeholder="Enter mobile number" required>
+                                <div class="input-group">
+                                    <span class="input-group-text">+63</span>
+                                    <input type="text" class="form-control" id="mobileNumber" name="mobile_number" placeholder="Enter mobile number" maxlength="11" required oninput="restrictToNumbers(this)" title="Must be 10 or 11digits.">
+                                </div>
                             </div>
                             <div class="col-md-3">
                                 <label for="landlineNumber" class="form-label">Landline Number</label>
-                                <input type="text" class="form-control" id="landlineNumber" name="landline_number" placeholder="Enter landline number">
+                                <input type="text" class="form-control" id="landlineNumber" name="landline_number" placeholder="Enter Landline number" maxlength="10" required oninput="restrictToNumbers(this)" title="Must be between 7 and 10 digits.">
                             </div>
                         </div>
 
@@ -92,28 +102,32 @@
                         </div>
                         <div class="row mb-3">
                             <div class="col-md-6">
-                                <label for="addressDetails" class="form-label">House No., Street, Subdivision</label>
-                                <input type="text" class="form-control" id="addressDetails" name="address_details" placeholder="Enter house no., street, subdivision" required>
+                                <label for="addressDetails" class="form-label">House No., Street, Subdivision, Barangay, City, Province</label>
+                                <textarea class="form-control" id="addressDetails" name="address_details" 
+                                placeholder="Enter complete current address" 
+                                rows="2" 
+                                required 
+                                pattern="^[a-zA-Z0-9\s,.-]+$" 
+                                title="Only alphanumeric characters, spaces, commas, periods, and hyphens are allowed."
+                                oninput="validateAddress(this)"></textarea>
                             </div>
-                            <div class="col-md-3 position-relative">
-                                <label for="barangay" class="form-label">Barangay</label>
-                                <input type="text" class="form-control" id="barangayInput" placeholder="Select barangay" autocomplete="off">
-                                <ul class="dropdown-menu w-100" id="barangayDropdown">
-                                    <li><a class="dropdown-item" data-value="barangay1">Barangay 1</a></li>
-                                    <li><a class="dropdown-item" data-value="barangay2">Barangay 2</a></li>
-                                    <li><a class="dropdown-item" data-value="barangay3">Barangay 3</a></li>
-                                </ul>
-                                <input type="hidden" id="barangay" name="barangay">
-                            </div>
-                            <div class="col-md-3 position-relative">
+                            <div class="col-md-3">
                                 <label for="municipality" class="form-label">Municipality</label>
-                                <input type="text" class="form-control" id="municipalityInput" placeholder="Select municipality" autocomplete="off">
-                                <ul class="dropdown-menu w-100" id="municipalityDropdown">
-                                    <li><a class="dropdown-item" data-value="municipality1">Municipality 1</a></li>
-                                    <li><a class="dropdown-item" data-value="municipality2">Municipality 2</a></li>
-                                    <li><a class="dropdown-item" data-value="municipality3">Municipality 3</a></li>
-                                </ul>
-                                <input type="hidden" id="municipality" name="municipality">
+                                <select class="form-select" id="municipality" name="municipality" required>
+                                    <option value="" disabled selected>Select municipality</option>
+                                    @foreach ($municipalities as $municipality)
+                                        <option value="{{ $municipality->municipality_id }}">{{ $municipality->municipality_name }}</option>
+                                    @endforeach
+                                </select>
+                            </div> 
+                            <div class="col-md-3">
+                                <label for="barangay" class="form-label">Barangay</label>
+                                <select class="form-select" id="barangay" name="barangay" required>
+                                    <option value="" disabled selected>Select barangay</option>
+                                    @foreach ($barangays as $b)
+                                        <option value="{{ $b->barangay_id }}" data-municipality-id="{{ $b->municipality_id }}">{{ $b->barangay_name }}</option>
+                                    @endforeach
+                                </select>
                             </div>
                         </div>
 
@@ -252,16 +266,16 @@
                         <div id="medicationManagement">
                             <div class="row mb-1 align-items-center medication-row">
                                 <div class="col-md-3">
-                                    <input type="text" class="form-control" name="medication_name[]" placeholder="Medication name" >
+                                    <input type="text" class="form-control" name="medication_name[]" placeholder="Enter Medication name" >
                                 </div>
                                 <div class="col-md-2">
-                                    <input type="text" class="form-control" name="dosage[]" placeholder="Dosage" >
+                                    <input type="text" class="form-control" name="dosage[]" placeholder="Enter Dosage" >
                                 </div>
                                 <div class="col-md-2">
-                                    <input type="text" class="form-control" name="frequency[]" placeholder="Frequency" >
+                                    <input type="text" class="form-control" name="frequency[]" placeholder="Enter Frequency" >
                                 </div>
                                 <div class="col-md-4">
-                                    <textarea class="form-control" name="administration_instructions[]" placeholder="Administration Instructions" rows="1" ></textarea>
+                                    <textarea class="form-control" name="administration_instructions[]" placeholder="Enter Administration Instructions" rows="1" ></textarea>
                                 </div>
                                 <div class="col-md-1 d-flex text-start">
                                     <button type="button" class="btn btn-danger" onclick="removeMedicationRow(this)">Delete</button>
@@ -281,49 +295,83 @@
                                 <h5 class="text-start">Mobility</h5>
                                 <div class="mb-1">
                                     <label for="walkingAbility" class="form-label">Walking Ability</label>
-                                    <textarea class="form-control" id="walkingAbility" name="mobility[walking_ability]" placeholder="Enter details about walking ability" rows="2"></textarea>
+                                    <textarea class="form-control" id="walkingAbility" name="mobility[walking_ability]" 
+                                            placeholder="Enter details about walking ability" rows="2" 
+                                            pattern="^[A-Za-z0-9\s.,\-()]+$" 
+                                            title="Only letters, numbers, spaces, commas, periods, hyphens, and parentheses are allowed."></textarea>
                                 </div>
                                 <div class="mb-1">
                                     <label for="assistiveDevices" class="form-label">Assistive Devices</label>
-                                    <textarea class="form-control" id="assistiveDevices" name="mobility[assistive_devices]" placeholder="Enter details about assistive devices" rows="2"></textarea>
+                                    <textarea class="form-control" id="assistiveDevices" name="mobility[assistive_devices]" 
+                                            placeholder="Enter details about assistive devices" rows="2" 
+                                            pattern="^[A-Za-z0-9\s.,\-()]+$" 
+                                            title="Only letters, numbers, spaces, commas, periods, hyphens, and parentheses are allowed."></textarea>
                                 </div>
                                 <div class="mb-3">
                                     <label for="transportationNeeds" class="form-label">Transportation Needs</label>
-                                    <textarea class="form-control" id="transportationNeeds" name="mobility[transportation_needs]" placeholder="Enter details about transportation needs" rows="2"></textarea>
+                                    <textarea class="form-control" id="transportationNeeds" name="mobility[transportation_needs]" 
+                                            placeholder="Enter details about transportation needs" rows="2" 
+                                            pattern="^[A-Za-z0-9\s.,\-()]+$" 
+                                            title="Only letters, numbers, spaces, commas, periods, hyphens, and parentheses are allowed."></textarea>
                                 </div>
                             </div>
+
+                            <!-- Cognitive Function Section -->
                             <div class="col-md-4">
                                 <h5 class="text-start">Cognitive Function</h5>
                                 <div class="mb-1">
                                     <label for="memory" class="form-label">Memory</label>
-                                    <textarea class="form-control" id="memory" name="cognitive[memory]" placeholder="Enter details about memory" rows="2"></textarea>
+                                    <textarea class="form-control" id="memory" name="cognitive[memory]" 
+                                            placeholder="Enter details about memory" rows="2" 
+                                            pattern="^[A-Za-z0-9\s.,\-()]+$" 
+                                            title="Only letters, numbers, spaces, commas, periods, hyphens, and parentheses are allowed."></textarea>
                                 </div>
                                 <div class="mb-1">
                                     <label for="thinkingSkills" class="form-label">Thinking Skills</label>
-                                    <textarea class="form-control" id="thinkingSkills" name="cognitive[thinking_skills]" placeholder="Enter details about thinking skills" rows="2"></textarea>
+                                    <textarea class="form-control" id="thinkingSkills" name="cognitive[thinking_skills]" 
+                                            placeholder="Enter details about thinking skills" rows="2" 
+                                            pattern="^[A-Za-z0-9\s.,\-()]+$" 
+                                            title="Only letters, numbers, spaces, commas, periods, hyphens, and parentheses are allowed."></textarea>
                                 </div>
                                 <div class="mb-1">
                                     <label for="orientation" class="form-label">Orientation</label>
-                                    <textarea class="form-control" id="orientation" name="cognitive[orientation]" placeholder="Enter details about orientation" rows="2"></textarea>
+                                    <textarea class="form-control" id="orientation" name="cognitive[orientation]" 
+                                            placeholder="Enter details about orientation" rows="2" 
+                                            pattern="^[A-Za-z0-9\s.,\-()]+$" 
+                                            title="Only letters, numbers, spaces, commas, periods, hyphens, and parentheses are allowed."></textarea>
                                 </div>
                                 <div class="mb-3">
                                     <label for="behavior" class="form-label">Behavior</label>
-                                    <textarea class="form-control" id="behavior" name="cognitive[behavior]" placeholder="Enter details about behavior" rows="2"></textarea>
+                                    <textarea class="form-control" id="behavior" name="cognitive[behavior]" 
+                                            placeholder="Enter details about behavior" rows="2" 
+                                            pattern="^[A-Za-z0-9\s.,\-()]+$" 
+                                            title="Only letters, numbers, spaces, commas, periods, hyphens, and parentheses are allowed."></textarea>
                                 </div>
                             </div>
+
+                            <!-- Emotional Well-being Section -->
                             <div class="col-md-4">
                                 <h5 class="text-start">Emotional Well-being</h5>
                                 <div class="mb-1">
                                     <label for="mood" class="form-label">Mood</label>
-                                    <textarea class="form-control" id="mood" name="emotional[mood]" placeholder="Enter details about mood" rows="2"></textarea>
+                                    <textarea class="form-control" id="mood" name="emotional[mood]" 
+                                            placeholder="Enter details about mood" rows="2" 
+                                            pattern="^[A-Za-z0-9\s.,\-()]+$" 
+                                            title="Only letters, numbers, spaces, commas, periods, hyphens, and parentheses are allowed."></textarea>
                                 </div>
                                 <div class="mb-1">
                                     <label for="socialInteractions" class="form-label">Social Interactions</label>
-                                    <textarea class="form-control" id="socialInteractions" name="emotional[social_interactions]" placeholder="Enter details about social interactions" rows="2"></textarea>
+                                    <textarea class="form-control" id="socialInteractions" name="emotional[social_interactions]" 
+                                            placeholder="Enter details about social interactions" rows="2" 
+                                            pattern="^[A-Za-z0-9\s.,\-()]+$" 
+                                            title="Only letters, numbers, spaces, commas, periods, hyphens, and parentheses are allowed."></textarea>
                                 </div>
                                 <div class="mb-3">
                                     <label for="emotionalSupport" class="form-label">Emotional Support Need</label>
-                                    <textarea class="form-control" id="emotionalSupport" name="emotional[emotional_support]" placeholder="Enter details about emotional support need" rows="2"></textarea>
+                                    <textarea class="form-control" id="emotionalSupport" name="emotional[emotional_support]" 
+                                            placeholder="Enter details about emotional support need" rows="2" 
+                                            pattern="^[A-Za-z0-9\s.,\-()]+$" 
+                                            title="Only letters, numbers, spaces, commas, periods, hyphens, and parentheses are allowed."></textarea>
                                 </div>
                             </div>
                         </div>
@@ -336,27 +384,48 @@
                             </div>
                         </div>
                         <div class="row mb-3">
+                            <!-- Contact Name -->
                             <div class="col-md-3">
                                 <label for="contactName" class="form-label">Contact Name</label>
-                                <input type="text" class="form-control" id="contactName" name="emergency_contact[name]" placeholder="Enter contact name" required>
+                                <input type="text" class="form-control" id="contactName" name="emergency_contact[name]" 
+                                    placeholder="Enter contact name" 
+                                    required 
+                                    pattern="^[A-Z][a-zA-Z]*(?: [A-Z][a-zA-Z]*)+$" 
+                                    title="Must be a valid full name with each word starting with an uppercase letter.">
                             </div>
-                            <div class="col-md-3 position-relative">
+
+                            <!-- Relation -->
+                            <div class="col-md-3">
                                 <label for="relation" class="form-label">Relation</label>
-                                <input type="text" class="form-control" id="relationInput" placeholder="Select relation" autocomplete="off">
-                                <ul class="dropdown-menu w-100" id="relationDropdown">
-                                    <li><a class="dropdown-item" data-value="son">Son</a></li>
-                                    <li><a class="dropdown-item" data-value="daughter">Daughter</a></li>
-                                    <li><a class="dropdown-item" data-value="grandchild">Grandchild</a></li>
-                                </ul>
-                                <input type="hidden" id="relation" name="relation">
+                                <select class="form-select" id="relation" name="emergency_contact[relation]" required>
+                                    <option value="" disabled selected>Select relation</option>
+                                    <option value="Parent">Parent</option>
+                                    <option value="Sibling">Sibling</option>
+                                    <option value="Spouse">Spouse</option>
+                                    <option value="Child">Child</option>
+                                    <option value="Relative">Relative</option>
+                                    <option value="Friend">Friend</option>
+                                    <option value="Other">Other</option>
+                                </select>
                             </div>
+
+                            <!-- Mobile Number -->
                             <div class="col-md-3">
                                 <label for="mobileNumber" class="form-label">Mobile Number</label>
-                                <input type="text" class="form-control" id="mobileNumber" name="emergency_contact[mobile]" placeholder="Enter mobile number" required>
+                                <input type="text" class="form-control" id="mobileNumber" name="emergency_contact[mobile]" 
+                                    placeholder="Enter mobile number" 
+                                    maxlength="11" 
+                                    required 
+                                    pattern="^[0-9]{10,11}$" 
+                                    title="Must be 10 or 11 digits.">
                             </div>
+
+                            <!-- Email Address -->
                             <div class="col-md-3">
                                 <label for="emailAddress" class="form-label">Email Address</label>
-                                <input type="email" class="form-control" id="emailAddress" name="emergency_contact[email]" placeholder="Enter email address" >
+                                <input type="email" class="form-control" id="emailAddress" name="emergency_contact[email]" 
+                                    placeholder="Enter email address" 
+                                    required>
                             </div>
                         </div>
 
@@ -745,6 +814,35 @@
 
             // Set the max attribute for the birth_date input
             birthDateInput.setAttribute('max', formattedMaxDate);
+        });
+    </script>
+    <script>
+        // for connecting the municipality dropdown to the barangay dropdown
+        document.addEventListener('DOMContentLoaded', function () {
+            const municipalityDropdown = document.getElementById('municipality');
+            const barangayDropdown = document.getElementById('barangay');
+            const barangayOptions = Array.from(barangayDropdown.options); // Store all barangay options
+
+            // Event listener for municipality dropdown change
+            municipalityDropdown.addEventListener('change', function () {
+                const selectedMunicipalityId = this.value;
+
+                // Clear the barangay dropdown
+                barangayDropdown.innerHTML = '<option value="" disabled selected>Select barangay</option>';
+
+                // Filter and add barangay options that match the selected municipality
+                barangayOptions.forEach(option => {
+                    if (option.getAttribute('data-municipality-id') === selectedMunicipalityId) {
+                        barangayDropdown.appendChild(option);
+                    }
+                });
+
+                // Enable the barangay dropdown
+                barangayDropdown.disabled = false;
+            });
+
+            // Initially disable the barangay dropdown
+            barangayDropdown.disabled = true;
         });
     </script>
 

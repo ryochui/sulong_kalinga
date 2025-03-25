@@ -32,7 +32,7 @@ return new class extends Migration
             $table->text('emergency_procedure');
             $table->integer('beneficiary_status_id');
             $table->string('status_reason', 255)->nullable();
-            $table->integer('general_care_plan_id');
+            $table->integer('general_care_plan_id')->nullable();
             $table->integer('portal_account_id');
             $table->text('photo')->nullable();
             $table->text('beneficiary_signature')->nullable();

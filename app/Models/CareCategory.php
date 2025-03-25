@@ -27,4 +27,9 @@ class CareCategory extends Model
         return $this->belongsTo(CareNeed::class, 'care_category_id');
     }
 
+    public function interventions()
+    {
+        return $this->hasMany(Intervention::class, 'care_category_id', 'care_category_id');
+    }
+
 }
