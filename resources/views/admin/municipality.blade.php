@@ -12,7 +12,9 @@
     @include('components.userNavbar')
     @include('components.sidebar')
     @include('components.modals.deleteBarangay')
-        
+    @include('components.modals.deleteMunicipality')
+    @include('components.modals.selectMunicipality')
+
     <div class="home-section">
         <div class="text-left">MUNICIPALITY</div>
         <div class="container-fluid text-center">
@@ -28,7 +30,7 @@
                 </div>
 
                 <!-- Filter Dropdown -->
-                <div class="col-12 col-md-6 col-lg-4 mb-2">
+                <div class="col-12 col-md-6 col-lg-3 mb-2">
                     <div class="input-group">
                         <span class="input-group-text">
                             <i class="bx bx-filter-alt"></i>
@@ -42,11 +44,16 @@
                     </div>
                 </div>
 
-                <!-- Add Municipality Button -->
-                <div class="col-12 col-md-6 col-lg-3 mb-2">
-                    <button class="btn btn-primary w-100" id="addButton" data-bs-toggle="modal" data-bs-target="#">
-                        <i class="bx bx-plus"></i> Add Municipality
-                    </button>
+                <!-- Add/Delete Municipality Buttons -->
+                <div class="col-12 col-md-6 col-lg-4 mb-2">
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-primary flex-grow-1" id="addButton" data-bs-toggle="modal" data-bs-target="#">
+                            <i class="bx bx-plus"></i> Add Municipality
+                        </button>
+                        <button class="btn btn-danger flex-grow-1" id="deleteMunicipalityButton">
+                            <i class="bx bx-trash"></i> Delete Municipality
+                        </button>
+                    </div>
                 </div>
             </div>
 
