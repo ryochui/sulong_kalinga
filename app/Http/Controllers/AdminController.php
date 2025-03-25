@@ -9,6 +9,8 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Log;
 use App\Models\User;
+use App\Models\Municipality;
+use App\Models\Barangay;
 
 use App\Services\UserManagementService;
 
@@ -745,5 +747,81 @@ class AdminController extends Controller
         
         return response()->json($result);
     }
+
+    public function municipality()
+{
+    // Get all municipalities for the dropdown
+    $municipalities = Municipality::orderBy('municipality_name')->get();
+    
+    // Get all barangays with their associated municipality and beneficiary count
+    $barangays = Barangay::with('municipality')
+        ->withCount('beneficiaries')
+        ->orderBy('municipality_id')
+        ->orderBy('barangay_name')
+        ->get();
+    
+    return view('admin.municipality', compact('municipalities', 'barangays'));
+}
+
+public function deleteBarangay(Request $request, $id)
+{
+    // Validate the request
+    $request->validate([
+        'password' => 'required'
+    ]);
+    
+    // Verify user password
+    if (!Hash::check($request->password, Auth::user()->password)) {
+        return back()->with('error', 'Incorrect password. Deletion cancelled.');
+    }
+    
+    try {
+        // Check if the barangay has associated beneficiaries
+        $barangay = Barangay::findOrFail($id);
+        
+        if ($barangay->beneficiaries()->count() > 0) {
+            return back()->with('error', 'This barangay cannot be deleted because it has associated beneficiaries.');
+        }
+        
+        // Delete the barangay if no beneficiaries are linked
+        $barangay->delete();
+        
+        return back()->with('success', 'Barangay deleted successfully.');
+    } catch (\Exception $e) {
+        return back()->with('error', 'An error occurred while deleting the barangay: ' . $e->getMessage());
+    }
+}
+
+/**
+ * Delete a municipality
+ */
+public function deleteMunicipality(Request $request, $id)
+{
+    // Validate the request
+    $request->validate([
+        'password' => 'required'
+    ]);
+    
+    // Verify user password
+    if (!Hash::check($request->password, Auth::user()->password)) {
+        return back()->with('error', 'Incorrect password. Deletion cancelled.');
+    }
+    
+    try {
+        // Check if the municipality has associated barangays
+        $municipality = Municipality::findOrFail($id);
+        
+        if ($municipality->barangays()->count() > 0) {
+            return back()->with('error', 'This municipality cannot be deleted because it has associated barangays.');
+        }
+        
+        // Delete the municipality if no barangays are linked
+        $municipality->delete();
+        
+        return back()->with('success', 'Municipality deleted successfully.');
+    } catch (\Exception $e) {
+        return back()->with('error', 'An error occurred while deleting the municipality: ' . $e->getMessage());
+    }
+}
 
 }
