@@ -148,6 +148,13 @@ Route::post('logout', [LoginController::class, 'logout'])->name('logout'); // no
     Route::get('/reports', [ReportsController::class, 'index'])->name('reports')->middleware('auth');
 
     //Weekly Care Plan Routes
-    Route::get('/weekly-care-plans/create', [WeeklyCareController::class, 'create'])->name('weeklycareplans.create');
-Route::post('/weekly-care-plans', [WeeklyCareController::class, 'store'])->name('weeklycareplans.store');
-Route::get('/weekly-care-plans/beneficiary/{id}', [WeeklyCareController::class, 'getBeneficiaryDetails']);
+    Route::middleware(['auth'])->group(function () {
+        Route::get('/weekly-care-plans/create', [WeeklyCareController::class, 'create'])
+             ->name('weeklycareplans.create');
+        
+        Route::post('/weekly-care-plans', [WeeklyCareController::class, 'store'])
+             ->name('weeklycareplans.store');
+        
+        Route::get('/weekly-care-plans/beneficiary/{id}', [WeeklyCareController::class, 'getBeneficiaryDetails'])
+             ->name('weeklycareplans.getBeneficiaryDetails');
+    });

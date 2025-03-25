@@ -29,7 +29,7 @@ class UserFactory extends Factory
             'birthday' => $this->faker->date(),
             'civil_status' => $this->faker->randomElement(['Single', 'Married', 'Widowed']),
             'educational_background' => $this->faker->randomElement(['High School', 'College', 'Graduate']),
-            'mobile' => $this->faker->unique()->numerify('+63##########'),
+            'mobile' => '+63' . $this->faker->numerify('##########'),
             'landline' => $this->faker->unique()->numerify('########'),
             'personal_email' => $this->faker->unique()->safeEmail,
             'email' => $this->faker->unique()->safeEmail,

@@ -64,14 +64,16 @@ class CareworkersExport implements FromCollection, WithHeadings, WithMapping, Sh
             \Carbon\Carbon::parse($careworker->birthday)->format('F j, Y') ?? 'N/A',
             $careworker->gender ?? 'N/A',
             $careworker->email ?? 'N/A',
-            $careworker->mobile ?? 'N/A',
+            // Format mobile number with a single quote prefix to force Excel to treat it as text
+            ($careworker->mobile ? "'".$careworker->mobile."'" : 'N/A'),
             $careworker->landline ?? 'N/A',
             $careworker->address ?? 'N/A',
             $careworker->nationality ?? 'N/A',
             $careworker->civil_status ?? 'N/A',
-            $careworker->sss_id_number ?? 'N/A',
-            $careworker->philhealth_id_number ?? 'N/A',
-            $careworker->pagibig_id_number ?? 'N/A',
+            // Format ID numbers with single quotes to prevent scientific notation
+            ($careworker->sss_id_number ? "'".$careworker->sss_id_number."'" : 'N/A'),
+            ($careworker->philhealth_id_number ? "'".$careworker->philhealth_id_number."'" : 'N/A'),
+            ($careworker->pagibig_id_number ? "'".$careworker->pagibig_id_number."'" : 'N/A'),
         ];
     }
 
@@ -130,9 +132,15 @@ class CareworkersExport implements FromCollection, WithHeadings, WithMapping, Sh
         return [
             AfterSheet::class => function(AfterSheet $event) {
                 $sheet = $event->sheet->getDelegate();
+                $highestRow = $sheet->getHighestRow();
+                
+                // Format columns with numbers as text to prevent scientific notation
+                // Mobile numbers
+                $sheet->getStyle('H2:H'.$highestRow)->getNumberFormat()->setFormatCode('@');
+                // ID numbers (SSS, PhilHealth, Pag-IBIG)
+                $sheet->getStyle('M2:O'.$highestRow)->getNumberFormat()->setFormatCode('@');
                 
                 // Apply striped rows for better readability - updated to include all columns
-                $highestRow = $sheet->getHighestRow();
                 for ($row = 2; $row <= $highestRow; $row++) {
                     if ($row % 2 == 0) {
                         $sheet->getStyle('A'.$row.':P'.$row)->applyFromArray([

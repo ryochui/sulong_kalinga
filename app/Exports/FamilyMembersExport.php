@@ -59,7 +59,7 @@ class FamilyMembersExport implements FromCollection, WithHeadings, WithMapping, 
             \Carbon\Carbon::parse($familyMember->birthday)->age ?? 'N/A',
             $familyMember->birthday ? \Carbon\Carbon::parse($familyMember->birthday)->format('m/d/Y') : 'N/A',
             $familyMember->gender ?? 'N/A',
-            $familyMember->mobile ?? 'N/A',
+            ($familyMember->mobile ? "'".$familyMember->mobile."'" : 'N/A'),
             $familyMember->landline ?? 'N/A',
             $familyMember->email ?? 'N/A',
             $familyMember->street_address ?? 'N/A'
@@ -159,6 +159,9 @@ class FamilyMembersExport implements FromCollection, WithHeadings, WithMapping, 
                 
                 // Freeze the header row
                 $sheet->freezePane('A2');
+
+                // Format column H (Mobile Number) as text to prevent plus sign issues
+$sheet->getStyle('H2:H'.$highestRow)->getNumberFormat()->setFormatCode('@');
             },
         ];
     }

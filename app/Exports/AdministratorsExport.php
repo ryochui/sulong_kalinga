@@ -73,14 +73,16 @@ class AdministratorsExport implements FromCollection, WithHeadings, WithMapping,
             \Carbon\Carbon::parse($administrator->birthday)->format('F j, Y') ?? 'N/A',
             $administrator->gender ?? 'N/A',
             $administrator->email ?? 'N/A',
-            $administrator->mobile ?? 'N/A',
+            // Format mobile number with a single quote prefix to force Excel to treat it as text
+            ($administrator->mobile ? "'".$administrator->mobile."'" : 'N/A'),
             $administrator->landline ?? 'N/A',
             $administrator->address ?? 'N/A',
             $administrator->nationality ?? 'N/A',
             $administrator->civil_status ?? 'N/A',
-            $administrator->sss_id_number ?? 'N/A',
-            $administrator->philhealth_id_number ?? 'N/A',
-            $administrator->pagibig_id_number ?? 'N/A',
+            // Format ID numbers with single quotes to prevent scientific notation
+            ($administrator->sss_id_number ? "'".$administrator->sss_id_number."'" : 'N/A'),
+            ($administrator->philhealth_id_number ? "'".$administrator->philhealth_id_number."'" : 'N/A'),
+            ($administrator->pagibig_id_number ? "'".$administrator->pagibig_id_number."'" : 'N/A'),
         ];
     }
 
@@ -139,9 +141,15 @@ class AdministratorsExport implements FromCollection, WithHeadings, WithMapping,
         return [
             AfterSheet::class => function(AfterSheet $event) {
                 $sheet = $event->sheet->getDelegate();
-                
-                // Apply striped rows for better readability - updated to include all columns
                 $highestRow = $sheet->getHighestRow();
+
+                // Format columns with numbers as text to prevent scientific notation
+                // Mobile numbers
+                $sheet->getStyle('I2:I'.$highestRow)->getNumberFormat()->setFormatCode('@');
+                // ID numbers (SSS, PhilHealth, Pag-IBIG)
+                $sheet->getStyle('N2:P'.$highestRow)->getNumberFormat()->setFormatCode('@');
+                
+                // Apply striped rows for better readability
                 for ($row = 2; $row <= $highestRow; $row++) {
                     if ($row % 2 == 0) {
                         $sheet->getStyle('A'.$row.':P'.$row)->applyFromArray([
@@ -157,7 +165,7 @@ class AdministratorsExport implements FromCollection, WithHeadings, WithMapping,
                 $sheet->getDefaultRowDimension()->setRowHeight(22);
                 $sheet->getRowDimension(1)->setRowHeight(26);
                 
-                // Adjust column widths - updated to include all columns
+                // Adjust column widths
                 $event->sheet->getColumnDimension('A')->setWidth(25); // Full Name
                 $event->sheet->getColumnDimension('B')->setWidth(20); // Organization Role
                 $event->sheet->getColumnDimension('C')->setWidth(15); // Area
@@ -175,7 +183,7 @@ class AdministratorsExport implements FromCollection, WithHeadings, WithMapping,
                 $event->sheet->getColumnDimension('O')->setWidth(15); // PhilHealth Number
                 $event->sheet->getColumnDimension('P')->setWidth(15); // Pag-Ibig Number
                 
-                // Add auto-filter - updated to include all columns
+                // Add auto-filter
                 $sheet->setAutoFilter('A1:P' . $highestRow);
                 
                 // Freeze the header row
