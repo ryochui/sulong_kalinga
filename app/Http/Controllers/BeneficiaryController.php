@@ -226,25 +226,25 @@ class BeneficiaryController extends Controller
             'medical_conditions' => [
                 'nullable',
                 'string',
-                'regex:/^[A-Za-z0-9\s.,\-()]+$/', // Allows letters, numbers, spaces, commas, periods, hyphens, and parentheses
+                'regex:/^[A-Za-z0-9\s.,\-()\'\"!?]+$/', // Allows letters, numbers, spaces, commas, periods, hyphens, and parentheses
                 'max:500', // Optional: Limit the length to 500 characters
             ],
             'medications' => [
                 'nullable',
                 'string',
-                'regex:/^[A-Za-z0-9\s.,\-()]+$/',
+                'regex:/^[A-Za-z0-9\s.,\-()\'\"!?]+$/',
                 'max:500',
             ],
             'allergies' => [
                 'nullable',
                 'string',
-                'regex:/^[A-Za-z0-9\s.,\-()]+$/',
+                'regex:/^[A-Za-z0-9\s.,\-()\'\"!?]+$/',
                 'max:500',
             ],
             'immunizations' => [
                 'nullable',
                 'string',
-                'regex:/^[A-Za-z0-9\s.,\-()]+$/',
+                'regex:/^[A-Za-z0-9\s.,\-()\'\"!?]+$/',
                 'max:500',
             ],
             'category' => 'required|exists:beneficiary_categories,category_id', 
@@ -254,13 +254,13 @@ class BeneficiaryController extends Controller
                 'nullable', // Optional field
                 'string',
                 'max:255', // Maximum length of 255 characters
-                'regex:/^[A-Za-z0-9\s.,\-()]+$/', // Allows letters, numbers, spaces, commas, periods, hyphens, and parentheses
+                'regex:/^[A-Za-z0-9\s.,\-()\'\"!?]+$/', // Allows letters, numbers, spaces, commas, periods, hyphens, and parentheses
             ],
             'assistance.mobility' => [
                 'nullable', // Optional field
                 'string',
                 'max:255',
-                'regex:/^[A-Za-z0-9\s.,\-()]+$/',
+                'regex:/^[A-Za-z0-9\s.,\-()\'\"!?]+$/',
             ],
 
             // Care Needs: Cognitive / Communication
@@ -268,13 +268,13 @@ class BeneficiaryController extends Controller
                 'nullable',
                 'string',
                 'max:255',
-                'regex:/^[A-Za-z0-9\s.,\-()]+$/',
+                'regex:/^[A-Za-z0-9\s.,\-()\'\"!?]+$/',
             ],
             'assistance.cognitive' => [
                 'nullable',
                 'string',
                 'max:255',
-                'regex:/^[A-Za-z0-9\s.,\-()]+$/',
+                'regex:/^[A-Za-z0-9\s.,\-()\'\"!?]+$/',
             ],
 
             // Care Needs: Self-sustainability
@@ -282,13 +282,13 @@ class BeneficiaryController extends Controller
                 'nullable',
                 'string',
                 'max:255',
-                'regex:/^[A-Za-z0-9\s.,\-()]+$/',
+                'regex:/^[A-Za-z0-9\s.,\-()\'\"!?]+$/',
             ],
             'assistance.self_sustainability' => [
                 'nullable',
                 'string',
                 'max:255',
-                'regex:/^[A-Za-z0-9\s.,\-()]+$/',
+                'regex:/^[A-Za-z0-9\s.,\-()\'\"!?]+$/',
             ],
 
             // Care Needs: Disease / Therapy Handling
@@ -296,13 +296,13 @@ class BeneficiaryController extends Controller
                 'nullable',
                 'string',
                 'max:255',
-                'regex:/^[A-Za-z0-9\s.,\-()]+$/',
+                'regex:/^[A-Za-z0-9\s.,\-()\'\"!?]+$/',
             ],
             'assistance.disease' => [
                 'nullable',
                 'string',
                 'max:255',
-                'regex:/^[A-Za-z0-9\s.,\-()]+$/',
+                'regex:/^[A-Za-z0-9\s.,\-()\'\"!?]+$/',
             ],
 
             // Care Needs: Daily Life / Social Contact
@@ -310,13 +310,13 @@ class BeneficiaryController extends Controller
                 'nullable',
                 'string',
                 'max:255',
-                'regex:/^[A-Za-z0-9\s.,\-()]+$/',
+                'regex:/^[A-Za-z0-9\s.,\-()\'\"!?]+$/',
             ],
             'assistance.daily_life' => [
                 'nullable',
                 'string',
                 'max:255',
-                'regex:/^[A-Za-z0-9\s.,\-()]+$/',
+                'regex:/^[A-Za-z0-9\s.,\-()\'\"!?]+$/',
             ],
 
             // Care Needs: Outdoor Activities
@@ -324,13 +324,13 @@ class BeneficiaryController extends Controller
                 'nullable',
                 'string',
                 'max:255',
-                'regex:/^[A-Za-z0-9\s.,\-()]+$/',
+                'regex:/^[A-Za-z0-9\s.,\-()\'\"!?]+$/',
             ],
             'assistance.outdoor' => [
                 'nullable',
                 'string',
                 'max:255',
-                'regex:/^[A-Za-z0-9\s.,\-()]+$/',
+                'regex:/^[A-Za-z0-9\s.,\-()\'\"!?]+$/',
             ],
 
             // Care Needs: Household Keeping
@@ -338,13 +338,13 @@ class BeneficiaryController extends Controller
                 'nullable',
                 'string',
                 'max:255',
-                'regex:/^[A-Za-z0-9\s.,\-()]+$/',
+                'regex:/^[A-Za-z0-9\s.,\-()\'\"!?]+$/',
             ],
             'assistance.household' => [
                 'nullable',
                 'string',
                 'max:255',
-                'regex:/^[A-Za-z0-9\s.,\-()]+$/',
+                'regex:/^[A-Za-z0-9\s.,\-()\'\"!?]+$/',
             ],
 
             // Medications Management
@@ -353,45 +353,45 @@ class BeneficiaryController extends Controller
                 'nullable',
                 'string',
                 'max:100',
-                'regex:/^[A-Za-z0-9\s.,\-()]+$/',
+                'regex:/^[A-Za-z0-9\s.,\-()\'\"!?]+$/',
             ],
             'dosage' => 'nullable|array',
             'dosage.*' => [
                 'nullable',
                 'string',
                 'max:100',
-                'regex:/^[A-Za-z0-9\s.,\-()]+$/',
+                'regex:/^[A-Za-z0-9\s.,\-()\'\"!?]+$/',
             ],
             'frequency' => 'nullable|array',
             'frequency.*' => [
                 'nullable',
                 'string',
                 'max:100',
-                'regex:/^[A-Za-z0-9\s.,\-()]+$/',
+                'regex:/^[A-Za-z0-9\s.,\-()\'\"!?]+$/',
             ],
             'administration_instructions' => 'nullable|array',
             'administration_instructions.*' => [
                 'nullable',
                 'string',
                 'max:500',
-                'regex:/^[A-Za-z0-9\s.,\-()]+$/',
+                'regex:/^[A-Za-z0-9\s.,\-()\'\"!?]+$/',
             ],
 
             // Mobility
-            'mobility.walking_ability' => 'nullable|string|max:500|regex:/^[A-Za-z0-9\s.,\-()]+$/',
-            'mobility.assistive_devices' => 'nullable|string|max:500|regex:/^[A-Za-z0-9\s.,\-()]+$/',
-            'mobility.transportation_needs' => 'nullable|string|max:500|regex:/^[A-Za-z0-9\s.,\-()]+$/',
+            'mobility.walking_ability' => 'nullable|string|max:500|regex:/^[A-Za-z0-9\s.,\-()\'\"!?]+$/',
+            'mobility.assistive_devices' => 'nullable|string|max:500|regex:/^[A-Za-z0-9\s.,\-()\'\"!?]+$/',
+            'mobility.transportation_needs' => 'nullable|string|max:500|regex:/^[A-Za-z0-9\s.,\-()\'\"!?]+$/',
 
             // Cognitive Function
-            'cognitive.memory' => 'nullable|string|max:500|regex:/^[A-Za-z0-9\s.,\-()]+$/',
-            'cognitive.thinking_skills' => 'nullable|string|max:500|regex:/^[A-Za-z0-9\s.,\-()]+$/',
-            'cognitive.orientation' => 'nullable|string|max:500|regex:/^[A-Za-z0-9\s.,\-()]+$/',
-            'cognitive.behavior' => 'nullable|string|max:500|regex:/^[A-Za-z0-9\s.,\-()]+$/',
+            'cognitive.memory' => 'nullable|string|max:500|regex:/^[A-Za-z0-9\s.,\-()\'\"!?]+$/',
+            'cognitive.thinking_skills' => 'nullable|string|max:500|regex:/^[A-Za-z0-9\s.,\-()\'\"!?]+$/',
+            'cognitive.orientation' => 'nullable|string|max:500|regex:/^[A-Za-z0-9\s.,\-()\'\"!?]+$/',
+            'cognitive.behavior' => 'nullable|string|max:500|regex:/^[A-Za-z0-9\s.,\-()\'\"!?]+$/',
 
             // Emotional Well-being
-            'emotional.mood' => 'nullable|string|max:500|regex:/^[A-Za-z0-9\s.,\-()]+$/',
-            'emotional.social_interactions' => 'nullable|string|max:500|regex:/^[A-Za-z0-9\s.,\-()]+$/',
-            'emotional.emotional_support' => 'nullable|string|max:500|regex:/^[A-Za-z0-9\s.,\-()]+$/',
+            'emotional.mood' => 'nullable|string|max:500|regex:/^[A-Za-z0-9\s.,\-()\'\"!?]+$/',
+            'emotional.social_interactions' => 'nullable|string|max:500|regex:/^[A-Za-z0-9\s.,\-()\'\"!?]+$/',
+            'emotional.emotional_support' => 'nullable|string|max:500|regex:/^[A-Za-z0-9\s.,\-()\'\"!?]+$/',
         
             // Address
             'address_details' => [
@@ -430,7 +430,7 @@ class BeneficiaryController extends Controller
                 'required',
                 'string',
                 'max:255', // Limit to 255 characters
-                'regex:/^[A-Za-z0-9\s.,\-()]+$/', // Allow letters, numbers, spaces, and specific special characters
+                'regex:/^[A-Za-z0-9\s.,\-()\'\"!?]+$/', // Allow letters, numbers, spaces, and specific special characters
             ],
 
             // Beneficiary Picture
@@ -627,6 +627,16 @@ class BeneficiaryController extends Controller
 
             $remember_token = Str::random(60);
 
+            $mobileNumber = $request->input('mobile_number');
+            if (!str_starts_with($mobileNumber, '+63')) {
+                $mobileNumber = '+63' . $mobileNumber;
+            }
+
+            $emergencyContactMobile = $request->input('emergency_contact.mobile');
+            if (!str_starts_with($emergencyContactMobile, '+63')) {
+                $emergencyContactMobile = '+63' . $emergencyContactMobile;
+            }
+
             // Insert into beneficiaries table
             $beneficiary = Beneficiary::create([
                 'first_name' => $request->input('first_name'),
@@ -641,11 +651,11 @@ class BeneficiaryController extends Controller
                 'barangay_id' => $request->input('barangay'),
                 'municipality_id' => $request->input('municipality'),
                 'category_id' => $request->input('category'),
-                'mobile' => $request->input('mobile_number'),
+                'mobile' => $mobileNumber,
                 'landline' => $request->input('landline_number'),
                 'emergency_contact_name' => $request->input('emergency_contact.name'),
                 'emergency_contact_relation' => $request->input('emergency_contact.relation'),
-                'emergency_contact_mobile' => $request->input('emergency_contact.mobile'),
+                'emergency_contact_mobile' => $emergencyContactMobile,
                 'emergency_contact_email' => $request->input('emergency_contact.email'),
                 'emergency_procedure' => $request->input('emergency_plan.procedures'),
                 'primary_caregiver' => $request->input('primary_caregiver'),
