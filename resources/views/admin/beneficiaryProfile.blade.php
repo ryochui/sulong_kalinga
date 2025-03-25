@@ -114,7 +114,7 @@
                                         </select>
                                         </td>
                                         <td>
-                                            <div class="action-icons">
+                                            <div class="action-icons" style="gap: 0px !important;">
                                                 <!-- Form to VIEW PROFILE DETAILS -->
                                                 <form action="{{ route('viewProfileDetails') }}" method="POST" style="display:inline;">
                                                     @csrf

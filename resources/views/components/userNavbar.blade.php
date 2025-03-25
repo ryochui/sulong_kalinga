@@ -17,7 +17,7 @@
                     <a class="nav-link {{ Request::routeIs('messages') ? 'active' : '' }}" href="#">Messages</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link {{ Request::routeIs('notifications') ? 'active' : '' }}" href="#">Notifications</a>
+                    <a class="nav-link {{ Request::routeIs('notifications') ? 'active' : '' }}" href="viewWeeklyCareplan">Notifications</a>
                 </li>
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle {{ Request::routeIs('account') ? 'active' : '' }}" href="#" id="highlightsDropdown" role="button" data-bs-toggle="dropdown">

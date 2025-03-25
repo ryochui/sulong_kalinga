@@ -14,48 +14,75 @@
     @include('components.modals.deleteBarangay')
     @include('components.modals.deleteMunicipality')
     @include('components.modals.selectMunicipality')
+    @include('components.modals.addMunicipality')
+    @include('components.modals.addBarangay')
+    @include('components.modals.editBarangay')
 
     <div class="home-section">
         <div class="text-left">MUNICIPALITY</div>
+
+    <!-- Display success and error messages -->
+    @if(session('success'))
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="bx bx-check-circle me-2"></i>
+            {{ session('success') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    @endif
+
+    @if(session('error'))
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="bx bx-error-circle me-2"></i>
+            {{ session('error') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    @endif
+
         <div class="container-fluid text-center">
-            <div class="row mb-3 align-items-center">
-                <!-- Search Bar -->
-                <div class="col-12 col-md-6 col-lg-5 mb-2">
-                    <div class="input-group">
-                        <span class="input-group-text">
-                            <i class="bx bx-search-alt"></i>
-                        </span>
-                        <input type="text" class="form-control" placeholder="Search barangay..." id="searchBar">
-                    </div>
-                </div>
-
-                <!-- Filter Dropdown -->
-                <div class="col-12 col-md-6 col-lg-3 mb-2">
-                    <div class="input-group">
-                        <span class="input-group-text">
-                            <i class="bx bx-filter-alt"></i>
-                        </span>
-                        <select class="form-select" id="filterDropdown">
-                            <option value="">All Municipalities</option>
-                            @foreach($municipalities as $municipality)
-                                <option value="{{ $municipality->municipality_id }}">{{ $municipality->municipality_name }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                </div>
-
-                <!-- Add/Delete Municipality Buttons -->
-                <div class="col-12 col-md-6 col-lg-4 mb-2">
-                    <div class="d-flex gap-2">
-                        <button class="btn btn-primary flex-grow-1" id="addButton" data-bs-toggle="modal" data-bs-target="#">
-                            <i class="bx bx-plus"></i> Add Municipality
-                        </button>
-                        <button class="btn btn-danger flex-grow-1" id="deleteMunicipalityButton">
-                            <i class="bx bx-trash"></i> Delete Municipality
-                        </button>
-                    </div>
+        <!-- Search and Filter Row -->
+        <div class="row mb-3 align-items-center">
+            <!-- Search Bar -->
+            <div class="col-12 col-md-6 mb-2">
+                <div class="input-group">
+                    <span class="input-group-text">
+                        <i class="bx bx-search-alt"></i>
+                    </span>
+                    <input type="text" class="form-control" placeholder="Search barangay or municipality..." id="searchBar">
                 </div>
             </div>
+
+            <!-- Filter Dropdown -->
+            <div class="col-12 col-md-6 mb-2">
+                <div class="input-group">
+                    <span class="input-group-text">
+                        <i class="bx bx-filter-alt"></i>
+                    </span>
+                    <select class="form-select" id="filterDropdown">
+                        <option value="">All Municipalities</option>
+                        @foreach($municipalities as $municipality)
+                            <option value="{{ $municipality->municipality_id }}">{{ $municipality->municipality_name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Buttons Row -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="d-flex gap-2 justify-content-center">
+                <button type="button" class="btn btn-primary flex-grow-1" onclick="openMunicipalityModal()">
+                    <i class="bx bx-building-house"></i> Add / Edit Municipality
+                </button>
+                <button class="btn btn-primary flex-grow-1" id="addBarangayButton" data-bs-toggle="modal" data-bs-target="#addBarangayModal">
+                    <i class="bx bx-plus"></i> Add Barangay
+                </button>
+                    <button class="btn btn-danger flex-grow-1" id="deleteMunicipalityButton">
+                        <i class="bx bx-trash"></i> Delete Municipality
+                    </button>
+                </div>
+            </div>
+        </div>
 
             <div class="row" id="recentReports">
                 <div class="col-12">
@@ -81,11 +108,11 @@
                                                 data-id="{{ $barangay->barangay_id }}" 
                                                 data-name="{{ $barangay->barangay_name }}"
                                                 onclick="openDeleteBarangayModal('{{ $barangay->barangay_id }}', '{{ $barangay->barangay_name }}')"></i>
-                                                <i class='bx bxs-edit' data-bs-toggle="modal" data-bs-target="#"
-                                                    data-id="{{ $barangay->barangay_id }}"
-                                                    data-name="{{ $barangay->barangay_name }}"
-                                                    data-municipality="{{ $barangay->municipality_id }}"
-                                                    onclick="prepareEdit(this)"></i>
+                                                <i class='bx bxs-edit' 
+                                                data-id="{{ $barangay->barangay_id }}"
+                                                data-name="{{ $barangay->barangay_name }}"
+                                                data-municipality="{{ $barangay->municipality_id }}"
+                                                onclick="prepareEdit(this)"></i>
                                             </div>          
                                         </td>
                                     </tr>

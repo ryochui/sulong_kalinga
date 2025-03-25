@@ -6,7 +6,7 @@
                 <h5 class="modal-title text-white" id="deleteMunicipalityModalLabel">Confirm Municipality Deletion</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body">
+            <div class="modal-body" id="modalBodyContent">
                 <div id="municipalityDeleteMessage" class="alert d-none" role="alert"></div>
                 
                 <div id="deleteConfirmation">
@@ -20,14 +20,6 @@
                         <input type="password" class="form-control" id="municipalityDeletePasswordInput" placeholder="Enter your password" required>
                         <input type="hidden" id="municipalityIdToDelete" value="">
                     </div>
-                </div>
-                
-                <div id="deleteSuccess" class="d-none">
-                    <p class="text-success">
-                        <i class="bx bx-check-circle"></i>
-                        <strong>Success!</strong> The municipality has been deleted successfully.
-                    </p>
-                    <p>The page will reload shortly.</p>
                 </div>
             </div>
             <div class="modal-footer">
@@ -44,50 +36,74 @@
 // Function to open the delete modal
 window.openDeleteMunicipalityModal = function(id, name) {
     // Reset modal state
-    document.getElementById('municipalityDeleteMessage').classList.add('d-none');
-    document.getElementById('deleteConfirmation').classList.remove('d-none');
-    document.getElementById('deleteSuccess').classList.add('d-none');
-    document.getElementById('municipalityDeletePasswordInput').value = '';
+    const modalBody = document.getElementById('modalBodyContent');
+    
+    // Reset to original content
+    modalBody.innerHTML = `
+        <div id="municipalityDeleteMessage" class="alert d-none" role="alert"></div>
+        
+        <div id="deleteConfirmation">
+            <p class="text-danger">
+                <i class="bx bx-error-circle"></i> 
+                <strong>Warning!</strong> You are about to delete this municipality.
+            </p>
+            <p>Are you sure you want to permanently delete <span id="municipalityNameToDelete" style="font-weight: bold;"></span>?</p>
+            <div class="mb-3">
+                <label for="municipalityDeletePasswordInput" class="form-label">Enter Your Password to Confirm</label>
+                <input type="password" class="form-control" id="municipalityDeletePasswordInput" placeholder="Enter your password" required>
+                <input type="hidden" id="municipalityIdToDelete" value="">
+            </div>
+        </div>
+    `;
+    
+    // Set values
     document.getElementById('municipalityIdToDelete').value = id;
     document.getElementById('municipalityNameToDelete').textContent = name;
     
+    // Reset buttons
     const confirmButton = document.getElementById('confirmMunicipalityDeleteButton');
     confirmButton.disabled = false;
     confirmButton.innerHTML = '<i class="bx bxs-trash"></i> Delete Municipality';
-    confirmButton.classList.remove('d-none');
+    confirmButton.style.display = 'inline-block';
     
     document.getElementById('cancelDeleteButton').textContent = 'Cancel';
     
     // Show the modal
     const deleteModal = new bootstrap.Modal(document.getElementById('deleteMunicipalityModal'));
     deleteModal.show();
+    
+    // Re-add event listener for password input
+    document.getElementById('municipalityDeletePasswordInput').addEventListener('input', function() {
+        const messageElement = document.getElementById('municipalityDeleteMessage');
+        if (messageElement) {
+            messageElement.classList.add('d-none');
+            messageElement.style.display = 'none';
+        }
+    });
 }
 
 // Function to show error message
-function showMunicipalityError(message) {
+function showError(message) {
     const messageElement = document.getElementById('municipalityDeleteMessage');
     messageElement.textContent = message;
     messageElement.classList.remove('d-none', 'alert-success');
     messageElement.classList.add('alert-danger');
+    messageElement.style.display = 'block';
 }
 
 // Function to show detailed error message with guidance
-function showMunicipalityDependencyError(message, errorType) {
-    // First hide the confirmation form
-    document.getElementById('deleteConfirmation').classList.add('d-none');
+function showDependencyError(message, errorType) {
+    // Get modal body for replacement
+    const modalBody = document.getElementById('modalBodyContent');
     
-    // Update the message element
-    const messageElement = document.getElementById('municipalityDeleteMessage');
-    messageElement.classList.remove('d-none', 'alert-success', 'alert-warning');
-    messageElement.classList.add('alert-danger');
-    
-    // Create structured error content with icon and guidance
+    // Create error content
     let errorContent = `
-        <div class="d-flex align-items-center mb-2">
-            <i class="bx bx-error-circle me-2" style="font-size: 1.5rem;"></i>
-            <strong>Unable to Delete</strong>
-        </div>
-        <p>${message}</p>
+        <div class="alert alert-danger">
+            <div class="d-flex align-items-center mb-2">
+                <i class="bx bx-error-circle me-2" style="font-size: 1.5rem;"></i>
+                <strong>Unable to Delete</strong>
+            </div>
+            <p>${message}</p>
     `;
     
     // Add specific guidance based on error type
@@ -137,22 +153,39 @@ function showMunicipalityDependencyError(message, errorType) {
         `;
     }
     
-    messageElement.innerHTML = errorContent;
+    errorContent += `</div>`;
+    
+    // Replace modal body content
+    modalBody.innerHTML = errorContent;
     
     // Change the cancel button text
     document.getElementById('cancelDeleteButton').textContent = 'Close';
     
     // Hide the delete button
-    document.getElementById('confirmMunicipalityDeleteButton').classList.add('d-none');
+    document.getElementById('confirmMunicipalityDeleteButton').style.display = 'none';
 }
 
-// Function to show success message
-function showMunicipalitySuccess() {
-    document.getElementById('deleteConfirmation').classList.add('d-none');
-    document.getElementById('deleteSuccess').classList.remove('d-none');
-    document.getElementById('confirmMunicipalityDeleteButton').classList.add('d-none');
+// Function to completely replace modal content with success message
+function showSuccess() {
+    // Get modal body reference
+    const modalBody = document.getElementById('modalBodyContent');
+    
+    // Replace content with success message
+    modalBody.innerHTML = `
+        <div class="text-center mb-2">
+            <i class="bx bx-check-circle text-success" style="font-size: 2rem;"></i>
+        </div>
+        <p class="text-success text-center">
+            <strong>Success!</strong> The municipality has been deleted successfully.
+        </p>
+        <p class="text-center">The page will reload shortly.</p>
+    `;
+    
+    // Hide delete button and update cancel button
+    document.getElementById('confirmMunicipalityDeleteButton').style.display = 'none';
     document.getElementById('cancelDeleteButton').textContent = 'Close';
     
+    // Set timeout to reload the page
     setTimeout(function() {
         window.location.reload();
     }, 2000);
@@ -160,18 +193,22 @@ function showMunicipalitySuccess() {
 
 // Setup event handlers when page loads
 document.addEventListener('DOMContentLoaded', function() {
-    // Password input event to clear error messages
-    document.getElementById('municipalityDeletePasswordInput').addEventListener('input', function() {
-        document.getElementById('municipalityDeleteMessage').classList.add('d-none');
-    });
-    
     // Delete confirmation button click handler
     document.getElementById('confirmMunicipalityDeleteButton').addEventListener('click', function() {
-        const password = document.getElementById('municipalityDeletePasswordInput').value.trim();
-        const municipalityId = document.getElementById('municipalityIdToDelete').value;
+        // Get password and ID from the currently displayed form
+        const passwordInput = document.getElementById('municipalityDeletePasswordInput');
+        const idInput = document.getElementById('municipalityIdToDelete');
+        
+        if (!passwordInput || !idInput) {
+            console.error('Form elements not found');
+            return;
+        }
+        
+        const password = passwordInput.value.trim();
+        const municipalityId = idInput.value;
         
         if (!password) {
-            showMunicipalityError('Please enter your password to confirm deletion.');
+            showError('Please enter your password to confirm deletion.');
             return;
         }
         
@@ -190,14 +227,16 @@ document.addEventListener('DOMContentLoaded', function() {
         })
         .then(response => response.json())
         .then(data => {
+            console.log("Server response:", data); // Debug log
+            
             if (data.success) {
-                showMunicipalitySuccess();
+                showSuccess();
             } else {
                 // Check for specific error types
                 if (data.error_type) {
-                    showMunicipalityDependencyError(data.message, data.error_type);
+                    showDependencyError(data.message, data.error_type);
                 } else {
-                    showMunicipalityError(data.message || 'Failed to delete municipality.');
+                    showError(data.message || 'Failed to delete municipality.');
                     this.disabled = false;
                     this.innerHTML = '<i class="bx bxs-trash"></i> Delete Municipality';
                 }
@@ -205,7 +244,7 @@ document.addEventListener('DOMContentLoaded', function() {
         })
         .catch(error => {
             console.error('Error:', error);
-            showMunicipalityError('An unexpected error occurred. Please try again.');
+            showError('An unexpected error occurred. Please try again.');
             this.disabled = false;
             this.innerHTML = '<i class="bx bxs-trash"></i> Delete Municipality';
         });
