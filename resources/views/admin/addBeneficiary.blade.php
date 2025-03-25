@@ -439,7 +439,12 @@
                         <div class="row mb-3">
                             <div class="col-12">
                                 <label for="emergencyProcedures" class="form-label">Emergency Procedures</label>
-                                <textarea class="form-control" id="emergencyProcedures" name="emergency_plan[procedures]" placeholder="Enter emergency procedures" rows="3" required></textarea>
+                                <textarea class="form-control" id="emergencyProcedures" name="emergency_plan[procedures]" 
+                                        placeholder="Enter emergency procedures" 
+                                        rows="3" 
+                                        required 
+                                        pattern="^[A-Za-z0-9\s.,\-()'\"!?]+$" 
+                                        title="Only letters, numbers, spaces, commas, periods, hyphens, parentheses, single quotes, double quotes, and exclamation/question marks are allowed."></textarea>
                             </div>
                         </div>
                         
@@ -451,27 +456,32 @@
                             </div>
                         </div>
                         <div class="row mb-1">
-                            <div class="col-md-3 position-relative">
+                            <!-- Select Care Worker -->
+                            <div class="col-md-3">
                                 <label for="careworkerName" class="form-label">Select Care Worker</label>
-                                <input type="text" class="form-control" id="careworkerNameInput" placeholder="Select Care Worker" autocomplete="off">
-                                <ul class="dropdown-menu w-100" id="careworkerNameDropdown">
-                                    <li><a class="dropdown-item" data-value="careworker1">Careworker 1</a></li>
-                                    <li><a class="dropdown-item" data-value="careworker2">Careworker 2</a></li>
-                                    <li><a class="dropdown-item" data-value="careworker3">Careworker 3</a></li>
-                                </ul>
-                                <input type="hidden" id="careworkerName" name="careworkerName">
+                                <select class="form-select" id="careworkerName" name="care_worker[careworker_id]" required>
+                                    <option value="" disabled selected>Select Care Worker</option>
+                                    @foreach ($careWorkers as $careWorker)
+                                        <option value="{{ $careWorker->id }}">{{ $careWorker->name }}</option>
+                                    @endforeach
+                                </select>
                             </div>
+
+                            <!-- Tasks and Responsibilities -->
                             <div class="col-md-5">
                                 <label class="form-label">Tasks and Responsibilities</label>
                                 <div id="tasksContainer">
                                     <div class="input-group mb-2">
-                                        <input type="text" class="form-control" name="care_worker[tasks][]" placeholder="Enter task or responsibility" required>
-                                    </div>
-                                    <div class="input-group mb-2">
-                                        <input type="text" class="form-control" name="care_worker[tasks][]" placeholder="Enter task or responsibility" required>
+                                        <input type="text" class="form-control" name="care_worker[tasks][]" 
+                                            placeholder="Enter task or responsibility" 
+                                            required 
+                                            pattern="^[A-Za-z0-9\s.,\-()]+$" 
+                                            title="Only letters, numbers, spaces, commas, periods, and hyphens are allowed.">
                                     </div>
                                 </div>
                             </div>
+
+                            <!-- Add/Delete Task Buttons -->
                             <div class="col-md-3 d-flex flex-column align-items-start">
                                 <label class="form-label">Add or Delete Task</label>
                                 <button type="button" class="btn btn-primary btn-sm mb-2 w-100" onclick="addTask()">Add Task</button>
@@ -487,21 +497,41 @@
                             </div>
                         </div>
                         <div class="row mb-1">
+                        <!-- Beneficiary Picture -->
                             <div class="col-md-3">
                                 <label for="beneficiaryProfilePic" class="form-label">Upload Beneficiary Picture</label>
-                                <input type="file" class="form-control" id="beneficiaryProfilePic" name="beneficiaryProfilePic" accept="image/png, image/jpeg">
+                                <input type="file" class="form-control" id="beneficiaryProfilePic" name="beneficiaryProfilePic" 
+                                    accept="image/png, image/jpeg" 
+                                    required 
+                                    title="Only PNG and JPEG images are allowed.">
                             </div>
+
+                            <!-- Review Date -->
                             <div class="col-md-3">
                                 <label for="datePicker" class="form-label">Review Date</label>
-                                <input type="date" class="form-control" id="datePicker" name="date" value="{{ date('Y-m-d') }}" required>
+                                <input type="date" class="form-control" id="datePicker" name="date" 
+                                    value="{{ date('Y-m-d') }}" 
+                                    required 
+                                    max="{{ date('Y-m-d', strtotime('+1 year')) }}" 
+                                    min="{{ date('Y-m-d') }}" 
+                                    title="The date must be within 1 year from today.">
                             </div>
+
+                            <!-- Care Service Agreement -->
                             <div class="col-md-3">
                                 <label for="careServiceAgreement" class="form-label">Care Service Agreement</label>
-                                <input type="file" class="form-control" id="careServiceAgreement" name="care_service_agreement" accept=".pdf,.doc,.docx" required>
+                                <input type="file" class="form-control" id="careServiceAgreement" name="care_service_agreement" 
+                                    accept=".pdf,.doc,.docx" 
+                                    required 
+                                    title="Only PDF, DOC, and DOCX files are allowed.">
                             </div>
+
+                            <!-- General Careplan -->
                             <div class="col-md-3">
                                 <label for="generalCareplan" class="form-label">General Careplan</label>
-                                <input type="file" class="form-control" id="generalCareplan" name="general_careplan" accept=".pdf,.doc,.docx">
+                                <input type="file" class="form-control" id="generalCareplan" name="general_careplan" 
+                                    accept=".pdf,.doc,.docx" 
+                                    title="Only PDF, DOC, and DOCX files are allowed.">
                             </div>
                         </div>
 
@@ -666,19 +696,19 @@
             input.name = 'care_worker[tasks][]';
             input.placeholder = 'Enter task or responsibility';
             input.required = true;
+            input.pattern = "^[A-Za-z0-9\\s.,\\-()]+$";
+            input.title = "Only letters, numbers, spaces, commas, periods, and hyphens are allowed.";
 
-            tasksContainer.appendChild(inputGroup);
             inputGroup.appendChild(input);
-
-            inputGroup.scrollIntoView({ behavior: 'smooth', block: 'center' });
-
+            tasksContainer.appendChild(inputGroup);
         }
 
-        // Function to remove a task input field
-        function removeTask(button) {
+        function removeTask() {
             const tasksContainer = document.getElementById('tasksContainer');
-            if (tasksContainer.children.length > 0) {
+            if (tasksContainer.children.length > 1) {
                 tasksContainer.lastChild.remove();
+            } else {
+                alert('At least one task is required.');
             }
         }
 

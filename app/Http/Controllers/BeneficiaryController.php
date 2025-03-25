@@ -14,6 +14,7 @@ use App\Models\Barangay;
 use App\Models\CareWorkerResponsibility;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class BeneficiaryController extends Controller
 {
@@ -139,9 +140,13 @@ class BeneficiaryController extends Controller
         // Fetch all municipalities from the database
         $municipalities = Municipality::all();
         $barangays = Barangay::all();
+        $careWorkers = User::where('role_id', 3)
+                        ->where('status', 'Active')
+                        ->select('id', DB::raw("CONCAT(first_name, ' ', last_name) AS name"))
+                        ->get(); 
 
         // Pass the municipalities to the view
-        return view('admin.addBeneficiary', compact('municipalities', 'barangays'));
+        return view('admin.addBeneficiary', compact('municipalities', 'barangays', 'careWorkers'));
     }
 
     public function storeBeneficiary(Request $request)
@@ -264,6 +269,36 @@ class BeneficiaryController extends Controller
                 'regex:/^[0-9]{10,11}$/', // 10 or 11 digits
             ],
             'emergency_contact.email' => 'required|email|max:100',
+
+            // Emergency Plan
+            'emergency_plan.procedures' => [
+                'required',
+                'string',
+                'max:1000', // Limit to 1000 characters
+                'regex:/^[A-Za-z0-9\s.,\-()\'\"!?]+$/', // Allows letters, numbers, spaces, and specific special characters
+            ],
+
+            // Care Worker
+            'care_worker.careworker_id' => 'required|exists:cose_users,id', // Ensure the selected care worker exists
+            'care_worker.tasks' => 'required|array|min:1', // Ensure at least one task is provided
+            'care_worker.tasks.*' => [
+                'required',
+                'string',
+                'max:255', // Limit to 255 characters
+                'regex:/^[A-Za-z0-9\s.,\-()]+$/', // Allow letters, numbers, spaces, and specific special characters
+            ],
+
+            // Beneficiary Picture
+            'beneficiaryProfilePic' => 'required|file|mimes:jpeg,png|max:2048', // Max size: 2MB
+
+            // Review Date
+            'date' => 'required|date|after_or_equal:today|before_or_equal:' . now()->addYear()->format('Y-m-d'),
+
+            // Care Service Agreement
+            'care_service_agreement' => 'required|file|mimes:pdf,doc,docx|max:5120', // Max size: 5MB
+
+            // General Careplan
+            'general_careplan' => 'nullable|file|mimes:pdf,doc,docx|max:5120', // Max size: 5MB
         
             // CORRECT UP, WRONG DOWN
 
@@ -352,12 +387,51 @@ class BeneficiaryController extends Controller
             }
         }
 
-         // Handle file uploads and rename files(removed the handling of file uploads for now)
+         // Handle file uploads and rename files
         $firstName = $request->input('first_name');
         $lastName = $request->input('last_name');
         $uniqueIdentifier = time() . '_' . Str::random(5);
 
-        
+        // Generate unique identifier for filenames
+        $firstName = $request->input('first_name');
+        $lastName = $request->input('last_name');
+        $uniqueIdentifier = time() . '_' . Str::random(5);
+
+        // Handle Beneficiary Picture upload
+        if ($request->hasFile('beneficiaryProfilePic')) {
+            $beneficiaryPicturePath = $request->file('beneficiaryProfilePic')->storeAs(
+                'uploads/beneficiary_pictures',
+                $firstName . $lastName . '_profile_picture_' . $uniqueIdentifier . '.' . $request->file('beneficiaryProfilePic')->getClientOriginalExtension(),
+                'public'
+            );
+        }
+
+        // Handle Care Service Agreement upload
+        if ($request->hasFile('care_service_agreement')) {
+            $careServiceAgreementPath = $request->file('care_service_agreement')->storeAs(
+                'uploads/care_service_agreements',
+                $firstName . $lastName . '_care_service_agreement_' . $uniqueIdentifier . '.' . $request->file('care_service_agreement')->getClientOriginalExtension(),
+                'public'
+            );
+        }
+
+        // Handle General Careplan upload (if provided)
+        if ($request->hasFile('general_careplan')) {
+            $generalCareplanPath = $request->file('general_careplan')->storeAs(
+                'uploads/general_careplans',
+                $firstName . $lastName . '_general_careplan_' . $uniqueIdentifier . '.' . $request->file('general_careplan')->getClientOriginalExtension(),
+                'public'
+            );
+        }
+
+        // Save the beneficiary and file paths to the database
+        $beneficiary = Beneficiary::create([
+            // Other beneficiary fields...
+            'beneficiary_picture' => $beneficiaryPicturePath ?? null,
+            'care_service_agreement' => $careServiceAgreementPath ?? null,
+            'general_careplan' => $generalCareplanPath ?? null,
+            'review_date' => $request->input('date'),
+        ]);
 
         // Save the administrator to the database
         $careworker = new Beneficiary();
