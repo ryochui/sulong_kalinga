@@ -9,6 +9,8 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Log;
 
+use Illuminate\Validation\Rule;
+
 use App\Models\User;
 use App\Models\Municipality;
 use App\Models\Barangay;
@@ -810,16 +812,6 @@ class AdminController extends Controller
                 ]);
             }
             
-            // Check if this is the last barangay for its municipality
-            $barangayCount = Barangay::where('municipality_id', $barangay->municipality_id)->count();
-            if ($barangayCount <= 1) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Cannot delete this barangay because it is the only barangay for its municipality.',
-                    'error_type' => 'last_barangay'
-                ]);
-            }
-            
             // All checks passed, delete the barangay
             $barangay->delete();
             
@@ -888,9 +880,9 @@ class AdminController extends Controller
             }
             
             // Check if this municipality has care users (workers, managers) assigned to it
-            // Adjust the column name if it's different in your database
+            // FIXED: Changed 'municipality_id' to 'assigned_municipality_id'
             $careUsersCount = User::whereIn('role_id', [2, 3]) // Role IDs for care managers and care workers
-                                ->where('municipality_id', $id)
+                                ->where('assigned_municipality_id', $id)
                                 ->count();
             
             if ($careUsersCount > 0) {
@@ -914,6 +906,310 @@ class AdminController extends Controller
                 'success' => false,
                 'message' => 'An error occurred while deleting the municipality: ' . $e->getMessage()
             ]);
+        }
+    }
+
+    /**
+     * Add a new municipality
+     */
+    public function addMunicipality(Request $request)
+    {
+        // Validate the request
+        $validator = Validator::make($request->all(), [
+            'municipality_name' => [
+                'required',
+                'string',
+                'max:100',
+                'regex:/^[A-Z][A-Za-z][A-Za-z0-9\s\.\-\']*$/', // Must start with capital letter + min 2 letters
+                'unique:municipalities,municipality_name'
+            ]
+        ], [
+            'municipality_name.unique' => 'This municipality already exists in the database.',
+            'municipality_name.regex' => 'Municipality name must start with a capital letter, contain at least 2 letters, and can only include letters, numbers, spaces, periods, hyphens, and apostrophes.',
+            'municipality_name.required' => 'The municipality name is required.',
+            'municipality_name.max' => 'Municipality name cannot exceed 100 characters.'
+        ]);
+        
+        // Check if validation fails
+        if ($validator->fails()) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'errors' => $validator->errors()
+                ]);
+            }
+            
+            return redirect()->back()->withErrors($validator)->withInput();
+        }
+        
+        try {
+            // Create the new municipality
+            $municipality = new Municipality();
+            $municipality->municipality_name = $request->municipality_name;
+            $municipality->province_id = 1; // Default to Northern Samar
+            $municipality->save();
+            
+            $message = 'Municipality "' . $request->municipality_name . '" has been added successfully.';
+            
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => $message
+                ]);
+            }
+            
+            return redirect()->route('municipality')->with('success', $message);
+        } catch (\Exception $e) {
+            $message = 'An error occurred while adding the municipality: ' . $e->getMessage();
+            
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $message
+                ]);
+            }
+            
+            return redirect()->route('municipality')->with('error', $message);
+        }
+    }
+
+    /**
+     * Add a new barangay
+     */
+    public function addBarangay(Request $request)
+    {
+        // Validate the request
+        $validator = Validator::make($request->all(), [
+            'barangay_name' => [
+                'required',
+                'string',
+                'max:100',
+                'regex:/^[A-Z][A-Za-z][A-Za-z0-9\s\.\-\']*$/' // Must start with capital letter + min 2 letters
+            ],
+            'municipality_id' => 'required|exists:municipalities,municipality_id'
+        ], [
+            'barangay_name.regex' => 'Barangay name must start with a capital letter, contain at least 2 letters, and can only include letters, numbers, spaces, periods, hyphens, and apostrophes.',
+            'barangay_name.required' => 'The barangay name is required.',
+            'barangay_name.max' => 'Barangay name cannot exceed 100 characters.',
+            'municipality_id.required' => 'You must select a municipality.',
+            'municipality_id.exists' => 'The selected municipality does not exist.'
+        ]);
+        
+        // Check if validation fails
+        if ($validator->fails()) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'errors' => $validator->errors()
+                ]);
+            }
+            
+            return redirect()->back()->withErrors($validator)->withInput();
+        }
+        
+        try {
+            // Check if barangay with the same name already exists in this municipality
+            $existingBarangay = Barangay::where('barangay_name', $request->barangay_name)
+                ->where('municipality_id', $request->municipality_id)
+                ->first();
+                
+            if ($existingBarangay) {
+                $municipalityName = Municipality::find($request->municipality_id)->municipality_name;
+                $message = 'Barangay "' . $request->barangay_name . '" already exists in ' . $municipalityName . ' municipality.';
+                
+                if ($request->ajax() || $request->wantsJson()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => $message
+                    ]);
+                }
+                
+                return redirect()->route('municipality')->with('error', $message);
+            }
+            
+            // Create the new barangay
+            $barangay = new Barangay();
+            $barangay->barangay_name = $request->barangay_name;
+            $barangay->municipality_id = $request->municipality_id;
+            $barangay->save();
+            
+            $municipalityName = Municipality::find($request->municipality_id)->municipality_name;
+            $message = 'Barangay "' . $request->barangay_name . '" has been added successfully to ' . $municipalityName . ' municipality.';
+            
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => $message
+                ]);
+            }
+            
+            return redirect()->route('municipality')->with('success', $message);
+        } catch (\Exception $e) {
+            $message = 'An error occurred while adding the barangay: ' . $e->getMessage();
+            
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $message
+                ]);
+            }
+            
+            return redirect()->route('municipality')->with('error', $message);
+        }
+    }
+
+    /**
+     * Update an existing municipality
+     */
+    public function updateMunicipality(Request $request)
+    {
+        // Validate the request
+        $municipality = Municipality::findOrFail($request->municipality_id);
+        
+        $validator = Validator::make($request->all(), [
+            'municipality_id' => 'required|exists:municipalities,municipality_id',
+            'municipality_name' => [
+                'required',
+                'string',
+                'max:100',
+                'regex:/^[A-Z][A-Za-z][A-Za-z0-9\s\.\-\']*$/',
+                Rule::unique('municipalities', 'municipality_name')->ignore($municipality->municipality_id, 'municipality_id')
+            ]
+        ]);
+        
+        // Check if validation fails
+        if ($validator->fails()) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'errors' => $validator->errors()
+                ]);
+            }
+            
+            return redirect()->back()->withErrors($validator)->withInput();
+        }
+        
+        try {
+            // Update the municipality
+            $municipality->municipality_name = $request->municipality_name;
+            $municipality->save();
+            
+            $message = 'Municipality has been updated successfully to "' . $request->municipality_name . '".';
+            
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => $message
+                ]);
+            }
+            
+            return redirect()->route('municipality')->with('success', $message);
+        } catch (\Exception $e) {
+            $message = 'An error occurred while updating the municipality: ' . $e->getMessage();
+            
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $message
+                ]);
+            }
+            
+            return redirect()->route('municipality')->with('error', $message);
+        }
+    }
+
+    /**
+     * Update an existing barangay
+     */
+    public function updateBarangay(Request $request)
+    {
+        // Find the barangay
+        $barangay = Barangay::findOrFail($request->barangay_id);
+        
+        // Store original values for comparison
+        $originalName = $barangay->barangay_name;
+        $originalMunicipalityId = $barangay->municipality_id;
+        
+        // Check if anything changed
+        if ($request->barangay_name === $originalName && $request->municipality_id == $originalMunicipalityId) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'errors' => [
+                        'general' => ['No changes were made. Please modify the barangay name or municipality to update.']
+                    ]
+                ]);
+            }
+            
+            return redirect()->back()->with('error', 'No changes were made. Please modify the barangay name or municipality to update.');
+        }
+        
+        // Validate the request
+        $validator = Validator::make($request->all(), [
+            'barangay_id' => 'required|exists:barangays,barangay_id',
+            'municipality_id' => 'required|exists:municipalities,municipality_id',
+            'barangay_name' => [
+                'required',
+                'string',
+                'max:100',
+                'regex:/^[A-Z][A-Za-z][A-Za-z0-9\s\.\-\']*$/',
+                Rule::unique('barangays', 'barangay_name')
+                    ->where('municipality_id', $request->municipality_id)
+                    ->ignore($barangay->barangay_id, 'barangay_id')
+            ]
+        ], [
+            'barangay_name.unique' => 'This barangay name already exists in the selected municipality.',
+            'barangay_name.regex' => 'Barangay name must start with a capital letter, contain at least 2 letters, and can only include letters, numbers, spaces, periods, hyphens, and apostrophes.',
+            'barangay_name.required' => 'The barangay name is required.',
+            'barangay_name.max' => 'Barangay name cannot exceed 100 characters.',
+            'municipality_id.required' => 'Please select a municipality.'
+        ]);
+        
+        // Check if validation fails
+        if ($validator->fails()) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'errors' => $validator->errors()
+                ]);
+            }
+            
+            return redirect()->back()->withErrors($validator)->withInput();
+        }
+        
+        try {
+            // Update the barangay
+            $barangay->barangay_name = $request->barangay_name;
+            $barangay->municipality_id = $request->municipality_id;
+            $barangay->save();
+            
+            // Prepare success message
+            if ($request->municipality_id != $originalMunicipalityId) {
+                $newMunicipality = Municipality::find($request->municipality_id);
+                $message = "Barangay has been updated and moved to {$newMunicipality->municipality_name} municipality.";
+            } else {
+                $message = "Barangay has been updated to \"{$request->barangay_name}\".";
+            }
+            
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => $message
+                ]);
+            }
+            
+            return redirect()->route('municipality')->with('success', $message);
+        } catch (\Exception $e) {
+            $message = 'An error occurred while updating the barangay: ' . $e->getMessage();
+            
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $message
+                ]);
+            }
+            
+            return redirect()->route('municipality')->with('error', $message);
         }
     }
 

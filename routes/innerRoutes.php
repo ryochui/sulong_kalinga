@@ -59,14 +59,14 @@ Route::get('/addAdministrator', function () {
     return view('admin.addAdministrator');
 })->name('addAdministrator');
 
-// Municipality table view
+// Municipality table view, functionalities
 Route::get('/municipality', [AdminController::class, 'municipality'])->name('municipality');
-
-// Barangay deletion route
 Route::delete('/admin/delete-barangay/{id}', [AdminController::class, 'deleteBarangay'])->name('admin.deleteBarangay');
-
-// Municipality deletion route
 Route::delete('/admin/delete-municipality/{id}', [AdminController::class, 'deleteMunicipality'])->name('admin.deleteMunicipality');
+Route::post('/admin/add-municipality', [AdminController::class, 'addMunicipality'])->name('admin.addMunicipality');
+Route::post('/admin/add-barangay', [AdminController::class, 'addBarangay'])->name('admin.addBarangay');
+Route::post('/admin/update-municipality', [AdminController::class, 'updateMunicipality'])->name('admin.updateMunicipality');
+Route::post('/admin/update-barangay', [AdminController::class, 'updateBarangay'])->name('admin.updateBarangay');
 
 Route::get('/weeklyCareplan', function () {
     return view('careWorker.weeklyCareplan');
