@@ -520,6 +520,17 @@ class BeneficiaryController extends Controller
                 $careServiceAgreementPath = null; // Set to null if no file is uploaded
             }
 
+            // Handle General Care Plan
+            if ($request->hasFile('general_careplan')) {
+                $generalCarePlanPath = $request->file('general_careplan')->storeAs(
+                    'uploads/general_care_plans',
+                    $request->input('first_name') . '_' . $request->input('last_name') . '_general_care_plan_' . $uniqueIdentifier . '.' . $request->file('general_careplan')->getClientOriginalExtension(),
+                    'public'
+                );
+            } else {
+                $generalCarePlanPath = null; // Set to null if no file is uploaded
+            }
+
             // Handle Beneficiary Signature
             if ($request->hasFile('beneficiary_signature_upload')) {
                 $directory = public_path('storage/uploads/beneficiary_signatures');
@@ -659,7 +670,8 @@ class BeneficiaryController extends Controller
                 'emergency_contact_email' => $request->input('emergency_contact.email'),
                 'emergency_procedure' => $request->input('emergency_plan.procedures'),
                 'primary_caregiver' => $request->input('primary_caregiver'),
-                'care_service_agreement' => $careServiceAgreementPath,
+                'care_service_agreement_doc' => $careServiceAgreementPath,
+                'general_care_plan_doc' => $generalCarePlanPath,
                 'photo' => $beneficiaryPhotoPath,
                 'beneficiary_signature' => $beneficiarySignaturePath,
                 'care_worker_signature' => $careWorkerSignaturePath,
