@@ -29,7 +29,7 @@
             </div>
             <div class="row" id="addUserForm">
                 <div class="col-12">
-                    <!-- <form action="{{ route('addBeneficiary') }}" method="POST"> -->
+                <form action="{{ route('editCareworkerProfile') }}" method="POST">
                     <form>
                         @csrf <!-- Include CSRF token for security -->
                         <!-- Row 1: Personal Details -->
