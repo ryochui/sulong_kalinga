@@ -156,6 +156,19 @@ class FamilyMemberController extends Controller
         // Handle file uploads
         $familyPhotoPath = $request->file('family_photo')->store('uploads/family_photos', 'public');
 
+        $uniqueIdentifier = Str::random(10);
+
+        // Store beneficiary profile picture
+        if ($request->hasFile('family_photo')) {
+            $familyPhotoPath = $request->file('family_photo')->storeAs(
+                'uploads/family_photos',
+                $request->input('first_name') . '_' . $request->input('last_name') . '_family_member_photo_' . $uniqueIdentifier . '.' . $request->file('family_photo')->getClientOriginalExtension(),
+                'public'
+            );
+        } else {
+            throw new \Exception('Family or Relative profile picture is required.');
+        }
+
         // Retrieve the portal_account_id from the selected beneficiary
         $beneficiary = Beneficiary::find($request->input('relatedBeneficiary'));
         if (!$beneficiary) {
