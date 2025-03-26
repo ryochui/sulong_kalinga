@@ -50,7 +50,7 @@
                         <div class="row justify-content-center align-items-center text-center text-md-start">
                             <!-- Profile Picture Column -->
                             <div class="col-lg-3 col-md-4 col-sm-12 mb-3 mb-md-0">
-                                <img src="{{ asset('images/defaultProfile.png') }}" 
+                                <img src="{{ $beneficiary->photo ? asset('storage/' . $beneficiary->photo) : asset('images/defaultProfile.png') }}" 
                                     alt="Profile Picture" 
                                     class="img-fluid rounded-circle mx-auto d-block d-md-inline" 
                                     style="width: 150px; height: 150px; border: 1px solid #ced4da;">
@@ -333,7 +333,7 @@
                 </div>
                 <!-- Cognitive Function Column -->
                 <div class="row">
-                    <div class="col-lg-4 col-md-4 col-sm-12">
+                    <div class="col-lg-6 col-md-6 col-sm-12">
                         <h5 class="text-center">Cognitive Function</h5>
                         <table class="table table-striped cognitive-function">
                             <tbody>
@@ -357,7 +357,7 @@
                         </table>
                     </div>
                     <!-- Emotional Well-being Column -->
-                    <div class="col-lg-4 col-md-4 col-sm-12">
+                    <div class="col-lg-6 col-md-6 col-sm-12">
                         <h5 class="text-center">Emotional Well-being</h5>
                         <table class="table table-striped emotional-wellbeing">
                             <tbody>
@@ -376,9 +376,11 @@
                             </tbody>
                         </table>
                     </div>
-                    
+                </div>
+
+                <div class="row">
                     <!-- Assigned Care Worker Column -->
-                    <div class="col-lg-4 col-md-4 col-sm-12">
+                    <div class="col-lg-6 col-md-6 col-sm-12">
                         <h5 class="text-center">Assigned Care Worker</h5>
                         <table class="table table-striped">
                             <tbody>
@@ -397,9 +399,6 @@
                             </tbody>
                         </table>
                     </div>
-                </div>
-
-                <div class="row">
                     <div class="col-lg-6 col-md-6 col-sm-12">
                         <h5 class="text-center">Documents</h5>
                         <table class="table table-striped">
@@ -411,21 +410,6 @@
                                 <tr>
                                     <td style="width: 40%;"><strong>General Careplan:</strong></td>
                                     <td style="width: 60%;"><!-- Backend data --></td>                                
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                    <div class="col-lg-6 col-md-6 col-sm-12">
-                        <h5 class="text-center">Signatures</h5>
-                        <table class="table table-striped">
-                            <tbody>
-                                <tr>
-                                    <td style="width: 30%;"><strong>Beneficiary Signature:</strong></td>
-                                    <td style="width: 70%;"><img src="" alt="Beneficiary signature"><!-- Backend data --></td>                                
-                                </tr>
-                                <tr>
-                                    <td style="width: 30%;"><strong>Care Worker Signature:</strong></td>
-                                    <td style="width: 70%;"><img src="" alt="Care worker signature"><!-- Backend data --></td>                                
                                 </tr>
                             </tbody>
                         </table>

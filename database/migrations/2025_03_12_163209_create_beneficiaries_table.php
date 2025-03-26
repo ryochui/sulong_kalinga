@@ -37,6 +37,8 @@ return new class extends Migration
             $table->text('photo')->nullable();
             $table->text('beneficiary_signature')->nullable();
             $table->text('care_worker_signature')->nullable();
+            $table->text('general_care_plan_doc')->nullable();
+            $table->text('care_service_agreement_doc')->nullable();
             $table->integer('created_by');
             $table->integer('updated_by');
             $table->timestamps();
