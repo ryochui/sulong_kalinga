@@ -1,5 +1,4 @@
 
-
 body, html {
     font-family: Arial, sans-serif;
     margin: 0;
@@ -15,18 +14,19 @@ body, html {
 
 .col-lg-7.col-md-7.col-sm-12 > h1 {
     font-family: "Brygada 1918", serif;
-    font-weight: 400;
+    font-weight: 500;
     font-style: normal;
-    font-size: clamp(32px, 5vw, 60px);
+    font-size: clamp(40px, 5vw, 72px);
     color: #333;
-    margin-bottom: 10px;
+    margin-bottom: 20px;
 }
 
 p.lead {
     font-family: "Roboto", sans-serif;
-    font-weight: 300;
+    font-weight: 400;
     font-style: normal;
     font-size: clamp(16px, 2vw, 22px);
+    text-align: justify;
 }
 
 #landing {
@@ -58,11 +58,11 @@ p.lead {
 /* Adjust image positioning */
 
 .half-transparent-img {
-    width:70vw;
+    width: 41vw;
     height:100vh;
     opacity: 0.3;
     position: absolute;
-    right: -37vw; /* Moves image further right, hiding half */
+    right: 0; /* Moves image further right, hiding half */
     top: 0;
     object-fit: cover;
     max-width: none; /* Prevents unwanted scaling issues */
@@ -71,11 +71,11 @@ p.lead {
 
 .half-transparent-img-mobile {
     display: none; /* Hidden by default */
-    width: 150vw; /* Covers half of the small screen */
+    width: 50vw; /* Covers half of the small screen */
     height: 100vh;
     opacity: 0.3;
     position: absolute;
-    right: -80vw;
+    right: 0;
     top: 0;
     object-fit: cover;
     z-index: -1;
