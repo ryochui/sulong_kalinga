@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Auth;
-// use App\Models\User;
+use App\Models\User;
 use App\Models\Municipality;
 use App\Models\FamilyMember;
 use App\Models\Beneficiary;
@@ -156,6 +156,19 @@ class FamilyMemberController extends Controller
         // Handle file uploads
         $familyPhotoPath = $request->file('family_photo')->store('uploads/family_photos', 'public');
 
+        $uniqueIdentifier = Str::random(10);
+
+        // Store beneficiary profile picture
+        if ($request->hasFile('family_photo')) {
+            $familyPhotoPath = $request->file('family_photo')->storeAs(
+                'uploads/family_photos',
+                $request->input('first_name') . '_' . $request->input('last_name') . '_family_member_photo_' . $uniqueIdentifier . '.' . $request->file('family_photo')->getClientOriginalExtension(),
+                'public'
+            );
+        } else {
+            throw new \Exception('Family or Relative profile picture is required.');
+        }
+
         // Retrieve the portal_account_id from the selected beneficiary
         $beneficiary = Beneficiary::find($request->input('relatedBeneficiary'));
         if (!$beneficiary) {
@@ -202,7 +215,7 @@ class FamilyMemberController extends Controller
         // $familymember->access = True; // Status for access to the system (REMOVED BECAUSE 'access' COLUMN WILL BE REMOVED)
         $familymember->created_at = now();
         $familymember->created_by = Auth::id(); // Set the created_by column to the current user's ID   
-        $family_member->updated_by = Auth::id(); // Set the updated_by column to the current user's ID
+        $familymember->updated_by = Auth::id(); // Set the updated_by column to the current user's ID
         // $familymember->assigned_municipality_id = $request->input('municipality');
 
         // Save file paths and IDs

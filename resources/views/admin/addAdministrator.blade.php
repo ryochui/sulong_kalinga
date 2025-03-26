@@ -226,12 +226,11 @@
                         <div class="row mb-3">
                             <div class="col-md-4 position-relative">
                                 <label for="organization_Roles" class="form-label">Organization Roles</label>
-                                <input type="text" class="form-control" id="Organization_RolesInput" placeholder="Select organization role" autocomplete="off" readonly>
-                                <ul class="dropdown-menu w-100" id="Organization_RolesDropdown">
-                                    <li><a class="dropdown-item" data-value="2">Project Coordinator</a></li>
-                                    <li><a class="dropdown-item" data-value="3">MEAL Coordinator</a></li>
-                                </ul>
-                                <input type="hidden" id="Organization_Roles" name="Organization_Roles">
+                                <select class="form-select" id="Organization_RolesDropdown" name="Organization_Roles" required>
+                                    <option value="" disabled selected>Select organization role</option>
+                                    <option value="2">Project Coordinator</option>
+                                    <option value="3">MEAL Coordinator</option>
+                                </select>
                             </div>
                         </div>                        
                         <div class="row mt-4">

@@ -312,21 +312,21 @@
                                     <label for="walkingAbility" class="form-label">Walking Ability</label>
                                     <textarea class="form-control" id="walkingAbility" name="mobility[walking_ability]" 
                                             placeholder="Enter details about walking ability" rows="2" 
-                                            pattern="^[A-Za-z0-9\s.,\-()]+$" 
+                                            pattern="^[A-Za-z0-9\s.,\-()'\"+’!?]+$"!?]+$" 
                                             title="Only letters, numbers, spaces, commas, periods, hyphens, and parentheses are allowed."></textarea>
                                 </div>
                                 <div class="mb-1">
                                     <label for="assistiveDevices" class="form-label">Assistive Devices</label>
                                     <textarea class="form-control" id="assistiveDevices" name="mobility[assistive_devices]" 
                                             placeholder="Enter details about assistive devices" rows="2" 
-                                            pattern="^[A-Za-z0-9\s.,\-()]+$" 
+                                            pattern="^[A-Za-z0-9\s.,\-()'\"+’!?]+$"!?]+$" 
                                             title="Only letters, numbers, spaces, commas, periods, hyphens, and parentheses are allowed."></textarea>
                                 </div>
                                 <div class="mb-3">
                                     <label for="transportationNeeds" class="form-label">Transportation Needs</label>
                                     <textarea class="form-control" id="transportationNeeds" name="mobility[transportation_needs]" 
                                             placeholder="Enter details about transportation needs" rows="2" 
-                                            pattern="^[A-Za-z0-9\s.,\-()]+$" 
+                                            pattern="^[A-Za-z0-9\s.,\-()'\"+’!?]+$"!?]+$" 
                                             title="Only letters, numbers, spaces, commas, periods, hyphens, and parentheses are allowed."></textarea>
                                 </div>
                             </div>
@@ -338,28 +338,28 @@
                                     <label for="memory" class="form-label">Memory</label>
                                     <textarea class="form-control" id="memory" name="cognitive[memory]" 
                                             placeholder="Enter details about memory" rows="2" 
-                                            pattern="^[A-Za-z0-9\s.,\-()]+$" 
+                                            pattern="^[A-Za-z0-9\s.,\-()'\"+’!?]+$"!?]+$" 
                                             title="Only letters, numbers, spaces, commas, periods, hyphens, and parentheses are allowed."></textarea>
                                 </div>
                                 <div class="mb-1">
                                     <label for="thinkingSkills" class="form-label">Thinking Skills</label>
                                     <textarea class="form-control" id="thinkingSkills" name="cognitive[thinking_skills]" 
                                             placeholder="Enter details about thinking skills" rows="2" 
-                                            pattern="^[A-Za-z0-9\s.,\-()]+$" 
+                                            pattern="^[A-Za-z0-9\s.,\-()'\"+’!?]+$"!?]+$" 
                                             title="Only letters, numbers, spaces, commas, periods, hyphens, and parentheses are allowed."></textarea>
                                 </div>
                                 <div class="mb-1">
                                     <label for="orientation" class="form-label">Orientation</label>
                                     <textarea class="form-control" id="orientation" name="cognitive[orientation]" 
                                             placeholder="Enter details about orientation" rows="2" 
-                                            pattern="^[A-Za-z0-9\s.,\-()]+$" 
+                                            pattern="^[A-Za-z0-9\s.,\-()'\"+’!?]+$"!?]+$" 
                                             title="Only letters, numbers, spaces, commas, periods, hyphens, and parentheses are allowed."></textarea>
                                 </div>
                                 <div class="mb-3">
                                     <label for="behavior" class="form-label">Behavior</label>
                                     <textarea class="form-control" id="behavior" name="cognitive[behavior]" 
                                             placeholder="Enter details about behavior" rows="2" 
-                                            pattern="^[A-Za-z0-9\s.,\-()]+$" 
+                                            pattern="^[A-Za-z0-9\s.,\-()'\"+’!?]+$"!?]+$" 
                                             title="Only letters, numbers, spaces, commas, periods, hyphens, and parentheses are allowed."></textarea>
                                 </div>
                             </div>
@@ -371,21 +371,21 @@
                                     <label for="mood" class="form-label">Mood</label>
                                     <textarea class="form-control" id="mood" name="emotional[mood]" 
                                             placeholder="Enter details about mood" rows="2" 
-                                            pattern="^[A-Za-z0-9\s.,\-()]+$" 
+                                            pattern="^[A-Za-z0-9\s.,\-()'\"+’!?]+$"!?]+$" 
                                             title="Only letters, numbers, spaces, commas, periods, hyphens, and parentheses are allowed."></textarea>
                                 </div>
                                 <div class="mb-1">
                                     <label for="socialInteractions" class="form-label">Social Interactions</label>
                                     <textarea class="form-control" id="socialInteractions" name="emotional[social_interactions]" 
                                             placeholder="Enter details about social interactions" rows="2" 
-                                            pattern="^[A-Za-z0-9\s.,\-()]+$" 
+                                            pattern="^[A-Za-z0-9\s.,\-()'\"+’!?]+$"!?]+$" 
                                             title="Only letters, numbers, spaces, commas, periods, hyphens, and parentheses are allowed."></textarea>
                                 </div>
                                 <div class="mb-3">
                                     <label for="emotionalSupport" class="form-label">Emotional Support Need</label>
                                     <textarea class="form-control" id="emotionalSupport" name="emotional[emotional_support]" 
                                             placeholder="Enter details about emotional support need" rows="2" 
-                                            pattern="^[A-Za-z0-9\s.,\-()]+$" 
+                                            pattern="^[A-Za-z0-9\s.,\-()'\"+’!?]+$"!?]+$" 
                                             title="Only letters, numbers, spaces, commas, periods, hyphens, and parentheses are allowed."></textarea>
                                 </div>
                             </div>
@@ -426,13 +426,16 @@
 
                             <!-- Mobile Number -->
                             <div class="col-md-3">
-                                <label for="mobileNumber" class="form-label">Mobile Number</label>
-                                <input type="text" class="form-control" id="mobileNumber" name="emergency_contact[mobile]" 
-                                    placeholder="Enter mobile number" 
-                                    maxlength="11" 
-                                    required 
-                                    pattern="^[0-9]{10,11}$" 
-                                    title="Must be 10 or 11 digits.">
+                                <label for="emergencyMobileNumber" class="form-label">Mobile Number</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">+63</span>
+                                    <input type="text" class="form-control" id="emergencyMobileNumber" name="emergency_contact[mobile]" 
+                                        placeholder="Enter mobile number" 
+                                        maxlength="10" 
+                                        required 
+                                        oninput="restrictToNumbers(this)" 
+                                        title="Must be 10 digits.">
+                                </div>
                             </div>
 
                             <!-- Email Address -->
@@ -458,8 +461,8 @@
                                         placeholder="Enter emergency procedures" 
                                         rows="3" 
                                         required 
-                                        pattern="^[A-Za-z0-9\s.,\-()'\"!?]+$" 
-                                        title="Only letters, numbers, spaces, commas, periods, hyphens, parentheses, single quotes, double quotes, and exclamation/question marks are allowed."></textarea>
+                                        pattern="^[A-Za-z0-9\s.,\-()'\"+’!?]+$"!?]+$" 
+                                        title="Only letters, numbers, spaces, commas, periods, hyphens, parentheses, single quotes, double quotes, apostrophes, and exclamation/question marks are allowed."></textarea>
                             </div>
                         </div>
                         
@@ -490,7 +493,7 @@
                                         <input type="text" class="form-control" name="care_worker[tasks][]" 
                                             placeholder="Enter task or responsibility" 
                                             required 
-                                            pattern="^[A-Za-z0-9\s.,\-()]+$" 
+                                            pattern="^[A-Za-z0-9\s.,\-()'\"+’!?]+$"!?]+$" 
                                             title="Only letters, numbers, spaces, commas, periods, and hyphens are allowed.">
                                     </div>
                                 </div>

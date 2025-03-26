@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard</title>
+    <title>Edit Administrator Profile</title>
     <link rel="stylesheet" href="{{ asset('css/bootstrap.min.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <link href='https://unpkg.com/boxicons@2.0.7/css/boxicons.min.css' rel='stylesheet'>
@@ -22,7 +22,7 @@
                     @csrf
                     <input type="hidden" name="administrator_id" value="{{ $administrator->id }}">
                     <button type="submit" class="btn btn-secondary original-back-btn">
-                    <i class="bx bx-arrow-back"></i> Back
+                        <i class="bx bx-arrow-back"></i> Back
                     </button>
                 </form>
                 <div class="mx-auto text-center" style="flex-grow: 1; font-weight: bold; font-size: 20px;">EDIT ADMINISTRATOR PROFILE</div>
@@ -42,123 +42,111 @@
                     </ul>
                 </div>
             @endif
+
             <div class="row" id="addUserForm">
                 <div class="col-12">
-                <form action="{{ route('editAdminProfile') }}" method="POST">
-                        @csrf <!-- Include CSRF token for security -->
-                        <!-- Row 1: Personal Details -->
+                    <form action="{{ route('admin.editAdministrator.update', $administrator->id) }}" method="POST" enctype="multipart/form-data">
+                        @csrf
+                        @method('PUT') <!-- Use PUT method for updating -->
+                        
+                        <!-- Personal Details -->
                         <div class="row mb-1 mt-3">
                             <div class="col-12">
-                                <h5 class="text-start">Personal Details</h5> <!-- Row Title -->
+                                <h5 class="text-start">Personal Details</h5>
                             </div>
                         </div>
                         <div class="row mb-1">
                             <div class="col-md-3">
                                 <label for="firstName" class="form-label">First Name</label>
-                                <input type="text" class="form-control" id="firstName" name="first_name" placeholder="Enter first name" value = "{{ $administrator->first_name }}"required oninput="validateName(this)" pattern="^[A-Z][a-zA-Z]*(?:-[a-zA-Z]+)?$" title="First letter must be uppercase, and only alphabets are allowed. Hyphen can only be used once per word and not at the end.">
+                                <input type="text" class="form-control" id="firstName" name="first_name" placeholder="Enter first name" value="{{ $administrator->first_name }}" required>
                             </div>
                             <div class="col-md-3">
                                 <label for="lastName" class="form-label">Last Name</label>
-                                <input type="text" class="form-control" id="lastName" name="last_name" placeholder="Enter last name" required oninput="validateName(this)" pattern="^[A-Z][a-zA-Z]*(?:-[a-zA-Z]+)?$" title="First letter must be uppercase, and only alphabets are allowed. Hyphen can only be used once per word and not at the end.">
+                                <input type="text" class="form-control" id="lastName" name="last_name" placeholder="Enter last name" value="{{ $administrator->last_name }}" required>
                             </div>
+                            <!-- <div class="col-md-3">
+                                <label for="birthDate" class="form-label">Birthday</label>
+                                <input type="date" class="form-control" id="birthDate" name="birth_date" value="{{ $administrator->birth_date }}" required>
+                            </div> -->
                             <div class="col-md-3">
                                 <label for="birthDate" class="form-label">Birthday</label>
-                                <input type="date" class="form-control" id="birthDate" name="birth_date" required onkeydown="return true">
+                                <input type="date" class="form-control" id="birthDate" name="birth_date" 
+                                    value="{{ isset($administrator->birth_date) ? \Carbon\Carbon::parse($administrator->birth_date)->format('Y-m-d') : '' }}" 
+                                    required>
                             </div>
-                            <div class="col-md-3 position-relative">
+                            <div class="col-md-3">
                                 <label for="gender" class="form-label">Gender</label>
-                                <input type="text" class="form-control" id="genderInput" placeholder="Select gender" autocomplete="off" readonly>
-                                <ul class="dropdown-menu w-100" id="genderDropdown">
-                                    <li><a class="dropdown-item" data-value="Male">Male</a></li>
-                                    <li><a class="dropdown-item" data-value="Female">Female</a></li>
-                                    <li><a class="dropdown-item" data-value="Other">Other</a></li>
-                                </ul>
-                                <input type="hidden" id="gender" name="gender">
+                                <select class="form-control" id="gender" name="gender" required>
+                                    <option value="Male" {{ $administrator->gender == 'Male' ? 'selected' : '' }}>Male</option>
+                                    <option value="Female" {{ $administrator->gender == 'Female' ? 'selected' : '' }}>Female</option>
+                                    <option value="Other" {{ $administrator->gender == 'Other' ? 'selected' : '' }}>Other</option>
+                                </select>
                             </div>
                         </div>
                         <div class="row mb-3">
-                            <div class="col-md-3 position-relative">
+                            <div class="col-md-3">
                                 <label for="civilStatus" class="form-label">Civil Status</label>
-                                <input type="text" class="form-control" id="civilStatusInput" placeholder="Select civil status" autocomplete="off" readonly >
-                                <ul class="dropdown-menu w-100" id="civilStatusDropdown">
-                                    <li><a class="dropdown-item" data-value="Single">Single</a></li>
-                                    <li><a class="dropdown-item" data-value="Married">Married</a></li>
-                                    <li><a class="dropdown-item" data-value="Widowed">Widowed</a></li>
-                                    <li><a class="dropdown-item" data-value="Divorced">Divorced</a></li>
-                                </ul>
-                                <input type="hidden" id="civilStatus" name="civil_status">
+                                <select class="form-select" id="civilStatus" name="civil_status" required>
+                                    <option value="" disabled>Select civil status</option>
+                                    <option value="Single" {{ $administrator->civil_status == 'Single' ? 'selected' : '' }}>Single</option>
+                                    <option value="Married" {{ $administrator->civil_status == 'Married' ? 'selected' : '' }}>Married</option>
+                                    <option value="Widowed" {{ $administrator->civil_status == 'Widowed' ? 'selected' : '' }}>Widowed</option>
+                                    <option value="Divorced" {{ $administrator->civil_status == 'Divorced' ? 'selected' : '' }}>Divorced</option>
+                                </select>
                             </div>
                             <div class="col-md-3">
                                 <label for="religion" class="form-label">Religion</label>
-                                <input type="text" class="form-control" id="religion" name="religion" placeholder="Enter religion" pattern="^[a-zA-Z\s]*$" title="Only alphabets and spaces are allowed.">
+                                <input type="text" class="form-control" id="religion" name="religion" placeholder="Enter religion" value="{{ $administrator->religion }}" pattern="^[a-zA-Z\s]*$" title="Only alphabets and spaces are allowed.">
                             </div>
                             <div class="col-md-3">
                                 <label for="nationality" class="form-label">Nationality</label>
-                                <input type="text" class="form-control" id="nationality" name="nationality" placeholder="Enter nationality" required pattern="^[a-zA-Z\s]*$" title="Only alphabets and spaces are allowed.">
+                                <input type="text" class="form-control" id="nationality" name="nationality" placeholder="Enter nationality" value="{{ $administrator->nationality }}" required pattern="^[a-zA-Z\s]*$" title="Only alphabets and spaces are allowed.">
                             </div>
-                            <div class="col-md-3 position-relative">
+                            <div class="col-md-3">
                                 <label for="educationalBackground" class="form-label">Educational Background</label>
-                                <input type="text" class="form-control" id="educationalBackgroundInput" placeholder="Select Educational Background" autocomplete="off" readonly>
-                                <ul class="dropdown-menu w-100" id="educationalBackgroundDropdown">
-                                    <li><a class="dropdown-item" data-value="College">College</a></li>
-                                    <li><a class="dropdown-item" data-value="Highschool">High School</a></li>
-                                    <li><a class="dropdown-item" data-value="Doctorate">Doctorate</a></li>
-                                </ul>
-                                <input type="hidden" id="educationalBackground" name="educational_background">
+                                <select class="form-select" id="educationalBackground" name="educational_background" required>
+                                    <option value="" disabled>Select educational background</option>
+                                    <option value="College" {{ $administrator->educational_background == 'College' ? 'selected' : '' }}>College</option>
+                                    <option value="Highschool" {{ $administrator->educational_background == 'Highschool' ? 'selected' : '' }}>High School</option>
+                                    <option value="Doctorate" {{ $administrator->educational_background == 'Doctorate' ? 'selected' : '' }}>Doctorate</option>
+                                </select>
                             </div>
                         </div>
 
-                        <hr class="my-4">
-                        <!-- Row 2: Address -->
+                        <!-- Current Address -->
                         <div class="row mb-1">
                             <div class="col-12">
-                                <h5 class="text-start">Current Address</h5> <!-- Row Title -->
+                                <h5 class="text-start">Current Address</h5>
                             </div>
                         </div>
                         <div class="row mb-3">
                             <div class="col-md-12">
                                 <label for="addressDetails" class="form-label">House No., Street, Subdivision, Barangay, City, Province</label>
-                                <textarea class="form-control" id="addressDetails" name="address_details" 
-                                placeholder="Enter complete current address" 
-                                rows="2" 
-                                required 
-                                pattern="^[a-zA-Z0-9\s,.-]+$" 
-                                title="Only alphanumeric characters, spaces, commas, periods, and hyphens are allowed."
-                                oninput="validateAddress(this)"></textarea>
+                                <textarea class="form-control" id="addressDetails" name="address_details" rows="2" required>{{ $administrator->address }}</textarea>
                             </div>
                         </div>
 
-                        <hr class="my-4">
                         <!-- Contact Information -->
                         <div class="row mb-1">
                             <div class="col-12">
-                                <h5 class="text-start">Contact Information</h5> <!-- Row Title -->
+                                <h5 class="text-start">Contact Information</h5>
                             </div>
-                        </div> 
+                        </div>
                         <div class="row mb-3">
                             <div class="col-md-4">
                                 <label for="personalEmail" class="form-label">Personal Email Address</label>
-                                <input type="email" class="form-control" id="personalEmail" name="personal_email" 
-                                       placeholder="Enter personal email" 
-                                       required 
-                                       pattern="^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$" 
-                                       title="Enter a valid email address (e.g., example@domain.com)" 
-                                       oninput="validateEmail(this)">
+                                <input type="email" class="form-control" id="personalEmail" name="personal_email" value="{{ $administrator->personal_email }}" required>
                             </div>
                             <div class="col-md-4">
                                 <label for="mobileNumber" class="form-label">Mobile Number</label>
-                                <div class="input-group">
-                                    <span class="input-group-text">+63</span>
-                                    <input type="text" class="form-control" id="mobileNumber" name="mobile_number" placeholder="Enter mobile number" maxlength="11" required oninput="restrictToNumbers(this)" title="Must be 10 or 11digits.">
-                                </div>
+                                <input type="text" class="form-control" id="mobileNumber" name="mobile_number" value="{{ ltrim($administrator->mobile, '+63') }}" required oninput="restrictToNumbers(this)" maxlength="10" placeholder="Enter mobile number">
                             </div>
                             <div class="col-md-4">
                                 <label for="landlineNumber" class="form-label">Landline Number</label>
-                                <input type="text" class="form-control" id="landlineNumber" name="landline_number" placeholder="Enter Landline number" maxlength="10" required oninput="restrictToNumbers(this)" title="Must be between 7 and 10 digits.">
+                                <input type="text" class="form-control" id="landlineNumber" name="landline_number" value="{{ $administrator->landline }}" oninput="restrictToNumbers(this)" maxlength="10" placeholder="Enter landline number">
                             </div>
                         </div>
 
-                        <hr class="my-4">
                         <!-- Documents -->
                         <div class="row mb-1">
                             <div class="col-12">
@@ -168,75 +156,61 @@
                         <div class="row mb-1">
                             <div class="col-md-4">
                                 <label for="administratorPhoto" class="form-label">Administrator Photo</label>
-                                <input type="file" class="form-control" id="administratorPhoto" name="administrator_photo" accept="image/png, image/jpeg" capture="user" required>
+                                <input type="file" class="form-control" id="administratorPhoto" name="administrator_photo" accept="image/png, image/jpeg">
+                                <small class="text-muted">Current file: {{ $administrator->photo }}</small>
                             </div>
                             <div class="col-md-4">
                                 <label for="governmentID" class="form-label">Government Issued ID</label>
-                                <input type="file" class="form-control" id="governmentID" name="government_ID" accept=".jpg,.png" required>
+                                <input type="file" class="form-control" id="governmentID" name="government_ID" accept=".jpg,.png">
+                                <small class="text-muted">Current file: {{ $administrator->government_issued_id }}</small>
                             </div>
                             <div class="col-md-4">
                                 <label for="resume" class="form-label">Resume / CV</label>
-                                <input type="file" class="form-control" id="resume" name="resume" accept=".pdf,.doc,.docx" required>
+                                <input type="file" class="form-control" id="resume" name="resume" accept=".pdf,.doc,.docx">
+                                <small class="text-muted">Current file: {{ $administrator->cv_resume }}</small>
                             </div>
                         </div>
                         <div class="row mb-1">
                             <div class="col-md-4">
                                 <label for="sssID" class="form-label">SSS ID</label>
-                                <input type="text" class="form-control" id="sssID" name="sss_ID" placeholder="Enter SSS ID" maxlength="10" required oninput="restrictToNumbers(this)" title="Must be 10 digits.">
+                                <input type="text" class="form-control" id="sssID" name="sss_ID" placeholder="Enter SSS ID" maxlength="10" value="{{ $administrator->sss_id_number }}" oninput="restrictToNumbers(this)" title="Must be 10 digits.">
                             </div>
                             <div class="col-md-4">
                                 <label for="philhealthID" class="form-label">PhilHealth ID</label>
-                                <input type="text" class="form-control" id="philhealthID" name="philhealth_ID" placeholder="Enter PhilHealth ID" maxlength="12" required oninput="restrictToNumbers(this)" title="Must be 12 digits.">
+                                <input type="text" class="form-control" id="philhealthID" name="philhealth_ID" placeholder="Enter PhilHealth ID" maxlength="12" value="{{ $administrator->philhealth_id_number }}" oninput="restrictToNumbers(this)" title="Must be 12 digits.">
                             </div>
                             <div class="col-md-4">
                                 <label for="pagibigID" class="form-label">Pag-Ibig ID</label>
-                                <input type="text" class="form-control" id="pagibigID" name="pagibig_ID" placeholder="Enter Pag-Ibig ID" maxlength="12" required oninput="restrictToNumbers(this)" title="Must be 12 digits.">
+                                <input type="text" class="form-control" id="pagibigID" name="pagibig_ID" placeholder="Enter Pag-Ibig ID" maxlength="12" value="{{ $administrator->pagibig_id_number }}" oninput="restrictToNumbers(this)" title="Must be 12 digits.">
                             </div>
                         </div>
 
-
-                        <hr class="my-4">
                         <!-- Account Registration -->
                         <div class="row mb-1">
                             <div class="col-12">
-                                <h5 class="text-start">Administrator Account Registration</h5> <!-- Row Title -->
+                                <h5 class="text-start">Administrator Account Registration</h5>
                             </div>
                         </div>
                         <div class="row mb-1">
                             <div class="col-md-4">
                                 <label for="email" class="form-label">Work Email Address</label>
-                                <input type="email" class="form-control" id="email" name="account[email]" 
-                                       placeholder="Enter work email" 
-                                       required 
-                                       pattern="^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$" 
-                                       title="Enter a valid email address (e.g., example@domain.com)" 
-                                       oninput="validateEmail(this)">
+                                <input type="email" class="form-control" id="email" name="account[email]" value="{{ $administrator->email }}" required placeholder="Enter work email">
                             </div>
                             <div class="col-md-4">
                                 <label for="password" class="form-label">Password</label>
-                                <input type="password" class="form-control" id="password" name="account[password]" placeholder="Enter password" required>
+                                <input type="password" class="form-control" id="password" name="account[password]" placeholder="Enter new password (leave blank to keep current)">
                             </div>
                             <div class="col-md-4">
                                 <label for="confirmPassword" class="form-label">Confirm Password</label>
-                                <input type="password" class="form-control" id="confirmPassword" name="account[password_confirmation]" placeholder="Confirm password" required>
+                                <input type="password" class="form-control" id="confirmPassword" name="account[password_confirmation]" placeholder="Confirm new password">
                             </div>
                         </div>
-                        <div class="row mb-3">
-                            <div class="col-md-4 position-relative">
-                                <label for="organization_Roles" class="form-label">Organization Roles</label>
-                                <input type="text" class="form-control" id="Organization_RolesInput" placeholder="Select organization role" autocomplete="off" readonly>
-                                <ul class="dropdown-menu w-100" id="Organization_RolesDropdown">
-                                    <li><a class="dropdown-item" data-value="2">Project Coordinator</a></li>
-                                    <li><a class="dropdown-item" data-value="3">MEAL Coordinator</a></li>
-                                </ul>
-                                <input type="hidden" id="Organization_Roles" name="Organization_Roles">
-                            </div>
-                        </div>                        
+
                         <div class="row mt-4">
                             <div class="col-12 d-flex justify-content-center align-items-center">
                                 <button type="submit" class="btn btn-success btn-lg d-flex align-items-center">
                                     <i class='bx bx-save me-2' style="font-size: 24px;"></i>
-                                    Save Administrator
+                                    Save Changes
                                 </button>
                             </div>
                         </div>
@@ -245,24 +219,7 @@
             </div>
         </div>
     </div>
-
-    <!-- Save Beneficiary Success Modal -->
-    <div class="modal fade" id="saveSuccessModal" tabindex="-1" aria-labelledby="saveSuccessModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-sm">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="saveSuccessModalLabel">Success</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body text-center">
-                    <p>Administrator has been successfully saved!</p>
-                </div>
-                <div class="modal-footer justify-content-center">
-                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">OK</button>
-                </div>
-            </div>
-        </div>
-    </div>
+    <script src="{{ asset('js/bootstrap.bundle.min.js') }}"></script>
     <script src=" {{ asset('js/toggleSideBar.js') }}"></script>
     <script src="{{ asset('js/bootstrap.bundle.min.js') }}"></script>
     <script>

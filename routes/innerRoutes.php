@@ -22,10 +22,6 @@ Route::get('/beneficiaryProfile', function () {
     return view('admin.beneficiaryProfile');
 })->name('beneficiaryProfile');
 
-Route::get('/addBeneficiary', function () {
-    return view('admin.addBeneficiary');
-})->name('addBeneficiary');
-
 
 Route::get('/familyProfile', function () {
     return view('admin.familyProfile');

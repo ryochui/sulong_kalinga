@@ -32,12 +32,13 @@ Route::post('logout', [LoginController::class, 'logout'])->name('logout'); // no
 
 // Route::middleware('auth')->group(function () {
     
-
     Route::post('addAdministrator', [AdminController::class, 'storeAdministrator'])->name('admin.addAdministrator.store');
     Route::post('addCareManager', [CareManagerController::class, 'storeCareManager'])->name('admin.addCareManager.store');
     Route::post('addCareWorker', [CareWorkerController::class, 'storeCareWorker'])->name('admin.addCareWorker.store');
     Route::post('addFamily', [FamilyMemberController::class, 'storeFamily'])->name('admin.addFamily.store');
     Route::post('addBeneficiary', [BeneficiaryController::class, 'storeBeneficiary'])->name('admin.addBeneficiary.store');
+    
+    Route::put('editAdministrator/{id}', [AdminController::class, 'updateAdministrator'])->name('admin.editAdministrator.update');
     
     Route::get('/', function () {
         return view('publicWeb.landing');
@@ -81,6 +82,8 @@ Route::post('logout', [LoginController::class, 'logout'])->name('logout'); // no
     Route::get('addAdministrator', function () {
         return view('admin.addAdministrator');
     })->name('admin.addAdministrator');
+
+    Route::get('editAdministrator/{id}', [AdminController::class, 'editAdminProfile'])->name('admin.editAdministrator');
 
     // Route::get('/admin/addCareManager', function () {
     //     return view('admin.addCareManager');
