@@ -191,6 +191,210 @@ class AdminController extends Controller
         return redirect()->route('admin.addAdministrator')->with('success', 'Administrator has been successfully added!');
     }
 
+    public function updateAdministrator(Request $request, $id)
+    {
+        // Find the administrator by ID
+        $administrator = User::findOrFail($id);
+
+        // if ($administrator->birth_date) {
+        //     $administrator->birth_date = Carbon::createFromFormat('d/m/Y', $administrator->birth_date)->format('Y-m-d');
+        // }
+
+        // Validate the input data
+        $validator = Validator::make($request->all(), [
+            // Personal Details
+            'first_name' => [
+                'required',
+                'string',
+                'regex:/^[A-Z][a-zA-Z]{1,}(?:-[a-zA-Z]{1,})?(?: [a-zA-Z]{2,}(?:-[a-zA-Z]{1,})?)*$/',
+                'max:100'
+            ],
+            'last_name' => [
+                'required',
+                'string',
+                'regex:/^[A-Z][a-zA-Z]{1,}(?:-[a-zA-Z]{1,})?(?: [a-zA-Z]{2,}(?:-[a-zA-Z]{1,})?)*$/',
+                'max:100'
+            ],
+            'birth_date' => 'required|date|before_or_equal:' . now()->subYears(14)->toDateString(),
+            'gender' => 'required|string|in:Male,Female,Other',
+
+            'civil_status' => 'required|string|in:Single,Married,Widowed,Divorced',
+            'religion' => 'nullable|string|regex:/^[a-zA-Z\s]*$/',
+            'nationality' => 'required|string|regex:/^[a-zA-Z\s]*$/',
+            'educational_background' => 'required|string|in:College,Highschool,Doctorate',
+
+            'address_details' => [
+                'required',
+                'string',
+                'regex:/^[a-zA-Z0-9\s,.-]+$/',
+            ],
+            'personal_email' => [
+                'required',
+                'string',
+                'regex:/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/',
+                Rule::unique('users', 'personal_email')->ignore($administrator->id),
+            ],
+            'mobile_number' => [
+                'required',
+                'string',
+                'regex:/^[0-9]{10,11}$/',
+                Rule::unique('users', 'mobile')->ignore($administrator->id),
+            ],
+            'landline_number' => [
+                'nullable',
+                'string',
+                'regex:/^[0-9]{7,10}$/',
+            ],
+            'administrator_photo' => 'nullable|image|mimes:jpeg,png|max:2048',
+            'government_ID' => 'nullable|image|mimes:jpeg,png|max:2048',
+            'resume' => 'nullable|mimes:pdf,doc,docx|max:2048',
+            'sss_ID' => 'nullable|string|max:10',
+            'philhealth_ID' => 'nullable|string|max:12',
+            'pagibig_ID' => 'nullable|string|max:12',
+            'account.email' => [
+                'required',
+                'string',
+                'regex:/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/',
+                Rule::unique('users', 'email')->ignore($administrator->id),
+            ],
+            'account.password' => 'nullable|string|min:8|confirmed',
+            'administrator_photo' => 'nullable|image|mimes:jpeg,png|max:2048',
+            'government_ID' => 'nullable|image|mimes:jpeg,png|max:2048',
+            'resume' => 'nullable|mimes:pdf,doc,docx|max:2048',
+        ]);
+
+        if ($validator->fails()) {
+            return redirect()->back()->withErrors($validator)->withInput();
+        }
+
+        // Generate unique identifier for file naming
+    $uniqueIdentifier = time() . '_' . Str::random(5);
+
+    // Handle Administrator Photo
+    if ($request->hasFile('administrator_photo')) {
+        $directory = public_path('storage/uploads/administrator_photos');
+        if (!is_dir($directory)) {
+            mkdir($directory, 0755, true);
+        }
+
+        $administratorPhotoPath = $request->file('administrator_photo')->storeAs(
+            'uploads/administrator_photos',
+            $administrator->first_name . '_' . $administrator->last_name . '_photo_' . $uniqueIdentifier . '.' . $request->file('administrator_photo')->getClientOriginalExtension(),
+            'public'
+        );
+        $administrator->photo = $administratorPhotoPath;
+    }
+
+    // Handle Government Issued ID
+    if ($request->hasFile('government_ID')) {
+        $directory = public_path('storage/uploads/administrator_government_ids');
+        if (!is_dir($directory)) {
+            mkdir($directory, 0755, true);
+        }
+
+        $governmentIDPath = $request->file('government_ID')->storeAs(
+            'uploads/administrator_government_ids',
+            $administrator->first_name . '_' . $administrator->last_name . '_government_id_' . $uniqueIdentifier . '.' . $request->file('government_ID')->getClientOriginalExtension(),
+            'public'
+        );
+        $administrator->government_issued_id = $governmentIDPath;
+    }
+
+    // Handle Resume
+    if ($request->hasFile('resume')) {
+        $directory = public_path('storage/uploads/administrator_resumes');
+        if (!is_dir($directory)) {
+            mkdir($directory, 0755, true);
+        }
+
+        $resumePath = $request->file('resume')->storeAs(
+            'uploads/administrator_resumes',
+            $administrator->first_name . '_' . $administrator->last_name . '_resume_' . $uniqueIdentifier . '.' . $request->file('resume')->getClientOriginalExtension(),
+            'public'
+        );
+        $administrator->cv_resume = $resumePath;
+    }
+
+
+
+        // Handle file uploads if new files are provided
+        $uniqueIdentifier = time() . '_' . Str::random(5);
+
+        if ($request->hasFile('administrator_photo')) {
+            $administratorPhotoPath = $request->file('administrator_photo')->storeAs(
+                'uploads/administrator_photos',
+                $administrator->first_name . '_' . $administrator->last_name . '_photo_' . $uniqueIdentifier . '.' . $request->file('administrator_photo')->getClientOriginalExtension(),
+                'public'
+            );
+            $administrator->photo = $administratorPhotoPath;
+        }
+
+        if ($request->hasFile('government_ID')) {
+            $governmentIDPath = $request->file('government_ID')->storeAs(
+                'uploads/administrator_government_ids',
+                $administrator->first_name . '_' . $administrator->last_name . '_government_id_' . $uniqueIdentifier . '.' . $request->file('government_ID')->getClientOriginalExtension(),
+                'public'
+            );
+            $administrator->government_issued_id = $governmentIDPath;
+        }
+
+        if ($request->hasFile('resume')) {
+            $resumePath = $request->file('resume')->storeAs(
+                'uploads/administrator_resumes',
+                $administrator->first_name . '_' . $administrator->last_name . '_resume_' . $uniqueIdentifier . '.' . $request->file('resume')->getClientOriginalExtension(),
+                'public'
+            );
+            $administrator->cv_resume = $resumePath;
+        }
+
+        // Update administrator details
+        $administrator->first_name = $request->input('first_name');
+        $administrator->last_name = $request->input('last_name');
+        $administrator->birthday = $request->input('birth_date');
+        $administrator->gender = $request->input('gender');
+        $administrator->civil_status = $request->input('civil_status');
+        $administrator->religion = $request->input('religion');
+        $administrator->nationality = $request->input('nationality');
+        $administrator->educational_background = $request->input('educational_background');
+        $administrator->address = $request->input('address_details');
+        $administrator->personal_email = $request->input('personal_email');
+        $administrator->mobile = '+63' . $request->input('mobile_number');
+        $administrator->landline = $request->input('landline_number');
+        $administrator->email = $request->input('account.email');
+
+        // Insert statements for file paths
+        if (isset($administratorPhotoPath)) {
+            $administrator->photo = $administratorPhotoPath;
+        }
+
+        if (isset($governmentIDPath)) {
+            $administrator->government_issued_id = $governmentIDPath;
+        }
+
+        if (isset($resumePath)) {
+            $administrator->cv_resume = $resumePath;
+        }
+
+        // Update password if provided
+        if ($request->filled('account.password')) {
+            $administrator->password = bcrypt($request->input('account.password'));
+        }
+
+        // Update IDs
+        $administrator->sss_id = $request->input('sss_ID');
+        $administrator->philhealth_id = $request->input('philhealth_ID');
+        $administrator->pagibig_id = $request->input('pagibig_ID');
+
+        $administrator->updated_by = Auth::id();
+        $administrator->updated_at = now();
+
+        // Save the updated administrator
+        $administrator->save();
+
+        // Redirect with success message
+        return redirect()->route('admin.editAdministrator')->with('success', 'Administrator profile updated successfully.');
+    }
+
     public function index(Request $request)
     {
         $search = $request->input('search');

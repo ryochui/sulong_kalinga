@@ -233,6 +233,15 @@
                                 </ul>
                                 <input type="hidden" id="Organization_Roles" name="Organization_Roles">
                             </div>
+                            <!-- <div class="col-md-3 relative">
+                                <label for="gender" class="form-label">Gender</label>
+                                <select class="form-select" id="gender" name="gender" required>
+                                    <option value="" disabled selected>Select gender</option>
+                                    <option value="Male">Male</option>
+                                    <option value="Female">Female</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div> -->
                         </div>                        
                         <div class="row mt-4">
                             <div class="col-12 d-flex justify-content-center align-items-center">
