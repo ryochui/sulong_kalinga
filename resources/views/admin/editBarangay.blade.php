@@ -1,41 +1,45 @@
-<!-- filepath: c:\xampp\htdocs\sulong_kalinga\resources\views\components\modals\addBarangay.blade.php -->
-<div class="modal fade" id="addBarangayModal" tabindex="-1" aria-labelledby="addBarangayModalLabel" aria-hidden="true">
+<!-- filepath: c:\xampp\htdocs\sulong_kalinga\resources\views\components\modals\editBarangay.blade.php -->
+<div class="modal fade" id="editBarangayModal" tabindex="-1" aria-labelledby="editBarangayModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="addBarangayModalLabel">Add New Barangay</h5>
+                <h5 class="modal-title" id="editBarangayModalLabel">Edit Barangay</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
                 <!-- Error messages container -->
-                <div id="barangayErrorContainer" class="alert alert-danger d-none"></div>
+                <div id="editBarangayErrorContainer" class="alert alert-danger d-none"></div>
                 
-                <!-- Success message container (new) -->
-                <div id="barangaySuccessContainer" class="d-none">
+                <!-- Success message container -->
+                <div id="editBarangaySuccessContainer" class="d-none">
                     <p class="text-success">
                         <i class="bx bx-check-circle"></i>
-                        <strong>Success!</strong> <span id="barangaySuccessMessage">The barangay has been added successfully.</span>
+                        <strong>Success!</strong> <span id="editBarangaySuccessMessage">The barangay has been updated successfully.</span>
                     </p>
                     <p>The page will reload shortly.</p>
                 </div>
                 
-                <form id="addBarangayForm">
+                <form id="editBarangayForm">
                     @csrf
-                    <div id="barangayFormContent">
-                    <div class="mb-3">
-                        <label for="barangayMunicipalitySelect" class="form-label">Municipality</label>
-                        <select class="form-select" id="barangayMunicipalitySelect" name="municipality_id" required>
-                            <option value="">Select Municipality</option>
-                            @foreach($municipalities as $municipality)
-                                <option value="{{ $municipality->municipality_id }}">{{ $municipality->municipality_name }}</option>
-                            @endforeach
-                        </select>
-                        <div class="form-text">Select the municipality this barangay belongs to.</div>
-                    </div>
+                    <input type="hidden" id="editBarangayId" name="barangay_id">
+                    <input type="hidden" id="originalBarangayName" name="original_barangay_name">
+                    <input type="hidden" id="originalMunicipalityId" name="original_municipality_id">
+                    
+                    <div id="editBarangayFormContent">
+                        <div class="mb-3">
+                            <label for="editMunicipalityId" class="form-label">Municipality</label>
+                            <select class="form-select" id="editMunicipalityId" name="municipality_id" required>
+                                <option value="">Select Municipality</option>
+                                @foreach($municipalities as $municipality)
+                                    <option value="{{ $municipality->municipality_id }}">{{ $municipality->municipality_name }}</option>
+                                @endforeach
+                            </select>
+                            <div class="form-text">You can change the municipality this barangay belongs to.</div>
+                        </div>
                         
                         <div class="mb-3">
-                            <label for="barangayName" class="form-label">Barangay Name</label>
-                            <input type="text" class="form-control" id="barangayName" name="barangay_name" required
+                            <label for="editBarangayName" class="form-label">Barangay Name</label>
+                            <input type="text" class="form-control" id="editBarangayName" name="barangay_name" required
                                    pattern="^[A-Z][A-Za-z][A-Za-z0-9\s\.\-']*$" 
                                    title="Barangay name must start with a capital letter, contain at least 2 letters, and can only include letters, numbers, spaces, periods, hyphens, and apostrophes">
                             <div class="form-text">Enter the name of the barangay (e.g., San Roque, Zone 4, Barangay 1). Must start with a capital letter and contain at least 2 letters.</div>
@@ -48,82 +52,114 @@
                 </form>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="cancelBarangayButton">Cancel</button>
-                <button type="button" class="btn btn-primary" id="submitBarangay">
-                    <i class="bx bx-plus"></i> Add Barangay
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="cancelEditBarangayButton">Cancel</button>
+                <button type="button" class="btn btn-primary" id="submitEditBarangay">
+                    <i class="bx bx-save"></i> Update Barangay
                 </button>
             </div>
         </div>
     </div>
 </div>
 
-<!-- filepath: c:\xampp\htdocs\sulong_kalinga\resources\views\components\modals\addBarangay.blade.php -->
-
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const form = document.getElementById('addBarangayForm');
-    const formContent = document.getElementById('barangayFormContent');
-    const errorContainer = document.getElementById('barangayErrorContainer');
-    const successContainer = document.getElementById('barangaySuccessContainer');
-    const successMessage = document.getElementById('barangaySuccessMessage');
-    const submitButton = document.getElementById('submitBarangay');
-    const cancelButton = document.getElementById('cancelBarangayButton');
+    const editForm = document.getElementById('editBarangayForm');
+    const editFormContent = document.getElementById('editBarangayFormContent');
+    const editErrorContainer = document.getElementById('editBarangayErrorContainer');
+    const editSuccessContainer = document.getElementById('editBarangaySuccessContainer');
+    const editSuccessMessage = document.getElementById('editBarangaySuccessMessage');
+    const submitEditButton = document.getElementById('submitEditBarangay');
+    const cancelEditButton = document.getElementById('cancelEditBarangayButton');
     
-    // FIXED: Add input event listener for barangayName
-    document.getElementById('barangayName').addEventListener('input', function() {
-        clearErrors();
+    // Add input event listeners to clear errors when typing or selecting
+    document.getElementById('editBarangayName').addEventListener('input', function() {
+        clearEditErrors();
     });
     
-    // FIXED: Use the correct selector for municipality dropdown
-    document.getElementById('barangayMunicipalitySelect').addEventListener('change', function() {
-        clearErrors();
+    document.getElementById('editMunicipalityId').addEventListener('change', function() {
+        clearEditErrors();
     });
     
-    // REMOVED: Incorrect event listener for non-existent element
-    // document.getElementById('municipalityId').addEventListener('change', function() {
-    //     errorContainer.innerHTML = '';
-    //     errorContainer.classList.add('d-none');
-    // });
-    
-    // ADDED: Function to clear errors consistently
-    function clearErrors() {
-        errorContainer.innerHTML = '';
-        errorContainer.classList.add('d-none');
+    // Function to clear errors
+    function clearEditErrors() {
+        editErrorContainer.innerHTML = '';
+        editErrorContainer.classList.add('d-none');
     }
     
+    // Function to prepare edit modal with barangay data
+    window.prepareEdit = function(element) {
+        // Reset error message
+        clearEditErrors();
+        
+        // Get data from clicked element
+        const id = element.dataset.id;
+        const name = element.dataset.name;
+        const municipalityId = element.dataset.municipality;
+        
+        // Reset form and show content
+        editForm.reset();
+        editFormContent.classList.remove('d-none');
+        editSuccessContainer.classList.add('d-none');
+        submitEditButton.classList.remove('d-none');
+        submitEditButton.disabled = false;
+        submitEditButton.innerHTML = '<i class="bx bx-save"></i> Update Barangay';
+        cancelEditButton.textContent = 'Cancel';
+        
+        // Set form values
+        document.getElementById('editBarangayId').value = id;
+        document.getElementById('editBarangayName').value = name;
+        document.getElementById('editMunicipalityId').value = municipalityId;
+        
+        // Store original values for comparison
+        document.getElementById('originalBarangayName').value = name;
+        document.getElementById('originalMunicipalityId').value = municipalityId;
+        
+        // Open the modal
+        const editModal = new bootstrap.Modal(document.getElementById('editBarangayModal'));
+        editModal.show();
+    };
+    
     // Client-side validation
-    function validateBarangayForm() {
-        const municipalityId = document.getElementById('barangayMunicipalitySelect').value;
-        const barangayName = document.getElementById('barangayName').value.trim();
+    function validateEditBarangayForm() {
+        const municipalityId = document.getElementById('editMunicipalityId').value;
+        const barangayName = document.getElementById('editBarangayName').value.trim();
+        const originalName = document.getElementById('originalBarangayName').value;
+        const originalMunicipalityId = document.getElementById('originalMunicipalityId').value;
+        
+        // Check if nothing changed
+        if (barangayName === originalName && municipalityId === originalMunicipalityId) {
+            showEditDetailedError('No changes were made. Please modify the barangay name or municipality to update.');
+            return false;
+        }
         
         if (!municipalityId) {
-            showDetailedError('Please select a municipality.');
+            showEditDetailedError('Please select a municipality.');
             return false;
         }
         
         if (!barangayName) {
-            showDetailedError('Barangay name is required.');
+            showEditDetailedError('Barangay name is required.');
             return false;
         }
         
-        // Fixed pattern - removed extra escaping
+        // Name pattern validation
         const namePattern = /^[A-Z][A-Za-z][A-Za-z0-9\s\.\-']*$/;
         if (!namePattern.test(barangayName)) {
-            showDetailedError('Barangay name must start with a capital letter, contain at least 2 letters, and can only include letters, numbers, spaces, periods, hyphens, and apostrophes.');
+            showEditDetailedError('Barangay name must start with a capital letter, contain at least 2 letters, and can only include letters, numbers, spaces, periods, hyphens, and apostrophes.');
             return false;
         }
         
         if (barangayName.length > 100) {
-            showDetailedError('Barangay name cannot exceed 100 characters.');
+            showEditDetailedError('Barangay name cannot exceed 100 characters.');
             return false;
         }
         
         return true;
     }
-        
+    
     // Show a more detailed error message with guidance
-    function showDetailedError(message) {
-        errorContainer.classList.remove('d-none');
+    function showEditDetailedError(message) {
+        editErrorContainer.classList.remove('d-none');
         
         const errorContent = document.createElement('div');
         
@@ -152,25 +188,25 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         // Replace error container content
-        errorContainer.innerHTML = '';
-        errorContainer.appendChild(errorContent);
+        editErrorContainer.innerHTML = '';
+        editErrorContainer.appendChild(errorContent);
     }
     
     // Show success message and hide form
-    function showBarangaySuccess(message) {
+    function showEditBarangaySuccess(message) {
         // Hide form content and error messages
-        formContent.classList.add('d-none');
-        errorContainer.classList.add('d-none');
+        editFormContent.classList.add('d-none');
+        editErrorContainer.classList.add('d-none');
         
         // Show success message
-        successContainer.classList.remove('d-none');
+        editSuccessContainer.classList.remove('d-none');
         if (message) {
-            successMessage.textContent = message;
+            editSuccessMessage.textContent = message;
         }
         
         // Update buttons
-        submitButton.classList.add('d-none');
-        cancelButton.textContent = 'Close';
+        submitEditButton.classList.add('d-none');
+        cancelEditButton.textContent = 'Close';
         
         // Set timeout to reload the page
         setTimeout(function() {
@@ -178,24 +214,25 @@ document.addEventListener('DOMContentLoaded', function() {
         }, 2000);
     }
     
-    submitButton.addEventListener('click', function() {
+    // Submit button click handler
+    submitEditButton.addEventListener('click', function() {
         // Reset error container
-        clearErrors(); // FIXED: Use the consistent error clearing function
+        clearEditErrors();
         
         // Validate form fields before submission
-        if (!validateBarangayForm()) {
+        if (!validateEditBarangayForm()) {
             return;
         }
         
         // Show loading state
-        submitButton.disabled = true;
-        submitButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Adding...';
+        submitEditButton.disabled = true;
+        submitEditButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Updating...';
         
         // Create form data
-        const formData = new FormData(form);
+        const formData = new FormData(editForm);
         
         // Send AJAX request
-        fetch('{{ route("admin.addBarangay") }}', {
+        fetch('{{ route("admin.updateBarangay") }}', {
             method: 'POST',
             body: formData,
             headers: {
@@ -207,10 +244,10 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(data => {
             if (data.success) {
                 // Show success message before redirecting
-                showBarangaySuccess(data.message);
+                showEditBarangaySuccess(data.message);
             } else {
                 // Show detailed validation errors
-                errorContainer.classList.remove('d-none');
+                editErrorContainer.classList.remove('d-none');
                 
                 if (data.errors) {
                     const errorList = document.createElement('ul');
@@ -253,7 +290,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         });
                     }
                     
-                    errorContainer.appendChild(errorList);
+                    editErrorContainer.appendChild(errorList);
                     
                     // Add additional guidance for name errors
                     if (hasNameError) {
@@ -270,34 +307,31 @@ document.addEventListener('DOMContentLoaded', function() {
                                 </ul>
                             </small>
                         `;
-                        errorContainer.appendChild(guidance);
+                        editErrorContainer.appendChild(guidance);
                     }
                 } else {
-                    errorContainer.textContent = data.message || 'An error occurred';
+                    editErrorContainer.textContent = data.message || 'An error occurred';
                 }
                 
-                // ADDED: Set up input listeners again for the form fields to clear errors on type
-                document.getElementById('barangayName').addEventListener('input', clearErrors);
-                document.getElementById('barangayMunicipalitySelect').addEventListener('change', clearErrors);
-                
                 // Reset button
-                submitButton.disabled = false;
-                submitButton.innerHTML = '<i class="bx bx-plus"></i> Add Barangay';
+                submitEditButton.disabled = false;
+                submitEditButton.innerHTML = '<i class="bx bx-save"></i> Update Barangay';
             }
         })
         .catch(error => {
             // Handle network errors
-            errorContainer.classList.remove('d-none');
-            errorContainer.textContent = 'Network error. Please try again.';
+            editErrorContainer.classList.remove('d-none');
+            editErrorContainer.textContent = 'Network error. Please try again.';
+            console.error('Error:', error);
             
             // Reset button
-            submitButton.disabled = false;
-            submitButton.innerHTML = '<i class="bx bx-plus"></i> Add Barangay';
+            submitEditButton.disabled = false;
+            submitEditButton.innerHTML = '<i class="bx bx-save"></i> Update Barangay';
         });
     });
     
     // Prevent default form submission
-    form.addEventListener('submit', function(e) {
+    editForm.addEventListener('submit', function(e) {
         e.preventDefault();
     });
 });
