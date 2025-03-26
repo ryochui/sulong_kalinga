@@ -229,7 +229,7 @@
             <div class="profile-header">
                 <!-- Profile Image -->
                 <div class="profile-image-container">
-                    <img src="{{ public_path('images/defaultProfile.png') }}" alt="Profile Picture" style="width:100%; height:100%; object-fit:cover;">
+                    <img src="{{ $careworker->photo ? public_path('storage/' . $careworker->photo) : public_path('images/defaultProfile.png') }}" alt="Profile Picture" style="width:100%; height:100%; object-fit:cover;">
                 </div>
                 
                 <div class="profile-details">
@@ -341,7 +341,7 @@
                                     <td>
                                         <div class="beneficiary-card">
                                             <div class="beneficiary-img">
-                                                <img src="{{ public_path('images/defaultProfile.png') }}" alt="Profile Picture" style="width:100%; height:100%; object-fit:cover;">
+                                                <img src="{{ $beneficiary->photo ? public_path('storage/' . $beneficiary->photo) : public_path('images/defaultProfile.png') }}" alt="Profile Picture" style="width:100%; height:100%; object-fit:cover;">
                                             </div>
                                             <p class="beneficiary-name">{{ $beneficiary->first_name }} {{ $beneficiary->last_name }}</p>
                                         </div>

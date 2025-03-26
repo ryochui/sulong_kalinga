@@ -192,7 +192,7 @@
         <div class="beneficiary-profile">
             <div class="profile-header">
                 <!-- Add Profile Image -->
-                <img class="profile-image" src="{{ public_path('images/defaultProfile.png') }}" alt="Profile Picture">
+                <img class="profile-image" src="{{ $beneficiary->photo ? public_path('storage/' . $beneficiary->photo) : public_path('images/defaultProfile.png') }}" alt="Profile Picture">
                 
                 <div class="profile-details">
                     <h2>{{ $beneficiary->first_name }} {{ $beneficiary->last_name }}</h2>
