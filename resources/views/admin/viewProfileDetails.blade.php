@@ -405,11 +405,23 @@
                             <tbody>
                                 <tr>
                                     <td style="width: 40%;"><strong>Care Service Agreement:</strong></td>
-                                    <td style="width: 60%;"><!-- Backend data --></td>                                
+                                    <td style="width: 60%;">
+                                        @if($beneficiary->care_service_agreement_doc)
+                                            <a href="{{ asset('storage/' . $beneficiary->care_service_agreement_doc) }}" download>Download</a>
+                                        @else
+                                            N/A
+                                        @endif
+                                    </td>                                
                                 </tr>
                                 <tr>
                                     <td style="width: 40%;"><strong>General Careplan:</strong></td>
-                                    <td style="width: 60%;"><!-- Backend data --></td>                                
+                                    <td style="width: 60%;">
+                                        @if($beneficiary->general_care_plan_doc)
+                                            <a href="{{ asset('storage/' . $beneficiary->general_care_plan_doc) }}" download>Download</a>
+                                        @else
+                                            N/A
+                                        @endif
+                                    </td>                                
                                 </tr>
                             </tbody>
                         </table>
