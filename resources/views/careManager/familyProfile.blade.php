@@ -15,7 +15,7 @@
     @include('components.careManagerSidebar')
 
     <div class="home-section">
-        <div class="text-left">FAMILY OR RELATIVE PROFILES</div>
+        <div class="text-left">FAMILY OR RELATIVE PROFILES CM</div>
         <div class="container-fluid text-center">
             <div class="row mb-3 align-items-center">
                 <!-- Search Bar -->
