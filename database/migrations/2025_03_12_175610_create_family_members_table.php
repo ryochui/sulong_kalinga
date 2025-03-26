@@ -19,7 +19,7 @@ return new class extends Migration
             $table->string('mobile', 18)->unique()->nullable();
             $table->string('landline', 8)->nullable();
             $table->string('email', 100)->unique();
-            $table->binary('photo')->nullable();
+            $table->text('photo')->nullable();
             $table->text('street_address');
             $table->string('gender', 50);
             $table->integer('related_beneficiary_id');
