@@ -45,7 +45,6 @@
             <div class="row" id="addUserForm">
                 <div class="col-12">
                 <form action="{{ route('editAdminProfile') }}" method="POST">
-                    <form action="{{ route('admin.addAdministrator.store') }}" method="POST" enctype="multipart/form-data">
                         @csrf <!-- Include CSRF token for security -->
                         <!-- Row 1: Personal Details -->
                         <div class="row mb-1 mt-3">
