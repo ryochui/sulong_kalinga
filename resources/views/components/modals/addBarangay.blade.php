@@ -57,6 +57,8 @@
     </div>
 </div>
 
+<!-- filepath: c:\xampp\htdocs\sulong_kalinga\resources\views\components\modals\addBarangay.blade.php -->
+
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const form = document.getElementById('addBarangayForm');
@@ -67,24 +69,32 @@ document.addEventListener('DOMContentLoaded', function() {
     const submitButton = document.getElementById('submitBarangay');
     const cancelButton = document.getElementById('cancelBarangayButton');
     
-    // Add input event listeners to clear errors when typing or selecting
-    document.getElementById('barangayMunicipalitySelect').addEventListener('change', function() {
-        errorContainer.innerHTML = '';
-        errorContainer.classList.add('d-none');
+    // FIXED: Add input event listener for barangayName
+    document.getElementById('barangayName').addEventListener('input', function() {
+        clearErrors();
     });
-
     
-    document.getElementById('municipalityId').addEventListener('change', function() {
+    // FIXED: Use the correct selector for municipality dropdown
+    document.getElementById('barangayMunicipalitySelect').addEventListener('change', function() {
+        clearErrors();
+    });
+    
+    // REMOVED: Incorrect event listener for non-existent element
+    // document.getElementById('municipalityId').addEventListener('change', function() {
+    //     errorContainer.innerHTML = '';
+    //     errorContainer.classList.add('d-none');
+    // });
+    
+    // ADDED: Function to clear errors consistently
+    function clearErrors() {
         errorContainer.innerHTML = '';
         errorContainer.classList.add('d-none');
-    });
+    }
     
     // Client-side validation
     function validateBarangayForm() {
         const municipalityId = document.getElementById('barangayMunicipalitySelect').value;
         const barangayName = document.getElementById('barangayName').value.trim();
-        
-        console.log("Selected municipality ID:", municipalityId); // Debug log
         
         if (!municipalityId) {
             showDetailedError('Please select a municipality.');
@@ -170,8 +180,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     submitButton.addEventListener('click', function() {
         // Reset error container
-        errorContainer.innerHTML = '';
-        errorContainer.classList.add('d-none');
+        clearErrors(); // FIXED: Use the consistent error clearing function
         
         // Validate form fields before submission
         if (!validateBarangayForm()) {
@@ -266,6 +275,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 } else {
                     errorContainer.textContent = data.message || 'An error occurred';
                 }
+                
+                // ADDED: Set up input listeners again for the form fields to clear errors on type
+                document.getElementById('barangayName').addEventListener('input', clearErrors);
+                document.getElementById('barangayMunicipalitySelect').addEventListener('change', clearErrors);
                 
                 // Reset button
                 submitButton.disabled = false;

@@ -197,6 +197,8 @@
             document.getElementById('editBarangayId').value = id;
             document.getElementById('editBarangayName').value = name;
             document.getElementById('editMunicipalityId').value = municipalityId;
+
+            window.prepareEdit(element);
         }
     </script>
 </body>

@@ -30,7 +30,7 @@
             </div>
             <div class="row" id="addUserForm">
                 <div class="col-12">
-                    <!-- <form action="{{ route('addBeneficiary') }}" method="POST"> -->
+                <form action="{{ route('editProfile') }}" method="POST">
                     <form id="addBeneficiaryForm">
                         @csrf
                         @method('PUT')

@@ -30,8 +30,7 @@
             </div>
             <div class="row" id="addUserForm">
                 <div class="col-12">
-                    <!-- <form action="{{ route('addBeneficiary') }}" method="POST"> -->
-                    <form>
+                <form action="{{ route('editFamilyProfile') }}" method="POST">
                         @csrf <!-- Include CSRF token for security -->
                         @method('PUT') <!-- Use PUT method to update the record -->
                         <!-- Row 1: Personal Details -->

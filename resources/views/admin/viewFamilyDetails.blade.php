@@ -52,10 +52,10 @@
                     <div class="col-lg-8 col-md-12 col-sm-12" id="profilePic">
                         <div class="row justify-content-center align-items-center text-center text-md-start">
                             <!-- Profile Picture Column -->
-                            <div class="col-lg-4 col-md-4 col-sm-12 mb-md-0 d-flex justify-content-end">
-                                <img src="{{ asset('images/defaultProfile.png') }}" 
+                            <div class="col-lg-3 col-md-4 col-sm-12 mb-3 mb-md-0">
+                                <img src="{{ $family_member->photo ? asset('storage/' . $family_member->photo) : asset('images/defaultProfile.png') }}" 
                                     alt="Profile Picture" 
-                                    class="img-fluid rounded-circle" 
+                                    class="img-fluid rounded-circle mx-auto d-block d-md-inline" 
                                     style="width: 150px; height: 150px; border: 1px solid #ced4da;">
                             </div>
                             <!-- Name and Details Column -->
@@ -121,7 +121,7 @@
                     <div class="col-lg-12 col-md-12 col-sm-12 d-flex justify-content-center flex-wrap">
                         <div class="card text-center p-1 m-1" style="max-width: 160px;">
                             <div class="d-flex justify-content-center align-items-center" style="height: 100px;">
-                                <img src=" {{ asset('images/defaultProfile.png') }}" class="img-fluid" alt="..." style="max-width: 100px; max-height: 100px;">
+                                <img src=" {{ $family_member->beneficiary->photo ? asset('storage/' . $family_member->beneficiary->photo) : asset('images/defaultProfile.png') }}" class="img-fluid" alt="..." style="max-width: 100px; max-height: 100px;">
                             </div>
                             <div class="card-body p-1">
                                 <p class="card-text" style="font-size:14px;">{{ $family_member->beneficiary->first_name }} {{ $family_member->beneficiary->last_name }}</p>

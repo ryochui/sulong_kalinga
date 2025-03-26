@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Auth;
-// use App\Models\User;
+use App\Models\User;
 use App\Models\Municipality;
 use App\Models\FamilyMember;
 use App\Models\Beneficiary;
@@ -202,7 +202,7 @@ class FamilyMemberController extends Controller
         // $familymember->access = True; // Status for access to the system (REMOVED BECAUSE 'access' COLUMN WILL BE REMOVED)
         $familymember->created_at = now();
         $familymember->created_by = Auth::id(); // Set the created_by column to the current user's ID   
-        $family_member->updated_by = Auth::id(); // Set the updated_by column to the current user's ID
+        $familymember->updated_by = Auth::id(); // Set the updated_by column to the current user's ID
         // $familymember->assigned_municipality_id = $request->input('municipality');
 
         // Save file paths and IDs

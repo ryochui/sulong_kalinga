@@ -30,7 +30,7 @@
     @include('components.careManagerSidebar')
     
     <div class="home-section">
-        <div class="text-left">REPORTS MANAGEMENT</div>
+        <div class="text-left">REPORTS MANAGEMENT CM</div>
         
         <div class="container-fluid text-center">
             <form action="{{ route('reports') }}" method="GET" id="searchFilterForm">

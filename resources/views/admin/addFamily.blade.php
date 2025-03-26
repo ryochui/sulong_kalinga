@@ -49,10 +49,6 @@
                         </div>
                         <div class="row mb-1">
                             <div class="col-md-3 relative">
-                                <label for="familyPhoto" class="form-label">Profile Picture</label>
-                                <input type="file" class="form-control" id="familyPhoto" name="family_photo" accept="image/png, image/jpeg" capture="user" required>
-                            </div>
-                            <div class="col-md-3 relative">
                                 <label for="firstName" class="form-label">First Name</label>
                                 <input type="text" class="form-control" id="firstName" name="first_name" 
                                         placeholder="Enter first name" 
@@ -79,13 +75,13 @@
                                     <option value="Other">Other</option>
                                 </select>
                             </div>
-                        </div>
-                        </div>
-                        <div class="row mb-1">
                             <div class="col-md-3 relative">
                                 <label for="birthDate" class="form-label">Birthday</label>
                                 <input type="date" class="form-control" id="birthDate" name="birth_date" required onkeydown="return true">
                             </div>
+                        </div>
+                        </div>
+                        <div class="row mb-1">
                             <div class="col-md-3 relative">
                                 <label for="mobileNumber" class="form-label">Mobile Number</label>
                                 <div class="input-group">
@@ -97,6 +93,21 @@
                                 <label for="landlineNumber" class="form-label">Landline Number</label>
                                 <input type="text" class="form-control" id="landlineNumber" name="landline_number" placeholder="Enter Landline number" maxlength="10" required oninput="restrictToNumbers(this)" title="Must be between 7 and 10 digits.">
                             </div>
+                            <div class="col-md-3 relative">
+                                <label for="personalEmail" class="form-label">Personal Email Address</label>
+                                <input type="email" class="form-control" id="personalEmail" name="personal_email" 
+                                       placeholder="Enter personal email" 
+                                       required 
+                                       pattern="^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$" 
+                                       title="Enter a valid email address (e.g., example@domain.com)" 
+                                       oninput="validateEmail(this)">
+                            </div>
+                            <div class="col-md-3 relative">
+                                <label for="familyPhoto" class="form-label">Profile Picture</label>
+                                <input type="file" class="form-control" id="familyPhoto" name="family_photo" accept="image/png, image/jpeg" capture="user" required>
+                            </div>
+                        </div>
+                        <div class="row mb-1">
                             <!-- Change to dynamic -->
                             <div class="col-md-3 relative">
                             <label for="relatedBeneficiary" class="form-label">Related Beneficiary</label>
@@ -109,8 +120,6 @@
                                     @endforeach
                                 </select>
                             </div>
-                        </div>
-                        <div class="row mb-1">
                             <div class="col-md-3 relative">
                                 <label for="relationToBeneficiary" class="form-label">Relation to Beneficiary</label>
                                 <select class="form-select" id="relationToBeneficiary" name="relation_to_beneficiary" required>
@@ -123,15 +132,7 @@
                                     <option value="Other">Other</option>
                                 </select>
                             </div>
-                            <div class="col-md-3">
-                                <label for="personalEmail" class="form-label">Personal Email Address</label>
-                                <input type="email" class="form-control" id="personalEmail" name="personal_email" 
-                                       placeholder="Enter personal email" 
-                                       required 
-                                       pattern="^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$" 
-                                       title="Enter a valid email address (e.g., example@domain.com)" 
-                                       oninput="validateEmail(this)">
-                            </div>
+                            
                             <div class="col-md-3 relative">
                                 <label for="isPrimaryCaregiver" class="form-label">Is Primary Caregiver?</label>
                                 <select class="form-select" id="isPrimaryCaregiver" name="is_primary_caregiver" required>
