@@ -16,7 +16,7 @@
     @include('components.modals.statusChangeBeneficiary')
     
     <div class="home-section">
-        <div class="text-left">BENEFICIARY PROFILES</div>
+        <div class="text-left">BENEFICIARY PROFILES CM</div>
         <div class="container-fluid text-center">
             <div class="row mb-3 align-items-center">
                 <!-- Search Bar -->

@@ -14,7 +14,7 @@
     @include('components.careManagerSidebar')
 
     <div class="home-section">
-      <div class="text-left">DASHBOARD</div>
+      <div class="text-left">DASHBOARD CM</div>
         <div class="container-fluid text-center">
         <div class="row">
               <!-- Statistics Row -->
