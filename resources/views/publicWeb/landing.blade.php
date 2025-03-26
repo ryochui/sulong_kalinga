@@ -52,6 +52,9 @@
                 <a href="#" class="btn btn-outline-dark">Learn More</a>
                 <a href="{{ route('login') }}" class="btn btn-primary">Login</a>
             </div>
+            <div class="col-1">
+
+            </div>
             <div class="col-4" >
                 <div class="logo">
                     <img src="{{ asset('images/cose-logo.png') }}" alt="" class="logo">
@@ -64,10 +67,10 @@
             @endif
         </div>
         <div class="techBrigade">
-            <img src="{{ asset('images/techBrigadeLogo.png') }}" class="half-transparent-img">
+            <img src="{{ asset('images/collage2.png') }}" class="half-transparent-img">
         </div>
         
-        <img src="{{ asset('images/techBrigadeLogo.png') }}" class="half-transparent-img-mobile d-md-none">
+        <img src="{{ asset('images/collage2.png') }}" class="half-transparent-img-mobile d-md-none">
     </div>
     
     <script src="{{ asset('js/bootstrap.bundle.min.js') }}"></script>
