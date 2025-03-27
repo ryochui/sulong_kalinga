@@ -38,7 +38,10 @@ Route::post('logout', [LoginController::class, 'logout'])->name('logout'); // no
     Route::post('addFamily', [FamilyMemberController::class, 'storeFamily'])->name('admin.addFamily.store');
     Route::post('addBeneficiary', [BeneficiaryController::class, 'storeBeneficiary'])->name('admin.addBeneficiary.store');
     
-    Route::put('editAdministrator/{id}', [AdminController::class, 'updateAdministrator'])->name('admin.editAdministrator.update');
+    // Route::put('editAdminProfile/{id}', [AdminController::class, 'updateAdministrator'])->name('admin.editAdministrator.update'); // Replaced by below
+    Route::put('/editAdminProfile/{id}', [AdminController::class, 'updateAdministrator'])->name('admin.editAdministrator.update');
+    Route::get('/editAdminProfile/{id}', [AdminController::class, 'editAdminProfile'])->name('admin.editAdminProfile.edit');
+    Route::get('/administratorProfile', [AdminController::class, 'index'])->name('administratorProfile'); // Keep
     
     Route::get('/', function () {
         return view('publicWeb.landing');
@@ -83,7 +86,9 @@ Route::post('logout', [LoginController::class, 'logout'])->name('logout'); // no
         return view('admin.addAdministrator');
     })->name('admin.addAdministrator');
 
-    Route::get('editAdministrator/{id}', [AdminController::class, 'editAdminProfile'])->name('admin.editAdministrator');
+    // Route::get('editAdminProfile/{id}', [AdminController::class, 'editAdminProfile'])->name('admin.editAdminProfile');  // Not Keep
+    
+    
 
     // Route::get('/admin/addCareManager', function () {
     //     return view('admin.addCareManager');
@@ -114,7 +119,8 @@ Route::post('logout', [LoginController::class, 'logout'])->name('logout'); // no
     Route::put('/admin/caremanagers/{id}/status', [CareManagerController::class, 'updateStatus']);
 
     // For admin profiles table
-    Route::get('/administratorProfile', [AdminController::class, 'index'])->name('admin.administratorProfile');
+    // Route::get('/administratorProfile', [AdminController::class, 'index'])->name('admin.administratorProfile'); // Replaced by below
+    // Route::get('/administratorProfile', [AdminController::class, 'index'])->name('administratorProfile'); // Duplicate
     Route::put('/admin/administrators/{id}/status', [AdminController::class, 'updateStatus']);
 
     // For exporting to pdf/excel files

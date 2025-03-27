@@ -98,7 +98,7 @@ function showDependencyError(message, errorType) {
                 <ol class="mt-2 mb-0">
                     <li>Instead of deleting, you can mark this administrator as <strong>inactive</strong> in their profile</li>
                     <li>This will prevent them from logging in while preserving the audit trail</li>
-                    <li>Go to <a href="{{ route('admin.administratorProfile') }}">Administrator List</a>, find this administrator, and click "Edit"</li>
+                    <li>Go to <a href="{{ route('administratorProfile') }}">Administrator List</a>, find this administrator, and click "Edit"</li>
                     <li>Change their status from "Active" to "Inactive" and save the changes</li>
                 </ol>
             </div>
@@ -111,7 +111,7 @@ function showDependencyError(message, errorType) {
                 <ol class="mt-2 mb-0">
                     <li>Instead of deleting, you can mark this administrator as <strong>inactive</strong> in their profile</li>
                     <li>This will prevent them from logging in while preserving the audit trail</li>
-                    <li>Go to <a href="{{ route('admin.administratorProfile') }}">Administrator List</a>, find this administrator, and click "Edit"</li>
+                    <li>Go to <a href="{{ route('administratorProfile') }}">Administrator List</a>, find this administrator, and click "Edit"</li>
                     <li>Change their status from "Active" to "Inactive" and save the changes</li>
                 </ol>
             </div>
@@ -124,7 +124,7 @@ function showDependencyError(message, errorType) {
                 <ol class="mt-2 mb-0">
                     <li>Instead of deleting, you can mark this administrator as <strong>inactive</strong> in their profile</li>
                     <li>This will prevent them from logging in while preserving the audit trail</li>
-                    <li>Go to <a href="{{ route('admin.administratorProfile') }}">Administrator List</a>, find this administrator, and click "Edit"</li>
+                    <li>Go to <a href="{{ route('administratorProfile') }}">Administrator List</a>, find this administrator, and click "Edit"</li>
                     <li>Change their status from "Active" to "Inactive" and save the changes</li>
                 </ol>
             </div>
@@ -137,7 +137,7 @@ function showDependencyError(message, errorType) {
                 <ol class="mt-2 mb-0">
                     <li>Instead of deleting, you can mark this administrator as <strong>inactive</strong> in their profile</li>
                     <li>This will prevent them from logging in while preserving the audit trail</li>
-                    <li>Go to <a href="{{ route('admin.administratorProfile') }}">Administrator List</a>, find this administrator, and click "Edit"</li>
+                    <li>Go to <a href="{{ route('administratorProfile') }}">Administrator List</a>, find this administrator, and click "Edit"</li>
                     <li>Change their status from "Active" to "Inactive" and save the changes</li>
                 </ol>
             </div>
@@ -150,7 +150,7 @@ function showDependencyError(message, errorType) {
                 <ol class="mt-2 mb-0">
                     <li>Instead of deleting, you can mark this administrator as <strong>inactive</strong> in their profile</li>
                     <li>This will prevent them from logging in while preserving the audit trail</li>
-                    <li>Go to <a href="{{ route('admin.administratorProfile') }}">Administrator List</a>, find this administrator, and click "Edit"</li>
+                    <li>Go to <a href="{{ route('administratorProfile') }}">Administrator List</a>, find this administrator, and click "Edit"</li>
                     <li>Change their status from "Active" to "Inactive" and save the changes</li>
                 </ol>
             </div>
@@ -182,7 +182,7 @@ function showSuccess() {
     document.getElementById('cancelDeleteButton').textContent = 'Close';
     
     setTimeout(function() {
-        window.location.href = "{{ route('admin.administratorProfile') }}";
+        window.location.href = "{{ route('administratorProfile') }}";
     }, 2000);
 }
 

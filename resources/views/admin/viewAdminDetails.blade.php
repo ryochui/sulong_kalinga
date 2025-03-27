@@ -23,7 +23,7 @@
         <div class="container-fluid">
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <!-- Original Back Button -->
-                <a href="administratorProfile" class="btn btn-secondary original-back-btn">
+                <a href="{{ route('administratorProfile') }}" class="btn btn-secondary original-back-btn">
                     <i class="bx bx-arrow-back"></i> Back
                 </a>
                 <div class="mx-auto text-center" style="flex-grow: 1; font-weight: bold; font-size: 20px;">VIEW ADMINISTRATOR PROFILE DETAILS</div>
@@ -36,13 +36,9 @@
                     <!-- Only show Edit and Delete buttons to Executive Director -->
                     @if(Auth::user()->organization_role_id == 1)
                         <!-- Edit Button with Routing -->
-                        <form action="{{ route('editAdminProfile') }}" method="POST" style="display:inline;">
-                            @csrf
-                            <input type="hidden" name="administrator_id" value="{{ $administrator->id }}">
-                            <button type="submit" class="btn btn-primary">
-                                <i class="bx bxs-edit"></i> Edit
-                            </button>
-                        </form>
+                        <a href="{{ route('admin.editAdminProfile.edit', $administrator->id) }}" class="btn btn-primary">
+                            <i class="bx bxs-edit"></i> Edit
+                        </a>
 
                         <!-- Delete Button -->
                         <button class="btn btn-danger" onclick="openDeleteAdminModal('{{ $administrator->id }}', '{{ $administrator->first_name }} {{ $administrator->last_name }}')">

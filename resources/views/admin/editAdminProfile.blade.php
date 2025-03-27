@@ -16,6 +16,8 @@
     
     <div class="home-section">
         <div class="container-fluid">
+        <input type="hidden" name="_debug_action" value="{{ route('admin.editAdministrator.update', $administrator->id) }}">
+        <input type="hidden" name="_debug_method" value="PUT">
             <!-- Back Button Logic -->
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <form action="{{ route('viewAdminDetails') }}" method="POST" style="display:inline;">
@@ -70,9 +72,7 @@
                             </div> -->
                             <div class="col-md-3">
                                 <label for="birthDate" class="form-label">Birthday</label>
-                                <input type="date" class="form-control" id="birthDate" name="birth_date" 
-                                    value="{{ isset($administrator->birth_date) ? \Carbon\Carbon::parse($administrator->birth_date)->format('Y-m-d') : '' }}" 
-                                    required>
+                                <input type="date" class="form-control" id="birthDate" name="birth_date" value="{{ $birth_date }}" required>
                             </div>
                             <div class="col-md-3">
                                 <label for="gender" class="form-label">Gender</label>
@@ -113,6 +113,8 @@
                             </div>
                         </div>
 
+                        <hr class="my-4">
+
                         <!-- Current Address -->
                         <div class="row mb-1">
                             <div class="col-12">
@@ -132,6 +134,9 @@
                                 <h5 class="text-start">Contact Information</h5>
                             </div>
                         </div>
+
+                        <hr class="my-4">
+
                         <div class="row mb-3">
                             <div class="col-md-4">
                                 <label for="personalEmail" class="form-label">Personal Email Address</label>
@@ -146,6 +151,8 @@
                                 <input type="text" class="form-control" id="landlineNumber" name="landline_number" value="{{ $administrator->landline }}" oninput="restrictToNumbers(this)" maxlength="10" placeholder="Enter landline number">
                             </div>
                         </div>
+    
+                        <hr class="my-4">
 
                         <!-- Documents -->
                         <div class="row mb-1">
@@ -157,17 +164,23 @@
                             <div class="col-md-4">
                                 <label for="administratorPhoto" class="form-label">Administrator Photo</label>
                                 <input type="file" class="form-control" id="administratorPhoto" name="administrator_photo" accept="image/png, image/jpeg">
-                                <small class="text-muted">Current file: {{ $administrator->photo }}</small>
+                                <small class="text-muted">
+                                Current file: {{ basename($administrator->photo ?: 'No file uploaded') }}
+                                </small>
                             </div>
                             <div class="col-md-4">
                                 <label for="governmentID" class="form-label">Government Issued ID</label>
                                 <input type="file" class="form-control" id="governmentID" name="government_ID" accept=".jpg,.png">
-                                <small class="text-muted">Current file: {{ $administrator->government_issued_id }}</small>
+                                <small class="text-muted">
+                                Current file: {{ basename($administrator->government_issued_id ?: 'No file uploaded') }}
+                                </small>
                             </div>
                             <div class="col-md-4">
                                 <label for="resume" class="form-label">Resume / CV</label>
                                 <input type="file" class="form-control" id="resume" name="resume" accept=".pdf,.doc,.docx">
-                                <small class="text-muted">Current file: {{ $administrator->cv_resume }}</small>
+                                <small class="text-muted">
+                                Current file: {{ basename($administrator->cv_resume ?: 'No file uploaded') }}
+                                </small>
                             </div>
                         </div>
                         <div class="row mb-1">
@@ -185,6 +198,8 @@
                             </div>
                         </div>
 
+                        <hr class="my-4">
+                        
                         <!-- Account Registration -->
                         <div class="row mb-1">
                             <div class="col-12">
@@ -205,6 +220,16 @@
                                 <input type="password" class="form-control" id="confirmPassword" name="account[password_confirmation]" placeholder="Confirm new password">
                             </div>
                         </div>
+                        <div class="row mb-3">
+                            <div class="col-md-4 position-relative">
+                                <label for="organization_Roles" class="form-label">Organization Roles</label>
+                                <select class="form-select" id="Organization_RolesDropdown" name="Organization_Roles" required>
+                                    <option value="" disabled {{ !isset($administrator->organization_role_id) ? 'selected' : '' }}>Select organization role</option>
+                                    <option value="2" {{ $administrator->organization_role_id == 2 ? 'selected' : '' }}>Project Coordinator</option>
+                                    <option value="3" {{ $administrator->organization_role_id == 3 ? 'selected' : '' }}>MEAL Coordinator</option>
+                                </select>
+                            </div>
+                        </div>
 
                         <div class="row mt-4">
                             <div class="col-12 d-flex justify-content-center align-items-center">
@@ -223,15 +248,15 @@
     <script src=" {{ asset('js/toggleSideBar.js') }}"></script>
     <script src="{{ asset('js/bootstrap.bundle.min.js') }}"></script>
     <script>
-        document.querySelector('form').addEventListener('submit', function (e) {
-e.preventDefault(); // Prevent the default form submission
+//         document.querySelector('form').addEventListener('submit', function (e) {
+// e.preventDefault(); // Prevent the default form submission
 
-            e.preventDefault(); // Prevent the default form submission
+//             e.preventDefault(); // Prevent the default form submission
 
-            // Show the success modal
-            const successModal = new bootstrap.Modal(document.getElementById('saveSuccessModal'));
-            successModal.show();
-        });
+//             // Show the success modal
+//             const successModal = new bootstrap.Modal(document.getElementById('saveSuccessModal'));
+//             successModal.show();
+//         });
     </script>
 <!-- <script>
         document.querySelector('form').addEventListener('submit', function (e) {
@@ -243,51 +268,51 @@ e.preventDefault(); // Prevent the default form submission
         });
     </script> -->
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            // Function to filter dropdown items
-            function filterDropdown(inputId, dropdownId) {
-                const input = document.getElementById(inputId);
-                const dropdown = document.getElementById(dropdownId);
-                const items = dropdown.querySelectorAll('.dropdown-item');
+        // document.addEventListener('DOMContentLoaded', function () {
+        //     // Function to filter dropdown items
+        //     function filterDropdown(inputId, dropdownId) {
+        //         const input = document.getElementById(inputId);
+        //         const dropdown = document.getElementById(dropdownId);
+        //         const items = dropdown.querySelectorAll('.dropdown-item');
 
-                input.addEventListener('input', function () {
-                    const filter = input.value.toLowerCase();
-                    let hasVisibleItems = false;
+        //         input.addEventListener('input', function () {
+        //             const filter = input.value.toLowerCase();
+        //             let hasVisibleItems = false;
 
-                    items.forEach(item => {
-                        if (item.textContent.toLowerCase().includes(filter)) {
-                            item.style.display = 'block';
-                            hasVisibleItems = true;
-                        } else {
-                            item.style.display = 'none';
-                        }
-                    });
-                    dropdown.style.display = hasVisibleItems ? 'block' : 'none';
-                });
-                input.addEventListener('blur', function () {
-                    setTimeout(() => dropdown.style.display = 'none', 200);
-                });
-                input.addEventListener('focus', function () {
-                    dropdown.style.display = 'block';
-                });
+        //             items.forEach(item => {
+        //                 if (item.textContent.toLowerCase().includes(filter)) {
+        //                     item.style.display = 'block';
+        //                     hasVisibleItems = true;
+        //                 } else {
+        //                     item.style.display = 'none';
+        //                 }
+        //             });
+        //             dropdown.style.display = hasVisibleItems ? 'block' : 'none';
+        //         });
+        //         input.addEventListener('blur', function () {
+        //             setTimeout(() => dropdown.style.display = 'none', 200);
+        //         });
+        //         input.addEventListener('focus', function () {
+        //             dropdown.style.display = 'block';
+        //         });
 
-                // Handle item selection
-                items.forEach(item => {
-                    item.addEventListener('click', function (e) {
-                        e.preventDefault();
-                        input.value = item.textContent;
-                        document.getElementById(inputId.replace('Input', '')).value = item.getAttribute('data-value');
-                        dropdown.style.display = 'none';
-                    });
-                });
-            }
+        //         // Handle item selection
+        //         items.forEach(item => {
+        //             item.addEventListener('click', function (e) {
+        //                 e.preventDefault();
+        //                 input.value = item.textContent;
+        //                 document.getElementById(inputId.replace('Input', '')).value = item.getAttribute('data-value');
+        //                 dropdown.style.display = 'none';
+        //             });
+        //         });
+        //     }
 
-            // Initialize filtering for each dropdown
-            filterDropdown('civilStatusInput', 'civilStatusDropdown');
-            filterDropdown('genderInput', 'genderDropdown');
-            filterDropdown('educationalBackgroundInput', 'educationalBackgroundDropdown');
-            filterDropdown('Organization_RolesInput', 'Organization_RolesDropdown');
-        });
+        //     // Initialize filtering for each dropdown
+        //     filterDropdown('civilStatusInput', 'civilStatusDropdown');
+        //     filterDropdown('genderInput', 'genderDropdown');
+        //     filterDropdown('educationalBackgroundInput', 'educationalBackgroundDropdown');
+        //     filterDropdown('Organization_RolesInput', 'Organization_RolesDropdown');
+        // });
 
         function validateMobileNumber(input) {
             // Remove any non-numeric characters
@@ -299,15 +324,15 @@ e.preventDefault(); // Prevent the default form submission
             }
         }
 
-        document.querySelectorAll('.dropdown-item').forEach(item => {
-            item.addEventListener('click', function (e) {
-                e.preventDefault();
-                const input = this.closest('.position-relative').querySelector('input[type="text"]');
-                const hiddenInput = this.closest('.position-relative').querySelector('input[type="hidden"]');
-                input.value = this.textContent;
-                hiddenInput.value = this.getAttribute('data-value');
-            });
-        });
+        // document.querySelectorAll('.dropdown-item').forEach(item => {
+        //     item.addEventListener('click', function (e) {
+        //         e.preventDefault();
+        //         const input = this.closest('.position-relative').querySelector('input[type="text"]');
+        //         const hiddenInput = this.closest('.position-relative').querySelector('input[type="hidden"]');
+        //         input.value = this.textContent;
+        //         hiddenInput.value = this.getAttribute('data-value');
+        //     });
+        // });
 
         document.querySelectorAll('input[type="text"]').forEach(input => {
             input.addEventListener('input', function () {
