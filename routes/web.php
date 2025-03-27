@@ -178,7 +178,7 @@ Route::post('logout', [LoginController::class, 'logout'])->name('logout'); // no
     })->name('viewWeeklyCareplan');
 
     Route::get('/reports', [App\Http\Controllers\ReportsController::class, 'index'])
-    ->name('reports.index')
+    ->name('reports')  // Changed from 'reports.index' to 'reports'
     ->middleware(['auth']);
     
     // Route for viewing individual reports
