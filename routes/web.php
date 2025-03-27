@@ -19,10 +19,11 @@ use App\Http\Middleware\CheckRole;
 
 
 require __DIR__.'/innerRoutes.php';
+// require __DIR__.'/careManagerRoutes.php';
 
 
 // ROLE LOGIN
-Route::get('/manage/dashboard', function () {
+Route::get('/manager/dashboard', function () {
     if (auth()->user()?->isCareManager()) {
         return view('careManager.managerdashboard');
     }

@@ -13,6 +13,26 @@
     @include('components.userNavbar')
     @include('components.sidebar')
 
+    <!-- Welcome Back Modal -->
+    <div class="modal fade" id="welcomeBackModal" tabindex="-1" aria-labelledby="welcomeBackModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="welcomeBackModalLabel">Welcome Back!</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body text-center">
+                    <i class='bx bxs-party display-4 text-primary mb-3'></i>
+                    <h4>Hello, {{ auth()->user()->name }}!</h4>
+                    <p>Welcome back to your Care Worker Dashboard.</p>
+                </div>
+                <div class="modal-footer justify-content-center">
+                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Get Started</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="home-section">
       <div class="text-left">DASHBOARD CAREWORKER</div>
         <div class="container-fluid text-center">
@@ -52,5 +72,13 @@
    
     <script src=" {{ asset('js/toggleSideBar.js') }}"></script>
     <script src="{{ asset('js/bootstrap.bundle.min.js') }}"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Always show the welcome modal when the dashboard loads
+            var welcomeModal = new bootstrap.Modal(document.getElementById('welcomeBackModal'));
+            welcomeModal.show();
+        });
+    </script>
 </body>
 </html>
