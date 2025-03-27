@@ -26,7 +26,7 @@
                 
                 <!-- Search Bar -->
                 <div class="col-12 col-md-6 col-lg-6 mb-2">
-                    <form action="{{ route('admin.administratorProfile') }}" method="GET">
+                    <form action="{{ route('administratorProfile') }}" method="GET">
                         <div class="input-group">
                             <span class="input-group-text">
                                 <i class="bx bx-search-alt"></i>
@@ -39,7 +39,7 @@
 
                 <!-- Filter Dropdown -->
                 <div class="col-12 col-sm-6 col-md-6 col-lg-2 mb-2">
-                    <form action="{{ route('admin.administratorProfile') }}" method="GET" id="filterForm">
+                    <form action="{{ route('administratorProfile') }}" method="GET" id="filterForm">
                         <div class="input-group">
                             <span class="input-group-text">
                                 <i class="bx bx-filter-alt"></i>
@@ -149,13 +149,9 @@
                                             
                                             <!-- Edit button - only visible to Executive Admin -->
                                             @if(Auth::user()->organization_role_id == 1)
-                                                <form action="{{ route('editAdminProfile') }}" method="POST" style="display:inline;">
-                                                    @csrf
-                                                    <input type="hidden" name="administrator_id" value="{{ $administrator->id }}">
-                                                    <button type="submit" class="btn btn-link text-decoration-none" style="color:black;">
-                                                        <i class='bx bxs-edit'></i>
-                                                    </button>
-                                                </form>
+                                                <a href="{{ route('admin.editAdminProfile.edit', $administrator->id) }}" class="btn btn-link text-decoration-none" style="color:black;">
+                                                    <i class='bx bxs-edit'></i>
+                                                </a>
                                             @endif
                                         </div>
                                         </td>

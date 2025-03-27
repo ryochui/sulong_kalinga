@@ -14,6 +14,7 @@ use App\Models\User;
 use App\Models\Municipality;
 use App\Models\Barangay;
 use App\Models\Beneficiary;
+use Carbon\Carbon;
 
 use App\Services\UserManagementService;
 
@@ -98,7 +99,27 @@ class AdminController extends Controller
             'account.password' => 'required|string|min:8|confirmed',
         
             // Organization Roles
-            'Organization_Roles' => 'required|integer|exists:organization_roles,organization_role_id',
+            'Organization_Roles' => [
+                'required',
+                'integer',
+                'exists:organization_roles,organization_role_id',
+                function ($attribute, $value, $fail) use ($id, $administrator) {
+                    // If trying to set role to Executive Director (role_id = 1)
+                    if ($value == 1) {
+                        // Check if this user is not already the Executive Director
+                        if ($administrator->organization_role_id != 1) {
+                            // Check if another Executive Director exists
+                            $existingExecutiveDirector = User::where('organization_role_id', 1)
+                                ->where('id', '!=', $id)
+                                ->exists();
+                            
+                            if ($existingExecutiveDirector) {
+                                $fail('There can only be one Executive Director. Please select a different role.');
+                            }
+                        }
+                    }
+                },
+            ],
         
             // Documents
             'administrator_photo' => 'required|image|mimes:jpeg,png|max:2048',
@@ -196,9 +217,10 @@ class AdminController extends Controller
         // Find the administrator by ID
         $administrator = User::findOrFail($id);
 
-        // if ($administrator->birth_date) {
-        //     $administrator->birth_date = Carbon::createFromFormat('d/m/Y', $administrator->birth_date)->format('Y-m-d');
-        // }
+        // dd([
+        //     'method' => $request->method(),
+        //     'action' => $request->url(),
+        // ]);
 
         // Validate the input data
         $validator = Validator::make($request->all(), [
@@ -232,13 +254,13 @@ class AdminController extends Controller
                 'required',
                 'string',
                 'regex:/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/',
-                Rule::unique('users', 'personal_email')->ignore($administrator->id),
+                Rule::unique('cose_users', 'personal_email')->ignore($id),
             ],
             'mobile_number' => [
                 'required',
                 'string',
                 'regex:/^[0-9]{10,11}$/',
-                Rule::unique('users', 'mobile')->ignore($administrator->id),
+                'unique:cose_users,mobile',
             ],
             'landline_number' => [
                 'nullable',
@@ -255,12 +277,33 @@ class AdminController extends Controller
                 'required',
                 'string',
                 'regex:/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/',
-                Rule::unique('users', 'email')->ignore($administrator->id),
+                Rule::unique('cose_users', 'email')->ignore($id),
             ],
             'account.password' => 'nullable|string|min:8|confirmed',
             'administrator_photo' => 'nullable|image|mimes:jpeg,png|max:2048',
             'government_ID' => 'nullable|image|mimes:jpeg,png|max:2048',
             'resume' => 'nullable|mimes:pdf,doc,docx|max:2048',
+            'Organization_Roles' => [
+                'required',
+                'integer',
+                'exists:organization_roles,organization_role_id',
+                function ($attribute, $value, $fail) use ($id, $administrator) {
+                    // If trying to set role to Executive Director (role_id = 1)
+                    if ($value == 1) {
+                        // Check if this user is not already the Executive Director
+                        if ($administrator->organization_role_id != 1) {
+                            // Check if another Executive Director exists
+                            $existingExecutiveDirector = User::where('organization_role_id', 1)
+                                ->where('id', '!=', $id)
+                                ->exists();
+                            
+                            if ($existingExecutiveDirector) {
+                                $fail('There can only be one Executive Director. Please select a different role.');
+                            }
+                        }
+                    }
+                },
+            ],
         ]);
 
         if ($validator->fails()) {
@@ -268,7 +311,7 @@ class AdminController extends Controller
         }
 
         // Generate unique identifier for file naming
-    $uniqueIdentifier = time() . '_' . Str::random(5);
+        $uniqueIdentifier = time() . '_' . Str::random(5);
 
     // Handle Administrator Photo
     if ($request->hasFile('administrator_photo')) {
@@ -361,6 +404,7 @@ class AdminController extends Controller
         $administrator->mobile = '+63' . $request->input('mobile_number');
         $administrator->landline = $request->input('landline_number');
         $administrator->email = $request->input('account.email');
+        $administrator->organization_role_id = $request->input('Organization_Roles');
 
         // Insert statements for file paths
         if (isset($administratorPhotoPath)) {
@@ -381,9 +425,9 @@ class AdminController extends Controller
         }
 
         // Update IDs
-        $administrator->sss_id = $request->input('sss_ID');
-        $administrator->philhealth_id = $request->input('philhealth_ID');
-        $administrator->pagibig_id = $request->input('pagibig_ID');
+        $administrator->sss_id_number = $request->input('sss_ID');
+        $administrator->philhealth_id_number = $request->input('philhealth_ID');
+        $administrator->pagibig_id_number = $request->input('pagibig_ID');
 
         $administrator->updated_by = Auth::id();
         $administrator->updated_at = now();
@@ -392,7 +436,7 @@ class AdminController extends Controller
         $administrator->save();
 
         // Redirect with success message
-        return redirect()->route('admin.editAdministrator')->with('success', 'Administrator profile updated successfully.');
+        return redirect()->route('administratorProfile')->with('success', 'Administrator profile updated successfully.'); // Replaced 'admin.viewAdminDetails' with 'viewAdminDetails'
     }
 
     public function index(Request $request)
@@ -443,16 +487,20 @@ class AdminController extends Controller
         return view('admin.viewAdminDetails', compact('administrator'));
     }
 
-    public function editAdminProfile(Request $request)
+    public function editAdminProfile($id)
     {
-        $administrator_id = $request->input('administrator_id');
-        $administrator = User::where('role_id', 1)->where('id', $administrator_id)->first();
-
+        $administrator = User::where('role_id', 1)->where('id', $id)->first();
+        
         if (!$administrator) {
             return redirect()->route('administratorProfile')->with('error', 'Administrator not found.');
         }
-
-        return view('admin.editAdminProfile', compact('administrator'));    
+        
+        $birth_date = null;
+        if ($administrator->birthday) {
+            $birth_date = Carbon::parse($administrator->birthday)->format('Y-m-d');
+        }
+        
+        return view('admin.editAdminProfile', compact('administrator', 'birth_date'));
     }
 
     public function updateStatus(Request $request, $id)

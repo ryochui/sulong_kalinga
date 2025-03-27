@@ -98,7 +98,7 @@ Route::post('/editCaremanagerProfile', [CareManagerController::class, 'editCarem
 
 //View and Edit Care Manager Profile from Table Routing
 Route::post('/viewAdminDetails', [AdminController::class, 'viewAdminDetails'])->name('viewAdminDetails');
-Route::post('/editAdminProfile', [AdminController::class, 'editAdminProfile'])->name('editAdminProfile');
+// Route::post('/editAdminProfile', [AdminController::class, 'editAdminProfile'])->name('editAdminProfile'); // former keep
 
 /*Route::get('/viewFamilyDetails', function () {
     return view('admin.viewFamilyDetails');
