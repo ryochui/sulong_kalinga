@@ -15,7 +15,7 @@ use App\Http\Controllers\MunicipalityController;
 use App\Http\Controllers\ExportController;
 use App\Http\Controllers\WeeklyCareController;
 
-
+use App\Http\Middleware\CheckRole;
 
 
 require __DIR__.'/innerRoutes.php';
@@ -148,7 +148,7 @@ Route::post('logout', [LoginController::class, 'logout'])->name('logout'); // no
     Route::post('/caremanager/delete-beneficiary', [CareManagerController::class, 'deleteBeneficiary'])->middleware(['auth']);
 
     //Reports Management
-    Route::get('/reports', [ReportsController::class, 'index'])->name('reports')->middleware('auth');
+    //Route::get('/reports', [ReportsController::class, 'index'])->name('reports')->middleware('auth');
 
     // Route for displaying the form to create a new weekly care plan
     Route::get('/weekly-care-plan/create', [WeeklyCareController::class, 'create'])->name('weeklycareplans.create');
@@ -170,3 +170,14 @@ Route::post('logout', [LoginController::class, 'logout'])->name('logout'); // no
     Route::get('/viewWeeklyCareplan', function () {
         return view('careWorker.viewWeeklyCareplan');
     })->name('viewWeeklyCareplan');
+
+    Route::get('/reports', [App\Http\Controllers\ReportsController::class, 'index'])
+    ->name('reports.index')
+    ->middleware(['auth']);
+    
+    // Route for viewing individual reports
+    Route::get('/weekly-care-plans/{id}', [App\Http\Controllers\WeeklyCareController::class, 'show'])
+    ->name('weeklycareplans.show')
+    ->middleware(['auth', CheckRole::class.':administrator,care_manager,care_worker']);
+
+    

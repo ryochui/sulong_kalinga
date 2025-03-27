@@ -19,7 +19,7 @@
         <div class="container-fluid">
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <!-- Original Back Button -->
-                <a href="familyProfile" class="btn btn-secondary original-back-btn">
+                <a href="{{ route('reports') }}" class="btn btn-secondary original-back-btn">
                     <i class="bx bx-arrow-back"></i> Back
                 </a>
 
@@ -27,10 +27,10 @@
 
                 <!-- Edit and Delete Buttons -->
                 <div>
-                    <!-- Hidden Back Button -->
-                    <a href="familyProfile" class="btn btn-secondary hidden-back-btn">
+                    <!-- Hidden Back Button 
+                    <a href="{{ route('reports') }}" class="btn btn-secondary original-back-btn">
                         <i class="bx bx-arrow-back"></i> Back
-                    </a>
+                    </a>-->
                     <!-- Edit Button with Routing -->
                     <form action="" method="POST" style="display:inline;">
                         @csrf
@@ -56,31 +56,35 @@
                         <div class="row mb-1">
                             <div class="col-md-4 col-sm-9 position-relative">
                                 <label for="benficiary" class="form-label">Beneficiary Name</label>
-                                <input type="text" class="form-control" id="beneficiary" readonly data-bs-toggle="tooltip" title="Edit in General Care Plan">    
+                                <input type="text" class="form-control" id="beneficiary" value="{{ $weeklyCareplan->beneficiary->first_name }} {{ $weeklyCareplan->beneficiary->last_name }}" readonly data-bs-toggle="tooltip" title="Edit in General Care Plan" readonly>    
                             </div>
                             <div class="col-md-2 col-sm-3">
                                 <label for="age" class="form-label">Age</label>
-                                <input type="text" class="form-control" id="age" readonly data-bs-toggle="tooltip" title="Edit in General Care Plan">                                            </div>
+                                <input type="text" class="form-control" id="age" value="{{ \Carbon\Carbon::parse($weeklyCareplan->beneficiary->birthday)->age }} years old" readonly data-bs-toggle="tooltip" title="Edit in General Care Plan"  readonly>                                            
+                            </div>
                             <div class="col-md-3 col-sm-6">
                                 <label for="birthDate" class="form-label">Birthdate</label>
-                                <input type="text" class="form-control" id="birthDate" readonly data-bs-toggle="tooltip" title="Edit in General Care Plan">                                            </div>
+                                <input type="text" class="form-control" id="birthDate" value="{{ $weeklyCareplan->beneficiary->birthday }}" readonly data-bs-toggle="tooltip" title="Edit in General Care Plan" readonly>                                            
+                            </div>
                             <div class="col-md-3 col-sm-6 position-relative">
                                 <label for="gender" class="form-label">Gender</label>
-                                <input type="text" class="form-control" id="gender" readonly data-bs-toggle="tooltip" title="Edit in General Care Plan">
+                                <input type="text" class="form-control" id="gender" value="{{ $weeklyCareplan->beneficiary->gender }}" readonly data-bs-toggle="tooltip" title="Edit in General Care Plan" readonly>
                             </div>
                         </div>
                         <div class="row mb-3">
                             <div class="col-md-3 col-sm-4 position-relative">
                                 <label for="civilStatus" class="form-label">Civil Status</label>
-                                <input type="text" class="form-control" id="civilStatus" readonly data-bs-toggle="tooltip" title="Edit in General Care Plan">
+                                <input type="text" class="form-control" id="civilStatus" value="{{ $weeklyCareplan->beneficiary->civil_status }}" readonly data-bs-toggle="tooltip" title="Edit in General Care Plan" readonly>
                                 </div>
                             <div class="col-md-6 col-sm-8">
                                 <label for="address" class="form-label">Address</label>
-                                <input type="text" class="form-control" id="address" readonly data-bs-toggle="tooltip" title="Edit in General Care Plan">
+                                <input type="text" class="form-control" id="address" value="{{ $weeklyCareplan->beneficiary->street_address }}" readonly data-bs-toggle="tooltip" title="Edit in General Care Plan" readonly>
                                 </div>
                             <div class="col-md-3 col-sm-12">
                                 <label for="condition" class="form-label">Medical Conditions</label>
-                                <input type="text" class="form-control" id="medicalConditions" readonly data-bs-toggle="tooltip" title="Edit in General Care Plan">
+                                <input type="text" class="form-control" id="medicalConditions" 
+                                value="{{ $weeklyCareplan->beneficiary->generalCarePlan->healthHistory->medical_conditions ?? 'No medical conditions recorded' }}" 
+                                readonly data-bs-toggle="tooltip" title="Edit in General Care Plan">
                                 </div>
                         </div>
                         </div>
@@ -98,26 +102,26 @@
                                     </thead>
                                     <tbody>
                                         <tr>
-                                            <td rowspan="4">
-                                                <!-- Assessment Data -->
-                                            </td>
+                                        <td rowspan="4">
+                                            {{ $weeklyCareplan->assessment ?? 'N/A' }}
+                                        </td>
                                             <td>
-                                                Blood Pressure:
+                                            Blood Pressure: <p class="text-primary"> {{ $weeklyCareplan->vitalSigns->blood_pressure ?? 'N/A' }}
                                             </td> 
                                         </tr>
                                         <tr>
                                             <td>
-                                                Body Temperature:
+                                            Body Temperature: <p class="text-primary"> {{ $weeklyCareplan->vitalSigns->body_temperature ?? 'N/A' }}
                                             </td>                                            
                                         </tr>
                                         <tr>
                                             <td>
-                                                Pulse Rate:
+                                            Pulse Rate: <p class="text-primary"> {{ $weeklyCareplan->vitalSigns->pulse_rate ?? 'N/A' }}
                                             </td>                                           
                                         </tr>
                                         <tr>
                                             <td>
-                                                Respiratory Rate:
+                                            Respiratory Rate: <p class="text-primary"> {{ $weeklyCareplan->vitalSigns->respiratory_rate ?? 'N/A' }}
                                             </td>                                            
                                         </tr>
                                     </tbody>
@@ -131,7 +135,7 @@
                                     <tbody>
                                         <tr>
                                             <td>
-                                                <!-- Evaluation and Recommendation Data -->
+                                                {{ $weeklyCareplan->evaluation_recommendations ?? 'N/A' }}
                                             </td>
                                         </tr>
                                     </tbody>
@@ -152,70 +156,75 @@
                                         <th class="minute-column minutes-header"></th>
                                     </thead>
                                     <tbody>
-                                        <tr>
-                                            <td rowspan="2" class="care-needs-column"><!-- Adjust rowspan based on loop -->
-                                                <h6>MOBILITY</h6>
-                                            </td>
-                                        </tr>
-                                            <tr> <!-- LOOP THIS FOR INTERVENTIONS IN MOBILITY -->
-                                                <td class="interventions-column">Aid in Sitting  asd  asd asdasd asda sasd asdasd asd asd asd asd asd asd asdasdasdasd asd asd asd asd asd as</td>
-                                                <td class="minute-column"> </td>
+                                    @foreach($categories as $category)
+                                        @php
+                                            $categoryInterventions = $interventionsByCategory->get($category->care_category_id, collect());
+                                            $categoryCustInterventions = $customInterventions->where('care_category_id', $category->care_category_id);
+                                            $totalInterventions = $categoryInterventions->count() + $categoryCustInterventions->count();
+                                        @endphp
+
+                                        @if($totalInterventions > 0)
+                                            <tr>
+                                                <td rowspan="{{ $totalInterventions + 1 }}" class="care-needs-column">
+                                                    <h6>{{ strtoupper($category->care_category_name) }}</h6>
+                                                </td>
                                             </tr>
-                                        <tr>
-                                            <td rowspan="2" class="care-needs-column"><!-- Adjust rowspan based on loop +1 -->
-                                                <h6>COGNITIVE / COMMUNICATION</h6>
-                                            </td>
-                                        </tr>
-                                            <tr> <!-- LOOP THIS FOR INTERVENTIONS IN COGNITIVE -->
-                                                <td class="interventions-column">Aid in Sitting asdasd asd  asd asdasd asda sasd asdasd asd asd asd asd asd asd asdasdasdasd asd asd asd asd asd as</td>
-                                                <td class="minute-column"> </td>
-                                            </tr>                        
-                                        <tr>
-                                            <td rowspan="2" class="care-needs-column"><!-- Adjust rowspan based on loop +1 -->
-                                                <h6>SELF-SUSTAINABILITY</h6>
-                                            </td>
-                                        </tr>
-                                            <tr> <!-- LOOP THIS FOR INTERVENTIONS IN SELF-SUSTAINABILITY -->
-                                                <td class="interventions-column">Aid in Sitting</td>
-                                                <td class="minute-column"> </td>
-                                            </tr>
-                                        <tr>
-                                            <td rowspan="2" class="care-needs-column"><!-- Adjust rowspan based on loop +1 -->
-                                                <h6>DISEASE / THERAPY HANDLING</h6>
-                                            </td>
-                                        </tr>
-                                            <tr> <!-- LOOP THIS FOR INTERVENTIONS IN DISEASE / THERAPY -->
-                                                <td class="interventions-column">Aid in Sitting</td>
-                                                <td class="minute-column"> </td>
-                                            </tr>
-                                        <tr>
-                                            <td rowspan="2" class="care-needs-column"><!-- Adjust rowspan based on loop +1 -->
-                                                <h6>DAILY LIFE / SOCIAL CONTACT</h6>
-                                            </td>
-                                        </tr>
-                                            <tr> <!-- LOOP THIS FOR INTERVENTIONS IN DAILY LIFE / SOCIAL CONTACT -->
-                                                <td class="interventions-column">Aid in Sitting</td>
-                                                <td class="minute-column"> </td>
-                                            </tr>
-                                        <tr>
-                                            <td rowspan="2" class="care-needs-column"><!-- Adjust rowspan based on loop +1 -->
-                                                <h6>OUTDOOR ACTIVITIES</h6>
-                                            </td>
-                                        </tr>
-                                            <tr> <!-- LOOP THIS FOR INTERVENTIONS IN OUTDOOR ACTIVITIES -->
-                                                <td class="interventions-column">Aid in Sitting</td>
-                                                <td class="minute-column"> </td>
-                                            </tr>
-                                        <tr>
-                                            <td rowspan="2" class="care-needs-column"><!-- Adjust rowspan based on loop +1 -->
-                                                <h6>HOUSEHOLD KEEPING</h6>
-                                            </td>
-                                        </tr>
-                                            <tr> <!-- LOOP THIS FOR INTERVENTIONS IN HOUSEHOLD KEEPING -->
-                                                <td class="interventions-column">Aid in Sitting</td>
-                                                <td class="minute-column"> </td>
-                                            </tr>
+                                            
+                                            {{-- Standard interventions (from interventions table) --}}
+                                            @foreach($categoryInterventions as $intervention)
+                                                <tr>
+                                                    <td class="interventions-column">{{ $intervention->intervention_description }}</td>
+                                                    <td class="minute-column">{{ $intervention->duration_minutes }} min</td>
+                                                </tr>
+                                            @endforeach
+                                            
+                                            {{-- Custom interventions (description in weekly_care_plan_interventions) --}}
+                                            @foreach($categoryCustInterventions as $custom)
+                                                <tr>
+                                                    <td class="interventions-column">{{ $custom->intervention_description }} <span class="badge bg-info">Custom</span></td>
+                                                    <td class="minute-column">{{ $custom->duration_minutes }} min</td>
+                                                </tr>
+                                            @endforeach
+                                        @endif
+                                    @endforeach
                                     </tbody>
+                                    <tfoot>
+                                    <tr>
+                                        <th colspan="2" class="text-end">Total Time:</th>
+                                        <th>
+                                        @php
+                                            $standardMinutes = (float)$interventionsByCategory->flatten()->sum('duration_minutes') ?? 0;
+                                            $customMinutes = (float)$customInterventions->sum('duration_minutes') ?? 0;
+                                            $totalMinutes = $standardMinutes + $customMinutes;
+
+                                            // Format to exactly one decimal place
+                                            $formattedTotal = number_format($totalMinutes, 2);
+                                        @endphp
+                                        {{ $formattedTotal }} min
+                                        </th>
+                                    </tr>
+                                    <tr>
+                                        <th colspan="2" class="text-end">Acknowledgement:</th>
+                                        <th>
+                                        @if($weeklyCareplan->acknowledged_by_beneficiary && $weeklyCareplan->acknowledgedByBeneficiary)
+                                            <span class="text-success">
+                                                <i class="fa fa-check-circle"></i> Acknowledged by: {{ $weeklyCareplan->acknowledgedByBeneficiary->first_name }} {{ $weeklyCareplan->acknowledgedByBeneficiary->last_name }} (Beneficiary)
+                                            </span>
+                                        @elseif($weeklyCareplan->acknowledged_by_family && $weeklyCareplan->acknowledgedByFamily)
+                                            <span class="text-success">
+                                                <i class="fa fa-check-circle"></i> Acknowledged by: {{ $weeklyCareplan->acknowledgedByFamily->first_name }} {{ $weeklyCareplan->acknowledgedByFamily->last_name }} (Family Member)
+                                            </span>
+                                        @elseif($weeklyCareplan->acknowledgement_signature)
+                                            <span class="text-success">
+                                                <i class="fa fa-check-circle"></i> Acknowledged with signature
+                                                <a href="#" data-bs-toggle="modal" data-bs-target="#signatureModal">(View)</a>
+                                            </span>
+                                        @else
+                                            <span class="text-secondary">Not Acknowledged</span>
+                                        @endif
+                                        </th>
+                                    </tr>
+                                </tfoot>
                                 </table>
                             </div>
                         </div>

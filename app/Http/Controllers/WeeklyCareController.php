@@ -225,4 +225,48 @@ class WeeklyCareController extends Controller
             
         return view('careWorker.weeklyCarePlansList', compact('weeklyCarePlans'));
     }
+
+    public function customInterventions()
+    {
+        return $this->hasMany(WeeklyCarePlanInterventions::class, 'weekly_care_plan_id')
+                    ->whereNull('intervention_id');
+    }
+
+    public function show($id)
+    {
+        // Get the weekly care plan with beneficiary
+        $weeklyCareplan = WeeklyCarePlan::with('beneficiary', 
+        'beneficiary.generalCarePlan.healthHistory', 
+        'vitalSigns',
+        'acknowledgedByBeneficiary',
+        'acknowledgedByFamily')
+            ->findOrFail($id);
+        
+        // Explicitly fetch standard interventions with correct relationship structure
+        $standardInterventions = DB::table('weekly_care_plan_interventions as wpi')
+            ->join('interventions as i', 'wpi.intervention_id', '=', 'i.intervention_id')
+            ->where('wpi.weekly_care_plan_id', $id)
+            ->whereNotNull('wpi.intervention_id')
+            ->select('i.intervention_description', 'wpi.duration_minutes', 'i.care_category_id')
+            ->get();
+        
+        // Group standard interventions by category
+        $interventionsByCategory = $standardInterventions->groupBy('care_category_id');
+        
+        // Get custom interventions (with null intervention_id)
+        $customInterventions = DB::table('weekly_care_plan_interventions')
+            ->where('weekly_care_plan_id', $id)
+            ->whereNull('intervention_id')
+            ->get();
+        
+        // Get all care categories
+        $categories = CareCategory::all();
+        
+        return view('careWorker.viewWeeklyCareplan', compact(
+            'weeklyCareplan',
+            'interventionsByCategory',
+            'customInterventions',
+            'categories'
+        ));
+    }
 }

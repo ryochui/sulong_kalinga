@@ -36,11 +36,6 @@ class WeeklyCarePlan extends Model
         return $this->belongsTo(User::class, 'care_worker_id', 'id');
     }
     
-    public function careManager()
-    {
-        return $this->belongsTo(User::class, 'care_manager_id', 'id');
-    }
-    
     public function vitalSigns()
     {
         return $this->belongsTo(VitalSigns::class, 'vital_signs_id', 'vital_signs_id');
@@ -49,5 +44,15 @@ class WeeklyCarePlan extends Model
     public function interventions()
     {
         return $this->hasMany(WeeklyCarePlanInterventions::class, 'weekly_care_plan_id', 'weekly_care_plan_id');
+    }
+
+    public function acknowledgedByBeneficiary()
+    {
+        return $this->belongsTo(Beneficiary::class, 'acknowledged_by_beneficiary');
+    }
+
+    public function acknowledgedByFamily()
+    {
+        return $this->belongsTo(FamilyMember::class, 'acknowledged_by_family');
     }
 }

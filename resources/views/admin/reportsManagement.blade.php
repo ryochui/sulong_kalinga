@@ -115,14 +115,22 @@
                                             <td>{{ $report->beneficiary_first_name ?? 'Unknown' }} {{ $report->beneficiary_last_name ?? '' }}</td>
                                             <td class="d-none d-sm-table-cell">{{ isset($report->created_at) ? \Carbon\Carbon::parse($report->created_at)->format('M d, Y') : 'Unknown' }}</td>
                                             <td>
-                                                <div class="action-icons">
-                                                    <a href="#" title="View Report">
-                                                        <i class="fa fa-eye"></i>
+                                            <div class="action-icons">
+                                                @if($report->report_type == 'Weekly Care Plan')
+                                                <a href="{{ route('weeklycareplans.show', $report->report_id) }}" title="View Weekly Care Plan">
+                                                    <i class="fa fa-eye"></i>
+                                                </a>
+                                                @elseif($report->report_type === 'General Care Plan')
+                                                    {{-- Placeholder for future General Care Plan view link --}}
+                                                    <a href="#" title="View General Care Plan (Coming Soon)" onclick="alert('General Care Plan viewing coming soon!')">
+                                                        <i class="fa fa-eye text-muted"></i>
                                                     </a>
-                                                    <a href="#" title="Edit Report">
-                                                        <i class='bx bxs-edit'></i>
+                                                @else
+                                                    <a href="#" title="View Not Available" onclick="alert('Viewing not available for this report type')">
+                                                        <i class="fa fa-eye text-muted"></i>
                                                     </a>
-                                                </div>
+                                                @endif
+                                            </div>
                                             </td>
                                         </tr>
                                     @endforeach
