@@ -43,12 +43,15 @@ class LoginController extends Controller
             session(['user_type' => 'cose']); // Store user type in session
             
             if ($user->role_id == 1) {
+                session()->put('show_welcome', true);
                 return redirect()->route('admindashboard');
             }
             if ($user->role_id == 2) {
+                session()->put('show_welcome', true);
                 return redirect()->route('managerdashboard');
             }
             if ($user->role_id == 3) {
+                session()->put('show_welcome', true);
                 return redirect()->route('workerdashboard');
             }
         }
@@ -67,6 +70,8 @@ class LoginController extends Controller
 
         // If no user is found in either table, return an error
         return redirect()->back()->withErrors(['email' => 'Invalid credentials'])->withInput();
+
+        
     }
 
     // Handle logout

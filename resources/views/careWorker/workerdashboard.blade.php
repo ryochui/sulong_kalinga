@@ -129,9 +129,10 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Always show the welcome modal when the dashboard loads
-            var welcomeModal = new bootstrap.Modal(document.getElementById('welcomeBackModal'));
-            welcomeModal.show();
+            @if($showWelcome)
+                var welcomeModal = new bootstrap.Modal(document.getElementById('welcomeBackModal'));
+                welcomeModal.show();
+            @endif
         });
     </script>
 </body>

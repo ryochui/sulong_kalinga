@@ -25,21 +25,24 @@ require __DIR__.'/innerRoutes.php';
 // ROLE LOGIN
 Route::get('/manager/dashboard', function () {
     if (auth()->user()?->isCareManager()) {
-        return view('careManager.managerdashboard');
+        $showWelcome = session()->pull('show_welcome', false);
+        return view('careManager.managerdashboard', ['showWelcome' => $showWelcome]);
     }
     abort(403);
 })->middleware('auth')->name('managerdashboard');
 
 Route::get('/admin/dashboard', function () {
     if (auth()->user()?->isExecutiveDirector()) {
-        return view('admin.admindashboard');
+        $showWelcome = session()->pull('show_welcome', false);
+        return view('admin.admindashboard', ['showWelcome' => $showWelcome]);
     }
     abort(403);
 })->middleware('auth')->name('admindashboard');
 
 Route::get('/worker/dashboard', function () {
+    $showWelcome = session()->pull('show_welcome', false);
     if (auth()->user()?->isCareWorker()) {
-        return view('careWorker.workerdashboard');
+        return view('careWorker.workerdashboard', ['showWelcome' => $showWelcome]);
     }
     abort(403);
 })->middleware('auth')->name('workerdashboard');
