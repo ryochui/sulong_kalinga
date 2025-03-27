@@ -41,7 +41,16 @@ class LoginController extends Controller
             // If user is found in cose_users and password matches, log in the user
             Auth::loginUsingId($user->id);
             session(['user_type' => 'cose']); // Store user type in session
-            return redirect()->route('dashboard'); // Redirect to the landing page
+            
+            if ($user->role_id == 1) {
+                return redirect()->route('admindashboard');
+            }
+            if ($user->role_id == 2) {
+                return redirect()->route('managerdashboard');
+            }
+            if ($user->role_id == 3) {
+                return redirect()->route('workerdashboard');
+            }
         }
 
         // If not found in cose_users, check in the portal_accounts table

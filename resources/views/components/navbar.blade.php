@@ -17,7 +17,7 @@
                     <a class="nav-link {{ Request::routeIs('aboutUs') ? 'active' : '' }}" href="{{ route('aboutUs') }}">About Us</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link {{ Request::routeIs('dashboard') ? 'active' : '' }}" href="{{ route('dashboard') }}">Dashboard</a>
+                    <a class="nav-link {{ Request::routeIs('dashboard') ? 'active' : '' }}" href="{{ route('admindashboard') }}">Dashboard</a>
                 </li>
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle {{ Request::routeIs('milestones') || Request::routeIs('updates') || Request::routeIs('events') ? 'active' : '' }}" href="#" id="highlightsDropdown" role="button" data-bs-toggle="dropdown">

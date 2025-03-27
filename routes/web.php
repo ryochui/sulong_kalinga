@@ -20,6 +20,33 @@ use App\Http\Middleware\CheckRole;
 
 require __DIR__.'/innerRoutes.php';
 
+
+// ROLE LOGIN
+Route::get('/manage/dashboard', function () {
+    if (auth()->user()?->isCareManager()) {
+        return view('careManager.managerdashboard');
+    }
+    abort(403);
+})->middleware('auth')->name('managerdashboard');
+
+Route::get('/admin/dashboard', function () {
+    if (auth()->user()?->isExecutiveDirector()) {
+        return view('admin.admindashboard');
+    }
+    abort(403);
+})->middleware('auth')->name('admindashboard');
+
+Route::get('/worker/dashboard', function () {
+    if (auth()->user()?->isCareWorker()) {
+        return view('careWorker.workerdashboard');
+    }
+    abort(403);
+})->middleware('auth')->name('workerdashboard');
+
+
+
+
+
 // // Route for showing the login form (GET request)
 // Route::get('login', [AuthController::class, 'showLoginForm'])->name('login');
 
@@ -157,7 +184,7 @@ Route::post('logout', [LoginController::class, 'logout'])->name('logout'); // no
     //Route::get('/reports', [ReportsController::class, 'index'])->name('reports')->middleware('auth');
 
     // Route for displaying the form to create a new weekly care plan
-    Route::get('/weekly-care-plan/create', [WeeklyCareController::class, 'create'])->name('weeklycareplans.create');
+    Route::get('/weekly-care-plan', [WeeklyCareController::class, 'create'])->name('weeklycareplans.create');
 
     // Route for storing the new weekly care plan
     Route::post('/weekly-care-plan/store', [WeeklyCareController::class, 'store'])->name('weeklycareplans.store');

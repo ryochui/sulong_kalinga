@@ -14,7 +14,7 @@
     @include('components.sidebar')
 
     <div class="home-section">
-      <div class="text-left">DASHBOARD</div>
+      <div class="text-left">DASHBOARD CAREWORKER</div>
         <div class="container-fluid text-center">
         <div class="row">
               <!-- Statistics Row -->

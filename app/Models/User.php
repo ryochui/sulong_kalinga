@@ -12,6 +12,37 @@ class User extends Authenticatable
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable;
 
+     //FOR LOGIN WITH USER ROLES
+     public function isAdministrator(): bool
+     {
+         return $this->role_id == 1 && $this->organization_role_id != 1;
+     }
+ 
+     public function isExecutiveDirector(): bool
+     {
+         return $this->role_id == 1 && $this->organization_role_id == 1;
+     }
+ 
+     public function isCareManager(): bool
+     {
+         return $this->role_id == 2;
+     }
+ 
+     public function isCareWorker(): bool
+     {
+         return $this->role_id == 3;
+     }
+ 
+     public function getRoleName(): string
+     {
+         if ($this->isExecutiveDirector()) return 'executive_director';
+         if ($this->isAdministrator()) return 'administrator';
+         if ($this->isCareManager()) return 'care_manager';
+         if ($this->isCareWorker()) return 'care_worker';
+         return 'unknown';
+     }
+
+
     protected $table = 'cose_users'; // Updated table name
 
     /**

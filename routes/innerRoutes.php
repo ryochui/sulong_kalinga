@@ -11,7 +11,7 @@ use App\Http\Controllers\UserController;
 
 
 Route::get('/dashboard', function () {
-    return view('admin.dashboard');
+    return view('admin.admindashboard');
 })->name('dashboard');
 
 Route::get('/reportsManagement', function () {
