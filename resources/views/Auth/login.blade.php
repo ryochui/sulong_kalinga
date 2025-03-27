@@ -9,19 +9,29 @@
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f5f5f5;
+            background: linear-gradient(261deg,#2d7bfa,#88f1fb,#3ae07d,#3bd09c);
+            background-size: 240% 240%;
+            animation: gradient-animation 28s ease infinite;
             margin: 0;
             padding: 0;
             color: #333;
-            background-image: url('seniors-bg.jpg');
-            background-size: cover;
-            background-position: center;
-            background-attachment: fixed;
+        }
+
+        @keyframes gradient-animation {
+            0% {
+                background-position: 0% 50%;
+            }
+            50% {
+                background-position: 100% 50%;
+            }
+            100% {
+                background-position: 0% 50%;
+            }
         }
         
         .overlay {
-            background-color: rgba(255, 255, 255, 0.9);
-            min-height: calc(100vh - 56px);
+            /* background-color: rgba(255, 255, 255, 0.9); */
+            min-height: calc(100vh - 60px);
             top: 56px;
             display: flex;
             justify-content: center;
@@ -33,24 +43,24 @@
             border-radius: 10px;
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
             width: 400px;
-            padding: 40px;
+            padding: 30px;
             text-align: center;
         }
         
         .logo {
-            width: 120px;
+            width: 90px;
             margin-bottom: 20px;
         }
         
         h1 {
             color: #2c7873;
-            margin-bottom: 30px;
-            font-size: 24px;
+            margin-bottom: 20px;
+            font-size: 20px;
         }
         
         .tagline {
             color: #6fb3b8;
-            margin-bottom: 30px;
+            margin-bottom: 20px;
             font-style: italic;
         }
         
@@ -107,7 +117,7 @@
         }
         
         .mission-statement {
-            margin-top: 30px;
+            margin-top: 20px;
             font-size: 14px;
             color: #666;
             border-top: 1px solid #eee;
