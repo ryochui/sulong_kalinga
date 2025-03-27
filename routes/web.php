@@ -70,6 +70,13 @@ Route::post('logout', [LoginController::class, 'logout'])->name('logout'); // no
     Route::put('/editAdminProfile/{id}', [AdminController::class, 'updateAdministrator'])->name('admin.editAdministrator.update');
     Route::get('/editAdminProfile/{id}', [AdminController::class, 'editAdminProfile'])->name('admin.editAdminProfile.edit');
     Route::get('/administratorProfile', [AdminController::class, 'index'])->name('administratorProfile'); // Keep
+
+    // Care Manager edit routes
+    // Route::get('/editCaremanagerProfile/{id}', [CareManagerController::class, 'editCaremanagerProfile'])->name('admin.editCaremanagerProfile.edit');
+    Route::get('/editCaremanagerProfile/{id}', [CareManagerController::class, 'editCaremanagerProfile'])
+    ->name('admin.editCaremanagerProfile.edit')
+    ->middleware(['auth']);
+    Route::put('/editCaremanagerProfile/{id}', [CareManagerController::class, 'updateCaremanager'])->name('admin.editCaremanager.update');
     
     Route::get('/', function () {
         return view('publicWeb.landing');

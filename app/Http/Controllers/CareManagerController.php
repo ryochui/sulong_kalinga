@@ -9,6 +9,8 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use App\Models\User;
 use App\Models\Municipality;
+use Carbon\Carbon;
+use Illuminate\Validation\Rule;
 
 use App\Services\UserManagementService;
 
@@ -63,20 +65,7 @@ class CareManagerController extends Controller
         return view('admin.viewCaremanagerDetails', compact('caremanager'));
     }
 
-    public function editCaremanagerProfile(Request $request)
-    {
-        $caremanager_id = $request->input('caremanager_id');
-        $caremanager = User::where('role_id', 2)->where('id', $caremanager_id)->first();
 
-        if (!$caremanager) {
-            return redirect()->route('careManagerProfile')->with('error', 'Care manager not found.');
-        }
-
-        // Update care worker details here
-        // ...
-
-        return view('admin.editCaremanagerProfile', compact('caremanager'));    
-    }
 
     // To revise so that dropdown will be dynamic
     public function create()
@@ -255,6 +244,160 @@ class CareManagerController extends Controller
 
         // Redirect with success message
         return redirect()->route('admin.addCareManager')->with('success', 'Care Manager has been successfully added!');
+    }
+
+
+    public function updateCaremanager(Request $request, $id)
+    {
+        // Find the care manager
+        $caremanager = User::findOrFail($id);
+        
+        // Validate input
+        $validator = Validator::make($request->all(), [
+            'first_name' => [
+                'required',
+                'string',
+                'regex:/^[A-Z][a-zA-Z]{1,}(?:-[a-zA-Z]{1,})?(?: [a-zA-Z]{2,}(?:-[a-zA-Z]{1,})?)*$/',
+                'max:100'
+            ],
+            'last_name' => [
+                'required',
+                'string',
+                'regex:/^[A-Z][a-zA-Z]{1,}(?:-[a-zA-Z]{1,})?(?: [a-zA-Z]{2,}(?:-[a-zA-Z]{1,})?)*$/',
+                'max:100'
+            ],
+            'birth_date' => 'required|date|before_or_equal:' . now()->subYears(14)->toDateString(),
+            'gender' => 'required|string|in:Male,Female,Other',
+            'civil_status' => 'required|string|in:Single,Married,Widowed,Divorced',
+            'religion' => 'nullable|string|regex:/^[a-zA-Z\s]*$/',
+            'nationality' => 'required|string|regex:/^[a-zA-Z\s]*$/',
+            'educational_background' => 'required|string|in:College,Highschool,Doctorate',
+            'address_details' => [
+                'required',
+                'string',
+                'regex:/^[a-zA-Z0-9\s,.-]+$/',
+            ],
+            'personal_email' => [
+                'required',
+                'string',
+                'regex:/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/',
+                Rule::unique('cose_users', 'personal_email')->ignore($id),
+            ],
+            'mobile_number' => [
+                'required',
+                'string',
+                'regex:/^[0-9]{10,11}$/',
+                Rule::unique('cose_users', 'mobile')->ignore($id),
+            ],
+            'landline_number' => [
+                'nullable',
+                'string',
+                'regex:/^[0-9]{7,10}$/',
+            ],
+            'caremanager_photo' => 'nullable|image|mimes:jpeg,png|max:2048',
+            'government_ID' => 'nullable|image|mimes:jpeg,png|max:2048',
+            'resume' => 'nullable|mimes:pdf,doc,docx|max:2048',
+            'sss_ID' => 'nullable|string|max:10',
+            'philhealth_ID' => 'nullable|string|max:12',
+            'pagibig_ID' => 'nullable|string|max:12',
+            'account.email' => [
+                'required',
+                'string',
+                'regex:/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/',
+                Rule::unique('cose_users', 'email')->ignore($id),
+            ],
+            'municipality' => 'required|exists:municipalities,municipality_id',
+        ]);
+
+        if ($validator->fails()) {
+            return back()->withErrors($validator)->withInput();
+        }
+
+        // Handle file uploads if new files are provided
+        $uniqueIdentifier = time() . '_' . Str::random(5);
+
+        if ($request->hasFile('caremanager_photo')) {
+            $caremanagerPhotoPath = $request->file('caremanager_photo')->storeAs(
+                'uploads/caremanager_photos',
+                $caremanager->first_name . '_' . $caremanager->last_name . '_photo_' . $uniqueIdentifier . '.' . $request->file('caremanager_photo')->getClientOriginalExtension(),
+                'public'
+            );
+            $caremanager->photo = $caremanagerPhotoPath;
+        }
+
+        if ($request->hasFile('government_ID')) {
+            $governmentIDPath = $request->file('government_ID')->storeAs(
+                'uploads/caremanager_government_ids',
+                $caremanager->first_name . '_' . $caremanager->last_name . '_government_id_' . $uniqueIdentifier . '.' . $request->file('government_ID')->getClientOriginalExtension(),
+                'public'
+            );
+            $caremanager->government_issued_id = $governmentIDPath;
+        }
+
+        if ($request->hasFile('resume')) {
+            $resumePath = $request->file('resume')->storeAs(
+                'uploads/caremanager_resumes',
+                $caremanager->first_name . '_' . $caremanager->last_name . '_resume_' . $uniqueIdentifier . '.' . $request->file('resume')->getClientOriginalExtension(),
+                'public'
+            );
+            $caremanager->cv_resume = $resumePath;
+        }
+
+        $mobile = $request->input('mobile_number');
+        if (substr($mobile, 0, 3) !== '+63') {
+            $mobile = '+63' . $mobile;
+        }
+
+        // Update care manager details
+        $caremanager->first_name = $request->input('first_name');
+        $caremanager->last_name = $request->input('last_name');
+        $caremanager->birthday = $request->input('birth_date');
+        $caremanager->gender = $request->input('gender');
+        $caremanager->civil_status = $request->input('civil_status');
+        $caremanager->religion = $request->input('religion');
+        $caremanager->nationality = $request->input('nationality');
+        $caremanager->educational_background = $request->input('educational_background');
+        $caremanager->address = $request->input('address_details');
+        $caremanager->personal_email = $request->input('personal_email');
+        $caremanager->mobile = $mobile;
+        $caremanager->landline = $request->input('landline_number');
+        $caremanager->sss_id_number = $request->input('sss_ID');
+        $caremanager->philhealth_id_number = $request->input('philhealth_ID');
+        $caremanager->pagibig_id_number = $request->input('pagibig_ID');
+        $caremanager->assigned_municipality_id = $request->input('municipality');
+        
+        // Update the email address if changed
+        if ($request->filled('account.email')) {
+            $caremanager->email = $request->input('account.email');
+        }
+        
+        // Save the changes
+        $caremanager->save();
+        
+        // Redirect back to care manager profile list
+        return redirect()->route('admin.careManagerProfile')->with('success', 'Care Manager profile updated successfully.');
+    }
+
+
+    public function editCaremanagerProfile($id)
+    {
+        // Find the care manager by ID
+        $caremanager = User::where('role_id', 2)->where('id', $id)->first();
+        
+        if (!$caremanager) {
+            return redirect()->route('admin.careManagerProfile')->with('error', 'Care Manager not found.');
+        }
+
+        // Format date for the form
+        $birth_date = null;
+        if ($caremanager->birthday) {
+            $birth_date = Carbon::parse($caremanager->birthday)->format('Y-m-d');
+        }
+
+        // Get municipalities for the dropdown
+        $municipalities = Municipality::all();
+
+        return view('admin.editCaremanagerProfile', compact('caremanager', 'birth_date', 'municipalities'));
     }
 
     public function updateStatus(Request $request, $id)

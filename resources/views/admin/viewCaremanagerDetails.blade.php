@@ -31,17 +31,15 @@
                     </a>
                     <!-- Edit Button with Routing - Only visible to administrators -->
                     @if(Auth::user()->role_id == 1)
-                        <form action="{{ route('editCaremanagerProfile') }}" method="POST" style="display:inline;">
-                            @csrf
-                            <input type="hidden" name="caremanager_id" value="{{ $caremanager->id }}">
-                            <button type="submit" class="btn btn-primary">
+                        <!-- Edit Button -->
+                        <a href="{{ route('admin.editCaremanagerProfile.edit', $caremanager->id) }}" class="btn btn-primary">
                             <i class="bx bxs-edit"></i> Edit
-                            </button>
-                        </form>
-                    <!-- Delete Button - Only visible to administrators -->
-                    <button type="button" class="btn btn-danger" onclick="openDeleteCaremanagerModal('{{ $caremanager->id }}', '{{ $caremanager->first_name }} {{ $caremanager->last_name }}')">
-                        <i class="bx bxs-trash"></i> Delete
-                    </button>
+                        </a>
+
+                        <!-- Delete Button -->
+                        <button type="button" class="btn btn-danger" onclick="openDeleteCaremanagerModal('{{ $caremanager->id }}', '{{ $caremanager->first_name }} {{ $caremanager->last_name }}')">
+                            <i class="bx bxs-trash"></i> Delete
+                        </button>
                     @endif
                 </div>
             </div>
