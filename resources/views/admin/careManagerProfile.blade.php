@@ -121,13 +121,9 @@
                                                     <i class="fa fa-eye"></i>
                                                 </button>
                                             </form>
-                                            <form action="{{ route('editCaremanagerProfile') }}" method="POST" style="display:inline;">
-                                                @csrf
-                                                <input type="hidden" name="caremanager_id" value="{{ $caremanager->id }}">
-                                                <button type="submit" class="btn btn-link text-decoration-none" style="color:black;">
-                                                    <i class='bx bxs-edit'></i>
-                                                </button>
-                                            </form>
+                                            <a href="{{ route('admin.editCaremanagerProfile.edit', $caremanager->id) }}" class="btn btn-link text-decoration-none" style="color:black;">
+                                                <i class='bx bxs-edit'></i>
+                                            </a>
                                             </div>
                                         </td>
                                     </tr>

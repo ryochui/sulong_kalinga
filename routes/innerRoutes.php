@@ -94,7 +94,7 @@ Route::post('/editCareworkerProfile', [CareWorkerController::class, 'editCarewor
 
 //View and Edit Care Manager Profile from Table Routing
 Route::post('/viewCaremanagerDetails', [CareManagerController::class, 'viewCaremanagerDetails'])->name('viewCaremanagerDetails');
-Route::post('/editCaremanagerProfile', [CareManagerController::class, 'editCaremanagerProfile'])->name('editCaremanagerProfile');
+// Route::post('/editCaremanagerProfile', [CareManagerController::class, 'editCaremanagerProfile'])->name('editCaremanagerProfile');
 
 //View and Edit Care Manager Profile from Table Routing
 Route::post('/viewAdminDetails', [AdminController::class, 'viewAdminDetails'])->name('viewAdminDetails');
