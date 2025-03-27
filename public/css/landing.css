@@ -104,9 +104,6 @@ p.lead {
     }
 }
 
-@media(min-width:768px) {
-    
-}
 
 @media (max-width: 768px) {
     #landing {
@@ -134,5 +131,11 @@ p.lead {
     .mobile-logo-container {
         display: flex;
         justify-content: center;
+    }
+}
+
+@media (maxwidth: 555px){
+    .col-lg-7.col-md-7.col-sm-12 h1 {
+        text-align: center;
     }
 }

@@ -58,7 +58,7 @@
 <body>
 
     @include('components.userNavbar')
-    @include('components.sidebar')
+    @include('components.careWorkerSidebar')
     
     <div class="home-section">
         <h4 class="text-center mt-2">WEEKLY CARE PLAN FORM</h4>
