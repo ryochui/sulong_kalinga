@@ -200,7 +200,7 @@
     <div class="family-member-profile">
         <div class="profile-header">
         <div class="profile-image-container" style="overflow:hidden;">
-            <img src="{{ public_path('images/defaultProfile.png') }}" alt="Profile Picture" 
+            <img src="{{ $family_member->photo ? public_path('storage/' . $family_member->photo) : public_path('images/defaultProfile.png') }}" alt="Profile Picture" 
                 style="width:100%; height:100%; object-fit:cover;">
         </div>
             
@@ -253,7 +253,7 @@
         <div class="related-beneficiary">
             <div class="related-beneficiary-title">{{ $family_member->beneficiary->first_name }} {{ $family_member->beneficiary->last_name }}</div>
             <div class="related-beneficiary-image">
-                <img src="{{ public_path('images/defaultProfile.png') }}" alt="Profile Picture" 
+                <img src="{{ $family_member->beneficiary->photo ? public_path('storage/' . $family_member->beneficiary->photo) : public_path('images/defaultProfile.png') }}" alt="Profile Picture" 
                     style="width:60px; height:60px; border-radius:50%; border:1px solid #ddd; margin:0 auto; object-fit:cover;">
             </div>
             <div class="related-beneficiary-name">

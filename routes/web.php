@@ -150,14 +150,23 @@ Route::post('logout', [LoginController::class, 'logout'])->name('logout'); // no
     //Reports Management
     Route::get('/reports', [ReportsController::class, 'index'])->name('reports')->middleware('auth');
 
-    //Weekly Care Plan Routes
-    Route::middleware(['auth'])->group(function () {
-        Route::get('/weekly-care-plans/create', [WeeklyCareController::class, 'create'])
-             ->name('weeklycareplans.create');
-        
-        Route::post('/weekly-care-plans', [WeeklyCareController::class, 'store'])
-             ->name('weeklycareplans.store');
-        
-        Route::get('/weekly-care-plans/beneficiary/{id}', [WeeklyCareController::class, 'getBeneficiaryDetails'])
-             ->name('weeklycareplans.getBeneficiaryDetails');
-    });
+    // Route for displaying the form to create a new weekly care plan
+    Route::get('/weekly-care-plan/create', [WeeklyCareController::class, 'create'])->name('weeklycareplans.create');
+
+    // Route for storing the new weekly care plan
+    Route::post('/weekly-care-plan/store', [WeeklyCareController::class, 'store'])->name('weeklycareplans.store');
+
+    // Route for fetching beneficiary details via AJAX
+    Route::get('/weekly-care-plan/beneficiary/{id}', [WeeklyCareController::class, 'getBeneficiaryDetails'])->name('weeklycareplans.beneficiaryDetails');
+
+    // Route for displaying the list of weekly care plans
+    Route::get('/weekly-care-plans', [WeeklyCareController::class, 'index'])->name('weeklycareplans.index');
+
+    // Existing routes for other views
+    Route::get('/weeklyCareplan', function () {
+        return view('careWorker.weeklyCareplan');
+    })->name('weeklyCareplan');
+
+    Route::get('/viewWeeklyCareplan', function () {
+        return view('careWorker.viewWeeklyCareplan');
+    })->name('viewWeeklyCareplan');

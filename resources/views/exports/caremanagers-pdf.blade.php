@@ -186,7 +186,7 @@
             <div class="profile-header">
                 <!-- Profile Image -->
                 <div class="profile-image-container">
-                    <img src="{{ public_path('images/defaultProfile.png') }}" alt="Profile Picture" style="width:100%; height:100%; object-fit:cover;">
+                    <img src="{{ $caremanager->photo ? public_path('storage/' . $caremanager->photo) : public_path('images/defaultProfile.png') }}" alt="Profile Picture" style="width:100%; height:100%; object-fit:cover;">
                 </div>
                 
                 <div class="profile-details">
