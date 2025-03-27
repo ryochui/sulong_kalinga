@@ -136,6 +136,7 @@ Route::post('logout', [LoginController::class, 'logout'])->name('logout'); // no
     
     Route::get('addCareworker', [CareWorkerController::class, 'create'])->name('admin.addCareworker');
 
+
     Route::get('addFamily', [FamilyMemberController::class, 'create'])->name('admin.addFamily');
 
     Route::get('addBeneficiary', [BeneficiaryController::class, 'create'])->name('admin.addBeneficiary');

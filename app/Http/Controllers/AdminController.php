@@ -103,19 +103,15 @@ class AdminController extends Controller
                 'required',
                 'integer',
                 'exists:organization_roles,organization_role_id',
-                function ($attribute, $value, $fail) use ($id, $administrator) {
+                function ($attribute, $value, $fail) {
                     // If trying to set role to Executive Director (role_id = 1)
-                    if ($value == 1) {
-                        // Check if this user is not already the Executive Director
-                        if ($administrator->organization_role_id != 1) {
+                    // If trying to set role to Executive Director (role_id = 1)
+                        if ($value == 1) {
                             // Check if another Executive Director exists
-                            $existingExecutiveDirector = User::where('organization_role_id', 1)
-                                ->where('id', '!=', $id)
-                                ->exists();
+                            $existingExecutiveDirector = User::where('organization_role_id', 1)->exists();
                             
                             if ($existingExecutiveDirector) {
                                 $fail('There can only be one Executive Director. Please select a different role.');
-                            }
                         }
                     }
                 },
