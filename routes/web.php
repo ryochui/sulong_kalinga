@@ -65,10 +65,20 @@ Route::post('logout', [LoginController::class, 'logout'])->name('logout'); // no
     
     Route::post('addAdministrator', [AdminController::class, 'storeAdministrator'])->name('admin.addAdministrator.store');
     Route::post('addCareManager', [CareManagerController::class, 'storeCareManager'])->name('admin.addCareManager.store');
-    Route::post('addCareWorker', [CareWorkerController::class, 'storeCareWorker'])->name('admin.addCareWorker.store');
+    
+    // Route for storing the new care worker
+    Route::post('/addCareworker', [CareWorkerController::class, 'storeCareWorker'])
+    ->name('admin.addCareWorker')  // Keep this capitalization consistent
+    ->middleware(['auth']);  
+
+    // Add the GET route for displaying the form
+    Route::get('addCareworker', [CareWorkerController::class, 'create'])
+    ->name('admin.addCareWorker.create')  // Change this to be more descriptive
+    ->middleware(['auth']);
+    
     Route::post('addFamily', [FamilyMemberController::class, 'storeFamily'])->name('admin.addFamily.store');
     Route::post('addBeneficiary', [BeneficiaryController::class, 'storeBeneficiary'])->name('admin.addBeneficiary.store');
-    
+
     // Route::put('editAdminProfile/{id}', [AdminController::class, 'updateAdministrator'])->name('admin.editAdministrator.update'); // Replaced by below
     Route::put('/editAdminProfile/{id}', [AdminController::class, 'updateAdministrator'])->name('admin.editAdministrator.update');
     Route::get('/editAdminProfile/{id}', [AdminController::class, 'editAdminProfile'])->name('admin.editAdminProfile.edit');
@@ -79,6 +89,7 @@ Route::post('logout', [LoginController::class, 'logout'])->name('logout'); // no
     Route::get('/editCaremanagerProfile/{id}', [CareManagerController::class, 'editCaremanagerProfile'])
     ->name('admin.editCaremanagerProfile.edit')
     ->middleware(['auth']);
+    
     Route::put('/editCaremanagerProfile/{id}', [CareManagerController::class, 'updateCaremanager'])->name('admin.editCaremanager.update');
     
     Route::get('/', function () {
@@ -134,7 +145,7 @@ Route::post('logout', [LoginController::class, 'logout'])->name('logout'); // no
 
     Route::get('addCareManager', [CareManagerController::class, 'create'])->name('admin.addCareManager');
     
-    Route::get('addCareworker', [CareWorkerController::class, 'create'])->name('admin.addCareworker');
+    //Route::get('addCareworker', [CareWorkerController::class, 'create'])->name('admin.addCareworker');
 
 
     Route::get('addFamily', [FamilyMemberController::class, 'create'])->name('admin.addFamily');

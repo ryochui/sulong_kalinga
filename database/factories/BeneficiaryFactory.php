@@ -27,12 +27,15 @@ class BeneficiaryFactory extends Factory
         // Get a random user ID with role_id 2
         $userIdWithRole2 = User::where('role_id', 2)->inRandomOrder()->first()->id;
 
+        // Generate a birthday for someone 60-100 years old
+        $birthday = $this->faker->dateTimeBetween('-100 years', '-60 years')->format('Y-m-d');
+
         return [
             'first_name' => $this->faker->firstName,
             'last_name' => $this->faker->lastName,
             'civil_status' => $this->faker->randomElement(['Single', 'Married', 'Widowed']),
             'gender' => $this->faker->randomElement(['Male', 'Female']),
-            'birthday' => $this->faker->date(),
+            'birthday' => $birthday,
             'primary_caregiver' => $this->faker->name,
             'mobile' => '+63' . $this->faker->numerify('##########'),            'landline' => $this->faker->numerify('#######'),
             'street_address' => $this->faker->address,

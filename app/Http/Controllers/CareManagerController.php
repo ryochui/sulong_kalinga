@@ -374,8 +374,10 @@ class CareManagerController extends Controller
         // Save the changes
         $caremanager->save();
         
-        // Redirect back to care manager profile list
-        return redirect()->route('admin.careManagerProfile')->with('success', 'Care Manager profile updated successfully.');
+        return redirect()->route('admin.careManagerProfile')->with('success', 
+        'Care Manager ' . $caremanager->first_name . ' ' . $caremanager->last_name . 
+        ' has been successfully updated!'
+        );
     }
 
 

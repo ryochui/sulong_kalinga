@@ -60,11 +60,6 @@
                     <img src="{{ asset('images/cose-logo.png') }}" alt="" class="logo">
                 </div>
             </div>
-            @if (Auth::check())
-                <p>Logged-in User ID: {{ Auth::user()->id }}</p>
-            @else
-                <p>No user is logged in.</p>
-            @endif
         </div>
         <div class="techBrigade">
             <img src="{{ asset('images/collage2.png') }}" class="half-transparent-img">

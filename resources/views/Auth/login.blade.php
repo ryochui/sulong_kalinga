@@ -152,7 +152,7 @@
 
                 <div class="form-group">
                     <label for="password">Password</label>
-                    <input type="text" id="password" name="password" placeholder="Enter your password" required>
+                    <input type="password" id="password" name="password" placeholder="Enter your password" required>
                 </div>
 
                 <button type="submit" class="btn">Login</button>

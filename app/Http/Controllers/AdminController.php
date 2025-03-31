@@ -9,11 +9,15 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
-
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\DB;
 use App\Models\User;
 use App\Models\Municipality;
 use App\Models\Barangay;
 use App\Models\Beneficiary;
+use App\Models\WeeklyCarePlan;
+use App\Models\FamilyMember;
+use App\Models\OrganizationRole;
 use Carbon\Carbon;
 
 use App\Services\UserManagementService;
@@ -354,8 +358,6 @@ class AdminController extends Controller
         $administrator->cv_resume = $resumePath;
     }
 
-
-
         // Handle file uploads if new files are provided
         $uniqueIdentifier = time() . '_' . Str::random(5);
 
@@ -432,7 +434,10 @@ class AdminController extends Controller
         $administrator->save();
 
         // Redirect with success message
-        return redirect()->route('administratorProfile')->with('success', 'Administrator profile updated successfully.'); // Replaced 'admin.viewAdminDetails' with 'viewAdminDetails'
+        return redirect()->route('administratorProfile')->with('success', 
+        'Administrator ' . $administrator->first_name . ' ' . $administrator->last_name . 
+        ' has been successfully updated!'
+        );
     }
 
     public function index(Request $request)
@@ -525,161 +530,102 @@ class AdminController extends Controller
 
     public function deleteAdministrator(Request $request)
     {
+        DB::beginTransaction();
+        
         try {
             // Get the ID from the request
             $id = $request->input('admin_id');
             
             // Find the administrator
             $administrator = User::where('id', $id)
-                            ->where('role_id', 1)
-                            ->first();
+                ->where('role_id', 1)
+                ->first();
             
             if (!$administrator) {
+                DB::rollBack();
                 return response()->json([
                     'success' => false,
                     'message' => 'Administrator not found.'
                 ]);
             }
-            
-            // Don't allow deleting the Executive Director
+
+            // Don't allow deleting if they're Executive Director
             if ($administrator->organization_role_id == 1) {
+                DB::rollBack();
                 return response()->json([
                     'success' => false,
                     'message' => 'Executive Director account cannot be deleted.',
                     'error_type' => 'executive_director'
                 ]);
             }
-            
-            // Check if the current user is Executive Director
+
+            // Check if current user has permission to delete
             if (Auth::user()->organization_role_id != 1) {
+                DB::rollBack();
                 return response()->json([
                     'success' => false,
                     'message' => 'Only Executive Director can delete administrator accounts.'
                 ]);
             }
-            
-            // Check for various audit dependencies first before attempting to delete
-            
-            // 1. Check beneficiaries table for created_by/updated_by references
-            $beneficiaryReferences = \DB::table('beneficiaries')
-                ->where('created_by', $id)
-                ->orWhere('updated_by', $id)
-                ->count();
-                
-            if ($beneficiaryReferences > 0) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'This administrator has created or updated beneficiary records which require audit history to be maintained.',
-                    'error_type' => 'dependency_beneficiaries'
-                ]);
+
+            // Check for dependencies before deletion
+            $dependencies = [
+                'beneficiaries' => Beneficiary::where('created_by', $id)
+                    ->orWhere('updated_by', $id)
+                    ->exists(),
+                'users' => User::where('updated_by', $id)
+                    ->exists(),
+                'weekly_care_plans' => WeeklyCarePlan::where('created_by', $id)
+                    ->orWhere('updated_by', $id)
+                    ->exists(),
+                'family_members' => FamilyMember::where('created_by', $id)
+                    ->orWhere('updated_by', $id)
+                    ->exists()
+            ];
+
+            foreach ($dependencies as $type => $exists) {
+                if ($exists) {
+                    DB::rollBack();
+                    return response()->json([
+                        'success' => false,
+                        'message' => "This administrator has created or updated {$type} that require audit history. Deletion is not allowed.",
+                        'error_type' => "dependency_{$type}"
+                    ]);
+                }
             }
-            
-            // 2. Check users table for created_by/updated_by references
-            $userReferences = \DB::table('cose_users')
-                ->where('created_by', $id)
-                ->orWhere('updated_by', $id)
-                ->count();
-                
-            if ($userReferences > 0) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'This administrator has created or updated user accounts which require audit history to be maintained.',
-                    'error_type' => 'dependency_users'
-                ]);
+
+            // Delete associated files
+            $filesToDelete = [
+                'photo' => $administrator->photo,
+                'government_issued_id' => $administrator->government_issued_id,
+                'cv_resume' => $administrator->cv_resume
+            ];
+
+            foreach ($filesToDelete as $file) {
+                if ($file) {
+                    Storage::disk('public')->delete($file);
+                }
             }
-            
-            // 3. Check weekly care plans table for created_by/updated_by references
-            $carePlanReferences = \DB::table('weekly_care_plans')
-                ->where('created_by', $id)
-                ->orWhere('updated_by', $id)
-                ->count();
-                
-            if ($carePlanReferences > 0) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'This administrator has created or updated care plans which require audit history to be maintained.',
-                    'error_type' => 'dependency_care_plans'
-                ]);
-            }
-            
-            // 4. Check family members table for created_by/updated_by references
-            $familyReferences = \DB::table('family_members')
-                ->where('created_by', $id)
-                ->orWhere('updated_by', $id)
-                ->count();
-                
-            if ($familyReferences > 0) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'This administrator has created or updated family member records which require audit history to be maintained.',
-                    'error_type' => 'dependency_family'
-                ]);
-            }
-            
+
             // Delete the administrator
             $administrator->delete();
+            
+            DB::commit();
             
             return response()->json([
                 'success' => true,
                 'message' => 'Administrator deleted successfully.'
             ]);
             
-        } catch (\Illuminate\Database\QueryException $e) {
-            Log::error('Error deleting administrator (QueryException): ' . $e->getMessage());
-            
-            // Check for foreign key constraint violation
-            if (in_array($e->getCode(), ['23000', '23503']) || 
-                (is_numeric($e->getCode()) && in_array((int)$e->getCode(), [23000, 23503]))) {
-                
-                // Try to determine which table has the dependency
-                $errorMsg = $e->getMessage();
-                
-                if (stripos($errorMsg, 'beneficiaries') !== false) {
-                    return response()->json([
-                        'success' => false,
-                        'message' => 'This administrator has created or updated beneficiary records which require audit history to be maintained.',
-                        'error_type' => 'dependency_beneficiaries'
-                    ]);
-                } else if (stripos($errorMsg, 'cose_users') !== false || stripos($errorMsg, 'users') !== false) {
-                    return response()->json([
-                        'success' => false,
-                        'message' => 'This administrator has created or updated user accounts which require audit history to be maintained.',
-                        'error_type' => 'dependency_users'
-                    ]);
-                } else if (stripos($errorMsg, 'weekly_care_plans') !== false || stripos($errorMsg, 'care_plans') !== false) {
-                    return response()->json([
-                        'success' => false,
-                        'message' => 'This administrator has created or updated care plans which require audit history to be maintained.',
-                        'error_type' => 'dependency_care_plans'
-                    ]);
-                } else if (stripos($errorMsg, 'family_members') !== false) {
-                    return response()->json([
-                        'success' => false,
-                        'message' => 'This administrator has created or updated family member records which require audit history to be maintained.',
-                        'error_type' => 'dependency_family'
-                    ]);
-                }
-                
-                // Generic dependency message for other tables
-                return response()->json([
-                    'success' => false,
-                    'message' => 'This administrator has created or updated records in the system that require audit history to be maintained.',
-                    'error_type' => 'dependency_audit'
-                ]);
-            }
-            
-            return response()->json([
-                'success' => false,
-                'message' => 'A database error occurred. Please try again later or contact the system administrator.',
-                'error_type' => 'database'
-            ]);
         } catch (\Exception $e) {
-            Log::error('Error deleting administrator: ' . $e->getMessage());
+            DB::rollBack();
+            \Log::error('Error deleting administrator: ' . $e->getMessage());
+            \Log::error('Stack trace: ' . $e->getTraceAsString());
             
             return response()->json([
                 'success' => false,
-                'message' => 'An unexpected error occurred. Please try again later.',
-                'error_type' => 'general'
+                'message' => 'An error occurred while deleting the administrator. Please try again later.',
+                'debug_message' => app()->environment('local') ? $e->getMessage() : null
             ]);
         }
     }

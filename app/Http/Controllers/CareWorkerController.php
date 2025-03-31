@@ -11,7 +11,7 @@ use App\Models\User;
 use App\Models\Municipality;
 use App\Models\GeneralCarePlan;
 use App\Models\Beneficiary;
-
+ 
 
 class CareWorkerController extends Controller
 {
@@ -258,7 +258,7 @@ class CareWorkerController extends Controller
         $careworker->save();
 
         // Redirect with success message
-        return redirect()->route('admin.addCareWorker')->with('success', 'Care Worker has been successfully added!');
+        return redirect()->route('admin.addCareWorker')->with('success', 'Care worker added successfully.');
     }
 
     public function updateStatus(Request $request, $id)

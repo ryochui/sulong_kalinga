@@ -39,7 +39,7 @@
             @endif
             <div class="row" id="addUserForm">
                 <div class="col-12">
-                    <form action="{{ route('admin.addCareWorker.store') }}" method="POST" enctype="multipart/form-data">
+                    <form action="{{ route('admin.addCareWorker') }}" method="POST" enctype="multipart/form-data">
                         @csrf <!-- Include CSRF token for security -->
                         <!-- Row 1: Personal Details -->
                         <div class="row mb-1 mt-3">
@@ -267,7 +267,7 @@
     <script src="{{ asset('js/bootstrap.bundle.min.js') }}"></script>
     <script>
         document.querySelector('form').addEventListener('submit', function (e) {
-            e.preventDefault(); // Prevent the default form submission
+            //e.preventDefault(); // Prevent the default form submission
 
             // e.preventDefault(); // Prevent the default form submission
 
