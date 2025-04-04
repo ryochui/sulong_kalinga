@@ -51,7 +51,7 @@
                     @method('PUT')
                         <div class="row mb-1 mt-3">
                             <div class="col-12">
-                                <h5 class="text-start">Personal Details</h5> <!-- Row Title -->
+                                <h5 class="text-start">Personal Details</h5>
                             </div>
                         </div>
                         <div class="row mb-1">
@@ -67,7 +67,7 @@
                                 <label for="birthDate" class="form-label">Birthday</label>
                                 <input type="date" class="form-control" id="birthDate" name="birth_date" value="{{ old('birth_date', $birth_date) }}">
                             </div>
-                            <div class="col-md-3 position-relative">
+                            <div class="col-md-3">
                                 <label for="gender" class="form-label">Gender</label>
                                 <select class="form-select" id="gender" name="gender">
                                     <option value="" disabled>Select gender</option>
@@ -78,7 +78,7 @@
                             </div>
                         </div>
                         <div class="row mb-1">
-                            <div class="col-md-3 position-relative">
+                            <div class="col-md-3">
                                 <label for="civilStatus" class="form-label">Civil Status</label>
                                 <select class="form-select" id="civilStatus" name="civil_status">
                                     <option value="" disabled>Select civil status</option>
@@ -108,7 +108,7 @@
                             </div>
                         </div>
                         <div class="row mb-3">
-                            <div class="col-md-3 position-relative">
+                            <div class="col-md-3">
                                 <label for="educationalBackground" class="form-label">Educational Background</label>
                                 <select class="form-select" id="educationalBackground" name="educational_background">
                                     <option value="" disabled>Select Educational Background</option>
@@ -120,10 +120,10 @@
                         </div>
 
                         <hr class="my-4">
-                        <!-- Row 2: Address -->
+                        <!-- Current Address -->
                         <div class="row mb-1">
                             <div class="col-12">
-                                <h5 class="text-start">Current Address</h5> <!-- Row Title -->
+                                <h5 class="text-start">Current Address</h5>
                             </div>
                         </div>
                         <div class="row mb-3">
@@ -137,7 +137,7 @@
                         <!-- Contact Information -->
                         <div class="row mb-1">
                             <div class="col-12">
-                                <h5 class="text-start">Contact Information</h5> <!-- Row Title -->
+                                <h5 class="text-start">Contact Information</h5>
                             </div>
                         </div> 
                         <div class="row mb-3">
@@ -155,10 +155,10 @@
                         </div>
 
                         <hr class="my-4">
-                        <!-- Documents -->
+                        <!-- Documents Upload -->
                         <div class="row mb-1">
                             <div class="col-12">
-                                <h5 class="text-start">Documents Upload</h5> <!-- Row Title -->
+                                <h5 class="text-start">Documents Upload</h5>
                             </div>
                         </div>
                         <div class="row mb-1">
@@ -211,12 +211,11 @@
                             </div>
                         </div>
 
-
                         <hr class="my-4">
                         <!-- Account Registration -->
                         <div class="row mb-1">
                             <div class="col-12">
-                                <h5 class="text-start">Care Worker Account Registration</h5> <!-- Row Title -->
+                                <h5 class="text-start">Care Worker Account Registration</h5>
                             </div>
                         </div>
                         <div class="row mb-3">
@@ -232,7 +231,6 @@
                                 <input type="password" class="form-control" id="confirmPassword" name="account[confirm_password]" placeholder="Confirm password">
                             </div>
                         </div>
-
                         
                         <div class="row mt-4">
                             <div class="col-12 d-flex justify-content-center align-items-center">
@@ -269,51 +267,51 @@
     <script src="{{ asset('js/bootstrap.bundle.min.js') }}"></script>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            // Function to filter dropdown items
-            function filterDropdown(inputId, dropdownId) {
-                const input = document.getElementById(inputId);
-                const dropdown = document.getElementById(dropdownId);
-                const items = dropdown.querySelectorAll('.dropdown-item');
+        // document.addEventListener('DOMContentLoaded', function () {
+        //     // Function to filter dropdown items
+        //     function filterDropdown(inputId, dropdownId) {
+        //         const input = document.getElementById(inputId);
+        //         const dropdown = document.getElementById(dropdownId);
+        //         const items = dropdown.querySelectorAll('.dropdown-item');
 
-                input.addEventListener('input', function () {
-                    const filter = input.value.toLowerCase();
-                    let hasVisibleItems = false;
+        //         input.addEventListener('input', function () {
+        //             const filter = input.value.toLowerCase();
+        //             let hasVisibleItems = false;
 
-                    items.forEach(item => {
-                        if (item.textContent.toLowerCase().includes(filter)) {
-                            item.style.display = 'block';
-                            hasVisibleItems = true;
-                        } else {
-                            item.style.display = 'none';
-                        }
-                    });
-                    dropdown.style.display = hasVisibleItems ? 'block' : 'none';
-                });
-                input.addEventListener('blur', function () {
-                    setTimeout(() => dropdown.style.display = 'none', 200);
-                });
-                input.addEventListener('focus', function () {
-                    dropdown.style.display = 'block';
-                });
+        //             items.forEach(item => {
+        //                 if (item.textContent.toLowerCase().includes(filter)) {
+        //                     item.style.display = 'block';
+        //                     hasVisibleItems = true;
+        //                 } else {
+        //                     item.style.display = 'none';
+        //                 }
+        //             });
+        //             dropdown.style.display = hasVisibleItems ? 'block' : 'none';
+        //         });
+        //         input.addEventListener('blur', function () {
+        //             setTimeout(() => dropdown.style.display = 'none', 200);
+        //         });
+        //         input.addEventListener('focus', function () {
+        //             dropdown.style.display = 'block';
+        //         });
 
-                // Handle item selection
-                items.forEach(item => {
-                    item.addEventListener('click', function (e) {
-                        e.preventDefault();
-                        input.value = item.textContent;
-                        document.getElementById(inputId.replace('Input', '')).value = item.getAttribute('data-value');
-                        dropdown.style.display = 'none';
-                    });
-                });
-            }
+        //         // Handle item selection
+        //         items.forEach(item => {
+        //             item.addEventListener('click', function (e) {
+        //                 e.preventDefault();
+        //                 input.value = item.textContent;
+        //                 document.getElementById(inputId.replace('Input', '')).value = item.getAttribute('data-value');
+        //                 dropdown.style.display = 'none';
+        //             });
+        //         });
+        //     }
 
-            // Initialize filtering for each dropdown
-            filterDropdown('civilStatusInput', 'civilStatusDropdown');
-            filterDropdown('genderInput', 'genderDropdown');
-            filterDropdown('educationalBackgroundInput', 'educationalBackgroundDropdown');
-            filterDropdown('municipalityInput', 'municipalityDropdown');
-        });
+        //     // Initialize filtering for each dropdown
+        //     filterDropdown('civilStatusInput', 'civilStatusDropdown');
+        //     filterDropdown('genderInput', 'genderDropdown');
+        //     filterDropdown('educationalBackgroundInput', 'educationalBackgroundDropdown');
+        //     filterDropdown('municipalityInput', 'municipalityDropdown');
+        // });
     </script>
 
 </body>
