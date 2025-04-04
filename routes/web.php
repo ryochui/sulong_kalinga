@@ -92,6 +92,11 @@ Route::post('logout', [LoginController::class, 'logout'])->name('logout'); // no
     
     Route::put('/editCaremanagerProfile/{id}', [CareManagerController::class, 'updateCaremanager'])->name('admin.editCaremanager.update');
     
+
+    // Care Worker edit routes
+    Route::get('/editCareworkerProfile/{id}', [CareWorkerController::class, 'editCareworkerProfile'])->name('admin.editCareworkerProfile.edit');
+    Route::put('/editCareworkerProfile/{id}', [CareWorkerController::class, 'updateCareworker'])->name('admin.editCareworker.update');
+
     Route::get('/', function () {
         return view('publicWeb.landing');
     })->name('landing');

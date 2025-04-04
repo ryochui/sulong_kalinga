@@ -27,96 +27,107 @@
                 </form>
                 <div class="mx-auto text-center" style="flex-grow: 1; font-weight: bold; font-size: 20px;">EDIT CARE WORKER PROFILE</div>
             </div>
-            <div class="row" id="addUserForm">
+            <div class="row" id="a<div class="row" id="addUserForm">
                 <div class="col-12">
-                <form action="{{ route('editCareworkerProfile') }}" method="POST">
-                    <form>
-                        @csrf <!-- Include CSRF token for security -->
-                        <!-- Row 1: Personal Details -->
+                    <form action="{{ route('admin.editCareworker.update', $careworker->id) }}" method="POST" enctype="multipart/form-data">
+                        @csrf
+                        @method('PUT')
+                        
+                        <!-- Personal Details -->
                         <div class="row mb-1 mt-3">
                             <div class="col-12">
-                                <h5 class="text-start">Personal Details</h5> <!-- Row Title -->
+                                <h5 class="text-start">Personal Details</h5>
                             </div>
                         </div>
                         <div class="row mb-1">
                             <div class="col-md-3">
                                 <label for="firstName" class="form-label">First Name</label>
-                                <input type="text" class="form-control" id="firstName" name="first_name" placeholder="Enter first name" value="{{ $careworker->first_name }}" required>
+                                <input type="text" class="form-control" id="firstName" name="first_name" 
+                                       value="{{ $careworker->first_name }}" 
+                                       placeholder="Enter first name" required 
+                                       pattern="^[A-Z][a-zA-Z]{1,}(?:-[a-zA-Z]{1,})?(?: [a-zA-Z]{2,}(?:-[a-zA-Z]{1,})?)*$"
+                                       title="First letter must be capital">
                             </div>
                             <div class="col-md-3">
                                 <label for="lastName" class="form-label">Last Name</label>
-                                <input type="text" class="form-control" id="lastName" name="last_name" placeholder="Enter last name" required>
+                                <input type="text" class="form-control" id="lastName" name="last_name" 
+                                       value="{{ $careworker->last_name }}" 
+                                       placeholder="Enter last name" required
+                                       pattern="^[A-Z][a-zA-Z]{1,}(?:-[a-zA-Z]{1,})?(?: [a-zA-Z]{2,}(?:-[a-zA-Z]{1,})?)*$"
+                                       title="First letter must be capital">
                             </div>
                             <div class="col-md-3">
                                 <label for="birthDate" class="form-label">Birthday</label>
-                                <input type="date" class="form-control" id="birthDate" name="birth_date" required onkeydown="return true">
+                                <input type="date" class="form-control" id="birthDate" name="birth_date" 
+                                       value="{{ $birth_date }}" required>
                             </div>
-                            <div class="col-md-3 position-relative">
+                            <div class="col-md-3">
                                 <label for="gender" class="form-label">Gender</label>
-                                <input type="text" class="form-control" id="genderInput" placeholder="Select gender" autocomplete="off">
-                                <ul class="dropdown-menu w-100" id="genderDropdown">
-                                    <li><a class="dropdown-item" data-value="male">Male</a></li>
-                                    <li><a class="dropdown-item" data-value="female">Female</a></li>
-                                    <li><a class="dropdown-item" data-value="other">Other</a></li>
-                                </ul>
-                                <input type="hidden" id="gender" name="gender">
+                                <select class="form-select" id="gender" name="gender" required>
+                                    <option value="" disabled>Select gender</option>
+                                    <option value="Male" {{ $careworker->gender == 'Male' ? 'selected' : '' }}>Male</option>
+                                    <option value="Female" {{ $careworker->gender == 'Female' ? 'selected' : '' }}>Female</option>
+                                    <option value="Other" {{ $careworker->gender == 'Other' ? 'selected' : '' }}>Other</option>
+                                </select>
                             </div>
                         </div>
                         <div class="row mb-1">
-                            <div class="col-md-3 position-relative">
+                            <div class="col-md-3">
                                 <label for="civilStatus" class="form-label">Civil Status</label>
-                                <input type="text" class="form-control" id="civilStatusInput" placeholder="Select civil status" autocomplete="off">
-                                <ul class="dropdown-menu w-100" id="civilStatusDropdown">
-                                    <li><a class="dropdown-item" data-value="single">Single</a></li>
-                                    <li><a class="dropdown-item" data-value="married">Married</a></li>
-                                    <li><a class="dropdown-item" data-value="widowed">Widowed</a></li>
-                                    <li><a class="dropdown-item" data-value="divorced">Divorced</a></li>
-                                </ul>
-                                <input type="hidden" id="civilStatus" name="civil_status">
+                                <select class="form-select" id="civilStatus" name="civil_status" required>
+                                    <option value="" disabled>Select civil status</option>
+                                    <option value="Single" {{ $careworker->civil_status == 'Single' ? 'selected' : '' }}>Single</option>
+                                    <option value="Married" {{ $careworker->civil_status == 'Married' ? 'selected' : '' }}>Married</option>
+                                    <option value="Widowed" {{ $careworker->civil_status == 'Widowed' ? 'selected' : '' }}>Widowed</option>
+                                    <option value="Divorced" {{ $careworker->civil_status == 'Divorced' ? 'selected' : '' }}>Divorced</option>
+                                </select>
                             </div>
                             <div class="col-md-3">
                                 <label for="religion" class="form-label">Religion</label>
-                                <input type="text" class="form-control" id="religion" name="religion" placeholder="Enter religion">
+                                <input type="text" class="form-control" id="religion" name="religion" 
+                                       value="{{ $careworker->religion }}" placeholder="Enter religion">
                             </div>
                             <div class="col-md-3">
                                 <label for="nationality" class="form-label">Nationality</label>
-                                <input type="text" class="form-control" id="nationality" name="nationality" placeholder="Enter nationality">
+                                <input type="text" class="form-control" id="nationality" name="nationality" 
+                                       value="{{ $careworker->nationality }}" placeholder="Enter nationality" required>
                             </div>
-                            <div class="col-md-3 position-relative">
+                            <div class="col-md-3">
                                 <label for="municipality" class="form-label">Municipality</label>
-                                <input type="text" class="form-control" id="municipalityInput" placeholder="Select municipality" autocomplete="off">
-                                <ul class="dropdown-menu w-100" id="municipalityDropdown">
-                                    <li><a class="dropdown-item" data-value="municipality1">Municipality 1</a></li>
-                                    <li><a class="dropdown-item" data-value="municipality2">Municipality 2</a></li>
-                                    <li><a class="dropdown-item" data-value="municipality3">Municipality 3</a></li>
-                                </ul>
-                                <input type="hidden" id="municipality" name="municipality">
+                                <select class="form-select" id="municipality" name="municipality" required>
+                                    <option value="" disabled>Select municipality</option>
+                                    @foreach ($municipalities as $municipality)
+                                        <option value="{{ $municipality->municipality_id }}" {{ $careworker->assigned_municipality_id == $municipality->municipality_id ? 'selected' : '' }}>
+                                            {{ $municipality->municipality_name }}
+                                        </option>
+                                    @endforeach
+                                </select>
                             </div>
                         </div>
                         <div class="row mb-3">
-                            <div class="col-md-3 position-relative">
+                            <div class="col-md-3">
                                 <label for="educationalBackground" class="form-label">Educational Background</label>
-                                <input type="text" class="form-control" id="educationalBackgroundInput" placeholder="Select Educational Background" autocomplete="off">
-                                <ul class="dropdown-menu w-100" id="educationalBackgroundDropdown">
-                                    <li><a class="dropdown-item" data-value="college">College</a></li>
-                                    <li><a class="dropdown-item" data-value="highschool">High School</a></li>
-                                    <li><a class="dropdown-item" data-value="doctorate">Doctorate</a></li>
-                                </ul>
-                                <input type="hidden" id="civilStatus" name="civil_status">
+                                <select class="form-select" id="educationalBackground" name="educational_background" required>
+                                    <option value="" disabled>Select educational background</option>
+                                    <option value="College" {{ $careworker->educational_background == 'College' ? 'selected' : '' }}>College</option>
+                                    <option value="Highschool" {{ $careworker->educational_background == 'Highschool' ? 'selected' : '' }}>High School</option>
+                                    <option value="Doctorate" {{ $careworker->educational_background == 'Doctorate' ? 'selected' : '' }}>Doctorate</option>
+                                </select>
                             </div>
                         </div>
 
                         <hr class="my-4">
-                        <!-- Row 2: Address -->
+                        <!-- Current Address -->
                         <div class="row mb-1">
                             <div class="col-12">
-                                <h5 class="text-start">Current Address</h5> <!-- Row Title -->
+                                <h5 class="text-start">Current Address</h5>
                             </div>
                         </div>
                         <div class="row mb-3">
                             <div class="col-md-12">
                                 <label for="addressDetails" class="form-label">House No., Street, Subdivision, Barangay, City, Province</label>
-                                <textarea class="form-control" id="addressDetails" name="address_details" placeholder="Enter complete current address" rows="2" required></textarea>
+                                <textarea class="form-control" id="addressDetails" name="address_details" 
+                                          placeholder="Enter complete current address" rows="2" required>{{ $careworker->address }}</textarea>
                             </div>
                         </div>
 
@@ -124,83 +135,105 @@
                         <!-- Contact Information -->
                         <div class="row mb-1">
                             <div class="col-12">
-                                <h5 class="text-start">Contact Information</h5> <!-- Row Title -->
+                                <h5 class="text-start">Contact Information</h5>
                             </div>
                         </div> 
                         <div class="row mb-3">
                             <div class="col-md-4">
-                                <label for="emailAddress" class="form-label">Email Address</label>
-                                <input type="email" class="form-control" id="emailAddress" name="emmail_address" placeholder="Enter email" required>
+                                <label for="personalEmail" class="form-label">Personal Email Address</label>
+                                <input type="email" class="form-control" id="personalEmail" name="personal_email" 
+                                       value="{{ $careworker->personal_email }}" placeholder="Enter personal email" required>
                             </div>
                             <div class="col-md-4">
                                 <label for="mobileNumber" class="form-label">Mobile Number</label>
-                                <input type="text" class="form-control" id="mobileNumber" name="mobile_number" placeholder="Enter mobile number" required>
+                                <div class="input-group">
+                                    <span class="input-group-text">+63</span>
+                                    <input type="text" class="form-control" id="mobileNumber" name="mobile_number" 
+                                        value="{{ substr($careworker->mobile, 0, 3) === '+63' ? substr($careworker->mobile, 3) : $careworker->mobile }}" 
+                                        placeholder="9XXXXXXXXX" required
+                                        pattern="[0-9]{10}"
+                                        title="Please enter a valid 10-digit mobile number">
+                                </div>  
                             </div>
                             <div class="col-md-4">
                                 <label for="landlineNumber" class="form-label">Landline Number</label>
-                                <input type="text" class="form-control" id="landlineNumber" name="landline_number" placeholder="Enter Landline number">
+                                <input type="text" class="form-control" id="landlineNumber" name="landline_number" 
+                                       value="{{ $careworker->landline }}" placeholder="Enter landline number" maxlength="10">
                             </div>
                         </div>
 
                         <hr class="my-4">
-                        <!-- Documents -->
+                        <!-- Documents Upload -->
                         <div class="row mb-1">
                             <div class="col-12">
-                                <h5 class="text-start">Documents Upload</h5> <!-- Row Title -->
+                                <h5 class="text-start">Documents Upload</h5>
                             </div>
                         </div>
                         <div class="row mb-1">
                             <div class="col-md-4">
-                                <label for="careWorkerPhoto" class="form-label">Care Worker Photo</label>
-                                <input type="file" class="form-control" id="careWorkerPhoto" name="care_worker_photo" accept="image/png, image/jpeg" capture="user" required>
+                                <label for="careworkerPhoto" class="form-label">Care Worker Photo</label>
+                                <input type="file" class="form-control" id="careworkerPhoto" name="careworker_photo" accept="image/png, image/jpeg">
+                                <small class="text-muted file-info" title="{{ $careworker->photo ?: 'No file uploaded' }}">
+                                    Current file: {{ $careworker->photo ? basename($careworker->photo) : 'No file uploaded' }}
+                                </small>
                             </div>
                             <div class="col-md-4">
                                 <label for="governmentID" class="form-label">Government Issued ID</label>
-                                <input type="file" class="form-control" id="governmentID" name="government_ID" accept=".jpg,.png" required>
+                                <input type="file" class="form-control" id="governmentID" name="government_ID" accept=".jpg,.png">
+                                <small class="text-muted file-info" title="{{ $careworker->government_issued_id ?: 'No file uploaded' }}">
+                                    Current file: {{ $careworker->government_issued_id ? basename($careworker->government_issued_id) : 'No file uploaded' }}
+                                </small>
                             </div>
                             <div class="col-md-4">
                                 <label for="resume" class="form-label">Resume / CV</label>
-                                <input type="file" class="form-control" id="resume" name="resume" accept=".pdf,.doc,.docx" required>
+                                <input type="file" class="form-control" id="resume" name="resume" accept=".pdf,.doc,.docx">
+                                <small class="text-muted file-info" title="{{ $careworker->cv_resume ?: 'No file uploaded' }}">
+                                    Current file: {{ $careworker->cv_resume ? basename($careworker->cv_resume) : 'No file uploaded' }}
+                                </small>
                             </div>
                         </div>
                         <div class="row mb-1">
                             <div class="col-md-4">
-                                <label for="generalCarePlan" class="form-label">SSS ID</label>
-                                <input type="text" class="form-control" id="generalCarePlan" name="general_care_plan" accept=".jpg,.png">
+                                <label for="sssID" class="form-label">SSS ID</label>
+                                <input type="text" class="form-control" id="sssID" name="sss_ID" 
+                                       value="{{ $careworker->sss_id_number }}" placeholder="Enter SSS ID number">
                             </div>
                             <div class="col-md-4">
                                 <label for="philhealthID" class="form-label">PhilHealth ID</label>
-                                <input type="text" class="form-control" id="philhealthID" name="philhealth_ID" accept=".jpg,.png" >
+                                <input type="text" class="form-control" id="philhealthID" name="philhealth_ID" 
+                                       value="{{ $careworker->philhealth_id_number }}" placeholder="Enter PhilHealth ID number">
                             </div>
                             <div class="col-md-4">
                                 <label for="pagibigID" class="form-label">Pag-Ibig ID</label>
-                                <input type="text" class="form-control" id="pagibigID" name="pagibig_ID" accept=".jpg,.png">
+                                <input type="text" class="form-control" id="pagibigID" name="pagibig_ID" 
+                                       value="{{ $careworker->pagibig_id_number }}" placeholder="Enter Pag-Ibig ID number">
                             </div>
                         </div>
-
 
                         <hr class="my-4">
                         <!-- Account Registration -->
                         <div class="row mb-1">
                             <div class="col-12">
-                                <h5 class="text-start">Care Worker Account Registration</h5> <!-- Row Title -->
+                                <h5 class="text-start">Care Worker Account Registration</h5>
                             </div>
                         </div>
                         <div class="row mb-3">
                             <div class="col-md-4">
                                 <label for="accountEmail" class="form-label">Email</label>
-                                <input type="email" class="form-control" id="accountEmail" name="account[email]" placeholder="Enter email" required>
+                                <input type="email" class="form-control" id="accountEmail" name="account[email]" 
+                                       value="{{ $careworker->email }}" placeholder="Enter email" required>
                             </div>
                             <div class="col-md-4">
-                                <label for="password" class="form-label">Password</label>
-                                <input type="password" class="form-control" id="password" name="account[password]" placeholder="Enter password" required>
+                                <label for="password" class="form-label">Password (leave blank to keep current)</label>
+                                <input type="password" class="form-control" id="password" name="account[password]" 
+                                       placeholder="Enter new password">
                             </div>
                             <div class="col-md-4">
                                 <label for="confirmPassword" class="form-label">Confirm Password</label>
-                                <input type="password" class="form-control" id="confirmPassword" name="account[confirm_password]" placeholder="Confirm password" required>
+                                <input type="password" class="form-control" id="confirmPassword" name="account[password_confirmation]" 
+                                       placeholder="Confirm new password">
                             </div>
                         </div>
-
                         
                         <div class="row mt-4">
                             <div class="col-12 d-flex justify-content-center align-items-center">
@@ -245,51 +278,51 @@
         });
     </script>
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            // Function to filter dropdown items
-            function filterDropdown(inputId, dropdownId) {
-                const input = document.getElementById(inputId);
-                const dropdown = document.getElementById(dropdownId);
-                const items = dropdown.querySelectorAll('.dropdown-item');
+        // document.addEventListener('DOMContentLoaded', function () {
+        //     // Function to filter dropdown items
+        //     function filterDropdown(inputId, dropdownId) {
+        //         const input = document.getElementById(inputId);
+        //         const dropdown = document.getElementById(dropdownId);
+        //         const items = dropdown.querySelectorAll('.dropdown-item');
 
-                input.addEventListener('input', function () {
-                    const filter = input.value.toLowerCase();
-                    let hasVisibleItems = false;
+        //         input.addEventListener('input', function () {
+        //             const filter = input.value.toLowerCase();
+        //             let hasVisibleItems = false;
 
-                    items.forEach(item => {
-                        if (item.textContent.toLowerCase().includes(filter)) {
-                            item.style.display = 'block';
-                            hasVisibleItems = true;
-                        } else {
-                            item.style.display = 'none';
-                        }
-                    });
-                    dropdown.style.display = hasVisibleItems ? 'block' : 'none';
-                });
-                input.addEventListener('blur', function () {
-                    setTimeout(() => dropdown.style.display = 'none', 200);
-                });
-                input.addEventListener('focus', function () {
-                    dropdown.style.display = 'block';
-                });
+        //             items.forEach(item => {
+        //                 if (item.textContent.toLowerCase().includes(filter)) {
+        //                     item.style.display = 'block';
+        //                     hasVisibleItems = true;
+        //                 } else {
+        //                     item.style.display = 'none';
+        //                 }
+        //             });
+        //             dropdown.style.display = hasVisibleItems ? 'block' : 'none';
+        //         });
+        //         input.addEventListener('blur', function () {
+        //             setTimeout(() => dropdown.style.display = 'none', 200);
+        //         });
+        //         input.addEventListener('focus', function () {
+        //             dropdown.style.display = 'block';
+        //         });
 
-                // Handle item selection
-                items.forEach(item => {
-                    item.addEventListener('click', function (e) {
-                        e.preventDefault();
-                        input.value = item.textContent;
-                        document.getElementById(inputId.replace('Input', '')).value = item.getAttribute('data-value');
-                        dropdown.style.display = 'none';
-                    });
-                });
-            }
+        //         // Handle item selection
+        //         items.forEach(item => {
+        //             item.addEventListener('click', function (e) {
+        //                 e.preventDefault();
+        //                 input.value = item.textContent;
+        //                 document.getElementById(inputId.replace('Input', '')).value = item.getAttribute('data-value');
+        //                 dropdown.style.display = 'none';
+        //             });
+        //         });
+        //     }
 
-            // Initialize filtering for each dropdown
-            filterDropdown('civilStatusInput', 'civilStatusDropdown');
-            filterDropdown('genderInput', 'genderDropdown');
-            filterDropdown('educationalBackgroundInput', 'educationalBackgroundDropdown');
-            filterDropdown('municipalityInput', 'municipalityDropdown');
-        });
+        //     // Initialize filtering for each dropdown
+        //     filterDropdown('civilStatusInput', 'civilStatusDropdown');
+        //     filterDropdown('genderInput', 'genderDropdown');
+        //     filterDropdown('educationalBackgroundInput', 'educationalBackgroundDropdown');
+        //     filterDropdown('municipalityInput', 'municipalityDropdown');
+        // });
     </script>
 
 </body>

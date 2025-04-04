@@ -30,13 +30,9 @@
                         <i class="bx bx-arrow-back"></i> Back
                     </a>
                     <!-- Edit Button with Routing -->
-                    <form action="{{ route('editCareworkerProfile') }}" method="POST" style="display:inline;">
-                        @csrf
-                        <input type="hidden" name="careworker_id" value="{{ $careworker->id }}">
-                        <button type="submit" class="btn btn-primary">
+                    <a href="{{ route('admin.editCareworkerProfile.edit', $careworker->id) }}" class="btn btn-primary">
                         <i class="bx bxs-edit"></i> Edit
-                        </button>
-                    </form>
+                    </a>
                     <button class="btn btn-danger" onclick="openDeleteCareworkerModal('{{ $careworker->id }}', '{{ $careworker->first_name }} {{ $careworker->last_name }}')">
                         <i class="bx bxs-trash"></i> Delete
                     </button>
