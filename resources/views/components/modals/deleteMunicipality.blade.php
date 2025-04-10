@@ -217,7 +217,7 @@ document.addEventListener('DOMContentLoaded', function() {
         this.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Deleting...';
         
         // Send delete request with CSRF token and password
-        fetch(`/admin/delete-municipality/${municipalityId}`, {
+        fetch(`{{ route('admin.locations.municipalities.delete', ['id' => ':id']) }}`.replace(':id', municipalityId), {
             method: 'DELETE',
             headers: {
                 'Content-Type': 'application/json',

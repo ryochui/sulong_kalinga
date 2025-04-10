@@ -12,13 +12,13 @@
 <body>
 
     @include('components.userNavbar')
-    @include('components.sidebar')
+    @include('components.adminSidebar')
     
     <div class="home-section">
         <div class="container-fluid">
             <!-- Back Button Logic -->
             <div class="d-flex justify-content-between align-items-center mb-3">
-                <form action="{{ route('viewCareworkerDetails') }}" method="POST" style="display:inline;">
+                <form action="{{ route('admin.careworkers.view') }}" method="POST" style="display:inline;">
                     @csrf
                     <input type="hidden" name="careworker_id" value="{{ $careworker->id }}">
                     <button type="submit" class="btn btn-secondary original-back-btn">
@@ -29,7 +29,7 @@
             </div>
             <div class="row" id="addUserForm">
                 <div class="col-12">
-                <form action="{{ route('editCareworkerProfile') }}" method="POST">
+                <form action="" method="POST">
                     <form>
                         @csrf <!-- Include CSRF token for security -->
                         <!-- Row 1: Personal Details -->

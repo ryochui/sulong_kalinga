@@ -12,12 +12,12 @@
 <body>
 
     @include('components.userNavbar')
-    @include('components.sidebar')
+    @include('components.adminSidebar')
     
     <div class="home-section">
         <div class="container-fluid">
             <div class="d-flex justify-content-between align-items-center mb-3">
-                <a href="administratorProfile" class="btn btn-secondary">
+                <a href="{{ route('admin.administrators.index') }}" class="btn btn-secondary">
                     <i class="bx bx-arrow-back"></i> Back
                 </a>
                 <div class="mx-auto text-center" style="flex-grow: 1; font-weight: bold; font-size: 20px;">ADD ADMINISTRATOR</div>
@@ -39,7 +39,7 @@
             @endif
             <div class="row" id="addUserForm">
                 <div class="col-12">
-                    <form action="{{ route('admin.addAdministrator.store') }}" method="POST" enctype="multipart/form-data">
+                <form action="{{ route('admin.administrators.store') }}" method="POST" enctype="multipart/form-data">
                         @csrf <!-- Include CSRF token for security -->
                         <!-- Row 1: Personal Details -->
                         <div class="row mb-1 mt-3">
@@ -49,8 +49,9 @@
                         </div>
                         <div class="row mb-1">
                             <div class="col-md-3">
-                                <label for="firstName" class="form-label">First Name</label>
+                                <label for="firstName" class="form-label">First Name<label style="color:red;"> * </label></label>
                                 <input type="text" class="form-control" id="firstName" name="first_name" 
+                                        value="{{ old('first_name') }}"
                                         placeholder="Enter first name" 
                                         required 
                                         oninput="validateName(this)" 
@@ -58,8 +59,9 @@
                                         title="First letter must be uppercase. Only alphabets, single spaces, and hyphens are allowed. Single-letter words are not allowed.">
                             </div>
                             <div class="col-md-3">
-                                <label for="lastName" class="form-label">Last Name</label>
+                                <label for="lastName" class="form-label">Last Name<label style="color:red;"> * </label></label>
                                 <input type="text" class="form-control" id="lastName" name="last_name" 
+                                        value="{{ old('last_name') }}"
                                         placeholder="Enter last name" 
                                         required 
                                         oninput="validateName(this)" 
@@ -67,45 +69,45 @@
                                         title="First letter must be uppercase. Only alphabets, single spaces, and hyphens are allowed. Single-letter words are not allowed.">                            
                             </div>
                             <div class="col-md-3">
-                                <label for="birthDate" class="form-label">Birthday</label>
-                                <input type="date" class="form-control" id="birthDate" name="birth_date" required onkeydown="return true">
+                                <label for="birthDate" class="form-label">Birthday<label style="color:red;"> * </label></label>
+                                <input type="date" class="form-control" id="birthDate" name="birth_date" value="{{ old('birth_date') }}" required onkeydown="return true">
                             </div>
                             <div class="col-md-3">
                                 <label for="gender" class="form-label">Gender</label>
-                                <select class="form-select" id="gender" name="gender" required>
-                                    <option value="" disabled selected>Select gender</option>
-                                    <option value="Male">Male</option>
-                                    <option value="Female">Female</option>
-                                    <option value="Other">Other</option>
+                                <select class="form-select" id="gender" name="gender">
+                                    <option value="" disabled {{ old('gender') ? '' : 'selected' }}>Select gender</option>
+                                    <option value="Male" {{ old('gender') == 'Male' ? 'selected' : '' }}>Male</option>
+                                    <option value="Female" {{ old('gender') == 'Female' ? 'selected' : '' }}>Female</option>
+                                    <option value="Other" {{ old('gender') == 'Other' ? 'selected' : '' }}>Other</option>
                                 </select>
                             </div>
                         </div>
                         <div class="row mb-3">
                             <div class="col-md-3">
                                 <label for="civilStatus" class="form-label">Civil Status</label>
-                                <select class="form-select" id="civilStatus" name="civil_status" required>
-                                    <option value="" disabled selected>Select civil status</option>
-                                    <option value="Single">Single</option>
-                                    <option value="Married">Married</option>
-                                    <option value="Widowed">Widowed</option>
-                                    <option value="Divorced">Divorced</option>
+                                <select class="form-select" id="civilStatus" name="civil_status">
+                                    <option value="" disabled {{ old('civil_status') ? '' : 'selected' }}>Select civil status</option>
+                                    <option value="Single" {{ old('civil_status') == 'Single' ? 'selected' : '' }}>Single</option>
+                                    <option value="Married" {{ old('civil_status') == 'Married' ? 'selected' : '' }}>Married</option>
+                                    <option value="Widowed" {{ old('civil_status') == 'Widowed' ? 'selected' : '' }}>Widowed</option>
+                                    <option value="Divorced" {{ old('civil_status') == 'Divorced' ? 'selected' : '' }}>Divorced</option>
                                 </select>
                             </div>
                             <div class="col-md-3">
                                 <label for="religion" class="form-label">Religion</label>
-                                <input type="text" class="form-control" id="religion" name="religion" placeholder="Enter religion" pattern="^[a-zA-Z\s]*$" title="Only alphabets and spaces are allowed.">
+                                <input type="text" class="form-control" id="religion" name="religion" value="{{ old('religion') }}" placeholder="Enter religion" pattern="^[a-zA-Z\s]*$" title="Only alphabets and spaces are allowed.">
                             </div>
                             <div class="col-md-3">
                                 <label for="nationality" class="form-label">Nationality</label>
-                                <input type="text" class="form-control" id="nationality" name="nationality" placeholder="Enter nationality" required pattern="^[a-zA-Z\s]*$" title="Only alphabets and spaces are allowed.">
+                                <input type="text" class="form-control" id="nationality" name="nationality" value="{{ old('nationality') }}" placeholder="Enter nationality" pattern="^[a-zA-Z\s]*$" title="Only alphabets and spaces are allowed.">
                             </div>
                             <div class="col-md-3">
                                 <label for="educationalBackground" class="form-label">Educational Background</label>
-                                <select class="form-select" id="educationalBackground" name="educational_background" required>
-                                    <option value="" disabled selected>Select educational background</option>
-                                    <option value="College">College</option>
-                                    <option value="Highschool">High School</option>
-                                    <option value="Doctorate">Doctorate</option>
+                                <select class="form-select" id="educationalBackground" name="educational_background">
+                                    <option value="" disabled {{ old('educational_background') ? '' : 'selected' }}>Select educational background</option>
+                                    <option value="College" {{ old('educational_background') == 'College' ? 'selected' : '' }}>College</option>
+                                    <option value="Highschool" {{ old('educational_background') == 'Highschool' ? 'selected' : '' }}>High School</option>
+                                    <option value="Doctorate" {{ old('educational_background') == 'Doctorate' ? 'selected' : '' }}>Doctorate</option>
                                 </select>
                             </div>
                         </div>
@@ -119,14 +121,14 @@
                         </div>
                         <div class="row mb-3">
                             <div class="col-md-12">
-                                <label for="addressDetails" class="form-label">House No., Street, Subdivision, Barangay, City, Province</label>
+                                <label for="addressDetails" class="form-label">House No., Street, Subdivision, Barangay, City, Province<label style="color:red;"> * </label></label>
                                 <textarea class="form-control" id="addressDetails" name="address_details" 
                                 placeholder="Enter complete current address" 
                                 rows="2" 
                                 required 
                                 pattern="^[a-zA-Z0-9\s,.-]+$" 
                                 title="Only alphanumeric characters, spaces, commas, periods, and hyphens are allowed."
-                                oninput="validateAddress(this)"></textarea>
+                                oninput="validateAddress(this)">{{ old('address_details') }}</textarea>
                             </div>
                         </div>
 
@@ -139,8 +141,9 @@
                         </div> 
                         <div class="row mb-3">
                             <div class="col-md-4">
-                                <label for="personalEmail" class="form-label">Personal Email Address</label>
+                                <label for="personalEmail" class="form-label">Personal Email Address<label style="color:red;"> * </label></label>
                                 <input type="email" class="form-control" id="personalEmail" name="personal_email" 
+                                       value="{{ old('personal_email') }}"
                                        placeholder="Enter personal email" 
                                        required 
                                        pattern="^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$" 
@@ -148,15 +151,15 @@
                                        oninput="validateEmail(this)">
                             </div>
                             <div class="col-md-4">
-                                <label for="mobileNumber" class="form-label">Mobile Number</label>
+                                <label for="mobileNumber" class="form-label">Mobile Number<label style="color:red;"> * </label></label>
                                 <div class="input-group">
                                     <span class="input-group-text">+63</span>
-                                    <input type="text" class="form-control" id="mobileNumber" name="mobile_number" placeholder="Enter mobile number" maxlength="11" required oninput="restrictToNumbers(this)" title="Must be 10 or 11digits.">
+                                    <input type="text" class="form-control" id="mobileNumber" name="mobile_number" value="{{ old('mobile_number') }}" placeholder="Enter mobile number" maxlength="11" required oninput="restrictToNumbers(this)" title="Must be 10 or 11digits.">
                                 </div>
                             </div>
                             <div class="col-md-4">
                                 <label for="landlineNumber" class="form-label">Landline Number</label>
-                                <input type="text" class="form-control" id="landlineNumber" name="landline_number" placeholder="Enter Landline number" maxlength="10" required oninput="restrictToNumbers(this)" title="Must be between 7 and 10 digits.">
+                                <input type="text" class="form-control" id="landlineNumber" name="landline_number" value="{{ old('landline_number') }}" placeholder="Enter Landline number" maxlength="10" oninput="restrictToNumbers(this)" title="Must be between 7 and 10 digits.">
                             </div>
                         </div>
 
@@ -170,32 +173,40 @@
                         <div class="row mb-1">
                             <div class="col-md-4">
                                 <label for="administratorPhoto" class="form-label">Administrator Photo</label>
-                                <input type="file" class="form-control" id="administratorPhoto" name="administrator_photo" accept="image/png, image/jpeg" capture="user" required>
+                                <input type="file" class="form-control" id="administratorPhoto" name="administrator_photo" accept="image/png, image/jpeg" capture="user">
+                                @if($errors->any())
+                                <small class="text-danger">Note: You need to select the file again after a validation error.</small>
+                                @endif
                             </div>
                             <div class="col-md-4">
                                 <label for="governmentID" class="form-label">Government Issued ID</label>
-                                <input type="file" class="form-control" id="governmentID" name="government_ID" accept=".jpg,.png" required>
+                                <input type="file" class="form-control" id="governmentID" name="government_ID" accept=".jpg,.png">
+                                @if($errors->any())
+                                <small class="text-danger">Note: You need to select the file again after a validation error.</small>
+                                @endif
                             </div>
                             <div class="col-md-4">
                                 <label for="resume" class="form-label">Resume / CV</label>
-                                <input type="file" class="form-control" id="resume" name="resume" accept=".pdf,.doc,.docx" required>
+                                <input type="file" class="form-control" id="resume" name="resume" accept=".pdf,.doc,.docx">
+                                @if($errors->any())
+                                <small class="text-danger">Note: You need to select the file again after a validation error.</small>
+                                @endif
                             </div>
                         </div>
                         <div class="row mb-1">
                             <div class="col-md-4">
                                 <label for="sssID" class="form-label">SSS ID</label>
-                                <input type="text" class="form-control" id="sssID" name="sss_ID" placeholder="Enter SSS ID" maxlength="10" required oninput="restrictToNumbers(this)" title="Must be 10 digits.">
+                                <input type="text" class="form-control" id="sssID" name="sss_ID" value="{{ old('sss_ID') }}" placeholder="Enter SSS ID" maxlength="10" oninput="restrictToNumbers(this)" title="Must be 10 digits.">
                             </div>
                             <div class="col-md-4">
                                 <label for="philhealthID" class="form-label">PhilHealth ID</label>
-                                <input type="text" class="form-control" id="philhealthID" name="philhealth_ID" placeholder="Enter PhilHealth ID" maxlength="12" required oninput="restrictToNumbers(this)" title="Must be 12 digits.">
+                                <input type="text" class="form-control" id="philhealthID" name="philhealth_ID" value="{{ old('philhealth_ID') }}" placeholder="Enter PhilHealth ID" maxlength="12" oninput="restrictToNumbers(this)" title="Must be 12 digits.">
                             </div>
                             <div class="col-md-4">
                                 <label for="pagibigID" class="form-label">Pag-Ibig ID</label>
-                                <input type="text" class="form-control" id="pagibigID" name="pagibig_ID" placeholder="Enter Pag-Ibig ID" maxlength="12" required oninput="restrictToNumbers(this)" title="Must be 12 digits.">
+                                <input type="text" class="form-control" id="pagibigID" name="pagibig_ID" value="{{ old('pagibig_ID') }}" placeholder="Enter Pag-Ibig ID" maxlength="12" oninput="restrictToNumbers(this)" title="Must be 12 digits.">
                             </div>
                         </div>
-
 
                         <hr class="my-4">
                         <!-- Account Registration -->
@@ -206,8 +217,9 @@
                         </div>
                         <div class="row mb-1">
                             <div class="col-md-4">
-                                <label for="email" class="form-label">Work Email Address</label>
+                                <label for="email" class="form-label">Work Email Address<label style="color:red;"> * </label></label>
                                 <input type="email" class="form-control" id="email" name="account[email]" 
+                                       value="{{ old('account.email') }}"
                                        placeholder="Enter work email" 
                                        required 
                                        pattern="^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$" 
@@ -215,21 +227,21 @@
                                        oninput="validateEmail(this)">
                             </div>
                             <div class="col-md-4">
-                                <label for="password" class="form-label">Password</label>
+                                <label for="password" class="form-label">Password<label style="color:red;"> * </label></label>
                                 <input type="password" class="form-control" id="password" name="account[password]" placeholder="Enter password" required>
                             </div>
                             <div class="col-md-4">
-                                <label for="confirmPassword" class="form-label">Confirm Password</label>
+                                <label for="confirmPassword" class="form-label">Confirm Password<label style="color:red;"> * </label></label>
                                 <input type="password" class="form-control" id="confirmPassword" name="account[password_confirmation]" placeholder="Confirm password" required>
                             </div>
                         </div>
                         <div class="row mb-3">
                             <div class="col-md-4 position-relative">
-                                <label for="organization_Roles" class="form-label">Organization Roles</label>
+                                <label for="organization_Roles" class="form-label">Organization Roles<label style="color:red;"> * </label></label>
                                 <select class="form-select" id="Organization_RolesDropdown" name="Organization_Roles" required>
-                                    <option value="" disabled selected>Select organization role</option>
-                                    <option value="2">Project Coordinator</option>
-                                    <option value="3">MEAL Coordinator</option>
+                                    <option value="" disabled {{ old('Organization_Roles') ? '' : 'selected' }}>Select organization role</option>
+                                    <option value="2" {{ old('Organization_Roles') == '2' ? 'selected' : '' }}>Project Coordinator</option>
+                                    <option value="3" {{ old('Organization_Roles') == '3' ? 'selected' : '' }}>MEAL Coordinator</option>
                                 </select>
                             </div>
                         </div>                        
@@ -268,13 +280,36 @@
     <script src="{{ asset('js/bootstrap.bundle.min.js') }}"></script>
     <script>
         document.querySelector('form').addEventListener('submit', function (e) {
-e.preventDefault(); // Prevent the default form submission
-
-            e.preventDefault(); // Prevent the default form submission
-
-            // Show the success modal
-            const successModal = new bootstrap.Modal(document.getElementById('saveSuccessModal'));
-            successModal.show();
+            // Always prevent the default form submission first
+            e.preventDefault();
+            
+            // Check if there are validation errors
+            if (!document.querySelector('.alert-danger')) {
+                // No validation errors, show success modal
+                const successModal = new bootstrap.Modal(document.getElementById('saveSuccessModal'));
+                const form = this;
+                
+                // Show modal
+                successModal.show();
+                
+                // Listen for modal hidden event
+                document.getElementById('saveSuccessModal').addEventListener('hidden.bs.modal', function onModalHidden() {
+                    // Remove this event listener to prevent multiple submissions
+                    document.getElementById('saveSuccessModal').removeEventListener('hidden.bs.modal', onModalHidden);
+                    
+                    // Submit the form
+                    form.submit();
+                });
+                
+                // Add a button click handler for the OK button
+                document.querySelector('#saveSuccessModal .btn-primary').addEventListener('click', function() {
+                    // Submit the form when OK is clicked
+                    form.submit();
+                });
+            } else {
+                // There are validation errors, allow normal form submission
+                this.submit();
+            }
         });
     </script>
 <!-- <script>

@@ -12,7 +12,7 @@
 <body>
 
     @include('components.userNavbar')
-    @include('components.sidebar')
+    @include('components.adminSidebar')
     
     <div class="home-section">
         <div class="container-fluid">
@@ -20,7 +20,7 @@
         <input type="hidden" name="_debug_method" value="PUT">
             <!-- Back Button Logic -->
             <div class="d-flex justify-content-between align-items-center mb-3">
-                <form action="{{ route('viewAdminDetails') }}" method="POST" style="display:inline;">
+                <form action="{{ route('admin.administrators.view') }}" method="POST" style="display:inline;">
                     @csrf
                     <input type="hidden" name="administrator_id" value="{{ $administrator->id }}">
                     <button type="submit" class="btn btn-secondary original-back-btn">

@@ -40,6 +40,10 @@ class CheckRole
             return $next($request);
         }
 
+        if ($request->is('manager/*') && $role === 'care_manager' && Auth::user()->role_id == 2) {
+            return $next($request);
+        }
+
         // If we get here, the user doesn't have the required role
         return redirect()->back()->with('error', 'You do not have permission to access this page.');
     }

@@ -11,7 +11,7 @@
 <body>
 
     @include('components.userNavbar')
-    @include('components.sidebar')
+    @include('components.adminSidebar')
 
     <!-- Welcome Back Modal -->
     <div class="modal fade" id="welcomeBackModal" tabindex="-1" aria-labelledby="welcomeBackModalLabel" aria-hidden="true">
@@ -34,7 +34,7 @@
     </div>
 
     <div class="home-section">
-      <div class="text-left">DASHBOARD ADMIN</div>
+      <div class="text-left">ADMIN DASHBOARD</div>
         <div class="container-fluid">
             <div class="row boxbox">
               <!-- Statistics Row -->

@@ -93,25 +93,15 @@ function showDependencyError(message, errorType) {
     if (errorType === 'dependency_care_plans') {
         errorContent += `
             <div class="mt-2 border-top pt-2">
-                <strong>What you can do instead:</strong>
+                <strong>We're sorry:</strong>
                 <p class="mt-2 mb-2">This family member has acknowledged care plans which must maintain their audit history for compliance purposes.</p>
-                <ol class="mt-2 mb-0">
-                    <li>Instead of deleting, you can change this family member's status to <strong>Denied</strong> in their profile</li>
-                    <li>This will prevent them from accessing the system while preserving the audit trail</li>
-                    <li>Go to <a href="{{ route('admin.familyProfile') }}">Family Member List</a>, find this family member, and change their status</li>
-                </ol>
             </div>
         `;
     } else if (errorType === 'dependency_audit') {
         errorContent += `
             <div class="mt-2 border-top pt-2">
-                <strong>What you can do instead:</strong>
+                <strong>We're sorry:</strong>
                 <p class="mt-2 mb-2">This family member has records in the system that require audit history to be maintained.</p>
-                <ol class="mt-2 mb-0">
-                    <li>Instead of deleting, you can change this family member's status to <strong>Denied</strong> in their profile</li>
-                    <li>This will prevent them from accessing the system while preserving the audit trail</li>
-                    <li>Go to <a href="{{ route('admin.familyProfile') }}">Family Member List</a>, find this family member, and change their status</li>
-                </ol>
             </div>
         `;
     }
@@ -133,7 +123,7 @@ function showSuccess() {
     document.getElementById('cancelDeleteButton').textContent = 'Close';
     
     setTimeout(function() {
-        window.location.href = "{{ route('admin.familyProfile') }}";
+        window.location.href = "{{ route('admin.families.index') }}";
     }, 2000);
 }
 
@@ -164,7 +154,7 @@ document.addEventListener('DOMContentLoaded', function() {
         formData.append('_token', '{{ csrf_token() }}');
         
         const xhr1 = new XMLHttpRequest();
-        xhr1.open('POST', '/validate-password', true);
+        xhr1.open('POST', "{{ route('admin.validate-password') }}", true);
         xhr1.onload = function() {
             if (xhr1.status === 200) {
                 try {
@@ -176,11 +166,11 @@ document.addEventListener('DOMContentLoaded', function() {
                         deleteForm.append('_token', '{{ csrf_token() }}');
                         
                         // Determine which endpoint to use based on the user role
-                        let endpoint = '/admin/delete-family-member'; // Default endpoint for admins
-                        
+                        let endpoint = "{{ route('admin.families.delete') }}"; // Default endpoint for admins
+
                         // Use care manager endpoint if the current user is a care manager
                         @if(Auth::user()->role_id == 2)
-                            endpoint = '/caremanager/delete-family-member';
+                            endpoint = "{{ route('manager.families.delete') }}";
                         @endif
                         
                         const xhr2 = new XMLHttpRequest();

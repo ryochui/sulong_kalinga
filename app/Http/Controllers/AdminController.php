@@ -49,8 +49,8 @@ class AdminController extends Controller
                 'max:100'
             ],
             'birth_date' => 'required|date|before_or_equal:' . now()->subYears(14)->toDateString(), // Must be older than 14 years
-            'gender' => 'required|string|in:Male,Female,Other', // Must match dropdown options
-            'civil_status' => 'required|string|in:Single,Married,Widowed,Divorced', // Must match dropdown options
+            'gender' => 'nullable|string|in:Male,Female,Other', // Must match dropdown options
+            'civil_status' => 'nullable|string|in:Single,Married,Widowed,Divorced', // Must match dropdown options
             'religion' => [
                 'nullable',
                 'string',
@@ -58,12 +58,12 @@ class AdminController extends Controller
                 'regex:/^[A-Z][a-zA-Z]{1,}(?:-[a-zA-Z]{1,})?(?: [a-zA-Z]{2,}(?:-[a-zA-Z]{1,})?)*$/', 
             ],
             'nationality' => [
-                'required',
+                'nullable',
                 'string',
                 'max:50',
                 'regex:/^[A-Z][a-zA-Z]{1,}(?:-[a-zA-Z]{1,})?(?: [a-zA-Z]{2,}(?:-[a-zA-Z]{1,})?)*$/', 
             ],
-            'educational_background' => 'required|string|in:College,Highschool,Doctorate', // Must match dropdown options
+            'educational_background' => 'nullable|string|in:College,Highschool,Doctorate', // Must match dropdown options
         
             // Address
             'address_details' => [
@@ -122,23 +122,23 @@ class AdminController extends Controller
             ],
         
             // Documents
-            'administrator_photo' => 'required|image|mimes:jpeg,png|max:2048',
-            'government_ID' => 'required|image|mimes:jpeg,png|max:2048',
-            'resume' => 'required|mimes:pdf,doc,docx|max:2048',
+            'administrator_photo' => 'nullable|image|mimes:jpeg,png|max:2048',
+            'government_ID' => 'nullable|image|mimes:jpeg,png|max:2048',
+            'resume' => 'nullable|mimes:pdf,doc,docx|max:2048',
         
             // IDs
             'sss_ID' => [
-                'required',
+                'nullable',
                 'string',
                 'regex:/^[0-9]{10}$/', // 10 digits
             ],
             'philhealth_ID' => [
-                'required',
+                'nullable',
                 'string',
                 'regex:/^[0-9]{12}$/', // 12 digits
             ],
             'pagibig_ID' => [
-                'required',
+                'nullable',
                 'string',
                 'regex:/^[0-9]{12}$/', // 12 digits
             ],
@@ -148,28 +148,35 @@ class AdminController extends Controller
             return redirect()->back()->withErrors($validator)->withInput();
         }
 
-       // Handle file uploads and rename files
-       $firstName = $request->input('first_name');
-       $lastName = $request->input('last_name');
-       $uniqueIdentifier = time() . '_' . Str::random(5);
-
-       $administratorPhotoPath = $request->file('administrator_photo')->storeAs(
-           'uploads/administrator_photos', 
-           $firstName . '' . $lastName . '_photo' . $uniqueIdentifier . '.' . $request->file('administrator_photo')->getClientOriginalExtension(),
-           'public'
-       );
-
-       $governmentIDPath = $request->file('government_ID')->storeAs(
-           'uploads/administrator_government_ids', 
-           $firstName . '' . $lastName . '_government_id' . $uniqueIdentifier . '.' . $request->file('government_ID')->getClientOriginalExtension(),
-           'public'
-       );
-
-       $resumePath = $request->file('resume')->storeAs(
-           'uploads/administrator_resumes', 
-           $firstName . '' . $lastName . '_resume' . $uniqueIdentifier . '.' . $request->file('resume')->getClientOriginalExtension(),
-           'public'
-       );
+        try {
+            // Handle file uploads and rename files...
+            $firstName = $request->input('first_name');
+            $lastName = $request->input('last_name');
+            $uniqueIdentifier = time() . '_' . Str::random(5);
+    
+            if ($request->hasFile('administrator_photo')) {
+                $administratorPhotoPath = $request->file('administrator_photo')->storeAs(
+                    'uploads/administrator_photos', 
+                    $firstName . '' . $lastName . '_photo' . $uniqueIdentifier . '.' . $request->file('administrator_photo')->getClientOriginalExtension(),
+                    'public'
+                );
+            }
+    
+            if ($request->hasFile('government_ID')) {
+                $governmentIDPath = $request->file('government_ID')->storeAs(
+                    'uploads/administrator_government_ids', 
+                    $firstName . '' . $lastName . '_government_id' . $uniqueIdentifier . '.' . $request->file('government_ID')->getClientOriginalExtension(),
+                    'public'
+                );
+            }
+    
+            if ($request->hasFile('resume')) {
+                $resumePath = $request->file('resume')->storeAs(
+                    'uploads/administrator_resumes', 
+                    $firstName . '' . $lastName . '_resume' . $uniqueIdentifier . '.' . $request->file('resume')->getClientOriginalExtension(),
+                    'public'
+                );
+            }
 
         // Save the administrator to the database
         $administrator = new User();
@@ -177,16 +184,16 @@ class AdminController extends Controller
         $administrator->last_name = $request->input('last_name');
         // $administrator->name = $request->input('name') . ' ' . $request->input('last_name'); // Combine first and last name
         $administrator->birthday = $request->input('birth_date');
-        $administrator->gender = $request->input('gender');
-        $administrator->civil_status = $request->input('civil_status');
-        $administrator->religion = $request->input('religion');
-        $administrator->nationality = $request->input('nationality');
-        $administrator->educational_background = $request->input('educational_background');
+        $administrator->gender = $request->input('gender') ?? null;
+        $administrator->civil_status = $request->input('civil_status') ?? null;
+        $administrator->religion = $request->input('religion') ?? null;
+        $administrator->nationality = $request->input('nationality') ?? null;
+        $administrator->educational_background = $request->input('educational_background') ?? null;
         $administrator->address = $request->input('address_details');
         $administrator->email = $request->input('account.email'); // Work email
         $administrator->personal_email = $request->input('personal_email'); // Personal email
         $administrator->mobile = '+63' . $request->input('mobile_number');
-        $administrator->landline = $request->input('landline_number');
+        $administrator->landline = $request->input('landline_number') ?? null;
         $administrator->password = bcrypt($request->input('account.password'));
         $administrator->organization_role_id = $request->input('Organization_Roles');
         $administrator->role_id = 1; // 1 is the role ID for administrators
@@ -195,12 +202,12 @@ class AdminController extends Controller
         $administrator->status_start_date = now();
 
         // Save file paths and IDs
-        $administrator->photo = $administratorPhotoPath;
-        $administrator->government_issued_id = $governmentIDPath;
-        $administrator->cv_resume = $resumePath;
-        $administrator->sss_id_number = $request->input('sss_ID');
-        $administrator->philhealth_id_number = $request->input('philhealth_ID');
-        $administrator->pagibig_id_number = $request->input('pagibig_ID');
+        $administrator->photo = $administratorPhotoPath ?? null;
+        $administrator->government_issued_id = $request->hasFile('government_ID') ? $governmentIDPath : null;
+        $administrator->cv_resume = $request->hasFile('resume') ? $resumePath : null;
+        $administrator->sss_id_number = $request->input('sss_ID') ?? null;
+        $administrator->philhealth_id_number = $request->input('philhealth_ID') ?? null;
+        $administrator->pagibig_id_number = $request->input('pagibig_ID') ?? null;
 
         // Generate and save the remember_token
         $administrator->remember_token = Str::random(60);
@@ -209,7 +216,44 @@ class AdminController extends Controller
         $administrator->save();
 
         // Redirect with success message
-        return redirect()->route('admin.addAdministrator')->with('success', 'Administrator has been successfully added!');
+        return redirect()->route('admin.administrators.create')->with('success', 'Administrator has been successfully added!');
+        
+        } catch (\Illuminate\Database\QueryException $e) {
+            // Check if it's a unique constraint violation
+            if ($e->getCode() == 23505) { // PostgreSQL unique violation error code
+                // Check which field caused the violation
+                if (strpos($e->getMessage(), 'cose_users_mobile_unique') !== false) {
+                    return redirect()->back()
+                        ->withInput()
+                        ->withErrors(['mobile_number' => 'This mobile number is already registered in the system.']);
+                } elseif (strpos($e->getMessage(), 'cose_users_email_unique') !== false) {
+                    return redirect()->back()
+                        ->withInput()
+                        ->withErrors(['account.email' => 'This email address is already registered in the system.']);
+                } elseif (strpos($e->getMessage(), 'cose_users_personal_email_unique') !== false) {
+                    return redirect()->back()
+                        ->withInput()
+                        ->withErrors(['personal_email' => 'This personal email address is already registered in the system.']);
+                } else {
+                    // Generic unique constraint error
+                    return redirect()->back()
+                        ->withInput()
+                        ->withErrors(['error' => 'A record with some of this information already exists.']);
+                }
+            }
+
+            // For other database errors
+            \Log::error('Database error when creating administrator: ' . $e->getMessage());
+            return redirect()->back()
+                ->withInput()
+                ->withErrors(['error' => 'An error occurred while saving the administrator. Please try again.']);
+        } catch (\Exception $e) {
+            // For any other unexpected errors
+            \Log::error('Unexpected error when creating administrator: ' . $e->getMessage());
+            return redirect()->back()
+                ->withInput()
+                ->withErrors(['error' => 'An unexpected error occurred. Please try again.']);
+        }
     }
 
     public function updateAdministrator(Request $request, $id)
@@ -238,12 +282,12 @@ class AdminController extends Controller
                 'max:100'
             ],
             'birth_date' => 'required|date|before_or_equal:' . now()->subYears(14)->toDateString(),
-            'gender' => 'required|string|in:Male,Female,Other',
+            'gender' => 'nullable|string|in:Male,Female,Other',
 
-            'civil_status' => 'required|string|in:Single,Married,Widowed,Divorced',
+            'civil_status' => 'nullable|string|in:Single,Married,Widowed,Divorced',
             'religion' => 'nullable|string|regex:/^[a-zA-Z\s]*$/',
-            'nationality' => 'required|string|regex:/^[a-zA-Z\s]*$/',
-            'educational_background' => 'required|string|in:College,Highschool,Doctorate',
+            'nationality' => 'nullable|string|regex:/^[a-zA-Z\s]*$/',
+            'educational_background' => 'nullable|string|in:College,Highschool,Doctorate',
 
             'address_details' => [
                 'required',
@@ -504,28 +548,44 @@ class AdminController extends Controller
         return view('admin.editAdminProfile', compact('administrator', 'birth_date'));
     }
 
-    public function updateStatus(Request $request, $id)
+    public function updateStatusAjax($id, Request $request)
     {
-        $administrator = User::where('role_id', 1)->find($id);
-
-        if (!$administrator) {
-            return redirect()->route('admin.careManagerProfile')->with('error', 'Administrator not found.');
+        try {
+            \Log::info('Update admin status AJAX request', [
+                'admin_id' => $id,
+                'status' => $request->input('status')
+            ]);
+            
+            // Find administrator (role_id = 1)
+            $admin = User::where('role_id', 1)->find($id);
+            
+            if (!$admin) {
+                return response()->json(['success' => false, 'message' => 'Administrator not found.'], 404);
+            }
+            
+            // Don't allow updating your own status
+            if ($admin->id == Auth::id()) {
+                return response()->json(['success' => false, 'message' => 'You cannot change your own status.'], 400);
+            }
+            
+            // Get the status directly
+            $status = $request->input('status');
+            
+            // Update ONLY the status column
+            $admin->status = $status;
+            $admin->updated_at = now();
+            $admin->save();
+            
+            \Log::info('Admin status updated successfully', [
+                'admin_id' => $id,
+                'new_status' => $status
+            ]);
+            
+            return response()->json(['success' => true, 'message' => 'Administrator status updated successfully.']);
+        } catch (\Exception $e) {
+            \Log::error('Admin status update failed: ' . $e->getMessage());
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
         }
-
-        $status = $request->input('status');
-        $administrator->volunteer_status = $status;
-        $administrator->updated_by = Auth::id(); // Set the updated_by column to the current user's ID
-        $administrator->updated_at = now(); // Set the updated_at column to the current timestamp
-
-        if ($status == 'Inactive') {
-            $administrator->status_end_date = now();
-        } else {
-            $administrator->status_end_date = null;
-        }
-
-        $administrator->save();
-
-        return response()->json(['success' => true, 'message' => 'Administrator status updated successfully.']);
     }
 
     public function deleteAdministrator(Request $request)
@@ -1000,7 +1060,7 @@ class AdminController extends Controller
             if ($beneficiaryCount > 0) {
                 return response()->json([
                     'success' => false,
-                    'message' => "Cannot delete this barangay because it has {$beneficiaryCount} beneficiaries assigned to it.",
+                    'message' => "This barangay has {$beneficiaryCount} beneficiaries assigned to it. You must reassign them before deleting this barangay.",
                     'error_type' => 'dependency_beneficiaries'
                 ]);
             }

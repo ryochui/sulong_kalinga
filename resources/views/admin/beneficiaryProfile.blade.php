@@ -3,16 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Dashboard</title>
     <link rel="stylesheet" href="{{ asset('css/bootstrap.min.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <link href='https://unpkg.com/boxicons@2.0.7/css/boxicons.min.css' rel='stylesheet'>
     <link rel="stylesheet" href="{{ asset('css/reportsManagement.css') }}">
+    
 </head>
 <body>
 
     @include('components.userNavbar')
-    @include('components.sidebar')
+    @include('components.adminSidebar')
     @include('components.modals.statusChangeBeneficiary')
     
     <div class="home-section">
@@ -21,7 +23,7 @@
             <div class="row mb-3 align-items-center">
                 <!-- Search Bar -->
                 <div class="col-12 col-md-6 col-lg-6 mb-2">
-                    <form action="{{ route('admin.beneficiaryProfile') }}" method="GET">
+                    <form action="{{ route('admin.beneficiaries.index') }}" method="GET">
                         <div class="input-group">
                             <span class="input-group-text">
                                 <i class="bx bx-search-alt"></i>
@@ -61,16 +63,16 @@
                 </div>
 
                 <!-- Hidden form for exporting -->
-                <form id="exportForm" action="{{ route('export.beneficiaries.pdf') }}" method="POST" style="display: none;"
-                    data-pdf-route="{{ route('export.beneficiaries.pdf') }}" 
-                    data-excel-route="{{ route('export.beneficiaries.excel') }}">
+                <form id="exportForm" action="{{ route('admin.export.beneficiaries.pdf') }}" method="POST" style="display: none;"
+                    data-pdf-route="{{ route('admin.export.beneficiaries.pdf') }}" 
+                    data-excel-route="{{ route('admin.export.beneficiaries.excel') }}">
                     @csrf
                     <input type="hidden" name="selected_beneficiaries" id="selectedBeneficiaries">
                 </form>
 
                 <!-- Add Beneficiary Button -->
                 <div class="col-6 col-md-3 col-lg-2 mb-2">
-                    <a href="{{ route('admin.addBeneficiary') }}">
+                    <a href="{{ route('admin.beneficiaries.create') }}">
                     <button class="btn btn-primary w-100" id="addButton">
                         <i class="bx bx-plus"></i> Add Beneficiary
                     </button>
@@ -116,14 +118,14 @@
                                         <td>
                                             <div class="action-icons" style="gap: 0px !important;">
                                                 <!-- Form to VIEW PROFILE DETAILS -->
-                                                <form action="{{ route('viewProfileDetails') }}" method="POST" style="display:inline;">
+                                                <form action="{{ route('admin.beneficiaries.view') }}" method="POST" style="display:inline;">
                                                     @csrf
                                                     <input type="hidden" name="beneficiary_id" value="{{ $beneficiary->beneficiary_id }}">
                                                     <button type="submit" class="btn btn-link text-decoration-none" style="color:black;">
                                                         <i class="fa fa-eye"></i>
                                                     </button>
                                                 </form>
-                                                <form action="{{ route('editProfile') }}" method="POST" style="display:inline;">
+                                                <form action="{{ route('admin.beneficiaries.edit') }}" method="POST" style="display:inline;">
                                                     @csrf
                                                     <input type="hidden" name="beneficiary_id" value="{{ $beneficiary->beneficiary_id }}">
                                                     <button type="submit" class="btn btn-link text-decoration-none" style="color:black;">

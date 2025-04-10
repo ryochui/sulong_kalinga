@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use App\Models\User;
 use App\Models\Municipality;
 use App\Models\GeneralCarePlan;
@@ -110,8 +111,8 @@ class CareWorkerController extends Controller
                 'regex:/^[A-Z][a-zA-Z]{1,}(?:-[a-zA-Z]{1,})?(?: [a-zA-Z]{2,}(?:-[a-zA-Z]{1,})?)*$/'
             ],
             'birth_date' => 'required|date|before_or_equal:' . now()->subYears(14)->toDateString(), // Must be older than 14 years
-            'gender' => 'required|string|in:Male,Female,Other', // Must match dropdown options
-            'civil_status' => 'required|string|in:Single,Married,Widowed,Divorced', // Must match dropdown options
+            'gender' => 'nullable|string|in:Male,Female,Other', // Must match dropdown options
+            'civil_status' => 'nullable|string|in:Single,Married,Widowed,Divorced', // Must match dropdown options
             'religion' => [
                 'nullable',
                 'string',
@@ -119,12 +120,12 @@ class CareWorkerController extends Controller
                 'regex:/^[A-Z][a-zA-Z]{1,}(?:-[a-zA-Z]{1,})?(?: [a-zA-Z]{2,}(?:-[a-zA-Z]{1,})?)*$/'
             ],
             'nationality' => [
-                'required',
+                'nullable',
                 'string',
                 'max:50',
                 'regex:/^[A-Z][a-zA-Z]{1,}(?:-[a-zA-Z]{1,})?(?: [a-zA-Z]{2,}(?:-[a-zA-Z]{1,})?)*$/'
             ],
-            'educational_background' => 'required|string|in:College,Highschool,Doctorate', // Must match dropdown options
+            'educational_background' => 'nullable|string|in:College,Highschool,Doctorate', // Must match dropdown options
         
             // Address
             'address_details' => [
@@ -170,23 +171,23 @@ class CareWorkerController extends Controller
             'municipality' => 'required|integer|exists:municipalities,municipality_id',
         
             // Documents
-            'careworker_photo' => 'required|image|mimes:jpeg,png|max:2048',
-            'government_ID' => 'required|image|mimes:jpeg,png|max:2048',
-            'resume' => 'required|mimes:pdf,doc,docx|max:2048',
+            'careworker_photo' => 'nullable|image|mimes:jpeg,png|max:2048',
+            'government_ID' => 'nullable|image|mimes:jpeg,png|max:2048',
+            'resume' => 'nullable|mimes:pdf,doc,docx|max:2048',
         
             // IDs
             'sss_ID' => [
-                'required',
+                'nullable',
                 'string',
                 'regex:/^[0-9]{10}$/', // 10 digits
             ],
             'philhealth_ID' => [
-                'required',
+                'nullable',
                 'string',
                 'regex:/^[0-9]{12}$/', // 12 digits
             ],
             'pagibig_ID' => [
-                'required',
+                'nullable',
                 'string',
                 'regex:/^[0-9]{12}$/', // 12 digits
             ],
@@ -196,45 +197,54 @@ class CareWorkerController extends Controller
             return redirect()->back()->withErrors($validator)->withInput();
         }
 
-         // Handle file uploads and rename files
-       $firstName = $request->input('first_name');
-       $lastName = $request->input('last_name');
-       $uniqueIdentifier = time() . '_' . Str::random(5);
+        try {
+            // Handle file uploads and rename files - existing code
+            $firstName = $request->input('first_name');
+            $lastName = $request->input('last_name');
+            $uniqueIdentifier = time() . '_' . Str::random(5);
 
-       $careworkerPhotoPath = $request->file('careworker_photo')->storeAs(
-           'uploads/careworker_photos', 
-           $firstName . '' . $lastName . '_photo' . $uniqueIdentifier . '.' . $request->file('careworker_photo')->getClientOriginalExtension(),
-           'public'
-       );
-
-       $governmentIDPath = $request->file('government_ID')->storeAs(
-           'uploads/careworker_government_ids', 
-           $firstName . '' . $lastName . '_government_id' . $uniqueIdentifier . '.' . $request->file('government_ID')->getClientOriginalExtension(),
-           'public'
-       );
-
-       $resumePath = $request->file('resume')->storeAs(
-        'uploads/careworker_resumes', 
-        $firstName . '' . $lastName . '_resume' . $uniqueIdentifier . '.' . $request->file('resume')->getClientOriginalExtension(),
-        'public'
-    );
+            if ($request->hasFile('careworker_photo')) {
+                $administratorPhotoPath = $request->file('careworker_photo')->storeAs(
+                    'uploads/careworker_photos', 
+                    $firstName . '' . $lastName . '_photo' . $uniqueIdentifier . '.' . $request->file('careworker_photo')->getClientOriginalExtension(),
+                    'public'
+                );
+            }
+    
+            if ($request->hasFile('government_ID')) {
+                $governmentIDPath = $request->file('government_ID')->storeAs(
+                    'uploads/careworker_government_ids', 
+                    $firstName . '' . $lastName . '_government_id' . $uniqueIdentifier . '.' . $request->file('government_ID')->getClientOriginalExtension(),
+                    'public'
+                );
+            }
+    
+            if ($request->hasFile('resume')) {
+                $resumePath = $request->file('resume')->storeAs(
+                    'uploads/careworker_resumes', 
+                    $firstName . '' . $lastName . '_resume' . $uniqueIdentifier . '.' . $request->file('resume')->getClientOriginalExtension(),
+                    'public'
+                );
+            }
 
         // Save the administrator to the database
         $careworker = new User();
+
+        //All other fields
         $careworker->first_name = $request->input('first_name');
         $careworker->last_name = $request->input('last_name');
         // $careworker->name = $request->input('name') . ' ' . $request->input('last_name'); // Combine first and last name
         $careworker->birthday = $request->input('birth_date');
-        $careworker->gender = $request->input('gender');
-        $careworker->civil_status = $request->input('civil_status');
-        $careworker->religion = $request->input('religion');
-        $careworker->nationality = $request->input('nationality');
-        $careworker->educational_background = $request->input('educational_background');
+        $careworker->gender = $request->input('gender') ?? null;
+        $careworker->civil_status = $request->input('civil_status') ?? null;
+        $careworker->religion = $request->input('religion') ?? null;
+        $careworker->nationality = $request->input('nationality') ?? null;
+        $careworker->educational_background = $request->input('educational_background') ?? null;
         $careworker->address = $request->input('address_details');
         $careworker->email = $request->input('account.email'); // Work email
         $careworker->personal_email = $request->input('personal_email'); // Personal email
         $careworker->mobile = '+63' . $request->input('mobile_number');
-        $careworker->landline = $request->input('landline_number');
+        $careworker->landline = $request->input('landline_number') ?? null;
         $careworker->password = bcrypt($request->input('account.password'));
         // $careworker->organization_role_id = $request->input('Organization_Roles');
         $careworker->role_id = 3; // 3 is the role ID for care workers
@@ -245,11 +255,11 @@ class CareWorkerController extends Controller
 
         // Save file paths and IDs
         $careworker->photo = $careworkerPhotoPath;
-        $careworker->government_issued_id = $governmentIDPath;
-        $careworker->cv_resume = $resumePath;
-        $careworker->sss_id_number = $request->input('sss_ID');
-        $careworker->philhealth_id_number = $request->input('philhealth_ID');
-        $careworker->pagibig_id_number = $request->input('pagibig_ID');
+        $careworker->government_issued_id = $request->hasFile('government_ID') ? $governmentIDPath : null;
+        $careworker->cv_resume = $request->hasFile('resume') ? $resumePath : null;
+        $careworker->sss_id_number = $request->input('sss_ID') ?? null;
+        $careworker->philhealth_id_number = $request->input('philhealth_ID') ?? null;
+        $careworker->pagibig_id_number = $request->input('pagibig_ID') ?? null;
 
         // Generate and save the remember_token
         $careworker->remember_token = Str::random(60);
@@ -258,30 +268,79 @@ class CareWorkerController extends Controller
         $careworker->save();
 
         // Redirect with success message
-        return redirect()->route('admin.addCareWorker')->with('success', 'Care worker added successfully.');
+        return redirect()->route('admin.careworkers.create')
+            ->with('success', 'Care worker added successfully.');
+            
+        } catch (\Illuminate\Database\QueryException $e) {
+            // Check if it's a unique constraint violation
+            if ($e->getCode() == 23505) { // PostgreSQL unique violation error code
+                // Check which field caused the violation
+                if (strpos($e->getMessage(), 'cose_users_mobile_unique') !== false) {
+                    return redirect()->back()
+                        ->withInput()
+                        ->withErrors(['mobile_number' => 'This mobile number is already registered in the system.']);
+                } elseif (strpos($e->getMessage(), 'cose_users_email_unique') !== false) {
+                    return redirect()->back()
+                        ->withInput()
+                        ->withErrors(['account.email' => 'This email address is already registered in the system.']);
+                } elseif (strpos($e->getMessage(), 'cose_users_personal_email_unique') !== false) {
+                    return redirect()->back()
+                        ->withInput()
+                        ->withErrors(['personal_email' => 'This personal email address is already registered in the system.']);
+                } else {
+                    // Generic unique constraint error
+                    return redirect()->back()
+                        ->withInput()
+                        ->withErrors(['error' => 'A record with some of this information already exists.']);
+                }
+            }
+
+            // For other database errors
+            \Log::error('Database error when creating care worker: ' . $e->getMessage());
+            return redirect()->back()
+                ->withInput()
+                ->withErrors(['error' => 'An error occurred while saving the care worker. Please try again.']);
+        } catch (\Exception $e) {
+            // For any other unexpected errors
+            \Log::error('Unexpected error when creating care worker: ' . $e->getMessage());
+            return redirect()->back()
+                ->withInput()
+                ->withErrors(['error' => 'An unexpected error occurred. Please try again.']);
+        }
     }
 
-    public function updateStatus(Request $request, $id)
+    public function updateStatusAjax($id, Request $request)
     {
-        $careworker = User::where('role_id', 3)->find($id);
-
-        if (!$careworker) {
-            return redirect()->route('admin.careWorkerProfile')->with('error', 'Care worker not found.');
+        try {
+            \Log::info('Update careworker status AJAX request', [
+                'careworker_id' => $id,
+                'status' => $request->input('status')
+            ]);
+            
+            // Find careworker and ensure it's actually a care worker (role_id = 3)
+            $careworker = User::where('role_id', 3)->find($id);
+            
+            if (!$careworker) {
+                return response()->json(['success' => false, 'message' => 'Care worker not found.'], 404);
+            }
+            
+            // Get the status directly (Active or Inactive)
+            $status = $request->input('status');
+            
+            // Update ONLY the status column
+            $careworker->status = $status;
+            $careworker->updated_at = now();
+            $careworker->save();
+            
+            \Log::info('Careworker status updated successfully', [
+                'careworker_id' => $id,
+                'new_status' => $status
+            ]);
+            
+            return response()->json(['success' => true, 'message' => 'Care worker status updated successfully.']);
+        } catch (\Exception $e) {
+            \Log::error('Careworker status update failed: ' . $e->getMessage());
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
         }
-
-        $status = $request->input('status');
-        $careworker->volunteer_status = $status;
-        $careworker->updated_by = Auth::id(); // Set the updated_by column to the current user's ID
-        $careworker->updated_at = now(); // Set the updated_at column to the current timestamp
-
-        if ($status == 'Inactive') {
-            $careworker->status_end_date = now();
-        } else {
-            $careworker->status_end_date = null;
-        }
-
-        $careworker->save();
-
-        return response()->json(['success' => true, 'message' => 'Care worker status updated successfully.']);
     }
 }

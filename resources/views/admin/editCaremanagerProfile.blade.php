@@ -12,13 +12,13 @@
 <body>
 
     @include('components.userNavbar')
-    @include('components.sidebar')
+    @include('components.adminSidebar')
     
     <div class="home-section">
         <div class="container-fluid">
             <!-- Back Button Logic -->
             <div class="d-flex justify-content-between align-items-center mb-3">
-                <form action="{{ route('viewCaremanagerDetails') }}" method="POST" style="display:inline;">
+                <form action="{{ route('admin.caremanagers.view') }}" method="POST" style="display:inline;">
                     @csrf
                     <input type="hidden" name="caremanager_id" value="{{ $caremanager->id }}">
                     <button type="submit" class="btn btn-secondary original-back-btn">

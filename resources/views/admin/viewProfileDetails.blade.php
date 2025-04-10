@@ -12,7 +12,7 @@
 <body>
 
     @include('components.userNavbar')
-    @include('components.sidebar')
+    @include('components.adminSidebar')
     @include('components.modals.statusChangeBeneficiary')
     @include('components.modals.deleteBeneficiary')
     
@@ -20,19 +20,19 @@
         <div class="container-fluid">
             <div class="d-flex justify-content-between align-items-center mb-3">
                     <!-- Original Back Button -->
-                <a href="beneficiaryProfile" class="btn btn-secondary original-back-btn">
+                <a href="{{ route('admin.beneficiaries.index') }}" class="btn btn-secondary original-back-btn">
                     <i class="bx bx-arrow-back"></i> Back
                 </a>
                 <div class="mx-auto text-center" style="flex-grow: 1; font-weight: bold; font-size: 20px;">VIEW BENEFICIARY PROFILE DETAILS</div>
 
                 <!-- Edit and Delete Buttons -->
                 <div>
-                    <!-- Hidden Back Button -->
-                    <a href="beneficiaryProfile" class="btn btn-secondary hidden-back-btn">
+                    <!-- Hidden Back Button 
+                    <a href="{{ route('admin.beneficiaries.index') }} class="btn btn-secondary hidden-back-btn">
                         <i class="bx bx-arrow-back"></i> Back
-                    </a>
+                    </a>-->
                     <!-- Edit Button with Routing -->
-                    <form action="{{ route('editProfile') }}" method="POST" style="display:inline;">
+                    <form action="{{ route('admin.beneficiaries.edit') }}" method="POST" style="display:inline;">
                         @csrf
                         <input type="hidden" name="beneficiary_id" value="{{ $beneficiary->beneficiary_id }}">
                         <button type="submit" class="btn btn-primary">
@@ -167,7 +167,7 @@
                                 </tr>
                                 <tr>
                                     <td><strong>Email Address:</strong></td>
-                                    <td>{{ $beneficiary->emergency_email ?? 'N/A'}}</td>                                </tr>
+                                    <td>{{ $beneficiary->emergency_contact_email ?? 'N/A'}}</td>                                </tr>
                                 <tr>
                                     <td><strong>Emergency Procedure:</strong></td>
                                     <td>{{ $beneficiary->emergency_procedure}}</td>  

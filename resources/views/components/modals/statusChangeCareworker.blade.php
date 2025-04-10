@@ -63,11 +63,11 @@ document.addEventListener("DOMContentLoaded", function () {
             }
 
             // Validate the password with the server
-            fetch('/validate-password', {
+            fetch("{{ route('admin.validate-password') }}", {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}' // Include CSRF token for security
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
                 },
                 body: JSON.stringify({ password: enteredPassword })
             })
@@ -75,15 +75,20 @@ document.addEventListener("DOMContentLoaded", function () {
             .then(data => {
                 if (data.valid) {
                     // Update the status in the database
-                    fetch(`/admin/careworkers/${careworkerId}/status`, {
-                        method: 'PUT',
+                    fetch(`/admin/care-workers/${careworkerId}/update-status-ajax`, {
+                        method: 'POST',  // Changed from PUT to POST
                         headers: {
                             'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': '{{ csrf_token() }}' // Include CSRF token for security
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
                         },
                         body: JSON.stringify({ status: selectedCareworkerStatusElement.value })
                     })
-                    .then(response => response.json())
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Status update failed');
+                        }
+                        return response.json();
+                    })
                     .then(data => {
                         if (data.success) {
                             messageElement.textContent = `Status changed to "${selectedCareworkerStatusElement.value}" for ${careworkerEntityType}.`;
@@ -93,26 +98,29 @@ document.addEventListener("DOMContentLoaded", function () {
                             // Reset the modal fields
                             passwordInput.value = "";
 
-                            // Refresh the page after a longer delay to show the success message
+                            // Refresh the page after a delay to show the success message
                             setTimeout(() => {
                                 const statusChangeCareworkerModal = bootstrap.Modal.getInstance(document.getElementById("statusChangeCareworkerModal"));
                                 statusChangeCareworkerModal.hide();
-                                location.reload();
-                            }, 3000); // 3 seconds delay
+                                
+                                // Update UI without refresh to avoid middleware issues
+                                const statusCell = document.querySelector(`#careworker-${careworkerId} .status-cell`);
+                                if (statusCell) {
+                                    statusCell.textContent = selectedCareworkerStatusElement.value.charAt(0).toUpperCase() + selectedCareworkerStatusElement.value.slice(1);
+                                    statusCell.className = `status-cell ${selectedCareworkerStatusElement.value.toLowerCase()}`;
+                                } else {
+                                    // Fallback to page reload if we can't find the cell to update
+                                    location.reload();
+                                }
+                            }, 2000);
                         } else {
                             messageElement.textContent = "Failed to update status. Please try again.";
                             messageElement.classList.remove("d-none", "alert-success");
                             messageElement.classList.add("alert-danger");
                         }
                     })
-                    .catch(error => {
-                        console.error('Error:', error);
-                        messageElement.textContent = "An error occurred. Please try again.";
-                        messageElement.classList.remove("d-none", "alert-success");
-                        messageElement.classList.add("alert-danger");
-                    });
                 } else {
-                    messageElement.textContent = "Incorrect password. Please try again.";
+                    messageElement.textContent = "Invalid password. Please try again.";
                     messageElement.classList.remove("d-none", "alert-success");
                     messageElement.classList.add("alert-danger");
                 }

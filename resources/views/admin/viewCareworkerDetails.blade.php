@@ -12,7 +12,7 @@
 <body>
 
     @include('components.userNavbar')
-    @include('components.sidebar')
+    @include('components.adminSidebar')
     @include('components.modals.statusChangeCareworker')
     @include('components.modals.deleteCareworker')
 
@@ -20,7 +20,7 @@
         <div class="container-fluid">
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <!-- Original Back Button -->
-                <a href="careWorkerProfile" class="btn btn-secondary original-back-btn">
+                <a href="{{ route('admin.careworkers.index') }}" class="btn btn-secondary original-back-btn">
                     <i class="bx bx-arrow-back"></i> Back
                 </a>
                 <div class="mx-auto text-center" style="flex-grow: 1; font-weight: bold; font-size: 20px;">VIEW CARE WORKER PROFILE DETAILS</div>
@@ -30,7 +30,7 @@
                         <i class="bx bx-arrow-back"></i> Back
                     </a>
                     <!-- Edit Button with Routing -->
-                    <form action="{{ route('editCareworkerProfile') }}" method="POST" style="display:inline;">
+                    <form action="{{ route('admin.careworkers.edit') }}" method="POST" style="display:inline;">
                         @csrf
                         <input type="hidden" name="careworker_id" value="{{ $careworker->id }}">
                         <button type="submit" class="btn btn-primary">
@@ -61,9 +61,9 @@
                                     <h4 class="me-md-3 mb-2 mb-md-0 mt-2">{{ $careworker->first_name }} {{ $careworker->last_name }}</h4>
                                     <!-- Dropdown for Status -->
                                     <div class="form-group mb-0 ms-md-auto">
-                                    <select class="form-select" name="status" id="statusSelect{{ $careworker->id }}" onchange="openStatusChangeCareworkerModal(this, 'Care Worker', {{ $careworker->id }}, '{{ $careworker->volunteer_status }}')">
-                                                <option value="Active" {{ $careworker->volunteer_status == 'Active' ? 'selected' : '' }}>Active Care Worker</option>
-                                                <option value="Inactive" {{ $careworker->volunteer_status == 'Inactive' ? 'selected' : '' }}>Inactive Care Worker</option>
+                                    <select class="form-select" name="status" id="statusSelect{{ $careworker->id }}" onchange="openStatusChangeCareworkerModal(this, 'Care Worker', {{ $careworker->id }}, '{{ $careworker->status }}')">
+                                                <option value="Active" {{ $careworker->status == 'Active' ? 'selected' : '' }}>Active Care Worker</option>
+                                                <option value="Inactive" {{ $careworker->status == 'Inactive' ? 'selected' : '' }}>Inactive Care Worker</option>
                                             </select>
                                     </div>
                                 </div>
@@ -81,7 +81,7 @@
                             <tbody>
                                 <tr>
                                     <td style="width:30%;"><strong>Educational Background:</strong></td>
-                                    <td>{{$careworker->educational_background}}</td>
+                                    <td>{{$careworker->educational_background ?? 'N/A'}}</td>
                                 </tr>
                                 <tr>
                                     <td style="width:30%;"><strong>Birthday:</strong></td>
@@ -89,19 +89,19 @@
                                 </tr>
                                 <tr>
                                     <td style="width:30%;"><strong>Gender:</strong></td>
-                                    <td>{{$careworker->gender}}</td>
+                                    <td>{{$careworker->gender ?? 'N/A'}}</td>
                                 </tr>
                                 <tr>
                                     <td style="width:30%;"><strong>Civil Status:</strong></td>
-                                    <td>{{$careworker->civil_status}}</td>
+                                    <td>{{$careworker->civil_status ?? 'N/A'}}</td>
                                 </tr>
                                 <tr>
                                     <td style="width:30%;"><strong>Religion:</strong></td>
-                                    <td>{{$careworker->religion ?? 'Prefer Not To Say'}}</td>
+                                    <td>{{$careworker->religion ?? 'N/A'}}</td>
                                 </tr>
                                 <tr>
                                     <td style="width:30%;"><strong>Nationality:</strong></td>
-                                    <td>{{$careworker->nationality}}</td>
+                                    <td>{{$careworker->nationality ?? 'N/A'}}</td>
                                 </tr>
                                 <tr>
                                     <td style="width:30%;"><strong>Assigned Municipality:</strong></td>

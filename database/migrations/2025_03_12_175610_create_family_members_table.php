@@ -21,7 +21,7 @@ return new class extends Migration
             $table->string('email', 100)->unique();
             $table->text('photo')->nullable();
             $table->text('street_address');
-            $table->string('gender', 50);
+            $table->string('gender', 50)->nullable();
             $table->integer('related_beneficiary_id');
             $table->string('relation_to_beneficiary', 50);
             $table->boolean('is_primary_caregiver')->default(0);

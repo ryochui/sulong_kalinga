@@ -13,7 +13,7 @@
 <body>
 
     @include('components.userNavbar')
-    @include('components.sidebar')
+    @include('components.adminSidebar')
     @include('components.modals.deleteFamilyMember')
 
     
@@ -21,7 +21,7 @@
         <div class="container-fluid">
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <!-- Original Back Button -->
-                <a href="familyProfile" class="btn btn-secondary original-back-btn">
+                <a href="{{ route('admin.families.index') }}" class="btn btn-secondary original-back-btn">
                     <i class="bx bx-arrow-back"></i> Back
                 </a>
 
@@ -29,12 +29,12 @@
 
                 <!-- Edit and Delete Buttons -->
                 <div>
-                    <!-- Hidden Back Button -->
+                    <!-- Hidden Back Button 
                     <a href="familyProfile" class="btn btn-secondary hidden-back-btn">
                         <i class="bx bx-arrow-back"></i> Back
-                    </a>
+                    </a>-->
                     <!-- Edit Button with Routing -->
-                    <form action="{{ route('editFamilyProfile') }}" method="POST" style="display:inline;">
+                    <form action="{{ route('admin.families.edit') }}" method="POST" style="display:inline;">
                         @csrf
                         <input type="hidden" name="family_member_id" value="{{ $family_member->family_member_id }}">
                         <button type="submit" class="btn btn-primary">

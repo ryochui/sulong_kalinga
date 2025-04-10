@@ -7,10 +7,11 @@
     <link rel="stylesheet" href="{{ asset('css/bootstrap.min.css') }}">
     <link href='https://unpkg.com/boxicons@2.0.7/css/boxicons.min.css' rel='stylesheet'>
     <link rel="stylesheet" href="{{ asset('css/municipality.css') }}">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
 </head>
 <body>
     @include('components.userNavbar')
-    @include('components.sidebar')
+    @include('components.adminSidebar')
     @include('components.modals.deleteBarangay')
     @include('components.modals.deleteMunicipality')
     @include('components.modals.selectMunicipality')
@@ -19,7 +20,7 @@
     @include('components.modals.editBarangay')
 
     <div class="home-section">
-        <div class="text-left">MUNICIPALITY</div>
+        <div class="text-left">MUNICIPALITY MANAGEMENT</div>
 
     <!-- Display success and error messages -->
     @if(session('success'))
@@ -107,6 +108,7 @@
                                             <i class='bx bx-trash' 
                                                 data-id="{{ $barangay->barangay_id }}" 
                                                 data-name="{{ $barangay->barangay_name }}"
+                                                style="cursor: pointer;"
                                                 onclick="openDeleteBarangayModal('{{ $barangay->barangay_id }}', '{{ $barangay->barangay_name }}')"></i>
                                                 <i class='bx bxs-edit' 
                                                 data-id="{{ $barangay->barangay_id }}"
@@ -137,7 +139,6 @@
 
     <script src="{{ asset('js/toggleSideBar.js') }}"></script>
     <script src="{{ asset('js/bootstrap.bundle.min.js') }}"></script>
-    <script src="{{ asset('js/deleteModal.js') }}"></script>
     
     <script>
         // Search functionality
@@ -184,22 +185,154 @@
             const id = element.dataset.id;
             const name = element.dataset.name;
             
-            document.getElementById('deleteForm').action = `/admin/delete-barangay/${id}`;
+            // Use string replacement instead of concatenation
+            document.getElementById('deleteForm').action = "{{ route('admin.locations.barangays.delete', ['id' => ':id']) }}".replace(':id', id);
             document.getElementById('deleteItemName').textContent = name;
         }
         
         // Prepare edit modal
         function prepareEdit(element) {
-            const id = element.dataset.id;
-            const name = element.dataset.name;
-            const municipalityId = element.dataset.municipality;
-            
-            document.getElementById('editBarangayId').value = id;
-            document.getElementById('editBarangayName').value = name;
-            document.getElementById('editMunicipalityId').value = municipalityId;
+        const id = element.dataset.id;
+        const name = element.dataset.name;
+        const municipalityId = element.dataset.municipality;
+        
+        document.getElementById('editBarangayId').value = id;
+        document.getElementById('editBarangayName').value = name;
+        document.getElementById('editMunicipalityId').value = municipalityId;
+        
+        // Show the edit modal
+        const modal = new bootstrap.Modal(document.getElementById('editBarangayModal'));
+        modal.show();
+    }
+    </script>
 
-            window.prepareEdit(element);
-        }
+    <script>
+        // Fix for barangay deletion error messages
+        document.addEventListener('DOMContentLoaded', function() {
+            // Debug console
+            console.log('Debug: Fixing barangay deletion messages');
+            
+            // Get references to modal components
+            const deleteModal = document.getElementById('deleteBarangayModal');
+            const messageElement = document.getElementById('barangayDeleteMessage');
+            
+            // Log what we found
+            console.log('Modal found:', !!deleteModal);
+            console.log('Message element found:', !!messageElement);
+            
+            // Add direct DOM observer to catch any errors
+            if (deleteModal) {
+                // Create a new showError function that's guaranteed to work
+                window.forceShowBarangayError = function(message) {
+                    console.log('Showing error:', message);
+                    
+                    // Find or create error message element
+                    let msgElement = document.getElementById('barangayDeleteMessage');
+                    
+                    // If not found, create it
+                    if (!msgElement) {
+                        msgElement = document.createElement('div');
+                        msgElement.id = 'barangayDeleteMessage';
+                        msgElement.className = 'alert';
+                        
+                        // Add it to the modal body
+                        const modalBody = deleteModal.querySelector('.modal-body');
+                        if (modalBody) {
+                            modalBody.insertBefore(msgElement, modalBody.firstChild);
+                        }
+                    }
+                    
+                    // Set message using textContent for consistency with original
+                    msgElement.textContent = message;
+                    msgElement.classList.remove('d-none', 'alert-success');
+                    msgElement.classList.add('alert-danger');
+                    msgElement.style.display = 'block';
+                };
+                
+                // Replace the fetch handler for the barangay delete button
+                const confirmButton = document.getElementById('confirmBarangayDeleteButton');
+                if (confirmButton) {
+                    // Clone button to remove all existing event handlers
+                    const newButton = confirmButton.cloneNode(true);
+                    confirmButton.parentNode.replaceChild(newButton, confirmButton);
+                    
+                    // Add new event handler
+                    newButton.addEventListener('click', function() {
+                        const passwordInput = document.getElementById('barangayDeletePasswordInput');
+                        const idInput = document.getElementById('barangayIdToDelete');
+                        
+                        if (!passwordInput || !idInput) {
+                            forceShowBarangayError('Form elements not found');
+                            return;
+                        }
+                        
+                        const password = passwordInput.value.trim();
+                        const barangayId = idInput.value;
+                        
+                        if (!password) {
+                            forceShowBarangayError('Please enter your password to confirm deletion.');
+                            return;
+                        }
+                        
+                        // Show loading state
+                        this.disabled = true;
+                        this.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Deleting...';
+                        
+                        // Send delete request
+                        fetch(`{{ route('admin.locations.barangays.delete', ['id' => ':id']) }}`.replace(':id', barangayId), {
+                            method: 'DELETE',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                            },
+                            body: JSON.stringify({ password: password })
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            console.log("Server response:", data);
+                            
+                            if (data.success) {
+                                // Success handling remains the same
+                                const modalBody = deleteModal.querySelector('.modal-body');
+                                if (modalBody) {
+                                    modalBody.innerHTML = `
+                                        <div class="text-center mb-4">
+                                            <i class="bx bx-check-circle text-success" style="font-size: 3rem;"></i>
+                                            <h5 class="mt-3 text-success">Success!</h5>
+                                            <p>The barangay has been successfully deleted.</p>
+                                            <p class="small text-muted">The page will reload shortly...</p>
+                                        </div>
+                                    `;
+                                }
+                                
+                                // Hide delete button, update cancel button
+                                this.style.display = 'none';
+                                const cancelButton = document.getElementById('cancelDeleteButton');
+                                if (cancelButton) {
+                                    cancelButton.textContent = 'Close';
+                                }
+                                
+                                // Reload page after delay
+                                setTimeout(() => {
+                                    window.location.reload();
+                                }, 2000);
+                            } else {
+                                // Here's where we ensure the error is shown
+                                forceShowBarangayError(data.message || 'Failed to delete barangay.');
+                                this.disabled = false;
+                                this.innerHTML = '<i class="bx bxs-trash"></i> Delete Barangay';
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                            forceShowBarangayError('An unexpected error occurred.');
+                            this.disabled = false;
+                            this.innerHTML = '<i class="bx bxs-trash"></i> Delete Barangay';
+                        });
+                    });
+                }
+            }
+        });
     </script>
 </body>
 </html>

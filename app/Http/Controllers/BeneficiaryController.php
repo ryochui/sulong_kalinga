@@ -36,10 +36,10 @@ class BeneficiaryController extends Controller
         $statuses = BeneficiaryStatus::all();
 
         // Fetch beneficiaries based on the search query and filters
-        $beneficiaries = Beneficiary::with('category', 'status', 'municipality')
+        $query = Beneficiary::with('category', 'status', 'municipality')
             ->when($search, function ($query, $search) {
                 return $query->whereRaw('LOWER(first_name) LIKE ?', ['%' . strtolower($search) . '%'])
-                             ->orWhereRaw('LOWER(last_name) LIKE ?', ['%' . strtolower($search) . '%']);
+                            ->orWhereRaw('LOWER(last_name) LIKE ?', ['%' . strtolower($search) . '%']);
             })
             ->when($filter, function ($query, $filter) {
                 if ($filter == 'category') {
@@ -50,14 +50,26 @@ class BeneficiaryController extends Controller
                     return $query->orderBy('municipality_id');
                 }
             })
-            ->orderBy('first_name') // Order by first name alphabetically by default
-            ->get();
-
-        // Pass the data to the Blade template
-        return view('admin.beneficiaryProfile', compact('beneficiaries', 'search', 'filter', 'categories', 'statuses'));
+            ->orderBy('first_name'); // Order by first name alphabetically by default
+        
+        // Apply role-based filtering if needed
+        if (Auth::user()->role_id == 3) { // Care Worker
+            $query->where('assigned_care_worker_id', Auth::id());
+        }
+        
+        $beneficiaries = $query->get();
+        
+        // Return appropriate view based on user role
+        if (Auth::user()->role_id == 1) { // Admin
+            return view('admin.beneficiaryProfile', compact('beneficiaries', 'search', 'filter', 'categories', 'statuses'));
+        } elseif (Auth::user()->role_id == 2) { // Care Manager
+            return view('careManager.beneficiaryProfile', compact('beneficiaries', 'search', 'filter', 'categories', 'statuses'));
+        } else { // Care Worker
+            return view('careWorker.beneficiaryProfile', compact('beneficiaries', 'search', 'filter', 'categories', 'statuses'));
+        }
     }
 
-    public function updateStatus($id, Request $request)
+    /*public function updateStatus($id, Request $request)
     {
         $request->validate([
             'status' => 'required|string',
@@ -77,6 +89,53 @@ class BeneficiaryController extends Controller
         } catch (\Exception $e) {
             \Log::error('Error updating beneficiary status: ' . $e->getMessage());
             return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
+    }*/
+
+    public function updateStatusAjax($id, Request $request)
+    {
+        try {
+            \Log::info('Update status AJAX request', [
+                'beneficiary_id' => $id,
+                'status' => $request->input('status'),
+                'reason' => $request->input('reason')
+            ]);
+            
+            // Find beneficiary
+            $beneficiary = Beneficiary::findOrFail($id);
+            
+            // Find status
+            $status = BeneficiaryStatus::where('status_name', $request->input('status'))->first();
+            if (!$status) {
+                return response()->json(['success' => false, 'message' => 'Invalid status'], 400);
+            }
+            
+            // Update using the DB facade to avoid any Eloquent model issues
+            $updated = DB::table('beneficiaries')
+                ->where('beneficiary_id', $id)
+                ->update([
+                    'beneficiary_status_id' => $status->beneficiary_status_id,
+                    'status_reason' => $request->input('reason'),
+                    'updated_by' => Auth::id(),
+                    'updated_at' => now()
+                ]);
+            
+            // Verify update was successful
+            if ($updated) {
+                \Log::info('Status updated successfully', [
+                    'beneficiary_id' => $id,
+                    'new_status_id' => $status->beneficiary_status_id
+                ]);
+                return response()->json(['success' => true, 'message' => 'Status updated successfully']);
+            } else {
+                return response()->json(['success' => false, 'message' => 'No changes made'], 400);
+            }
+        } catch (\Exception $e) {
+            \Log::error('Status update failed: ' . $e->getMessage(), [
+                'exception' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            return response()->json(['success' => false, 'message' => 'Status update failed: ' . $e->getMessage()], 500);
         }
     }
 
@@ -152,10 +211,16 @@ class BeneficiaryController extends Controller
                         ->where('status', 'Active')
                         ->select('id', DB::raw("CONCAT(first_name, ' ', last_name) AS name"))
                         ->get(); 
-        $categories = DB::table('beneficiary_categories')->get(); // Fetch categories
-
-        // Pass the municipalities to the view
-        return view('admin.addBeneficiary', compact('municipalities', 'barangays', 'careWorkers', 'categories'));
+        $categories = DB::table('beneficiary_categories')->get();
+        
+        // Return appropriate view based on user role
+        if (Auth::user()->role_id == 1) { // Admin
+            return view('admin.addBeneficiary', compact('municipalities', 'barangays', 'careWorkers', 'categories'));
+        } elseif (Auth::user()->role_id == 2) { // Care Manager
+            return view('careManager.addBeneficiary', compact('municipalities', 'barangays', 'careWorkers', 'categories'));
+        } else {
+            abort(403, 'Unauthorized action.');
+        }
     }
 
     public function storeBeneficiary(Request $request)
@@ -413,7 +478,7 @@ class BeneficiaryController extends Controller
                 'string',
                 'regex:/^[0-9]{10,11}$/', // 10 or 11 digits
             ],
-            'emergency_contact.email' => 'required|email|max:100',
+            'emergency_contact.email' => 'nullable|email|max:100',
 
             // Emergency Plan
             'emergency_plan.procedures' => [
@@ -505,9 +570,7 @@ class BeneficiaryController extends Controller
                 
                 // Add debug logging
                 \Log::info('Storing beneficiary photo with path: ' . $beneficiaryPhotoPath);
-            } else {
-                throw new \Exception('Beneficiary profile picture is required.');
-            }
+            } 
 
             // Handle Care Service Agreement
             if ($request->hasFile('care_service_agreement')) {
@@ -672,7 +735,7 @@ class BeneficiaryController extends Controller
                 'primary_caregiver' => $request->input('primary_caregiver'),
                 'care_service_agreement_doc' => $careServiceAgreementPath,
                 'general_care_plan_doc' => $generalCarePlanPath,
-                'photo' => $beneficiaryPhotoPath,
+                'photo' => $beneficiaryPhotoPath ?? null,
                 'beneficiary_signature' => $beneficiarySignaturePath,
                 'care_worker_signature' => $careWorkerSignaturePath,
                 'general_care_plan_id' => $generalCarePlanId,
@@ -780,11 +843,18 @@ class BeneficiaryController extends Controller
             DB::commit();
         
             // Redirect with success message
-            return redirect()->route('admin.addBeneficiary')->with('success', 'Beneficiary has been successfully added!');
+            if (Auth::user()->role_id == 1) { // Admin
+                return redirect()->route('admin.beneficiaries.create')->with('success', 'Beneficiary has been successfully added!');
+            } elseif (Auth::user()->role_id == 2) { // Care manager
+                return redirect()->route('manager.beneficiaries.create')->with('success', 'Beneficiary has been successfully added!');
+            } else {
+                // Fallback - should not happen since only admins and care managers can add beneficiaries
+                return redirect()->back()->with('success', 'Beneficiary has been successfully added!');
+            }
         } catch (\Exception $e) {
             DB::rollBack();
             \Log::error('Error saving beneficiary: ' . $e->getMessage());
-            return redirect()->back()->withErrors(['error' => 'An error occurred while saving the beneficiary.'])->withInput();
+            return redirect()->back()->withErrors(['error' => 'An error occurred while saving the beneficiary: ' . $e->getMessage()])->withInput();
         }
     }
 }

@@ -98,7 +98,7 @@ function showDependencyError(message, errorType) {
                 <ol class="mt-2 mb-0">
                     <li>Instead of deleting, you can mark this care worker as <strong>inactive</strong> in their profile to disable their access to the system</li>
                     <li>This will prevent them from logging in while preserving the audit trail</li>
-                    <li>Go to <a href="{{ route('admin.careWorkerProfile') }}">Care Worker List</a>, find this care worker, and change their status</li>
+                    <li>Go to <a href="{{ route('admin.careworkers.index') }}">Care Worker List</a>, find this care worker, and change their status</li>
                 </ol>
             </div>
         `;
@@ -110,7 +110,7 @@ function showDependencyError(message, errorType) {
                 <ol class="mt-2 mb-0">
                     <li>Instead of deleting, you can mark this care worker as <strong>inactive</strong> in their profile to disable their access to the system</li>
                     <li>This will prevent them from logging in while preserving the audit trail</li>
-                    <li>Go to <a href="{{ route('admin.careWorkerProfile') }}">Care Worker List</a>, find this care worker, and change their status</li>
+                    <li>Go to <a href="{{ route('admin.careworkers.index') }}">Care Worker List</a>, find this care worker, and change their status</li>
                 </ol>
             </div>
         `;
@@ -122,7 +122,7 @@ function showDependencyError(message, errorType) {
                 <ol class="mt-2 mb-0">
                     <li>Instead of deleting, you can mark this care worker as <strong>inactive</strong> in their profile to disable their access to the system</li>
                     <li>This will prevent them from logging in while preserving the audit trail</li>
-                    <li>Go to <a href="{{ route('admin.careWorkerProfile') }}">Care Worker List</a>, find this care worker, and change their status</li>
+                    <li><a href="{{ route('admin.careworkers.index') }}">Care Worker List</a>, find this care worker, and change their status</li>
                 </ol>
             </div>
         `;
@@ -134,7 +134,7 @@ function showDependencyError(message, errorType) {
                 <ol class="mt-2 mb-0">
                     <li>Instead of deleting, you can mark this care worker as <strong>inactive</strong> in their profile to disable their access to the system</li>
                     <li>This will prevent them from logging in while preserving the audit trail</li>
-                    <li>Go to <a href="{{ route('admin.careWorkerProfile') }}">Care Worker List</a>, find this care worker, and change their status</li>
+                    <li>Go to <a href="{{ route('admin.careworkers.index') }}">Care Worker List</a>, find this care worker, and change their status</li>
                 </ol>
             </div>
         `;
@@ -169,7 +169,7 @@ function showSuccess() {
     document.getElementById('cancelDeleteButton').textContent = 'Close';
     
     setTimeout(function() {
-        window.location.href = "{{ route('admin.careWorkerProfile') }}";
+        window.location.href = "{{ route('admin.careworkers.index') }}";
     }, 2000);
 }
 
@@ -200,7 +200,7 @@ document.addEventListener('DOMContentLoaded', function() {
         formData.append('_token', '{{ csrf_token() }}');
         
         const xhr1 = new XMLHttpRequest();
-        xhr1.open('POST', '/validate-password', true);
+        xhr1.open('POST', "{{ route('admin.validate-password') }}", true);
         xhr1.onload = function() {
             if (xhr1.status === 200) {
                 try {
@@ -212,11 +212,11 @@ document.addEventListener('DOMContentLoaded', function() {
                         deleteForm.append('_token', '{{ csrf_token() }}');
                         
                         // Determine which endpoint to use based on the user role
-                        let endpoint = '/admin/delete-careworker'; // Default endpoint for admins
+                        let endpoint = "{{ route('admin.careworkers.delete') }}"; // Default endpoint for admins
 
                         // Use care manager endpoint if the current user is a care manager
                         @if(Auth::user()->role_id == 2)
-                            endpoint = '/caremanager/delete-careworker';
+                            endpoint = "{{ route('manager.careworkers.delete') }}";
                         @endif
 
                         const xhr2 = new XMLHttpRequest();

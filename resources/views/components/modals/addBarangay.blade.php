@@ -195,7 +195,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const formData = new FormData(form);
         
         // Send AJAX request
-        fetch('{{ route("admin.addBarangay") }}', {
+        fetch('{{ route("admin.locations.barangays.store") }}', {
             method: 'POST',
             body: formData,
             headers: {

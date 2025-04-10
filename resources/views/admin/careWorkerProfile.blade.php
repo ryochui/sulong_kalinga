@@ -12,7 +12,7 @@
 </head>
 <body>
     @include('components.userNavbar')
-    @include('components.sidebar')
+    @include('components.adminSidebar')
     @include('components.modals.statusChangeCareworker')
     
     <div class="home-section">
@@ -21,7 +21,7 @@
             <div class="row mb-3 align-items-center">
                 <!-- Search Bar -->
                 <div class="col-12 col-md-6 col-lg-6 mb-2">
-                    <form action="{{ route('admin.careWorkerProfile') }}" method="GET">
+                    <form action="{{ route('admin.careworkers.index') }}" method="GET">
                         <div class="input-group">
                             <span class="input-group-text">
                                 <i class="bx bx-search-alt"></i>
@@ -34,7 +34,7 @@
 
                 <!-- Filter Dropdown -->
                 <div class="col-12 col-sm-6 col-md-6 col-lg-2 mb-2">
-                    <form action="{{ route('admin.careWorkerProfile') }}" method="GET" id="filterForm">
+                    <form action="{{ route('admin.careworkers.index') }}" method="GET" id="filterForm">
                         <div class="input-group">
                             <span class="input-group-text">
                                 <i class="bx bx-filter-alt"></i>
@@ -61,16 +61,16 @@
                 </div>
 
                 <!-- Hidden form for exporting -->
-                <form id="exportForm" action="{{ route('export.careworkers.pdf') }}" method="POST" style="display: none;"
-                    data-pdf-route="{{ route('export.careworkers.pdf') }}"
-                    data-excel-route="{{ route('export.careworkers.excel') }}">
+                <form id="exportForm" action="{{ route('admin.export.careworkers.pdf') }}" method="POST" style="display: none;"
+                    data-pdf-route="{{ route('admin.export.careworkers.pdf') }}"
+                    data-excel-route="{{ route('admin.export.careworkers.excel') }}">
                     @csrf
                     <input type="hidden" name="selected_careworkers" id="selectedCareworkers">
                 </form>
 
                 <!-- Add Report Button -->
                 <div class="col-6 col-md-3 col-lg-2 mb-2">
-                    <a href="{{ route('admin.addCareWorker') }}">
+                    <a href="{{ route('admin.careworkers.create') }}">
                     <button class="btn btn-primary w-100" id="addButton" style="padding:6px;">
                         <i class="bx bx-plus"></i> Add Careworker
                     </button>
@@ -104,21 +104,21 @@
                                         <td>{{ $careworker->municipality->municipality_name ?? 'N/A' }}</td>
                                         <td>{{ $careworker->mobile }}</td>
                                         <td>
-                                            <select class="form-select" name="status" id="statusSelect{{ $careworker->id }}" onchange="openStatusChangeCareworkerModal(this, 'Care Worker', {{ $careworker->id }}, '{{ $careworker->volunteer_status }}')">
-                                                <option value="Active" {{ $careworker->volunteer_status == 'Active' ? 'selected' : '' }}>Active</option>
-                                                <option value="Inactive" {{ $careworker->volunteer_status == 'Inactive' ? 'selected' : '' }}>Inactive</option>
+                                            <select class="form-select" name="status" id="statusSelect{{ $careworker->id }}" select onchange="window.openStatusChangeCareworkerModal(this, 'Care Worker', {{ $careworker->id }}, '{{ $careworker->is_active ? 'active' : 'inactive' }}')">
+                                                <option value="Active" {{ $careworker->status == 'Active' ? 'selected' : '' }}>Active</option>
+                                                <option value="Inactive" {{ $careworker->status == 'Inactive' ? 'selected' : '' }}>Inactive</option>
                                             </select>
                                         </td>
                                         <td>
                                             <div class="action-icons">
-                                            <form action="{{ route('viewCareworkerDetails') }}" method="POST" style="display:inline;">
+                                            <form action="{{ route('admin.careworkers.view') }}" method="POST" style="display:inline;">
                                                 @csrf
                                                 <input type="hidden" name="careworker_id" value="{{ $careworker->id }}">
                                                 <button type="submit" class="btn btn-link text-decoration-none" style="color:black;">
                                                     <i class="fa fa-eye"></i>
                                                 </button>
                                             </form>
-                                            <form action="{{ route('editCareworkerProfile') }}" method="POST" style="display:inline;">
+                                            <form action="{{ route('admin.careworkers.edit') }}" method="POST" style="display:inline;">
                                                 @csrf
                                                 <input type="hidden" name="careworker_id" value="{{ $careworker->id }}">
                                                 <button type="submit" class="btn btn-link text-decoration-none" style="color:black;">
