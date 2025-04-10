@@ -23,7 +23,7 @@
                 </div>
                 <div class="modal-body text-center">
                     <i class='bx bxs-party display-4 text-primary mb-3'></i>
-                    <h4>Hello, {{ auth()->user()->name }}!</h4>
+                    <h4>Hello, {{ auth()->user()->first_name }} {{ auth()->user()->last_name }}!</h4>
                     <p>Welcome back to your Administrator Dashboard.</p>
                 </div>
                 <div class="modal-footer justify-content-center">
