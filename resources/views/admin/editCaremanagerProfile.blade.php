@@ -44,7 +44,7 @@
             @endif
             <div class="row" id="addUserForm">
                 <div class="col-12">
-                    <form action="{{ route('admin.editCaremanager.update', $caremanager->id) }}" method="POST" enctype="multipart/form-data">
+                <form method="POST" action="{{ route('admin.caremanagers.update', $caremanager->id) }}" enctype="multipart/form-data">
                         @csrf
                         @method('PUT')
                         

@@ -47,7 +47,7 @@
 
             <div class="row" id="addUserForm">
                 <div class="col-12">
-                    <form action="{{ route('admin.editAdministrator.update', $administrator->id) }}" method="POST" enctype="multipart/form-data">
+                    <form action="{{ route('admin.administrators.update', $administrator->id) }}" method="POST" enctype="multipart/form-data">
                         @csrf
                         @method('PUT') <!-- Use PUT method for updating -->
                         

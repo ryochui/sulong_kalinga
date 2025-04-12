@@ -60,10 +60,10 @@ class CareManagerController extends Controller
         ->with('municipality')->find($caremanager_id);
 
         if (!$caremanager) {
-            return redirect()->route('careManagerProfile')->with('error', 'Care manager not found.');
+            return redirect()->route('admin.caremanagers.index')->with('error', 'Care manager not found.');
         }
 
-        return view('admin.viewCaremanagerDetails', compact('caremanager'));
+        return view('admin.caremanagers.view', compact('caremanager'));
     }
 
 
@@ -421,7 +421,7 @@ class CareManagerController extends Controller
         // Save the changes
         $caremanager->save();
         
-        return redirect()->route('admin.careManagerProfile')->with('success', 
+        return redirect()->route('admin.caremanagers.index')->with('success', 
         'Care Manager ' . $caremanager->first_name . ' ' . $caremanager->last_name . 
         ' has been successfully updated!'
         );
@@ -434,7 +434,7 @@ class CareManagerController extends Controller
         $caremanager = User::where('role_id', 2)->where('id', $id)->first();
         
         if (!$caremanager) {
-            return redirect()->route('admin.careManagerProfile')->with('error', 'Care Manager not found.');
+            return redirect()->route('admin.caremanagers.index')->with('error', 'Care Manager not found.');
         }
 
         // Format date for the form

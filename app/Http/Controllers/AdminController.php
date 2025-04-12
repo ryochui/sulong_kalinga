@@ -478,7 +478,7 @@ class AdminController extends Controller
         $administrator->save();
 
         // Redirect with success message
-        return redirect()->route('administratorProfile')->with('success', 
+        return redirect()->route('admin.administrators.index')->with('success', 
         'Administrator ' . $administrator->first_name . ' ' . $administrator->last_name . 
         ' has been successfully updated!'
         );
@@ -537,7 +537,7 @@ class AdminController extends Controller
         $administrator = User::where('role_id', 1)->where('id', $id)->first();
         
         if (!$administrator) {
-            return redirect()->route('administratorProfile')->with('error', 'Administrator not found.');
+            return redirect()->route('admin.administrators.edit')->with('error', 'Administrator not found.');
         }
         
         $birth_date = null;

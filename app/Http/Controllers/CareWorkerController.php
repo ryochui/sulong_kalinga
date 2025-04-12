@@ -12,6 +12,10 @@ use App\Models\User;
 use App\Models\Municipality;
 use App\Models\GeneralCarePlan;
 use App\Models\Beneficiary;
+
+use Carbon\Carbon;
+use Illuminate\Validation\Rule;
+use App\Services\UserManagementService;
  
 
 class CareWorkerController extends Controller
@@ -68,19 +72,226 @@ class CareWorkerController extends Controller
         return view('admin.viewCareworkerDetails', compact('careworker', 'beneficiaries'));
     }
 
-    public function editCareworkerProfile(Request $request)
+    public function editCareworkerProfile($id)
     {
-        $careworker_id = $request->input('careworker_id');
-        $careworker = User::where('role_id', 3)->where('id', $careworker_id)->first();
+        $careworker = User::where('role_id', 3)->findOrFail($id);
 
-        if (!$careworker) {
-            return redirect()->route('careWorkerProfile')->with('error', 'Care worker not found.');
+        // Fetch all municipalities for the dropdown
+        $municipalities = Municipality::all();
+
+        // Format date for the form
+        $birth_date = null;
+        if ($careworker->birthday) {
+            $birth_date = Carbon::parse($careworker->birthday)->format('Y-m-d');
         }
 
-        // Update care worker details here
-        // ...
+        // Pass data to the view
+        return view('admin.editCareworkerProfile', compact('careworker', 'municipalities', 'birth_date'));
+    }
 
-        return view('admin.editCareworkerProfile', compact('careworker'));    
+    public function updateCareWorker(Request $request, $id)
+    {
+        // Find the care worker by ID
+        $careworker = User::where('role_id', 3)->findOrFail($id);
+
+        // Validate the request data
+        $validator = Validator::make($request->all(), [
+            // Personal Details
+            'first_name' => [
+                'required',
+                'string',
+                'max:100',
+                'regex:/^[A-Z][a-zA-Z]{1,}(?:-[a-zA-Z]{1,})?(?: [a-zA-Z]{2,}(?:-[a-zA-Z]{1,})?)*$/'
+            ],
+            'last_name' => [
+                'required',
+                'string',
+                'max:100',
+                'regex:/^[A-Z][a-zA-Z]{1,}(?:-[a-zA-Z]{1,})?(?: [a-zA-Z]{2,}(?:-[a-zA-Z]{1,})?)*$/'
+            ],
+            'birth_date' => 'required|date|before_or_equal:' . now()->subYears(14)->toDateString(),
+            'gender' => 'nullable|string|in:Male,Female,Other',
+            'civil_status' => 'nullable|string|in:Single,Married,Widowed,Divorced',
+            'religion' => [
+                'nullable',
+                'string',
+                'max:50',
+                'regex:/^[A-Z][a-zA-Z]{1,}(?:-[a-zA-Z]{1,})?(?: [a-zA-Z]{2,}(?:-[a-zA-Z]{1,})?)*$/'
+            ],
+            'nationality' => [
+                'nullable',
+                'string',
+                'max:50',
+                'regex:/^[A-Z][a-zA-Z]{1,}(?:-[a-zA-Z]{1,})?(?: [a-zA-Z]{2,}(?:-[a-zA-Z]{1,})?)*$/'
+            ],
+            'educational_background' => 'nullable|string|in:College,Highschool,Doctorate',
+        
+            // Address
+            'address_details' => [
+                'required',
+                'string',
+                'regex:/^[a-zA-Z0-9\s,.-]+$/',
+            ],
+        
+            // Email fields - with unique constraint exceptions for this user
+            'account.email' => [
+                'required',
+                'string',
+                'regex:/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/',
+                'unique:cose_users,email,' . $id,
+            ],
+            'personal_email' => [
+                'required',
+                'string',
+                'regex:/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/',
+                'unique:cose_users,personal_email,' . $id,
+            ],
+            
+            // Contact Information
+            'mobile_number' => [
+                'required',
+                'string',
+                'regex:/^[0-9]{10,11}$/',
+                'unique:cose_users,mobile,' . $id,
+            ],
+            'landline_number' => [
+                'nullable',
+                'string',
+                'regex:/^[0-9]{7,10}$/',
+            ],
+        
+            // Password is optional for updates
+            'account.password' => 'nullable|string|min:8|confirmed',
+        
+            // Municipality
+            'municipality' => 'required|integer|exists:municipalities,municipality_id',
+        
+            // Documents - optional for updates
+            'careworker_photo' => 'nullable|image|mimes:jpeg,png|max:2048',
+            'government_ID' => 'nullable|image|mimes:jpeg,png|max:2048',
+            'resume' => 'nullable|mimes:pdf,doc,docx|max:2048',
+        
+            // IDs
+            'sss_ID' => [
+                'nullable',
+                'string',
+                'regex:/^[0-9]{10}$/',
+            ],
+            'philhealth_ID' => [
+                'nullable',
+                'string',
+                'regex:/^[0-9]{12}$/',
+            ],
+            'pagibig_ID' => [
+                'nullable',
+                'string',
+                'regex:/^[0-9]{12}$/',
+            ],
+        ]);
+
+        if ($validator->fails()) {
+            return redirect()->back()->withErrors($validator)->withInput();
+        }
+
+        try {
+            // Handle file uploads if any
+            $firstName = $request->input('first_name');
+            $lastName = $request->input('last_name');
+            $uniqueIdentifier = time() . '_' . Str::random(5);
+
+            // Process new photo if uploaded
+            if ($request->hasFile('careworker_photo')) {
+                $careworkerPhotoPath = $request->file('careworker_photo')->storeAs(
+                    'uploads/careworker_photos', 
+                    $firstName . '' . $lastName . '_photo' . $uniqueIdentifier . '.' . $request->file('careworker_photo')->getClientOriginalExtension(),
+                    'public'
+                );
+                $careworker->photo = $careworkerPhotoPath;
+            }
+
+            // Process new government ID if uploaded
+            if ($request->hasFile('government_ID')) {
+                $governmentIDPath = $request->file('government_ID')->storeAs(
+                    'uploads/careworker_government_ids', 
+                    $firstName . '' . $lastName . '_government_id' . $uniqueIdentifier . '.' . $request->file('government_ID')->getClientOriginalExtension(),
+                    'public'
+                );
+                $careworker->government_issued_id = $governmentIDPath;
+            }
+
+            // Process new resume if uploaded
+            if ($request->hasFile('resume')) {
+                $resumePath = $request->file('resume')->storeAs(
+                    'uploads/careworker_resumes', 
+                    $firstName . '' . $lastName . '_resume' . $uniqueIdentifier . '.' . $request->file('resume')->getClientOriginalExtension(),
+                    'public'
+                );
+                $careworker->cv_resume = $resumePath;
+            }
+
+            // Update careworker details
+            $careworker->first_name = $request->input('first_name');
+            $careworker->last_name = $request->input('last_name');
+            $careworker->birthday = $request->input('birth_date');
+            $careworker->gender = $request->input('gender');
+            $careworker->civil_status = $request->input('civil_status');
+            $careworker->religion = $request->input('religion');
+            $careworker->nationality = $request->input('nationality');
+            $careworker->educational_background = $request->input('educational_background');
+            $careworker->address = $request->input('address_details');
+            $careworker->email = $request->input('account.email');
+            $careworker->personal_email = $request->input('personal_email');
+            $careworker->mobile = '+63' . $request->input('mobile_number');
+            $careworker->landline = $request->input('landline_number');
+            
+            // Update password only if provided
+            if ($request->filled('account.password')) {
+                $careworker->password = bcrypt($request->input('account.password'));
+            }
+            
+            $careworker->assigned_municipality_id = $request->input('municipality');
+            $careworker->sss_id_number = $request->input('sss_ID') === '' ? null : $request->input('sss_ID');
+            $careworker->philhealth_id_number = $request->input('philhealth_ID') === '' ? null : $request->input('philhealth_ID');
+            $careworker->pagibig_id_number = $request->input('pagibig_ID') === '' ? null : $request->input('pagibig_ID');
+            
+            $careworker->save();
+
+            // Redirect with success message
+            return redirect()->route('admin.careworkers.index')
+                ->with('success', 'Care Worker ' . $careworker->first_name . ' ' . $careworker->last_name . ' has been successfully updated!');
+                
+        } catch (\Illuminate\Database\QueryException $e) {
+            // Handle database errors
+            \Log::error('Database error when updating care worker: ' . $e->getMessage());
+            
+            // Check if it's a unique constraint violation
+            if ($e->getCode() == 23505) { // PostgreSQL unique violation error code
+                // Check which field caused the violation
+                if (strpos($e->getMessage(), 'cose_users_mobile_unique') !== false) {
+                    return redirect()->back()
+                        ->withInput()
+                        ->withErrors(['mobile_number' => 'This mobile number is already registered with another user.']);
+                } elseif (strpos($e->getMessage(), 'cose_users_email_unique') !== false) {
+                    return redirect()->back()
+                        ->withInput()
+                        ->withErrors(['account.email' => 'This email address is already registered with another user.']);
+                } elseif (strpos($e->getMessage(), 'cose_users_personal_email_unique') !== false) {
+                    return redirect()->back()
+                        ->withInput()
+                        ->withErrors(['personal_email' => 'This personal email address is already registered with another user.']);
+                }
+            }
+            
+            return redirect()->back()
+                ->withInput()
+                ->withErrors(['error' => 'An error occurred while updating the care worker. Please try again.']);
+        } catch (\Exception $e) {
+            // Handle other unexpected errors
+            \Log::error('Unexpected error when updating care worker: ' . $e->getMessage());
+            return redirect()->back()
+                ->withInput()
+                ->withErrors(['error' => 'An unexpected error occurred. Please try again.']);
+        }
     }
 
     // To revise so that dropdown will be dynamic

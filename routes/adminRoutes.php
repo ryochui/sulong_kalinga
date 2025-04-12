@@ -33,7 +33,7 @@ Route::middleware(['auth', '\App\Http\Middleware\CheckRole:administrator'])->pre
             return view('admin.addAdministrator');
         })->name('create');
         Route::post('/store', [AdminController::class, 'storeAdministrator'])->name('store');
-        Route::get('administrators/{id}/edit', [AdminController::class, 'editAdminProfile'])->name('edit');
+        Route::get('/{id}/edit', [AdminController::class, 'editAdminProfile'])->name('edit');
         Route::put('/{id}', [AdminController::class, 'updateAdministrator'])->name('update');
         Route::post('/{id}/update-status-ajax', [AdminController::class, 'updateStatusAjax'])->name('updateStatusAjax');
         Route::post('/delete', [AdminController::class, 'deleteAdministrator'])->name('delete');
@@ -45,7 +45,7 @@ Route::middleware(['auth', '\App\Http\Middleware\CheckRole:administrator'])->pre
         Route::get('/', [CareManagerController::class, 'index'])->name('index');
         Route::get('/add', [CareManagerController::class, 'create'])->name('create');
         Route::post('/store', [CareManagerController::class, 'storeCareManager'])->name('store');
-        Route::get('care-managers/{id}/edit', [CareManagerController::class, 'editCaremanagerProfile'])->name('edit');
+        Route::get('/{id}/edit', [CareManagerController::class, 'editCaremanagerProfile'])->name('edit');
         Route::put('/{id}', [CareManagerController::class, 'updateCaremanager'])->name('update');
         Route::post('/{id}/update-status-ajax', [CareManagerController::class, 'updateStatusAjax'])->name('updateStatusAjax');        Route::post('/delete', [AdminController::class, 'deleteCaremanager'])->name('delete');
         Route::post('/view-details', [CareManagerController::class, 'viewCaremanagerDetails'])->name('view');
@@ -56,8 +56,8 @@ Route::middleware(['auth', '\App\Http\Middleware\CheckRole:administrator'])->pre
         Route::get('/', [CareWorkerController::class, 'index'])->name('index');
         Route::get('/add', [CareWorkerController::class, 'create'])->name('create');
         Route::post('/store', [CareWorkerController::class, 'storeCareWorker'])->name('store');
-        Route::post('/edit', [CareWorkerController::class, 'editCareworkerProfile'])->name('edit');
-        Route::put('/{id}', [CareWorkerController::class, 'updateCareworker'])->name('update');
+        Route::get('/{id}/edit', [CareWorkerController::class, 'editCareworkerProfile'])->name('edit');
+        Route::put('/{id}', [CareWorkerController::class, 'updateCareWorker'])->name('update');
         Route::post('/{id}/update-status-ajax', [CareWorkerController::class, 'updateStatusAjax'])->name('updateStatusAjax');        Route::post('/delete', [AdminController::class, 'deleteCareworker'])->name('delete');
         Route::post('/view-details', [CareWorkerController::class, 'viewCareworkerDetails'])->name('view');
     });
