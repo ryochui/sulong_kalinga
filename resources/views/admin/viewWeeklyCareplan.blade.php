@@ -32,18 +32,20 @@
                         <i class="bx bx-arrow-back"></i> Back
                     </a>-->
                     <!-- Edit Button with Routing -->
-                    <form action="" method="POST" style="display:inline;">
-                        @csrf
-                        <input type="hidden" name="family_member_id" value="">
-                        <button type="submit" class="btn btn-primary">
-                        <i class="bx bxs-edit"></i> Edit
-                        </button>
-                    </form>
+                    <a href="{{ route('admin.weeklycareplans.edit', $weeklyCareplan->weekly_care_plan_id) }}" title="Edit Weekly Care Plan" class="btn btn-primary">
+                        <i class="bx bx-edit"></i> Edit
+                    </a>
                     <button class="btn btn-danger">
                         <i class="bx bxs-trash"></i> Delete
                     </button>
                 </div>
             </div>
+            @if(session('success'))
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    <strong><i class="bx bx-check-circle me-1"></i> Success!</strong> {{ session('success') }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            @endif
             <div class="row mb-3" id="weeklyCareplanDetails">
                 <div class="col-12">
                     <div class="row personal-details">

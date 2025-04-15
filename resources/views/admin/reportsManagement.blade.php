@@ -130,6 +130,20 @@
                                                         <i class="fa fa-eye text-muted"></i>
                                                     </a>
                                                 @endif
+                                                @if($report->report_type == 'Weekly Care Plan')
+                                                    <a href="{{ route('admin.weeklycareplans.edit', $report->report_id) }}" title="Edit Weekly Care Plan">
+                                                        <i class="bx bx-edit"></i>
+                                                    </a>
+                                                @elseif($report->report_type === 'General Care Plan')
+                                                    {{-- Placeholder for future General Care Plan edit link --}}
+                                                    <a href="#" title="Edit General Care Plan (Coming Soon)" onclick="alert('General Care Plan editing coming soon!')">
+                                                        <i class="bx bx-edit text-muted"></i>
+                                                    </a>
+                                                @else
+                                                    <a href="#" title="Edit Not Available" onclick="alert('Editing not available for this report type')">
+                                                        <i class="bx bx-edit text-muted"></i>
+                                                    </a>
+                                                @endif
                                             </div>
                                             </td>
                                         </tr>

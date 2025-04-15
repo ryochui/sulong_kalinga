@@ -307,4 +307,188 @@ class WeeklyCareController extends Controller
             return view('weeklycareplans.edit', compact('weeklyCarePlan'));
         } 
     */
+
+    public function edit($id)
+    {
+        // Get the weekly care plan with all related data
+        $weeklyCarePlan = WeeklyCarePlan::with([
+            'beneficiary', 
+            'beneficiary.generalCarePlan.healthHistory',
+            'vitalSigns',
+            'interventions'
+        ])->findOrFail($id);
+        
+        // Check authorization - only allow admins or the creator to edit
+        if (Auth::user()->role_id > 2 && $weeklyCarePlan->care_worker_id != Auth::id()) {
+            return redirect()->back()->with('error', 'You are not authorized to edit this care plan');
+        }
+        
+        // Get all beneficiaries for dropdown
+        $beneficiaries = Beneficiary::orderBy('last_name')->orderBy('first_name')->get();
+        
+        // Get care categories with interventions
+        $careCategories = CareCategory::with('interventions')->get();
+        
+        // Group interventions by category and format for the form
+        $selectedInterventions = [];
+        $interventionDurations = [];
+        
+        foreach ($weeklyCarePlan->interventions as $intervention) {
+            if ($intervention->intervention_id) {
+                // Standard intervention
+                $selectedInterventions[] = $intervention->intervention_id;
+                $interventionDurations[$intervention->intervention_id] = $intervention->duration_minutes;
+            }
+        }
+        
+        // Get custom interventions
+        $customInterventions = $weeklyCarePlan->interventions()
+            ->whereNull('intervention_id')
+            ->get();
+
+        $customInterventionsByCategory = [];
+        foreach ($customInterventions as $intervention) {
+            if (!isset($customInterventionsByCategory[$intervention->care_category_id])) {
+                $customInterventionsByCategory[$intervention->care_category_id] = [];
+            }
+            $customInterventionsByCategory[$intervention->care_category_id][] = $intervention;
+        }
+
+
+        
+        // Check user role and return appropriate view
+        if (Auth::user()->role_id == 1) { // Admin
+            return view('admin.editWeeklyCareplan', compact(
+                'weeklyCarePlan',
+                'beneficiaries',
+                'careCategories',
+                'selectedInterventions',
+                'interventionDurations',
+                'customInterventions',
+                'customInterventionsByCategory'
+            ));
+        } else { // Care worker
+            return view('careWorker.editWeeklyCareplan', compact(
+                'weeklyCarePlan',
+                'beneficiaries',
+                'careCategories',
+                'selectedInterventions',
+                'interventionDurations',
+                'customInterventions',
+                'customInterventionsByCategory'
+            ));
+        }
+    }
+
+    public function update(Request $request, $id)
+    {
+        // Find the weekly care plan
+        $weeklyCarePlan = WeeklyCarePlan::findOrFail($id);
+        
+        // Check authorization - only allow admins or the creator to update
+        if (Auth::user()->role_id > 2 && $weeklyCarePlan->care_worker_id != Auth::id()) {
+            return redirect()->back()->with('error', 'You are not authorized to update this care plan');
+        }
+
+        // Validate the request (same validation as store method)
+        $validated = $request->validate([
+            'beneficiary_id' => 'required|exists:beneficiaries,beneficiary_id',
+            'assessment' => 'required|string|min:20|max:5000',
+            'blood_pressure' => 'required|string|regex:/^\d{2,3}\/\d{2,3}$/',
+            'body_temperature' => 'required|numeric|between:35,42',
+            'pulse_rate' => 'required|integer|between:40,200',
+            'respiratory_rate' => 'required|integer|between:8,40',
+            'evaluation_recommendations' => 'required|string|min:20|max:5000',
+            'selected_interventions' => 'required|array',
+            'duration_minutes' => 'required|array',
+            'duration_minutes.*' => 'required|numeric|min:0.01|max:999.99',
+            'custom_category.*' => 'sometimes|nullable|exists:care_categories,care_category_id',
+            'custom_description.*' => 'sometimes|nullable|required_with:custom_category.*|string|min:5|max:255|regex:/^(?=.*[a-zA-Z])[a-zA-Z0-9\s,.!?;:()\-\'\"]+$/',
+            'custom_duration.*' => 'sometimes|nullable|required_with:custom_category.*|numeric|min:0.01|max:999.99',
+        ]);
+
+        try {
+            DB::beginTransaction();
+            
+            // 1. Update vital signs
+            $vitalSigns = VitalSigns::findOrFail($weeklyCarePlan->vital_signs_id);
+            $vitalSigns->update([
+                'blood_pressure' => $request->blood_pressure,
+                'body_temperature' => $request->body_temperature,
+                'pulse_rate' => $request->pulse_rate,
+                'respiratory_rate' => $request->respiratory_rate,
+                'updated_by' => Auth::id(),
+            ]);
+            
+            // 2. Update weekly care plan
+            $weeklyCarePlan->update([
+                'beneficiary_id' => $request->beneficiary_id,
+                'assessment' => $request->assessment,
+                'evaluation_recommendations' => $request->evaluation_recommendations,
+                'updated_by' => Auth::id(),
+                'updated_at' => now(),
+            ]);
+            
+            // 3. Delete all existing interventions
+            $weeklyCarePlan->interventions()->delete();
+            
+            // 4. Add selected interventions
+            if ($request->has('selected_interventions') && is_array($request->selected_interventions)) {
+                foreach ($request->selected_interventions as $interventionId) {
+                    if (isset($request->duration_minutes[$interventionId]) && 
+                        $request->duration_minutes[$interventionId] > 0) {
+                        
+                        $intervention = Intervention::find($interventionId);
+                        
+                        if ($intervention) {
+                            WeeklyCarePlanInterventions::create([
+                                'weekly_care_plan_id' => $weeklyCarePlan->weekly_care_plan_id,
+                                'intervention_id' => $interventionId,
+                                'care_category_id' => $intervention->care_category_id,
+                                'intervention_description' => null,
+                                'duration_minutes' => $request->duration_minutes[$interventionId],
+                                'implemented' => true
+                            ]);
+                        }
+                    }
+                }
+            }
+            
+            // 5. Add custom interventions
+            if ($request->has('custom_category') && is_array($request->custom_category)) {
+                foreach ($request->custom_category as $index => $categoryId) {
+                    if (!empty($categoryId) && 
+                        !empty($request->custom_description[$index]) &&
+                        isset($request->custom_duration[$index]) && 
+                        $request->custom_duration[$index] > 0) {
+                        
+                        WeeklyCarePlanInterventions::create([
+                            'weekly_care_plan_id' => $weeklyCarePlan->weekly_care_plan_id,
+                            'intervention_id' => null,
+                            'care_category_id' => $categoryId,
+                            'intervention_description' => $request->custom_description[$index],
+                            'duration_minutes' => $request->custom_duration[$index],
+                            'implemented' => true
+                        ]);
+                    }
+                }
+            }
+            
+            DB::commit();
+            
+            if (Auth::user()->role_id == 1) {
+                return redirect()->route('admin.weeklycareplans.show', $weeklyCarePlan->weekly_care_plan_id)
+                    ->with('success', 'Weekly care plan updated successfully!');
+            } else {
+                return redirect()->route('careworker.weeklycareplans.show', $weeklyCarePlan->weekly_care_plan_id)
+                    ->with('success', 'Weekly care plan updated successfully!');
+            }
+            
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Error updating weekly care plan: ' . $e->getMessage());
+            
+            return back()->withInput()->with('error', 'Database error: ' . $e->getMessage());
+        }
+    }
 }
