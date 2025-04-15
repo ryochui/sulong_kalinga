@@ -13,7 +13,8 @@
 
     @include('components.userNavbar')
     @include('components.adminSidebar')
-
+    @include('components.modals.confirmDeleteWeeklyCareplan')
+    @include('components.modals.deleteWeeklyCareplan')
     
     <div class="home-section">
         <div class="container-fluid">
@@ -35,8 +36,8 @@
                     <a href="{{ route('admin.weeklycareplans.edit', $weeklyCareplan->weekly_care_plan_id) }}" title="Edit Weekly Care Plan" class="btn btn-primary">
                         <i class="bx bx-edit"></i> Edit
                     </a>
-                    <button class="btn btn-danger">
-                        <i class="bx bxs-trash"></i> Delete
+                    <button type="button" class="btn btn-danger" onclick="openInitialDeleteModal('{{ $weeklyCareplan->weekly_care_plan_id }}', '{{ $weeklyCareplan->beneficiary->first_name }} {{ $weeklyCareplan->beneficiary->last_name }}')">
+                        <i class="bx bx-trash"></i> Delete
                     </button>
                 </div>
             </div>
@@ -238,6 +239,19 @@
 
     <script src=" {{ asset('js/toggleSideBar.js') }}"></script>
     <script src="{{ asset('js/bootstrap.bundle.min.js') }}"></script>
+
+    <script>
+    // Function to open the initial confirmation modal
+    function openInitialDeleteModal(id, name) {
+        // Set values for the initial modal
+        document.getElementById('initialWeeklyCarePlanIdToDelete').value = id;
+        document.getElementById('initialBeneficiaryNameToDelete').textContent = name;
+        
+        // Show the initial confirmation modal
+        const initialModal = new bootstrap.Modal(document.getElementById('confirmDeleteWeeklyCarePlanModal'));
+        initialModal.show();
+    }
+</script>
    
 </body>
 </html>

@@ -96,6 +96,7 @@ Route::middleware(['auth', '\App\Http\Middleware\CheckRole:administrator'])->pre
         Route::get('/{id}/edit', [WeeklyCareController::class, 'edit'])->name('edit');
         Route::put('/{id}', [WeeklyCareController::class, 'update'])->name('update');
         Route::get('/beneficiary/{id}', [WeeklyCareController::class, 'getBeneficiaryDetails'])->name('beneficiaryDetails');
+        Route::delete('/{id}/delete', [App\Http\Controllers\WeeklyCareController::class, 'destroy'])->name('delete');
     });
 
     // Reports Management

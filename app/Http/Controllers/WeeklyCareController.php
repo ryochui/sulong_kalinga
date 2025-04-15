@@ -3,15 +3,18 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Validator;
 use App\Models\Beneficiary;
 use App\Models\WeeklyCarePlan;
 use App\Models\CareCategory;
 use App\Models\Intervention;
 use App\Models\WeeklyCarePlanInterventions;
 use App\Models\VitalSigns;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
+
 
 class WeeklyCareController extends Controller
 {
@@ -489,6 +492,87 @@ class WeeklyCareController extends Controller
             Log::error('Error updating weekly care plan: ' . $e->getMessage());
             
             return back()->withInput()->with('error', 'Database error: ' . $e->getMessage());
+        }
+    }
+
+    public function destroy(Request $request, $id)
+    {
+        try {
+            // Log incoming request for debugging
+            Log::info('Delete request received for weekly care plan ID: ' . $id);
+            
+            // Validate the request data
+            $validator = Validator::make($request->all(), [
+                'password' => 'required|string',
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Password is required to confirm deletion.'
+                ]);
+            }
+
+            // Verify the password
+            if (!Hash::check($request->password, auth()->user()->password)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'The password you entered is incorrect.'
+                ]);
+            }
+
+            // Find the weekly care plan
+            $weeklyCarePlan = WeeklyCarePlan::findOrFail($id);
+            
+            // Begin database transaction
+            DB::beginTransaction();
+            
+            try {
+                // 1. Delete interventions first
+                $weeklyCarePlan->interventions()->delete();
+                Log::info('Deleted interventions for weekly care plan: ' . $id);
+                
+                // 2. Get the vital signs ID before deleting the care plan
+                $vitalSignsId = $weeklyCarePlan->vital_signs_id;
+                
+                // 3. Delete the weekly care plan
+                $weeklyCarePlan->delete();
+                Log::info('Deleted weekly care plan: ' . $id);
+                
+                // 4. Delete vital signs
+                if ($vitalSignsId) {
+                    VitalSigns::where('vital_signs_id', $vitalSignsId)->delete();
+                    Log::info('Deleted vital signs: ' . $vitalSignsId);
+                }
+                
+                DB::commit();
+                
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Weekly care plan deleted successfully.'
+                ]);
+            } catch (\Exception $e) {
+                DB::rollBack();
+                Log::error('Transaction error: ' . $e->getMessage());
+                throw $e; // Re-throw to be caught by outer catch
+            }
+        } 
+        catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            Log::error('Weekly care plan not found: ' . $id);
+            return response()->json([
+                'success' => false,
+                'message' => 'Weekly care plan not found.'
+            ], 404);
+        }
+        catch (\Exception $e) {
+            // Log detailed error information
+            Log::error('Weekly care plan deletion error: ' . $e->getMessage());
+            Log::error('Stack trace: ' . $e->getTraceAsString());
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'An error occurred while processing your request: ' . $e->getMessage()
+            ], 500);
         }
     }
 }
