@@ -188,23 +188,35 @@
                             <div class="col-md-4">
                                 <label for="caremanagerPhoto" class="form-label">Care Manager Photo</label>
                                 <input type="file" class="form-control" id="caremanagerPhoto" name="caremanager_photo" accept="image/png, image/jpeg">
-                                <small class="text-muted file-info" title="{{ $caremanager->photo ?: 'No file uploaded' }}">
-                                    Current file: {{ $caremanager->photo ? basename($caremanager->photo) : 'No file uploaded' }}
-                                </small>
+                                @if($caremanager->photo)
+                                    <small class="text-muted" title="{{ basename($caremanager->photo) }}">
+                                        Current file: {{ strlen(basename($caremanager->photo)) > 30 ? substr(basename($caremanager->photo), 0, 30) . '...' : basename($caremanager->photo) }}
+                                    </small>
+                                @else
+                                    <small class="text-muted">No file uploaded</small>
+                                @endif
                             </div>
                             <div class="col-md-4">
                                 <label for="governmentID" class="form-label">Government Issued ID</label>
                                 <input type="file" class="form-control" id="governmentID" name="government_ID" accept=".jpg,.png">
-                                <small class="text-muted file-info" title="{{ $caremanager->government_issued_id ?: 'No file uploaded' }}">
-                                    Current file: {{ $caremanager->government_issued_id ? basename($caremanager->government_issued_id) : 'No file uploaded' }}
-                                </small>
+                                @if($caremanager->government_issued_id)
+                                    <small class="text-muted" title="{{ basename($caremanager->government_issued_id) }}">
+                                        Current file: {{ strlen(basename($caremanager->government_issued_id)) > 30 ? substr(basename($caremanager->government_issued_id), 0, 30) . '...' : basename($caremanager->government_issued_id) }}
+                                    </small>
+                                @else
+                                    <small class="text-muted">No file uploaded</small>
+                                @endif
                             </div>
                             <div class="col-md-4">
                                 <label for="resume" class="form-label">Resume / CV</label>
                                 <input type="file" class="form-control" id="resume" name="resume" accept=".pdf,.doc,.docx">
-                                <small class="text-muted file-info" title="{{ $caremanager->cv_resume ?: 'No file uploaded' }}">
-                                    Current file: {{ $caremanager->cv_resume ? basename($caremanager->cv_resume) : 'No file uploaded' }}
-                                </small>
+                                @if($caremanager->cv_resume)
+                                    <small class="text-muted" title="{{ basename($caremanager->cv_resume) }}">
+                                        Current file: {{ strlen(basename($caremanager->cv_resume)) > 30 ? substr(basename($caremanager->cv_resume), 0, 30) . '...' : basename($caremanager->cv_resume) }}
+                                    </small>
+                                @else
+                                    <small class="text-muted">No file uploaded</small>
+                                @endif
                             </div>
                         </div>
                         <div class="row mb-1">

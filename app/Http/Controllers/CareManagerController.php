@@ -63,7 +63,7 @@ class CareManagerController extends Controller
             return redirect()->route('admin.caremanagers.index')->with('error', 'Care manager not found.');
         }
 
-        return view('admin.caremanagers.view', compact('caremanager'));
+        return view('admin.viewCareManagerDetails', compact('caremanager'));
     }
 
 

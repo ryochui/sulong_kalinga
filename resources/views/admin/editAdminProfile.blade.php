@@ -164,23 +164,35 @@
                             <div class="col-md-4">
                                 <label for="administratorPhoto" class="form-label">Administrator Photo</label>
                                 <input type="file" class="form-control" id="administratorPhoto" name="administrator_photo" accept="image/png, image/jpeg">
-                                <small class="text-muted">
-                                Current file: {{ basename($administrator->photo ?: 'No file uploaded') }}
-                                </small>
+                                @if($administrator->photo)
+                                    <small class="text-muted" title="{{ basename($administrator->photo) }}">
+                                        Current file: {{ strlen(basename($administrator->photo)) > 30 ? substr(basename($administrator->photo), 0, 30) . '...' : basename($administrator->photo) }}
+                                    </small>
+                                @else
+                                    <small class="text-muted">No file uploaded</small>
+                                @endif
                             </div>
                             <div class="col-md-4">
                                 <label for="governmentID" class="form-label">Government Issued ID</label>
                                 <input type="file" class="form-control" id="governmentID" name="government_ID" accept=".jpg,.png">
-                                <small class="text-muted">
-                                Current file: {{ basename($administrator->government_issued_id ?: 'No file uploaded') }}
-                                </small>
+                                @if($administrator->government_issued_id)
+                                    <small class="text-muted" title="{{ basename($administrator->government_issued_id) }}">
+                                        Current file: {{ strlen(basename($administrator->government_issued_id)) > 30 ? substr(basename($administrator->government_issued_id), 0, 30) . '...' : basename($administrator->government_issued_id) }}
+                                    </small>
+                                @else
+                                    <small class="text-muted">No file uploaded</small>
+                                @endif
                             </div>
                             <div class="col-md-4">
                                 <label for="resume" class="form-label">Resume / CV</label>
                                 <input type="file" class="form-control" id="resume" name="resume" accept=".pdf,.doc,.docx">
-                                <small class="text-muted">
-                                Current file: {{ basename($administrator->cv_resume ?: 'No file uploaded') }}
-                                </small>
+                                @if($administrator->cv_resume)
+                                    <small class="text-muted" title="{{ basename($administrator->cv_resume) }}">
+                                        Current file: {{ strlen(basename($administrator->cv_resume)) > 30 ? substr(basename($administrator->cv_resume), 0, 30) . '...' : basename($administrator->cv_resume) }}
+                                    </small>
+                                @else
+                                    <small class="text-muted">No file uploaded</small>
+                                @endif
                             </div>
                         </div>
                         <div class="row mb-1">
