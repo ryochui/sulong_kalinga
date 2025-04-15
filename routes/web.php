@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\PasswordResetController;
 use App\Http\Middleware\CheckRole;
 
 // Include route files for role-specific routes
@@ -70,3 +71,16 @@ Route::get('/updates', function () {
 Route::get('/events', function () {
     return view('publicWeb.events');
 })->name('events');
+
+// Password Reset Routes
+Route::get('/forgot-password', [PasswordResetController::class, 'showForgotPasswordForm'])
+    ->name('password.request');
+    
+Route::post('/forgot-password', [PasswordResetController::class, 'sendResetLinkEmail'])
+    ->name('password.email');
+    
+Route::get('/reset-password/{token}', [PasswordResetController::class, 'showResetForm'])
+    ->name('password.reset');
+    
+Route::post('/reset-password', [PasswordResetController::class, 'reset'])
+    ->name('password.update');

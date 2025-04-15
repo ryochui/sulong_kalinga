@@ -159,7 +159,7 @@
                 <button type="submit" class="btn">Login</button>
 
                 <div class="links">
-                    <a href="{{ route('forgotPass') }}">Forgot password?</a>
+                    <a href="{{ route('password.request') }}">Forgot password?</a>
                 </div>
             </form>
 
