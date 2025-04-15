@@ -38,7 +38,7 @@
     border-radius: 10px;
 }
 
-#recentReports {
+#municipality {
     height: 100%;
     padding: 10px;
 }
@@ -78,7 +78,7 @@
 }
 
 /* Ensure the table is scrollable if content overflows */
-#recentReports {
+#municipality {
     flex: 1;
     overflow-y: auto;
     background-color: white;

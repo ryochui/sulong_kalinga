@@ -84,7 +84,7 @@
             </div>
         </div>
 
-            <div class="row" id="recentReports">
+            <div class="row" id="municipality">
                 <div class="col-12">
                     <div class="table-responsive">
                         <table class="table table-striped w-100 align-middle">

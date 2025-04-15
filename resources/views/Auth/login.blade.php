@@ -43,18 +43,19 @@
             border-radius: 10px;
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
             width: 400px;
-            padding: 30px;
+            padding: 10px 30px;
             text-align: center;
         }
         
         .logo {
             width: 90px;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
+            margin-top: 15px;
         }
         
         h1 {
             color: #2c7873;
-            margin-bottom: 20px;
+            margin-bottom: 10px;
             font-size: 20px;
         }
         
@@ -117,7 +118,7 @@
         }
         
         .mission-statement {
-            margin-top: 20px;
+            margin-top: 10px;
             font-size: 14px;
             color: #666;
             border-top: 1px solid #eee;

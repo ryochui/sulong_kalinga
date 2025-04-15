@@ -10,6 +10,10 @@ use App\Http\Controllers\AdminController;
 use App\Http\Controllers\UserController;
 
 
+Route::get('/admin/viewProfile', function () {
+    return view('components.viewProfile');
+})->name('viewProfile');
+
 Route::get('/dashboard', function () {
     return view('admin.admindashboard');
 })->name('dashboard');
