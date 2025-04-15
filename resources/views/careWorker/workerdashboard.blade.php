@@ -11,7 +11,7 @@
 <body>
 
     @include('components.userNavbar')
-    @include('components.sidebar')
+    @include('components.careWorkerSidebar')
 
     <!-- Welcome Back Modal -->
     <div class="modal fade" id="welcomeBackModal" tabindex="-1" aria-labelledby="welcomeBackModalLabel" aria-hidden="true">

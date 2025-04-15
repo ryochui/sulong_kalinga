@@ -139,3 +139,8 @@ Route::middleware(['auth', '\App\Http\Middleware\CheckRole:executive_director'])
         // Add other executive director only functionalities here
     });
 });
+
+
+Route::get('/admin/viewProfile', function () {
+    return view('components.viewProfile');
+})->name('viewProfile');

@@ -7,7 +7,7 @@
       </div>
       <ul class="nav-links">
         <li>
-          <a href="dashboard" class="{{ Request::routeIs('dashboard') ? 'active' : '' }}">
+          <a href="/manager/dashboard" class="{{ Request::routeIs('dashboard') ? 'active' : '' }}">
             <i class='bx bx-grid-alt'></i>
             <span class="link_name">Dashboard</span>
           </a>

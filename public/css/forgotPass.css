@@ -1,3 +1,25 @@
+body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(261deg,#2d7bfa,#88f1fb,#3ae07d,#3bd09c);
+            background-size: 240% 240%;
+            animation: gradient-animation 28s ease infinite;
+            margin: 0;
+            padding: 0;
+            color: #333;
+        }
+
+        @keyframes gradient-animation {
+            0% {
+                background-position: 0% 50%;
+            }
+            50% {
+                background-position: 100% 50%;
+            }
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+
 
 h2 {
     text-align: center;
