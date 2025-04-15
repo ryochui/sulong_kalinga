@@ -44,7 +44,7 @@ class LoginController extends Controller
             
             if ($user->role_id == 1) {
                 session()->put('show_welcome', true);
-                return redirect()->route('admindashboard');
+                return redirect('/admin/dashboard');
             }
             if ($user->role_id == 2) {
                 session()->put('show_welcome', true);

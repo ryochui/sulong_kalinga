@@ -92,7 +92,7 @@ class FamilyMemberController extends Controller
         // Validate the input data
         $validator = Validator::make($request->all(), [
             // Personal Details
-            'family_photo' => 'required|image|mimes:jpeg,png|max:2048',
+            'family_photo' => 'nullable|image|mimes:jpeg,png|max:2048',
             'first_name' => [
                 'required',
                 'string',
@@ -105,7 +105,7 @@ class FamilyMemberController extends Controller
                 'max:100',
                 'regex:/^[A-Z][a-zA-Z]{1,}(?:-[a-zA-Z]{1,})?(?: [a-zA-Z]{2,}(?:-[a-zA-Z]{1,})?)*$/'
             ],
-            'gender' => 'required|string|in:Male,Female,Other', // Must match dropdown options
+            'gender' => 'nullable|string|in:Male,Female,Other', // Must match dropdown options
             'birth_date' => 'required|date|before_or_equal:' . now()->subYears(14)->toDateString(), // Must be older than 14 years
             
             'relatedBeneficiary' => 'required|integer|exists:beneficiaries,beneficiary_id',
@@ -153,21 +153,19 @@ class FamilyMemberController extends Controller
             return redirect()->back()->withErrors($validator)->withInput();
         }
 
-        // Handle file uploads
-        $familyPhotoPath = $request->file('family_photo')->store('uploads/family_photos', 'public');
-
         $uniqueIdentifier = Str::random(10);
 
-        // Store beneficiary profile picture
-        if ($request->hasFile('family_photo')) {
-            $familyPhotoPath = $request->file('family_photo')->storeAs(
-                'uploads/family_photos',
-                $request->input('first_name') . '_' . $request->input('last_name') . '_family_member_photo_' . $uniqueIdentifier . '.' . $request->file('family_photo')->getClientOriginalExtension(),
-                'public'
-            );
-        } else {
-            throw new \Exception('Family or Relative profile picture is required.');
-        }
+        try {
+            $uniqueIdentifier = Str::random(10);
+    
+            // Store profile picture if it exists
+            if ($request->hasFile('family_photo')) {
+                $familyPhotoPath = $request->file('family_photo')->storeAs(
+                    'uploads/family_photos', 
+                    $request->input('first_name') . '_' . $request->input('last_name') . '_family_member_photo_' . $uniqueIdentifier . '.' . $request->file('family_photo')->getClientOriginalExtension(),
+                    'public'
+                );
+            }
 
         // Retrieve the portal_account_id from the selected beneficiary
         $beneficiary = Beneficiary::find($request->input('relatedBeneficiary'));
@@ -202,10 +200,10 @@ class FamilyMemberController extends Controller
         $familymember->first_name = $request->input('first_name');
         $familymember->last_name = $request->input('last_name');
         // $familymember->name = $request->input('name') . ' ' . $request->input('last_name'); // Combine first and last name
-        $familymember->gender = $request->input('gender');
+        $familymember->gender = $request->input('gender') ?? null;
         $familymember->birthday = $request->input('birth_date');
         $familymember->mobile = '+63' . $request->input('mobile_number');
-        $familymember->landline = $request->input('landline_number');
+        $familymember->landline = $request->input('landline_number') ?? null;
         $familymember->is_primary_caregiver = $request->input('is_primary_caregiver');
         $familymember->related_beneficiary_id = $request->input('relatedBeneficiary');
         $familymember->relation_to_beneficiary = $request->input('relation_to_beneficiary');
@@ -219,7 +217,7 @@ class FamilyMemberController extends Controller
         // $familymember->assigned_municipality_id = $request->input('municipality');
 
         // Save file paths and IDs
-        $familymember->photo = $familyPhotoPath;
+        $familymember->photo = $familyPhotoPath ?? null;
 
         // Assign the portal_account_id from the beneficiary
         $familymember->portal_account_id = $beneficiary->portal_account_id;
@@ -231,6 +229,41 @@ class FamilyMemberController extends Controller
         $familymember->save();
 
         // Redirect with success message
-        return redirect()->route('admin.addFamily')->with('success', 'Family Member or Relative has been successfully added!');
+        return redirect()->route('admin.families.create')->with('success', 'Family Member or Relative has been successfully added!');
+    
+        } catch (\Illuminate\Database\QueryException $e) {
+            // Check if it's a unique constraint violation
+            if ($e->getCode() == 23505) { // PostgreSQL unique violation error code
+                // Check which field caused the violation
+                if (strpos($e->getMessage(), 'cose_users_mobile_unique') !== false || 
+                    strpos($e->getMessage(), 'mobile') !== false) {
+                    return redirect()->back()
+                        ->withInput()
+                        ->withErrors(['mobile_number' => 'This mobile number is already registered in the system.']);
+                } elseif (strpos($e->getMessage(), 'cose_users_personal_email_unique') !== false || 
+                        strpos($e->getMessage(), 'email') !== false) {
+                    return redirect()->back()
+                        ->withInput()
+                        ->withErrors(['personal_email' => 'This email address is already registered in the system.']);
+                } else {
+                    // Generic unique constraint error
+                    return redirect()->back()
+                        ->withInput()
+                        ->withErrors(['error' => 'A record with some of this information already exists.']);
+                }
+            }
+
+            // For other database errors
+            \Log::error('Database error when creating family member: ' . $e->getMessage());
+            return redirect()->back()
+                ->withInput()
+                ->withErrors(['error' => 'An error occurred while saving the family member. Please try again.']);
+        } catch (\Exception $e) {
+            // For any other unexpected errors
+            \Log::error('Unexpected error when creating family member: ' . $e->getMessage());
+            return redirect()->back()
+                ->withInput()
+                ->withErrors(['error' => 'An unexpected error occurred. Please try again.']);
+        }
     }
 }

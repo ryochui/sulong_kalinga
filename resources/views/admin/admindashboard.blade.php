@@ -11,7 +11,7 @@
 <body>
 
     @include('components.userNavbar')
-    @include('components.sidebar')
+    @include('components.adminSidebar')
 
     <!-- Welcome Back Modal -->
     <div class="modal fade" id="welcomeBackModal" tabindex="-1" aria-labelledby="welcomeBackModalLabel" aria-hidden="true">
@@ -23,7 +23,7 @@
                 </div>
                 <div class="modal-body text-center">
                     <i class='bx bxs-party display-4 text-primary mb-3'></i>
-                    <h4>Hello, {{ auth()->user()->name }}!</h4>
+                    <h4>Hello, {{ auth()->user()->first_name }} {{ auth()->user()->last_name }}!</h4>
                     <p>Welcome back to your Administrator Dashboard.</p>
                 </div>
                 <div class="modal-footer justify-content-center">
@@ -34,7 +34,7 @@
     </div>
 
     <div class="home-section">
-      <div class="text-left">DASHBOARD ADMIN</div>
+      <div class="text-left">ADMIN DASHBOARD</div>
         <div class="container-fluid">
             <div class="row boxbox">
               <!-- Statistics Row -->

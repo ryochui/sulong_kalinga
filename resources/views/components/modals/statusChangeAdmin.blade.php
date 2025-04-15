@@ -26,25 +26,25 @@
 <script>
 document.addEventListener("DOMContentLoaded", function () {
     let selectedAdminStatusElement = null;
-    let previousAdminStatusValue = null; // Store the previous value of the dropdown
-    let adminEntityType = ""; // Store the entity type dynamically
-    let administratorId = null; // Store the administrator ID dynamically
+    let previousAdminStatusValue = null;
+    let adminEntityType = "";
+    let administratorId = null;
 
-    // Function to open the modal and store the selected status element
+    // Function to open the modal
     window.openStatusChangeAdminModal = function (selectElement, type, id, oldStatus) {
-        selectedAdminStatusElement = selectElement; // Store the reference to the dropdown
-        previousAdminStatusValue = oldStatus; // Store the previous value
-        adminEntityType = type; // Set the entity type dynamically
-        administratorId = id; // Set the administrator ID dynamically
+        selectedAdminStatusElement = selectElement;
+        previousAdminStatusValue = oldStatus;
+        adminEntityType = type;
+        administratorId = id;
         const adminEntityTypeElement = document.getElementById("adminEntityType");
         if (adminEntityTypeElement) {
-            adminEntityTypeElement.textContent = adminEntityType; // Update the modal text
+            adminEntityTypeElement.textContent = adminEntityType;
         }
         const statusChangeAdminModal = new bootstrap.Modal(document.getElementById("statusChangeAdminModal"));
         statusChangeAdminModal.show();
     };
 
-    // Handle the status change confirmation
+    // Handle confirmation button click
     const confirmAdminStatusChangeButton = document.getElementById("confirmAdminStatusChangeButton");
     if (confirmAdminStatusChangeButton) {
         confirmAdminStatusChangeButton.addEventListener("click", function () {
@@ -62,53 +62,67 @@ document.addEventListener("DOMContentLoaded", function () {
                 return;
             }
 
-            // Validate the password with the server - using hardcoded CSRF token from Blade
-            fetch('/validate-password', {
+            // Validate password using the correct route
+            fetch("{{ route('admin.validate-password') }}", {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}' // Include CSRF token for security
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Accept': 'application/json'
                 },
                 body: JSON.stringify({ password: enteredPassword })
             })
             .then(response => response.json())
             .then(data => {
                 if (data.valid) {
-                    // Update the status in the database
-                    fetch(`/admin/administrators/${administratorId}/status`, {
-                        method: 'PUT',
+                    // Show processing message
+                    messageElement.textContent = `Processing status change...`;
+                    messageElement.classList.remove("d-none", "alert-danger");
+                    messageElement.classList.add("alert-success");
+                    
+                    // Make AJAX call to update status - using POST instead of PUT
+                    fetch(`/admin/administrators/${administratorId}/update-status-ajax`, {
+                        method: 'POST',  // Changed from PUT to POST
                         headers: {
                             'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': '{{ csrf_token() }}' // Include CSRF token for security
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                            'Accept': 'application/json'
                         },
                         body: JSON.stringify({ status: selectedAdminStatusElement.value })
                     })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            messageElement.textContent = `Status changed to "${selectedAdminStatusElement.value}" for ${adminEntityType}.`;
-                            messageElement.classList.remove("d-none", "alert-danger");
-                            messageElement.classList.add("alert-success");
-
-                            // Reset the modal fields
-                            passwordInput.value = "";
-
-                            // Refresh the page after a longer delay to show the success message
-                            setTimeout(() => {
-                                const statusChangeAdminModal = bootstrap.Modal.getInstance(document.getElementById("statusChangeAdminModal"));
-                                statusChangeAdminModal.hide();
-                                location.reload();
-                            }, 3000); // 3 seconds delay
-                        } else {
-                            messageElement.textContent = "Failed to update status. Please try again.";
-                            messageElement.classList.remove("d-none", "alert-success");
-                            messageElement.classList.add("alert-danger");
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Status update failed');
                         }
+                        return response.json();
+                    })
+                    .then(data => {
+                        // Update success message
+                        messageElement.textContent = `Status changed to "${selectedAdminStatusElement.value}" for ${adminEntityType}.`;
+                        
+                        // Reset password field
+                        passwordInput.value = "";
+
+                        // Close modal after delay
+                        setTimeout(() => {
+                            const modal = bootstrap.Modal.getInstance(document.getElementById("statusChangeAdminModal"));
+                            modal.hide();
+                            
+                            // Update UI without page reload
+                            const statusCell = document.querySelector(`#admin-${administratorId} .status-cell`);
+                            if (statusCell) {
+                                statusCell.textContent = selectedAdminStatusElement.value.charAt(0).toUpperCase() + selectedAdminStatusElement.value.slice(1);
+                                statusCell.className = `status-cell ${selectedAdminStatusElement.value.toLowerCase()}`;
+                            } else {
+                                // Fallback to page reload if we can't find the cell
+                                location.reload();
+                            }
+                        }, 2000);
                     })
                     .catch(error => {
                         console.error('Error:', error);
-                        messageElement.textContent = "An error occurred. Please try again.";
-                        messageElement.classList.remove("d-none", "alert-success");
+                        messageElement.textContent = "Failed to update status. Please try again.";
+                        messageElement.classList.remove("alert-success");
                         messageElement.classList.add("alert-danger");
                     });
                 } else {

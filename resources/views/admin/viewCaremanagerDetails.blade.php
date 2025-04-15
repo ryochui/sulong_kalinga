@@ -12,7 +12,7 @@
 <body>
 
     @include('components.userNavbar')
-    @include('components.sidebar')
+    @include('components.adminSidebar')
     @include('components.modals.statusChangeCaremanager')
     @include('components.modals.deleteCaremanager')
     
@@ -20,7 +20,7 @@
         <div class="container-fluid">
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <!-- Original Back Button -->
-                <a href="careManagerProfile" class="btn btn-secondary original-back-btn">
+                <a href="{{ route('admin.caremanagers.index') }}" class="btn btn-secondary original-back-btn">
                     <i class="bx bx-arrow-back"></i> Back
                 </a>
                 <div class="mx-auto text-center" style="flex-grow: 1; font-weight: bold; font-size: 20px;">VIEW CARE MANAGER PROFILE DETAILS</div>
@@ -32,7 +32,7 @@
                     <!-- Edit Button with Routing - Only visible to administrators -->
                     @if(Auth::user()->role_id == 1)
                         <!-- Edit Button -->
-                        <a href="{{ route('admin.editCaremanagerProfile.edit', $caremanager->id) }}" class="btn btn-primary">
+                        <a href="{{ route('admin.caremanagers.edit', $caremanager->id) }}" class="btn btn-primary">
                             <i class="bx bxs-edit"></i> Edit
                         </a>
 
@@ -61,9 +61,9 @@
                                     <h4 class="me-md-3 mb-2 mb-md-0 mt-2">{{ $caremanager->first_name }} {{ $caremanager->last_name }}</h4>
                                     <!-- Dropdown for Status -->
                                     <div class="form-group mb-0 ms-md-auto">
-                                        <select class="form-select" name="status" id="statusSelect{{ $caremanager->id }}" onchange="openStatusChangeCaremanagerModal(this, 'Care Manager', {{ $caremanager->id }}, '{{ $caremanager->volunteer_status }}')">
-                                                <option value="Active" {{ $caremanager->volunteer_status == 'Active' ? 'selected' : '' }}>Active Care Manager</option>
-                                                <option value="Inactive" {{ $caremanager->volunteer_status == 'Inactive' ? 'selected' : '' }}>Inactive Care Manager</option>
+                                        <select class="form-select" name="status" id="statusSelect{{ $caremanager->id }}" onchange="openStatusChangeCaremanagerModal(this, 'Care Manager', {{ $caremanager->id }}, '{{ $caremanager->status }}')">
+                                                <option value="Active" {{ $caremanager->status == 'Active' ? 'selected' : '' }}>Active Care Manager</option>
+                                                <option value="Inactive" {{ $caremanager->status == 'Inactive' ? 'selected' : '' }}>Inactive Care Manager</option>
                                             </select>
                                     </div>
                                 </div>
@@ -81,7 +81,7 @@
                             <tbody>
                                 <tr>
                                     <td style="width:30%;"><strong>Educational Background:</strong></td>
-                                    <td>{{$caremanager->educational_background}}</td>
+                                    <td>{{$caremanager->educational_background ?? 'N/A'}}</td>
                                 </tr>
                                 <tr>
                                     <td style="width:30%;"><strong>Birthday:</strong></td>
@@ -89,19 +89,19 @@
                                 </tr>
                                 <tr>
                                     <td style="width:30%;"><strong>Gender:</strong></td>
-                                    <td>{{$caremanager->gender}}</td>
+                                    <td>{{$caremanager->gender ?? 'N/A'}}</td>
                                 </tr>
                                 <tr>
                                     <td style="width:30%;"><strong>Civil Status:</strong></td>
-                                    <td>{{$caremanager->civil_status}}</td>
+                                    <td>{{$caremanager->civil_status ?? 'N/A'}}</td>
                                 </tr>
                                 <tr>
                                     <td style="width:30%;"><strong>Religion:</strong></td>
-                                    <td>{{$caremanager->religion ?? 'Prefer Not To Say'}}</td>
+                                    <td>{{$caremanager->religion ?? 'N/A'}}</td>
                                 </tr>
                                 <tr>
                                     <td style="width:30%;"><strong>Nationality:</strong></td>
-                                    <td>{{$caremanager->nationality}}</td>
+                                    <td>{{$caremanager->nationality ?? 'N/A'}}</td>
                                 </tr>
                                 <tr>
                                     <td style="width:30%;"><strong>Assigned Municipality:</strong></td>

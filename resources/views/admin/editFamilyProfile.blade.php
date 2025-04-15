@@ -12,13 +12,13 @@
 <body>
 
     @include('components.userNavbar')
-    @include('components.sidebar')
+    @include('components.adminSidebar')
     
     <div class="home-section">
         <div class="container-fluid">
             <!-- Back Button Logic -->
             <div class="d-flex justify-content-between align-items-center mb-3">
-                <form action="{{ route('viewFamilyDetails') }}" method="POST" style="display:inline;">
+                <form action="{{ route('admin.families.view') }}" method="POST" style="display:inline;">
                     @csrf
                     <input type="hidden" name="family_member_id" value="{{ $family_member->family_member_id }}">
                     <button type="submit" class="btn btn-secondary original-back-btn">
@@ -30,7 +30,7 @@
             </div>
             <div class="row" id="addUserForm">
                 <div class="col-12">
-                <form action="{{ route('editFamilyProfile') }}" method="POST">
+                <form action="{{ route('admin.families.edit') }}" method="POST">
                         @csrf <!-- Include CSRF token for security -->
                         @method('PUT') <!-- Use PUT method to update the record -->
                         <!-- Row 1: Personal Details -->

@@ -26,7 +26,12 @@ class WeeklyCareController extends Controller
         // Get all care categories with their interventions
         $careCategories = CareCategory::with('interventions')->get();
         
-        return view('careWorker.weeklyCareplan', compact('beneficiaries', 'careCategories'));
+        // Check user role and return appropriate view
+        if (Auth::user()->role_id == 1) { // Admin user
+            return view('admin.weeklyCareplan', compact('beneficiaries', 'careCategories'));
+        } else { // Care worker or other roles
+            return view('careWorker.weeklyCareplan', compact('beneficiaries', 'careCategories'));
+        }
     }
     
     /**
@@ -203,8 +208,13 @@ class WeeklyCareController extends Controller
 
             DB::commit();
 
-            return redirect()->route('weeklycareplans.create')
-                ->with('success', 'Weekly care plan created successfully!');
+            if (Auth::user()->role_id == 1) {
+                return redirect()->route('admin.weeklycareplans.create')
+                    ->with('success', 'Weekly care plan created successfully!');
+            } else {
+                return redirect()->route('careworker.weeklycareplans.create') 
+                    ->with('success', 'Weekly care plan created successfully!');
+            }
                 
         } catch (\Exception $e) {
             DB::rollBack();
@@ -223,7 +233,11 @@ class WeeklyCareController extends Controller
             ->orderBy('created_at', 'desc')
             ->paginate(10);
             
-        return view('careWorker.weeklyCarePlansList', compact('weeklyCarePlans'));
+            if (Auth::user()->role_id == 1) {
+                return view('admin.weeklyCarePlansList', compact('weeklyCarePlans'));
+            } else {
+                return view('careWorker.weeklyCarePlansList', compact('weeklyCarePlans'));
+            }
     }
 
     public function customInterventions()
@@ -262,11 +276,35 @@ class WeeklyCareController extends Controller
         // Get all care categories
         $categories = CareCategory::all();
         
-        return view('careWorker.viewWeeklyCareplan', compact(
-            'weeklyCareplan',
-            'interventionsByCategory',
-            'customInterventions',
-            'categories'
-        ));
+        // Check user role and return appropriate view
+        if (Auth::user()->role_id == 1) { // Admin user
+            return view('admin.viewWeeklyCareplan', compact(
+                'weeklyCareplan',
+                'interventionsByCategory',
+                'customInterventions',
+                'categories'
+            ));
+        } else { // Care worker or other roles
+            return view('careWorker.viewWeeklyCareplan', compact(
+                'weeklyCareplan',
+                'interventionsByCategory',
+                'customInterventions',
+                'categories'
+            ));
+        }
     }
+
+    /*  public function edit($id)
+        {
+            $weeklyCarePlan = WeeklyCarePlan::findOrFail($id);
+            
+            // Only allow editing if the user is an admin, care manager or the original author
+            if (Auth::user()->role_id > 2 && $weeklyCarePlan->created_by != Auth::id()) {
+                return redirect()->back()->with('error', 'You are not authorized to edit this care plan');
+            }
+            
+            // Proceed with editing
+            return view('weeklycareplans.edit', compact('weeklyCarePlan'));
+        } 
+    */
 }

@@ -12,7 +12,7 @@
 <body>
 
     @include('components.userNavbar')
-    @include('components.sidebar')
+    @include('components.adminSidebar')
     @include('components.modals.statusChangeAdmin')
     @php 
     use App\Helpers\StringHelper;
@@ -32,7 +32,7 @@
                 
                 <!-- Search Bar -->
                 <div class="col-12 col-md-6 col-lg-6 mb-2">
-                    <form action="{{ route('administratorProfile') }}" method="GET">
+                    <form action="{{ route('admin.administrators.index') }}" method="GET">
                         <div class="input-group">
                             <span class="input-group-text">
                                 <i class="bx bx-search-alt"></i>
@@ -45,7 +45,7 @@
 
                 <!-- Filter Dropdown -->
                 <div class="col-12 col-sm-6 col-md-6 col-lg-2 mb-2">
-                    <form action="{{ route('administratorProfile') }}" method="GET" id="filterForm">
+                    <form action="{{ route('admin.administrators.index') }}" method="GET" id="filterForm">
                         <div class="input-group">
                             <span class="input-group-text">
                                 <i class="bx bx-filter-alt"></i>
@@ -74,9 +74,9 @@
                 </div>
 
                 <!-- Hidden form for exporting -->
-                <form id="exportForm" action="{{ route('export.administrators.pdf') }}" method="POST" style="display: none;"
-                    data-pdf-route="{{ route('export.administrators.pdf') }}"
-                    data-excel-route="{{ route('export.administrators.excel') }}">
+                <form id="exportForm" action="{{ route('admin.export.administrators.pdf') }}" method="POST" style="display: none;"
+                    data-pdf-route="{{ route('admin.export.administrators.pdf') }}"
+                    data-excel-route="{{ route('admin.export.administrators.excel') }}">
                     @csrf
                     <input type="hidden" name="selected_administrators" id="selectedAdministrators">
                 </form>
@@ -84,7 +84,7 @@
                 <!-- Add Report Button - Only visible to Executive Admin -->
                 <div class="col-6 col-md-3 col-lg-2 mb-2">
                     @if(Auth::user()->organization_role_id == 1)
-                        <a href="{{ route('admin.addAdministrator') }}">
+                        <a href="{{ route('admin.administrators.create') }}">
                             <button class="btn btn-primary w-100" id="addButton">
                                 <i class="bx bx-plus"></i> Add Admin
                             </button>
@@ -135,9 +135,9 @@
                                                 @else
                                                     <!-- For non-executive directors, use the normal dropdown -->
                                                     <select class="form-select" name="status" id="statusSelect{{ $administrator->id }}" 
-                                                        onchange="openStatusChangeAdminModal(this, 'Administrator', {{ $administrator->id }}, '{{ $administrator->volunteer_status }}')">
-                                                        <option value="Active" {{ $administrator->volunteer_status == 'Active' ? 'selected' : '' }}>Active</option>
-                                                        <option value="Inactive" {{ $administrator->volunteer_status == 'Inactive' ? 'selected' : '' }}>Inactive</option>
+                                                        onchange="openStatusChangeAdminModal(this, 'Administrator', {{ $administrator->id }}, '{{ $administrator->status }}')">
+                                                        <option value="Active" {{ $administrator->status == 'Active' ? 'selected' : '' }}>Active</option>
+                                                        <option value="Inactive" {{ $administrator->status == 'Inactive' ? 'selected' : '' }}>Inactive</option>
                                                     </select>
                                                 @endif
                                             </div>
@@ -145,7 +145,7 @@
                                         <td>
                                         <div class="action-icons">
                                             <!-- View button - visible to everyone -->
-                                            <form action="{{ route('viewAdminDetails') }}" method="POST" style="display:inline;">
+                                            <form action="{{ route('admin.administrators.view') }}" method="POST" style="display:inline;">
                                                 @csrf
                                                 <input type="hidden" name="administrator_id" value="{{ $administrator->id }}">
                                                 <button type="submit" class="btn btn-link text-decoration-none" style="color:black;">
@@ -155,7 +155,7 @@
                                             
                                             <!-- Edit button - only visible to Executive Admin -->
                                             @if(Auth::user()->organization_role_id == 1)
-                                                <a href="{{ route('admin.editAdminProfile.edit', $administrator->id) }}" class="btn btn-link text-decoration-none" style="color:black;">
+                                                <a href="{{ route('admin.administrators.edit', $administrator->id) }}" class="btn btn-link text-decoration-none" style="color:black;">
                                                     <i class='bx bxs-edit'></i>
                                                 </a>
                                             @endif

@@ -12,7 +12,7 @@
 <body>
 
     @include('components.userNavbar')
-    @include('components.sidebar')
+    @include('components.adminSidebar')
 
     <div class="home-section">
         <div class="text-left">FAMILY OR RELATIVE PROFILES</div>
@@ -20,17 +20,18 @@
             <div class="row mb-3 align-items-center">
                 <!-- Search Bar -->
                 <div class="col-12 col-md-6 col-lg-6 mb-2">
-                    <form action="{{ route('admin.familyProfile') }}" method="GET" id="filterForm">
+                    <form action="{{ route('admin.families.index') }}" method="GET" id="filterForm">
                         <div class="input-group">
                             <span class="input-group-text">
                                 <i class="bx bx-search-alt"></i>
                             </span>
                             <input type="text" class="form-control" name="search" placeholder="Search family members..." id="searchBar" value="{{ request('search') }}">
+                            <button type="submit" class="btn btn-primary">Search</button>
                         </div>
                     </form>
                 </div>
 
-                <!-- Filter Dropdown -->
+                <!-- Filter Dropdown
                 <div class="col-12 col-sm-6 col-md-6 col-lg-2 mb-2">
                     <div class="input-group">
                         <span class="input-group-text">
@@ -41,10 +42,11 @@
                             <option value="access" {{ request('filter') == 'access' ? 'selected' : '' }}>Access</option>
                         </select>
                     </div>
-                </div>
+                </div> 
+                Removed filter dropdown as access is now dependent on beneficiary access-->
 
                 <!-- Export Dropdown -->
-                <div class="col-6 col-md-3 col-lg-2 mb-2">
+                <div class="col-6 col-md-3 col-lg-3 mb-2">
                     <div class="dropdown">
                         <button class="btn btn-secondary dropdown-toggle w-100" type="button" id="exportDropdown" data-bs-toggle="dropdown" aria-expanded="false">
                             <i class="bx bx-export"></i> Export
@@ -56,16 +58,16 @@
                 </div>
 
                 <!-- Hidden form for exporting -->
-                <form id="exportForm" action="{{ route('export.family.pdf') }}" method="POST" style="display: none;"
-                    data-pdf-route="{{ route('export.family.pdf') }}" 
-                    data-excel-route="{{ route('export.family.excel') }}">
+                <form id="exportForm" action="{{ route('admin.export.family.pdf') }}" method="POST" style="display: none;"
+                    data-pdf-route="{{ route('admin.export.family.pdf') }}" 
+                    data-excel-route="{{ route('admin.export.family.excel') }}">
                     @csrf
                     <input type="hidden" name="selected_family_members" id="selectedFamilyMembers">
                 </form>
 
                 <!-- Add Family Member Button -->
-                <div class="col-6 col-md-3 col-lg-2 mb-2">
-                    <a href="{{ route('admin.addFamily') }}">
+                <div class="col-6 col-md-3 col-lg-3 mb-2">
+                    <a href="{{ route('admin.families.create') }}">
                         <button class="btn btn-primary w-100" id="addButton">
                             <i class="bx bx-plus"></i> Add Family
                         </button>
@@ -99,14 +101,14 @@
                                         <td>{{ $family_member->beneficiary->first_name }} {{ $family_member->beneficiary->last_name }}</td>
                                         <td>
                                             <div class="action-icons">
-                                                <form action="{{ route('viewFamilyDetails') }}" method="POST" style="display:inline;">
+                                                <form action="{{ route('admin.families.view') }}" method="POST" style="display:inline;">
                                                     @csrf
                                                     <input type="hidden" name="family_member_id" value="{{ $family_member->family_member_id }}">
                                                     <button type="submit" class="btn btn-link text-decoration-none" style="color:black;">
                                                         <i class="fa fa-eye"></i>
                                                     </button>
                                                 </form>
-                                                <form action="{{ route('editFamilyProfile') }}" method="POST" style="display:inline;">
+                                                <form action="{{ route('admin.families.edit') }}" method="POST" style="display:inline;">
                                                     @csrf
                                                     <input type="hidden" name="family_member_id" value="{{ $family_member->family_member_id }}">
                                                     <button type="submit" class="btn btn-link text-decoration-none" style="color:black;">

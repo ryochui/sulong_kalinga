@@ -98,7 +98,7 @@ function showDependencyError(message, errorType) {
                 <ol class="mt-2 mb-0">
                     <li>Instead of deleting, you can mark this care manager as <strong>inactive</strong> in their profile</li>
                     <li>This will prevent them from logging in while preserving the audit trail</li>
-                    <li>Go to <a href="{{ route('admin.careManagerProfile') }}">Care Manager List</a>, find this care manager, and click the pencil icon in Actions (Edit) or just change change their status from the dropdown</li>
+                    <li>Go to <a href="{{ route('admin.caremanagers.index') }}">Care Manager List</a>, find this care manager, and click the pencil icon in Actions (Edit) or just change change their status from the dropdown</li>
                     <li>Change their status from "Active" to "Inactive" and save the changes</li>
                 </ol>
             </div>
@@ -111,7 +111,7 @@ function showDependencyError(message, errorType) {
                 <ol class="mt-2 mb-0">
                     <li>Instead of deleting, you can mark this care manager as <strong>inactive</strong> in their profile</li>
                     <li>This will prevent them from logging in while preserving the audit trail</li>
-                    <li>Go to <a href="{{ route('admin.careManagerProfile') }}">Care Manager List</a>, find this care manager, and click the pencil icon in Actions (Edit) or just change change their status from the dropdown</li>
+                    <li>Go to <a href="{{ route('admin.caremanagers.index') }}">Care Manager List</a>, find this care manager, and click the pencil icon in Actions (Edit) or just change change their status from the dropdown</li>
                     <li>Change their status from "Active" to "Inactive" and save the changes</li>
                 </ol>
             </div>
@@ -124,7 +124,7 @@ function showDependencyError(message, errorType) {
                 <ol class="mt-2 mb-0">
                     <li>Instead of deleting, you can mark this care manager as <strong>inactive</strong> in their profile</li>
                     <li>This will prevent them from logging in while preserving the audit trail</li>
-                    <li>Go to <a href="{{ route('admin.careManagerProfile') }}">Care Manager List</a>, find this care manager, and click the pencil icon in Actions (Edit) or just change change their status from the dropdown</li>
+                    <li>Go to <a href="{{ route('admin.caremanagers.index') }}">Care Manager List</a>, find this care manager, and click the pencil icon in Actions (Edit) or just change change their status from the dropdown</li>
                     <li>Change their status from "Active" to "Inactive" and save the changes</li>
                 </ol>
             </div>
@@ -137,7 +137,7 @@ function showDependencyError(message, errorType) {
                 <ol class="mt-2 mb-0">
                     <li>Instead of deleting, you can mark this care manager as <strong>inactive</strong> in their profile</li>
                     <li>This will prevent them from logging in while preserving the audit trail</li>
-                    <li>Go to <a href="{{ route('admin.careManagerProfile') }}">Care Manager List</a>, find this care manager, and click the pencil icon in Actions (Edit) or just change change their status from the dropdown</li>
+                    <li>Go to <a href="{{ route('admin.caremanagers.index') }}">Care Manager List</a>, find this care manager, and click the pencil icon in Actions (Edit) or just change change their status from the dropdown</li>
                     <li>Change their status from "Active" to "Inactive" and save the changes</li>
                 </ol>
             </div>
@@ -150,7 +150,7 @@ function showDependencyError(message, errorType) {
                 <ol class="mt-2 mb-0">
                     <li>Instead of deleting, you can mark this care manager as <strong>inactive</strong> in their profile</li>
                     <li>This will prevent them from logging in while preserving the audit trail</li>
-                    <li>Go to <a href="{{ route('admin.careManagerProfile') }}">Care Manager List</a>, find this care manager, and click the pencil icon in Actions (Edit) or just change change their status from the dropdown</li>
+                    <li>Go to <a href="{{ route('admin.caremanagers.index') }}">Care Manager List</a>, find this care manager, and click the pencil icon in Actions (Edit) or just change change their status from the dropdown</li>
                     <li>Change their status from "Active" to "Inactive" and save the changes</li>
                 </ol>
             </div>
@@ -174,7 +174,7 @@ function showSuccess() {
     document.getElementById('cancelDeleteButton').textContent = 'Close';
     
     setTimeout(function() {
-        window.location.href = "{{ route('admin.careManagerProfile') }}";
+        window.location.href = "{{ route('admin.caremanagers.index') }}";
     }, 2000);
 }
 
@@ -205,7 +205,7 @@ document.addEventListener('DOMContentLoaded', function() {
         formData.append('_token', '{{ csrf_token() }}');
         
         const xhr1 = new XMLHttpRequest();
-        xhr1.open('POST', '/validate-password', true);
+        xhr1.open('POST', "{{ route('admin.validate-password') }}", true);
         xhr1.onload = function() {
             if (xhr1.status === 200) {
                 try {
@@ -213,7 +213,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     if (data.valid) {
                         // Password is valid, proceed with deletion
                         const xhr2 = new XMLHttpRequest();
-                        xhr2.open('POST', '/admin/delete-caremanager', true);
+                        xhr2.open('POST', "{{ route('admin.caremanagers.delete') }}", true);
                         xhr2.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
                         xhr2.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
                         xhr2.onload = function() {

@@ -15,6 +15,15 @@
                     <strong>Note:</strong> Changing the status of this beneficiary will affect (allow or prevent) their access to the system, as well as their registered family members.
                 </div>
 
+                <form id="statusChangeFormHidden" method="POST" style="display:none;">
+                    @csrf
+                    @method('PUT')
+                    <input type="hidden" name="status" id="statusInput">
+                    <input type="hidden" name="reason" id="reasonInput">
+                    <input type="hidden" name="password" id="passwordHidden">
+                    <input type="hidden" name="return_url" id="returnUrlInput" value="{{ url()->current() }}">
+                </form>
+
                 <form id="statusChangeForm">
                     <div class="mb-3" id="reasonDiv">
                         <label for="reasonSelect" class="form-label">Reason for Status Change</label>
@@ -78,11 +87,12 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // Function to validate the password
     function validatePassword(password) {
-        return fetch('/validate-password', {
+        return fetch("{{ route('admin.validate-password') }}", {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': '{{ csrf_token() }}' // Include CSRF token for security
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Accept': 'application/json'
             },
             body: JSON.stringify({ password: password })
         })
@@ -124,63 +134,55 @@ document.addEventListener("DOMContentLoaded", function () {
         validatePassword(password)
         .then(data => {
             if (data.valid) {
-                // Determine the correct URL based on the new status
-                const url = newStatus === 'Active' ? `/admin/beneficiaries/${beneficiaryId}/activate` : `/admin/beneficiaries/${beneficiaryId}/status`;
-
-                // Make an AJAX request to update the beneficiary status
-                return fetch(url, {
-                    method: 'PUT',
+                // Show success message first
+                const successMessage = document.getElementById("successMessage");
+                successMessage.style.display = 'block';
+                
+                // Make the AJAX call to update status
+                fetch(`/admin/beneficiaries/${beneficiaryId}/update-status-ajax`, {
+                    method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': '{{ csrf_token() }}' // Include CSRF token for security
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Accept': 'application/json'
                     },
                     body: JSON.stringify({
                         status: newStatus,
-                        reason: selectedReason || null
+                        reason: selectedReason || ''
                     })
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Status update failed');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    // Close modal after showing success message
+                    setTimeout(() => {
+                        const modal = bootstrap.Modal.getInstance(document.getElementById('statusChangeModal'));
+                        modal.hide();
+                        
+                        // Update UI without page reload
+                        const statusCell = document.querySelector(`#beneficiary-${beneficiaryId} .status-cell`);
+                        if (statusCell) {
+                            statusCell.textContent = newStatus;
+                            statusCell.className = `status-cell ${newStatus.toLowerCase()}`;
+                        }
+                    }, 2000);
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    errorMessage.textContent = "Failed to update status. Please try again.";
+                    errorMessage.style.display = 'block';
+                    successMessage.style.display = 'none';
                 });
             } else {
                 throw new Error('Incorrect password. Please try again.');
             }
         })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
-            }
-            return response.json();
-        })
-        .then(data => {
-            if (data.success) {
-                // Mark the change as confirmed
-                selectedStatusElement.dataset.confirmed = true;
-
-                // Display success message
-                const successMessage = document.getElementById("successMessage");
-                successMessage.style.display = 'block';
-
-                // Reset the modal fields
-                reasonSelect.value = "";
-                passwordInput.value = "";
-
-                // Delay hiding the modal and refreshing the page to show the success message
-                setTimeout(() => {
-                    const statusChangeModal = bootstrap.Modal.getInstance(document.getElementById("statusChangeModal"));
-                    statusChangeModal.hide();
-
-                    // Refresh the page after the modal is closed
-                    document.getElementById("statusChangeModal").addEventListener('hidden.bs.modal', function () {
-                        location.reload();
-                    }, { once: true });
-                }, 2000); // Adjust the delay time as needed
-            } else {
-                const errorMessage = document.getElementById("errorMessage");
-                errorMessage.textContent = 'Failed to update status. Please try again.';
-                errorMessage.style.display = 'block';
-            }
-        })
         .catch(error => {
             console.error('Error:', error);
-            const errorMessage = document.getElementById("errorMessage");
             errorMessage.textContent = error.message || 'An error occurred. Please try again.';
             errorMessage.style.display = 'block';
         });

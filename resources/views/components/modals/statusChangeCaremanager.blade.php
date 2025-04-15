@@ -30,21 +30,21 @@ document.addEventListener("DOMContentLoaded", function () {
     let caremanagerEntityType = ""; // Store the entity type dynamically
     let caremanagerId = null; // Store the caremanager ID dynamically
 
-    // Function to open the modal and store the selected status element
+    // Function to open the modal
     window.openStatusChangeCaremanagerModal = function (selectElement, type, id, oldStatus) {
-        selectedCaremanagerStatusElement = selectElement; // Store the reference to the dropdown
-        previousCaremanagerStatusValue = oldStatus; // Store the previous value
-        caremanagerEntityType = type; // Set the entity type dynamically
-        caremanagerId = id; // Set the caremanager ID dynamically
+        selectedCaremanagerStatusElement = selectElement;
+        previousCaremanagerStatusValue = oldStatus;
+        caremanagerEntityType = type;
+        caremanagerId = id;
         const caremanagerEntityTypeElement = document.getElementById("caremanagerEntityType");
         if (caremanagerEntityTypeElement) {
-            caremanagerEntityTypeElement.textContent = caremanagerEntityType; // Update the modal text
+            caremanagerEntityTypeElement.textContent = caremanagerEntityType;
         }
         const statusChangeCaremanagerModal = new bootstrap.Modal(document.getElementById("statusChangeCaremanagerModal"));
         statusChangeCaremanagerModal.show();
     };
 
-    // Handle the status change confirmation
+    // Handle confirmation button click
     const confirmCaremanagerStatusChangeButton = document.getElementById("confirmCaremanagerStatusChangeButton");
     if (confirmCaremanagerStatusChangeButton) {
         confirmCaremanagerStatusChangeButton.addEventListener("click", function () {
@@ -62,53 +62,67 @@ document.addEventListener("DOMContentLoaded", function () {
                 return;
             }
 
-            // Validate the password with the server - using hardcoded CSRF token from Blade
-            fetch('/validate-password', {
+            // Validate password
+            fetch("{{ route('admin.validate-password') }}", {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}' // Include CSRF token for security
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Accept': 'application/json'
                 },
                 body: JSON.stringify({ password: enteredPassword })
             })
             .then(response => response.json())
             .then(data => {
                 if (data.valid) {
-                    // Update the status in the database
-                    fetch(`/admin/caremanagers/${caremanagerId}/status`, {
-                        method: 'PUT',
+                    // Show success message first
+                    messageElement.textContent = `Processing status change...`;
+                    messageElement.classList.remove("d-none", "alert-danger");
+                    messageElement.classList.add("alert-success");
+                    
+                    // Make AJAX call to update status - using POST instead of PUT
+                    fetch(`/admin/care-managers/${caremanagerId}/update-status-ajax`, {
+                        method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': '{{ csrf_token() }}' // Include CSRF token for security
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                            'Accept': 'application/json'
                         },
                         body: JSON.stringify({ status: selectedCaremanagerStatusElement.value })
                     })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            messageElement.textContent = `Status changed to "${selectedCaremanagerStatusElement.value}" for ${caremanagerEntityType}.`;
-                            messageElement.classList.remove("d-none", "alert-danger");
-                            messageElement.classList.add("alert-success");
-
-                            // Reset the modal fields
-                            passwordInput.value = "";
-
-                            // Refresh the page after a longer delay to show the success message
-                            setTimeout(() => {
-                                const statusChangeCaremanagerModal = bootstrap.Modal.getInstance(document.getElementById("statusChangeCaremanagerModal"));
-                                statusChangeCaremanagerModal.hide();
-                                location.reload();
-                            }, 3000); // 3 seconds delay
-                        } else {
-                            messageElement.textContent = "Failed to update status. Please try again.";
-                            messageElement.classList.remove("d-none", "alert-success");
-                            messageElement.classList.add("alert-danger");
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Status update failed');
                         }
+                        return response.json();
+                    })
+                    .then(data => {
+                        // Update success message
+                        messageElement.textContent = `Status changed to "${selectedCaremanagerStatusElement.value}" for ${caremanagerEntityType}.`;
+                        
+                        // Reset password field
+                        passwordInput.value = "";
+
+                        // Close modal after delay
+                        setTimeout(() => {
+                            const modal = bootstrap.Modal.getInstance(document.getElementById("statusChangeCaremanagerModal"));
+                            modal.hide();
+                            
+                            // Update UI without page reload
+                            const statusCell = document.querySelector(`#caremanager-${caremanagerId} .status-cell`);
+                            if (statusCell) {
+                                statusCell.textContent = selectedCaremanagerStatusElement.value.charAt(0).toUpperCase() + selectedCaremanagerStatusElement.value.slice(1);
+                                statusCell.className = `status-cell ${selectedCaremanagerStatusElement.value.toLowerCase()}`;
+                            } else {
+                                // Fallback to page reload if we can't find the cell
+                                location.reload();
+                            }
+                        }, 2000);
                     })
                     .catch(error => {
                         console.error('Error:', error);
-                        messageElement.textContent = "An error occurred. Please try again.";
-                        messageElement.classList.remove("d-none", "alert-success");
+                        messageElement.textContent = "Failed to update status. Please try again.";
+                        messageElement.classList.remove("alert-success");
                         messageElement.classList.add("alert-danger");
                     });
                 } else {

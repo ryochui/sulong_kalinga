@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\DB;
 use App\Models\User;
 use App\Models\Municipality;
 use Carbon\Carbon;
@@ -59,15 +60,13 @@ class CareManagerController extends Controller
         ->with('municipality')->find($caremanager_id);
 
         if (!$caremanager) {
-            return redirect()->route('careManagerProfile')->with('error', 'Care manager not found.');
+            return redirect()->route('admin.caremanagers.index')->with('error', 'Care manager not found.');
         }
 
-        return view('admin.viewCaremanagerDetails', compact('caremanager'));
+        return view('admin.caremanagers.view', compact('caremanager'));
     }
 
 
-
-    // To revise so that dropdown will be dynamic
     public function create()
     {
         // Fetch all municipalities from the database
@@ -75,6 +74,7 @@ class CareManagerController extends Controller
 
         // Pass the municipalities to the view
         return view('admin.addCareManager', compact('municipalities'));
+        
     }
 
     public function storeCareManager(Request $request)
@@ -95,8 +95,8 @@ class CareManagerController extends Controller
                 'regex:/^[A-Z][a-zA-Z]{1,}(?:-[a-zA-Z]{1,})?(?: [a-zA-Z]{2,}(?:-[a-zA-Z]{1,})?)*$/'
             ],
             'birth_date' => 'required|date|before_or_equal:' . now()->subYears(14)->toDateString(), // Must be older than 14 years
-            'gender' => 'required|string|in:Male,Female,Other', // Must match dropdown options
-            'civil_status' => 'required|string|in:Single,Married,Widowed,Divorced', // Must match dropdown options
+            'gender' => 'nullable|string|in:Male,Female,Other', // Must match dropdown options
+            'civil_status' => 'nullable|string|in:Single,Married,Widowed,Divorced', // Must match dropdown options
             'religion' => [
                 'nullable',
                 'string',
@@ -104,12 +104,12 @@ class CareManagerController extends Controller
                 'regex:/^[A-Z][a-zA-Z]{1,}(?:-[a-zA-Z]{1,})?(?: [a-zA-Z]{2,}(?:-[a-zA-Z]{1,})?)*$/'
             ],
             'nationality' => [
-                'required',
+                'nullable',
                 'string',
                 'max:50',
                 'regex:/^[A-Z][a-zA-Z]{1,}(?:-[a-zA-Z]{1,})?(?: [a-zA-Z]{2,}(?:-[a-zA-Z]{1,})?)*$/'
             ],
-            'educational_background' => 'required|string|in:College,Highschool,Doctorate', // Must match dropdown options
+            'educational_background' => 'nullable|string|in:College,Highschool,Doctorate', // Must match dropdown options
         
             // Address
             'address_details' => [
@@ -155,23 +155,23 @@ class CareManagerController extends Controller
             'municipality' => 'required|integer|exists:municipalities,municipality_id',
         
             // Documents
-            'caremanager_photo' => 'required|image|mimes:jpeg,png|max:2048',
-            'government_ID' => 'required|image|mimes:jpeg,png|max:2048',
-            'resume' => 'required|mimes:pdf,doc,docx|max:2048',
+            'caremanager_photo' => 'nullable|image|mimes:jpeg,png|max:2048',
+            'government_ID' => 'nullable|image|mimes:jpeg,png|max:2048',
+            'resume' => 'nullable|mimes:pdf,doc,docx|max:2048',
         
             // IDs
             'sss_ID' => [
-                'required',
+                'nullable',
                 'string',
                 'regex:/^[0-9]{10}$/', // 10 digits
             ],
             'philhealth_ID' => [
-                'required',
+                'nullable',
                 'string',
                 'regex:/^[0-9]{12}$/', // 12 digits
             ],
             'pagibig_ID' => [
-                'required',
+                'nullable',
                 'string',
                 'regex:/^[0-9]{12}$/', // 12 digits
             ],
@@ -181,45 +181,54 @@ class CareManagerController extends Controller
             return redirect()->back()->withErrors($validator)->withInput();
         }
 
-        // Handle file uploads and rename files
-       $firstName = $request->input('first_name');
-       $lastName = $request->input('last_name');
-       $uniqueIdentifier = time() . '_' . Str::random(5);
+        try {
+            // Handle file uploads and rename files
+            $firstName = $request->input('first_name');
+            $lastName = $request->input('last_name');
+            $uniqueIdentifier = time() . '_' . Str::random(5);
 
-       $caremanagerPhotoPath = $request->file('caremanager_photo')->storeAs(
-           'uploads/caremanager_photos', 
-           $firstName . '' . $lastName . '_photo' . $uniqueIdentifier . '.' . $request->file('caremanager_photo')->getClientOriginalExtension(),
-           'public'
-       );
+            if ($request->hasFile('caremanager_photo')) {
+                $administratorPhotoPath = $request->file('caremanager_photo')->storeAs(
+                    'uploads/caremanager_photos', 
+                    $firstName . '' . $lastName . '_photo' . $uniqueIdentifier . '.' . $request->file('caremanager_photo')->getClientOriginalExtension(),
+                    'public'
+                );
+            }
+    
+            if ($request->hasFile('government_ID')) {
+                $governmentIDPath = $request->file('government_ID')->storeAs(
+                    'uploads/caremanager_government_ids', 
+                    $firstName . '' . $lastName . '_government_id' . $uniqueIdentifier . '.' . $request->file('government_ID')->getClientOriginalExtension(),
+                    'public'
+                );
+            }
+    
+            if ($request->hasFile('resume')) {
+                $resumePath = $request->file('resume')->storeAs(
+                    'uploads/caremanager_resumes', 
+                    $firstName . '' . $lastName . '_resume' . $uniqueIdentifier . '.' . $request->file('resume')->getClientOriginalExtension(),
+                    'public'
+                );
+            }
 
-       $governmentIDPath = $request->file('government_ID')->storeAs(
-           'uploads/caremanager_government_ids', 
-           $firstName . '' . $lastName . '_government_id' . $uniqueIdentifier . '.' . $request->file('government_ID')->getClientOriginalExtension(),
-           'public'
-       );
-
-       $resumePath = $request->file('resume')->storeAs(
-        'uploads/caremanager_resumes', 
-        $firstName . '' . $lastName . '_resume' . $uniqueIdentifier . '.' . $request->file('resume')->getClientOriginalExtension(),
-        'public'
-    );
-
-        // Save the administrator to the database
+        // Save the care manager to the database
         $caremanager = new User();
+
+        // All other existing fields
         $caremanager->first_name = $request->input('first_name');
         $caremanager->last_name = $request->input('last_name');
         // $caremanager->name = $request->input('name') . ' ' . $request->input('last_name'); // Combine first and last name
         $caremanager->birthday = $request->input('birth_date');
-        $caremanager->gender = $request->input('gender');
-        $caremanager->civil_status = $request->input('civil_status');
-        $caremanager->religion = $request->input('religion');
-        $caremanager->nationality = $request->input('nationality');
-        $caremanager->educational_background = $request->input('educational_background');
+        $caremanager->gender = $request->input('gender') ?? null;
+        $caremanager->civil_status = $request->input('civil_status') ?? null;
+        $caremanager->religion = $request->input('religion') ?? null;
+        $caremanager->nationality = $request->input('nationality') ?? null;
+        $caremanager->educational_background = $request->input('educational_background') ?? null;
         $caremanager->address = $request->input('address_details');
         $caremanager->email = $request->input('account.email'); // Work email
         $caremanager->personal_email = $request->input('personal_email'); // Personal email
         $caremanager->mobile = '+63' . $request->input('mobile_number');
-        $caremanager->landline = $request->input('landline_number');
+        $caremanager->landline = $request->input('landline_number') ?? null;
         $caremanager->password = bcrypt($request->input('account.password'));
         // $caremanager->organization_role_id = $request->input('Organization_Roles');
         $caremanager->role_id = 2; // 2 is the role ID for care managers
@@ -229,12 +238,12 @@ class CareManagerController extends Controller
         $caremanager->assigned_municipality_id = $request->input('municipality');
 
         // Save file paths and IDs
-        $caremanager->photo = $caremanagerPhotoPath;
-        $caremanager->government_issued_id = $governmentIDPath;
-        $caremanager->cv_resume = $resumePath;
-        $caremanager->sss_id_number = $request->input('sss_ID');
-        $caremanager->philhealth_id_number = $request->input('philhealth_ID');
-        $caremanager->pagibig_id_number = $request->input('pagibig_ID');
+        $caremanager->photo = $administratorPhotoPath ?? null;
+        $caremanager->government_issued_id = $request->hasFile('government_ID') ? $governmentIDPath : null;
+        $caremanager->cv_resume = $request->hasFile('resume') ? $resumePath : null;
+        $caremanager->sss_id_number = $request->input('sss_ID') ?? null;
+        $caremanager->philhealth_id_number = $request->input('philhealth_ID') ?? null;
+        $caremanager->pagibig_id_number = $request->input('pagibig_ID') ?? null;
 
         // Generate and save the remember_token
         $caremanager->remember_token = Str::random(60);
@@ -243,7 +252,45 @@ class CareManagerController extends Controller
         $caremanager->save();
 
         // Redirect with success message
-        return redirect()->route('admin.addCareManager')->with('success', 'Care Manager has been successfully added!');
+        return redirect()->route('admin.caremanagers.create')
+            ->with('success', 'Care Manager has been successfully added!');
+
+        } catch (\Illuminate\Database\QueryException $e) {
+            // Check if it's a unique constraint violation
+            if ($e->getCode() == 23505) { // PostgreSQL unique violation error code
+                // Check which field caused the violation
+                if (strpos($e->getMessage(), 'cose_users_mobile_unique') !== false) {
+                    return redirect()->back()
+                        ->withInput()
+                        ->withErrors(['mobile_number' => 'This mobile number is already registered in the system.']);
+                } elseif (strpos($e->getMessage(), 'cose_users_email_unique') !== false) {
+                    return redirect()->back()
+                        ->withInput()
+                        ->withErrors(['account.email' => 'This email address is already registered in the system.']);
+                } elseif (strpos($e->getMessage(), 'cose_users_personal_email_unique') !== false) {
+                    return redirect()->back()
+                        ->withInput()
+                        ->withErrors(['personal_email' => 'This personal email address is already registered in the system.']);
+                } else {
+                    // Generic unique constraint error
+                    return redirect()->back()
+                        ->withInput()
+                        ->withErrors(['error' => 'A record with some of this information already exists.']);
+                }
+            }
+
+            // For other database errors
+            \Log::error('Database error when creating care manager: ' . $e->getMessage());
+            return redirect()->back()
+                ->withInput()
+                ->withErrors(['error' => 'An error occurred while saving the care manager. Please try again.']);
+        } catch (\Exception $e) {
+            // For any other unexpected errors
+            \Log::error('Unexpected error when creating care manager: ' . $e->getMessage());
+            return redirect()->back()
+                ->withInput()
+                ->withErrors(['error' => 'An unexpected error occurred. Please try again.']);
+        }
     }
 
 
@@ -267,11 +314,11 @@ class CareManagerController extends Controller
                 'max:100'
             ],
             'birth_date' => 'required|date|before_or_equal:' . now()->subYears(14)->toDateString(),
-            'gender' => 'required|string|in:Male,Female,Other',
-            'civil_status' => 'required|string|in:Single,Married,Widowed,Divorced',
+            'gender' => 'nullable|string|in:Male,Female,Other',
+            'civil_status' => 'nullable|string|in:Single,Married,Widowed,Divorced',
             'religion' => 'nullable|string|regex:/^[a-zA-Z\s]*$/',
-            'nationality' => 'required|string|regex:/^[a-zA-Z\s]*$/',
-            'educational_background' => 'required|string|in:College,Highschool,Doctorate',
+            'nationality' => 'nullable|string|regex:/^[a-zA-Z\s]*$/',
+            'educational_background' => 'nullable|string|in:College,Highschool,Doctorate',
             'address_details' => [
                 'required',
                 'string',
@@ -374,7 +421,7 @@ class CareManagerController extends Controller
         // Save the changes
         $caremanager->save();
         
-        return redirect()->route('admin.careManagerProfile')->with('success', 
+        return redirect()->route('admin.caremanagers.index')->with('success', 
         'Care Manager ' . $caremanager->first_name . ' ' . $caremanager->last_name . 
         ' has been successfully updated!'
         );
@@ -387,7 +434,7 @@ class CareManagerController extends Controller
         $caremanager = User::where('role_id', 2)->where('id', $id)->first();
         
         if (!$caremanager) {
-            return redirect()->route('admin.careManagerProfile')->with('error', 'Care Manager not found.');
+            return redirect()->route('admin.caremanagers.index')->with('error', 'Care Manager not found.');
         }
 
         // Format date for the form
@@ -402,28 +449,39 @@ class CareManagerController extends Controller
         return view('admin.editCaremanagerProfile', compact('caremanager', 'birth_date', 'municipalities'));
     }
 
-    public function updateStatus(Request $request, $id)
+    public function updateStatusAjax($id, Request $request)
     {
-        $caremanager = User::where('role_id', 2)->find($id);
-
-        if (!$caremanager) {
-            return redirect()->route('admin.careManagerProfile')->with('error', 'Care manager not found.');
+        try {
+            \Log::info('Update caremanager status AJAX request', [
+                'caremanager_id' => $id,
+                'status' => $request->input('status')
+            ]);
+            
+            // Find care manager (role_id = 2)
+            $caremanager = User::where('role_id', 2)->find($id);
+            
+            if (!$caremanager) {
+                return response()->json(['success' => false, 'message' => 'Care manager not found.'], 404);
+            }
+            
+            // Get the status directly
+            $status = $request->input('status');
+            
+            // Update ONLY the status column
+            $caremanager->status = $status;
+            $caremanager->updated_at = now();
+            $caremanager->save();
+            
+            \Log::info('Caremanager status updated successfully', [
+                'caremanager_id' => $id,
+                'new_status' => $status
+            ]);
+            
+            return response()->json(['success' => true, 'message' => 'Care manager status updated successfully.']);
+        } catch (\Exception $e) {
+            \Log::error('Caremanager status update failed: ' . $e->getMessage());
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
         }
-
-        $status = $request->input('status');
-        $caremanager->volunteer_status = $status;
-        $caremanager->updated_by = Auth::id(); // Set the updated_by column to the current user's ID
-        $caremanager->updated_at = now(); // Set the updated_at column to the current timestamp
-
-        if ($status == 'Inactive') {
-            $caremanager->status_end_date = now();
-        } else {
-            $caremanager->status_end_date = null;
-        }
-
-        $caremanager->save();
-
-        return response()->json(['success' => true, 'message' => 'Care manager status updated successfully.']);
     }
 
     public function deleteCareworker(Request $request)

@@ -12,7 +12,7 @@
 <body>
 
     @include('components.userNavbar')
-    @include('components.sidebar')
+    @include('components.adminSidebar')
     @include('components.modals.statusChangeAdmin')
     @include('components.modals.deleteAdmin')
     @php use App\Helpers\StringHelper;
@@ -23,7 +23,7 @@
         <div class="container-fluid">
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <!-- Original Back Button -->
-                <a href="{{ route('administratorProfile') }}" class="btn btn-secondary original-back-btn">
+                <a href="{{ route('admin.administrators.index') }}" class="btn btn-secondary original-back-btn">
                     <i class="bx bx-arrow-back"></i> Back
                 </a>
                 <div class="mx-auto text-center" style="flex-grow: 1; font-weight: bold; font-size: 20px;">VIEW ADMINISTRATOR PROFILE DETAILS</div>
@@ -36,7 +36,7 @@
                     <!-- Only show Edit and Delete buttons to Executive Director -->
                     @if(Auth::user()->organization_role_id == 1)
                         <!-- Edit Button with Routing -->
-                        <a href="{{ route('admin.editAdminProfile.edit', $administrator->id) }}" class="btn btn-primary">
+                        <a href="{{ route('admin.administrators.edit', $administrator->id) }}" class="btn btn-primary">
                             <i class="bx bxs-edit"></i> Edit
                         </a>
 
@@ -75,9 +75,9 @@
                                         @else
                                             <!-- For non-executive directors, use the normal dropdown -->
                                             <select class="form-select d-inline-block w-auto" name="status" id="statusSelect{{ $administrator->id }}" 
-                                                    onchange="openStatusChangeAdminModal(this, 'Administrator', {{ $administrator->id }}, '{{ $administrator->volunteer_status ?? 'Active' }}')">
-                                                <option value="Active" {{ ($administrator->volunteer_status ?? 'Active') == 'Active' ? 'selected' : '' }}>Active Administrator</option>
-                                                <option value="Inactive" {{ ($administrator->volunteer_status ?? 'Active') == 'Inactive' ? 'selected' : '' }}>Inactive Administrator</option>
+                                                    onchange="openStatusChangeAdminModal(this, 'Administrator', {{ $administrator->id }}, '{{ $administrator->status ?? 'Active' }}')">
+                                                <option value="Active" {{ ($administrator->status ?? 'Active') == 'Active' ? 'selected' : '' }}>Active Administrator</option>
+                                                <option value="Inactive" {{ ($administrator->status ?? 'Active') == 'Inactive' ? 'selected' : '' }}>Inactive Administrator</option>
                                             </select>
                                         @endif
                                     </div>
@@ -96,7 +96,7 @@
                             <tbody>
                                 <tr>
                                     <td style="width:30%;"><strong>Educational Background:</strong></td>
-                                    <td>{{$administrator->educational_background}}</td>
+                                    <td>{{$administrator->educational_background ?? 'N/A'}}</td>
                                 </tr>
                                 <tr>
                                     <td style="width:30%;"><strong>Birthday:</strong></td>
@@ -104,19 +104,19 @@
                                 </tr>
                                 <tr>
                                     <td style="width:30%;"><strong>Gender:</strong></td>
-                                    <td>{{$administrator->gender}}</td>
+                                    <td>{{$administrator->gender ?? 'N/A'}}</td>
                                 </tr>
                                 <tr>
                                     <td style="width:30%;"><strong>Civil Status:</strong></td>
-                                    <td>{{$administrator->civil_status}}</td>
+                                    <td>{{$administrator->civil_status ?? 'N/A'}}</td>
                                 </tr>
                                 <tr>
                                     <td style="width:30%;"><strong>Religion:</strong></td>
-                                    <td>{{$administrator->religion ?? 'Prefer Not To Say'}}</td>
+                                    <td>{{$administrator->religion ?? 'N/A'}}</td>
                                 </tr>
                                 <tr>
                                     <td style="width:30%;"><strong>Nationality:</strong></td>
-                                    <td>{{$administrator->nationality}}</td>
+                                    <td>{{$administrator->nationality ?? 'N/A'}}</td>
                                 </tr>
                                 <tr>
                                     <td style="width:30%;"><strong>Email Address:</strong></td>

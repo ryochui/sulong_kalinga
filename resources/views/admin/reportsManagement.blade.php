@@ -27,13 +27,13 @@
 </head>
 <body>
     @include('components.userNavbar')
-    @include('components.sidebar')
+    @include('components.adminSidebar')
     
     <div class="home-section">
         <div class="text-left">REPORTS MANAGEMENT</div>
         
         <div class="container-fluid text-center">
-            <form action="{{ route('reports') }}" method="GET" id="searchFilterForm">
+        <form action="{{ route('admin.reports') }}" method="GET" id="searchFilterForm">
                 <div class="row mb-3 align-items-center">
                     <div class="col-12 col-md-6 col-lg-6 mb-2">
                         <div class="input-group">
@@ -117,7 +117,7 @@
                                             <td>
                                             <div class="action-icons">
                                                 @if($report->report_type == 'Weekly Care Plan')
-                                                <a href="{{ route('weeklycareplans.show', $report->report_id) }}" title="View Weekly Care Plan">
+                                                <a href="{{ route('admin.weeklycareplans.show', $report->report_id) }}" title="View Weekly Care Plan">
                                                     <i class="fa fa-eye"></i>
                                                 </a>
                                                 @elseif($report->report_type === 'General Care Plan')

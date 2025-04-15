@@ -180,7 +180,7 @@ function showSuccess(deletedCarePlan) {
     
     // Redirect after a delay
     setTimeout(function() {
-        window.location.href = "{{ route('admin.beneficiaryProfile') }}";
+        window.location.href = "{{ route('admin.beneficiaries.index') }}";
     }, 3000);
 }
 
@@ -211,7 +211,7 @@ document.addEventListener('DOMContentLoaded', function() {
         formData.append('_token', '{{ csrf_token() }}');
         
         const xhr1 = new XMLHttpRequest();
-        xhr1.open('POST', '/validate-password', true);
+        xhr1.open('POST', "{{ route('admin.validate-password') }}", true);
         xhr1.onload = function() {
             if (xhr1.status === 200) {
                 try {
@@ -223,11 +223,11 @@ document.addEventListener('DOMContentLoaded', function() {
                         deleteForm.append('_token', '{{ csrf_token() }}');
                         
                         // Determine which endpoint to use based on the user role
-                        let endpoint = '/admin/delete-beneficiary'; // Default endpoint for admins
+                        let endpoint = "{{ route('admin.beneficiaries.delete') }}"; // Default endpoint for admins
                         
                         // Use care manager endpoint if the current user is a care manager
                         @if(Auth::user()->role_id == 2)
-                            endpoint = '/caremanager/delete-beneficiary';
+                            endpoint = "{{ route('manager.beneficiaries.delete') }}";
                         @endif
                         
                         const xhr2 = new XMLHttpRequest();

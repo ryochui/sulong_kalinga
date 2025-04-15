@@ -68,7 +68,7 @@
                         
                         <div class="mb-3">
                             <label for="municipalityName" class="form-label">Municipality Name</label>
-                            <<input type="text" class="form-control" id="municipalityName" name="municipality_name" required
+                            <input type="text" class="form-control" id="municipalityName" name="municipality_name" required
                                 pattern="^[A-Z][A-Za-z][A-Za-z0-9\s\.\-']*$" 
                                 title="Municipality name must start with a capital letter, contain at least 2 letters, and can only include letters, numbers, spaces, periods, hyphens, and apostrophes">
                                 <div class="form-text">Enter the name of the municipality (e.g., Catarman, Las Navas). Must start with a capital letter and contain at least 2 letters.</div>
@@ -419,9 +419,9 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Determine the endpoint based on action
         const endpoint = isEditing 
-            ? '{{ route("admin.updateMunicipality") }}' 
-            : '{{ route("admin.addMunicipality") }}';
-        
+            ? '{{ route("admin.locations.municipalities.update") }}' 
+            : '{{ route("admin.locations.municipalities.store") }}';
+            
         // Send AJAX request
         fetch(endpoint, {
             method: 'POST',
