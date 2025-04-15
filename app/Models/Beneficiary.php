@@ -51,4 +51,9 @@ class Beneficiary extends Model
     {
         return $this->hasOne(GeneralCarePlan::class, 'general_care_plan_id');
     }  
+
+    public function portalAccount()
+    {
+        return $this->belongsTo(PortalAccount::class, 'portal_account_id', 'id');
+    }
 }

@@ -67,7 +67,7 @@ Route::middleware(['auth', '\App\Http\Middleware\CheckRole:administrator'])->pre
         Route::get('/', [BeneficiaryController::class, 'index'])->name('index');
         Route::get('/add', [BeneficiaryController::class, 'create'])->name('create');
         Route::post('/store', [BeneficiaryController::class, 'storeBeneficiary'])->name('store');
-        Route::post('/edit', [BeneficiaryController::class, 'editProfile'])->name('edit');
+        Route::get('/{id}/edit', [BeneficiaryController::class, 'editBeneficiary'])->name('edit');
         Route::put('/{id}', [BeneficiaryController::class, 'updateBeneficiary'])->name('update');
         Route::post('/{id}/update-status-ajax', [BeneficiaryController::class, 'updateStatusAjax'])->name('updateStatusAjax');        Route::put('/{id}/activate', [BeneficiaryController::class, 'activate'])->name('activate');
         Route::post('/delete', [AdminController::class, 'deleteBeneficiary'])->name('delete');

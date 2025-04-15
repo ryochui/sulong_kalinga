@@ -23,9 +23,22 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
+use Carbon\Carbon;
 
 class BeneficiaryController extends Controller
 {
+    private function resetGeneralCarePlanSequence()
+    {
+        // Get the maximum ID currently in the table
+        $maxId = DB::table('general_care_plans')->max('general_care_plan_id');
+        
+        // Reset the sequence to start from the next available ID
+        if ($maxId) {
+            DB::statement("SELECT setval('general_care_plans_general_care_plan_id_seq', $maxId, true)");
+        }
+    }
+
     public function index(Request $request)
     {
         $search = $request->input('search');
@@ -225,6 +238,9 @@ class BeneficiaryController extends Controller
 
     public function storeBeneficiary(Request $request)
     {
+        // Reset the sequence to ensure we get a valid ID
+        $this->resetGeneralCarePlanSequence();
+
         // Validate the input data
         $validator = Validator::make($request->all(), [
             // Personal Details
@@ -718,9 +734,6 @@ class BeneficiaryController extends Controller
                 'birthday' => $request->input('birth_date'),
                 'gender' => $request->input('gender'),
                 'civil_status' => $request->input('civil_status'),
-                'religion' => $request->input('religion'),
-                'nationality' => $request->input('nationality'),
-                'educational_background' => $request->input('educational_background'),
                 'street_address' => $request->input('address_details'),
                 'barangay_id' => $request->input('barangay'),
                 'municipality_id' => $request->input('municipality'),
@@ -857,4 +870,516 @@ class BeneficiaryController extends Controller
             return redirect()->back()->withErrors(['error' => 'An error occurred while saving the beneficiary: ' . $e->getMessage()])->withInput();
         }
     }
+
+    public function editBeneficiary($id)
+    {
+        // Load beneficiary with all related data
+        $beneficiary = Beneficiary::with([
+            'category', 
+            'barangay', 
+            'municipality', 
+            'status',
+            'generalCarePlan.mobility', 
+            'generalCarePlan.cognitiveFunction', 
+            'generalCarePlan.emotionalWellbeing', 
+            'generalCarePlan.medications',
+            'generalCarePlan.healthHistory',
+            'generalCarePlan.careNeeds',
+            'generalCarePlan.careWorkerResponsibility'
+        ])->findOrFail($id);
+
+        // Format the date for the form
+        $birth_date = null;
+        if ($beneficiary->birthday) {
+            $birth_date = Carbon::parse($beneficiary->birthday)->format('Y-m-d');
+        }
+
+        $review_date = null;
+        if ($beneficiary->generalCarePlan && $beneficiary->generalCarePlan->review_date) {
+            $review_date = Carbon::parse($beneficiary->generalCarePlan->review_date)->format('Y-m-d');
+        }
+
+        // Get current care worker
+        $currentCareWorker = null;
+        $currentCareWorkerTasks = [];
+        if ($beneficiary->generalCarePlan && $beneficiary->generalCarePlan->careWorkerResponsibility->count() > 0) {
+            $careWorkerResp = $beneficiary->generalCarePlan->careWorkerResponsibility->first();
+            $currentCareWorker = $careWorkerResp ? $careWorkerResp->care_worker_id : null;
+            
+            // Get all tasks for this care worker
+            foreach($beneficiary->generalCarePlan->careWorkerResponsibility as $responsibility) {
+                if ($responsibility->task_description) {
+                    $currentCareWorkerTasks[] = $responsibility->task_description;
+                }
+            }
+        }
+
+        // Get all care needs by category
+        $careNeeds = [];
+        foreach($beneficiary->generalCarePlan->careNeeds as $need) {
+            $careNeeds[$need->care_category_id] = [
+                'frequency' => $need->frequency,
+                'assistance' => $need->assistance_required
+            ];
+        }
+
+        // Load necessary data for form dropdowns
+        $municipalities = Municipality::all();
+        $barangays = Barangay::all();
+        $categories = BeneficiaryCategory::all();
+        $careWorkers = User::where('role_id', 3)
+                        ->where('status', 'Active')
+                        ->select('id', DB::raw("CONCAT(first_name, ' ', last_name) AS name"))
+                        ->get();
+        
+        // Return view based on user role
+        if (Auth::user()->role_id == 1) { // Admin
+            return view('admin.editBeneficiary', compact('beneficiary', 'municipalities', 'barangays', 
+                'categories', 'careWorkers', 'birth_date', 'review_date', 'currentCareWorker',  
+                'currentCareWorkerTasks', 'careNeeds'));
+        } elseif (Auth::user()->role_id == 2) { // Care Manager
+            return view('careManager.editBeneficiary', compact('beneficiary', 'municipalities', 'barangays', 
+                'categories', 'careWorkers', 'birth_date', 'review_date', 'currentCareWorker', 
+                'currentCareWorkerTasks', 'careNeeds'));
+        } else {
+            abort(403, 'Unauthorized action.');
+        }
+    }
+
+    public function updateBeneficiary(Request $request, $id)
+    {
+        // Validate the input data with adjustments for update
+        $validator = Validator::make($request->all(), [
+            // Personal Details - Same as storeBeneficiary
+            'first_name' => [
+                'required',
+                'string',
+                'max:100',
+                'regex:/^[A-Z][a-zA-Z]*(?:-[a-zA-Z]+)?(?: [a-zA-Z]+(?:-[a-zA-Z]+)*)*$/',
+            ],
+            'last_name' => [
+                'required',
+                'string',
+                'max:100',
+                'regex:/^[A-Z][a-zA-Z]*(?:-[a-zA-Z]+)?(?: [a-zA-Z]+(?:-[a-zA-Z]+)*)*$/',
+            ],
+            'civil_status' => [
+                'required',
+                'string',
+                'in:Single,Married,Widowed,Divorced',
+            ],
+            'gender' => [
+                'required',
+                'string',
+                'in:Male,Female,Other',
+            ],
+            'birth_date' => [
+                'required',
+                'date',
+                'before_or_equal:' . now()->subYears(14)->toDateString(),
+            ],
+            'primary_caregiver' => [
+                'required',
+                'string',
+                'max:100',
+                'regex:/^[A-Z][a-zA-Z]*(?:-[a-zA-Z]+)?(?: [a-zA-Z]+(?:-[a-zA-Z]+)*)*$/',
+            ],
+            'mobile_number' => [
+                'required',
+                'string',
+                'regex:/^[0-9]{10,11}$/',
+            ],
+            'landline_number' => [
+                'nullable',
+                'string',
+                'regex:/^[0-9]{7,10}$/',
+            ],
+            'address_details' => [
+                'required',
+                'string',
+                'max:255',
+                'regex:/^[a-zA-Z0-9\s,.-]+$/',
+            ],
+            'municipality' => [
+                'required',
+                'exists:municipalities,municipality_id',
+            ],
+            'barangay' => [
+                'required',
+                'exists:barangays,barangay_id',
+            ],
+            
+            // Modified validators for update scenario
+            'account.email' => [
+                'required',
+                'email',
+                'max:255',
+                function ($attribute, $value, $fail) use ($id) {
+                    // Get the current beneficiary
+                    $beneficiary = Beneficiary::find($id);
+                    if (!$beneficiary) return;
+                    
+                    // Check if email exists for any portal account except the current one
+                    $exists = PortalAccount::where('portal_email', $value)
+                        ->where('id', '!=', $beneficiary->portal_account_id)
+                        ->exists();
+                        
+                    if ($exists) {
+                        $fail('The email has already been taken.');
+                    }
+                },
+            ],
+            'account.password' => 'nullable|string|min:8|confirmed',
+            
+            // Medical History - Same as storeBeneficiary
+            'medical_conditions' => [
+                'nullable',
+                'string',
+                'regex:/^[A-Za-z0-9\s.,\-()\'\"!?+]+$/',
+                'max:500',
+            ],
+            'medications' => [
+                'nullable',
+                'string',
+                'regex:/^[A-Za-z0-9\s.,\-()\'\"!?+]+$/',
+                'max:500',
+            ],
+            'allergies' => [
+                'nullable',
+                'string',
+                'regex:/^[A-Za-z0-9\s.,\-()\'\"!?+]+$/',
+                'max:500',
+            ],
+            'immunizations' => [
+                'nullable',
+                'string',
+                'regex:/^[A-Za-z0-9\s.,\-()\'\"!?+]+$/',
+                'max:500',
+            ],
+            'category' => 'required|exists:beneficiary_categories,category_id',
+            
+            // Care Needs - Same as storeBeneficiary
+            // ... [Similar validation rules for care needs, same as in storeBeneficiary]
+            
+            // Files - Modified for update scenario
+            'beneficiaryProfilePic' => 'nullable|file|mimes:jpeg,png|max:2048',
+            'care_service_agreement' => 'nullable|file|mimes:pdf,doc,docx|max:5120',
+            'general_careplan' => 'nullable|file|mimes:pdf,doc,docx|max:5120',
+            
+            // Signatures - Modified for update scenario
+            'beneficiary_signature_upload' => 'nullable|file|mimes:jpeg,png|max:2048',
+            'beneficiary_signature_canvas' => 'nullable|string',
+            'care_worker_signature_upload' => 'nullable|file|mimes:jpeg,png|max:2048',
+            'care_worker_signature_canvas' => 'nullable|string',
+            
+            // Other fields - Same as storeBeneficiary
+            // ... [Similar validation rules for other fields, same as in storeBeneficiary]
+        ]);
+
+        if ($validator->fails()) {
+            return redirect()->back()->withErrors($validator)->withInput();
+        }
+
+        try {
+            DB::beginTransaction();
+            
+            // Get the beneficiary and related data
+            $beneficiary = Beneficiary::with([
+                'generalCarePlan',
+                'portalAccount'
+            ])->findOrFail($id);
+            
+            $generalCarePlanId = $beneficiary->general_care_plan_id;
+            $portalAccountId = $beneficiary->portal_account_id;
+            
+            // Generate unique identifier for file naming
+            $uniqueIdentifier = Str::random(10);
+            
+            // Handle file uploads with option to keep existing files
+            $beneficiaryPhotoPath = $beneficiary->photo; // Default to existing
+            $careServiceAgreementPath = $beneficiary->care_service_agreement_doc; // Default to existing
+            $generalCarePlanPath = $beneficiary->general_care_plan_doc; // Default to existing
+            $beneficiarySignaturePath = $beneficiary->beneficiary_signature; // Default to existing
+            $careWorkerSignaturePath = $beneficiary->care_worker_signature; // Default to existing
+            
+            // Store beneficiary profile picture if a new one is uploaded
+            if ($request->hasFile('beneficiaryProfilePic')) {
+                $beneficiaryPhotoPath = $request->file('beneficiaryProfilePic')->storeAs(
+                    'uploads/beneficiary_photos',
+                    $request->input('first_name') . '_' . $request->input('last_name') . '_photo_' . $uniqueIdentifier . '.' . $request->file('beneficiaryProfilePic')->getClientOriginalExtension(),
+                    'public'
+                );
+            }
+
+            // Handle Care Service Agreement if a new one is uploaded
+            if ($request->hasFile('care_service_agreement')) {
+                $careServiceAgreementPath = $request->file('care_service_agreement')->storeAs(
+                    'uploads/care_service_agreements',
+                    $request->input('first_name') . '_' . $request->input('last_name') . '_care_service_agreement_' . $uniqueIdentifier . '.' . $request->file('care_service_agreement')->getClientOriginalExtension(),
+                    'public'
+                );
+            }
+
+            // Handle General Care Plan if a new one is uploaded
+            if ($request->hasFile('general_careplan')) {
+                $generalCarePlanPath = $request->file('general_careplan')->storeAs(
+                    'uploads/general_care_plans',
+                    $request->input('first_name') . '_' . $request->input('last_name') . '_general_care_plan_' . $uniqueIdentifier . '.' . $request->file('general_careplan')->getClientOriginalExtension(),
+                    'public'
+                );
+            }
+            
+            // Handle Beneficiary Signature if a new one is provided
+            if ($request->hasFile('beneficiary_signature_upload')) {
+                $beneficiarySignaturePath = 'uploads/beneficiary_signatures/' . 
+                    $request->input('first_name') . '_' . 
+                    $request->input('last_name') . '_signature_' . 
+                    $uniqueIdentifier . '.' . 
+                    $request->file('beneficiary_signature_upload')->getClientOriginalExtension();
+                
+                $request->file('beneficiary_signature_upload')->storeAs(
+                    'public/' . dirname($beneficiarySignaturePath),
+                    basename($beneficiarySignaturePath)
+                );
+            } elseif ($request->input('beneficiary_signature_canvas')) {
+                $beneficiarySignaturePath = 'uploads/beneficiary_signatures/' . 
+                    $request->input('first_name') . '_' . 
+                    $request->input('last_name') . '_signature_' . 
+                    $uniqueIdentifier . '.png';
+                
+                $directory = storage_path('app/public/uploads/beneficiary_signatures');
+                if (!is_dir($directory)) {
+                    mkdir($directory, 0755, true);
+                }
+                
+                $beneficiarySignatureData = $request->input('beneficiary_signature_canvas');
+                $decodedImage = base64_decode(preg_replace('#^data:image/\w+;base64,#i', '', $beneficiarySignatureData));
+                file_put_contents(storage_path('app/public/' . $beneficiarySignaturePath), $decodedImage);
+            }
+            
+            // Handle Care Worker Signature if a new one is provided
+            if ($request->hasFile('care_worker_signature_upload')) {
+                $careWorkerSignaturePath = 'uploads/care_worker_signatures/' . 
+                    $request->input('first_name') . '_' . 
+                    $request->input('last_name') . '_care_worker_signature_' . 
+                    $uniqueIdentifier . '.' . 
+                    $request->file('care_worker_signature_upload')->getClientOriginalExtension();
+                
+                $request->file('care_worker_signature_upload')->storeAs(
+                    'public/' . dirname($careWorkerSignaturePath),
+                    basename($careWorkerSignaturePath)
+                );
+            } elseif ($request->input('care_worker_signature_canvas')) {
+                $careWorkerSignaturePath = 'uploads/care_worker_signatures/' . 
+                    $request->input('first_name') . '_' . 
+                    $request->input('last_name') . '_care_worker_signature_' . 
+                    $uniqueIdentifier . '.png';
+                
+                $directory = storage_path('app/public/uploads/care_worker_signatures');
+                if (!is_dir($directory)) {
+                    mkdir($directory, 0755, true);
+                }
+                
+                $careWorkerSignatureData = $request->input('care_worker_signature_canvas');
+                $decodedImage = base64_decode(preg_replace('#^data:image/\w+;base64,#i', '', $careWorkerSignatureData));
+                file_put_contents(storage_path('app/public/' . $careWorkerSignaturePath), $decodedImage);
+            }
+            
+            // Update portal account if email or password has changed
+            if ($portalAccountId) {
+                $portalAccount = PortalAccount::find($portalAccountId);
+                if ($portalAccount) {
+                    $portalAccount->portal_email = $request->input('account.email');
+                    
+                    // Update password only if provided
+                    if ($request->filled('account.password')) {
+                        $portalAccount->portal_password = Hash::make($request->input('account.password'));
+                    }
+                    
+                    $portalAccount->save();
+                }
+            }
+            
+            // Format mobile numbers with +63 prefix if needed
+            $mobileNumber = $request->input('mobile_number');
+            if (!str_starts_with($mobileNumber, '+63')) {
+                $mobileNumber = '+63' . $mobileNumber;
+            }
+
+            $emergencyContactMobile = $request->input('emergency_contact.mobile');
+            if (!str_starts_with($emergencyContactMobile, '+63')) {
+                $emergencyContactMobile = '+63' . $emergencyContactMobile;
+            }
+            
+            // Update beneficiary details
+            $beneficiary->first_name = $request->input('first_name');
+            $beneficiary->last_name = $request->input('last_name');
+            $beneficiary->birthday = $request->input('birth_date');
+            $beneficiary->gender = $request->input('gender');
+            $beneficiary->civil_status = $request->input('civil_status');
+            $beneficiary->street_address = $request->input('address_details');
+            $beneficiary->barangay_id = $request->input('barangay');
+            $beneficiary->municipality_id = $request->input('municipality');
+            $beneficiary->category_id = $request->input('category');
+            $beneficiary->mobile = $mobileNumber;
+            $beneficiary->landline = $request->input('landline_number');
+            $beneficiary->emergency_contact_name = $request->input('emergency_contact.name');
+            $beneficiary->emergency_contact_relation = $request->input('emergency_contact.relation');
+            $beneficiary->emergency_contact_mobile = $emergencyContactMobile;
+            $beneficiary->emergency_contact_email = $request->input('emergency_contact.email');
+            $beneficiary->emergency_procedure = $request->input('emergency_plan.procedures');
+            $beneficiary->primary_caregiver = $request->input('primary_caregiver');
+            $beneficiary->care_service_agreement_doc = $careServiceAgreementPath;
+            $beneficiary->general_care_plan_doc = $generalCarePlanPath;
+            $beneficiary->photo = $beneficiaryPhotoPath;
+            $beneficiary->beneficiary_signature = $beneficiarySignaturePath;
+            $beneficiary->care_worker_signature = $careWorkerSignaturePath;
+            $beneficiary->updated_by = Auth::id();
+            $beneficiary->updated_at = now();
+            $beneficiary->save();
+            
+            // Update general care plan details
+            if ($generalCarePlanId) {
+                // Update the review date in general care plan
+                DB::table('general_care_plans')
+                    ->where('general_care_plan_id', $generalCarePlanId)
+                    ->update([
+                        'review_date' => $request->input('date'),
+                        'emergency_plan' => $request->input('emergency_plan.procedures'),
+                        'care_worker_id' => $request->input('care_worker.careworker_id'),
+                    ]);
+                
+                // Update emotional wellbeing
+                EmotionalWellbeing::updateOrCreate(
+                    ['general_care_plan_id' => $generalCarePlanId],
+                    [
+                        'mood' => $request->input('emotional.mood'),
+                        'social_interactions' => $request->input('emotional.social_interactions'),
+                        'emotional_support_needs' => $request->input('emotional.emotional_support'),
+                    ]
+                );
+                
+                // Update cognitive function
+                CognitiveFunction::updateOrCreate(
+                    ['general_care_plan_id' => $generalCarePlanId],
+                    [
+                        'memory' => $request->input('cognitive.memory'),
+                        'thinking_skills' => $request->input('cognitive.thinking_skills'),
+                        'orientation' => $request->input('cognitive.orientation'),
+                        'behavior' => $request->input('cognitive.behavior'),
+                    ]
+                );
+                
+                // Update mobility
+                Mobility::updateOrCreate(
+                    ['general_care_plan_id' => $generalCarePlanId],
+                    [
+                        'walking_ability' => $request->input('mobility.walking_ability'),
+                        'assistive_devices' => $request->input('mobility.assistive_devices'),
+                        'transportation_needs' => $request->input('mobility.transportation_needs'),
+                    ]
+                );
+                
+                // Update health history
+                HealthHistory::updateOrCreate(
+                    ['general_care_plan_id' => $generalCarePlanId],
+                    [
+                        'medical_conditions' => $request->input('medical_conditions'),
+                        'medications' => $request->input('medications'),
+                        'allergies' => $request->input('allergies'),
+                        'immunizations' => $request->input('immunizations'),
+                    ]
+                );
+                
+                // Update medications - first delete existing ones
+                Medication::where('general_care_plan_id', $generalCarePlanId)->delete();
+                
+                // Then add new medications
+                if ($request->has('medication_name')) {
+                    $medicationNames = $request->input('medication_name');
+                    $dosages = $request->input('dosage');
+                    $frequencies = $request->input('frequency');
+                    $administrationInstructions = $request->input('administration_instructions');
+
+                    foreach ($medicationNames as $index => $medicationName) {
+                        if (!empty($medicationName)) {
+                            Medication::create([
+                                'general_care_plan_id' => $generalCarePlanId,
+                                'medication' => $medicationName,
+                                'dosage' => $dosages[$index] ?? '',
+                                'frequency' => $frequencies[$index] ?? '',
+                                'administration_instructions' => $administrationInstructions[$index] ?? '',
+                            ]);
+                        }
+                    }
+                }
+                
+                // Update care worker responsibilities - first delete existing ones
+                CareWorkerResponsibility::where('general_care_plan_id', $generalCarePlanId)->delete();
+                
+                // Then add new responsibilities
+                if ($request->has('care_worker.tasks')) {
+                    $tasks = $request->input('care_worker.tasks');
+                    $careWorkerId = $request->input('care_worker.careworker_id');
+
+                    foreach ($tasks as $task) {
+                        if (!empty($task)) {
+                            CareWorkerResponsibility::create([
+                                'general_care_plan_id' => $generalCarePlanId,
+                                'care_worker_id' => $careWorkerId,
+                                'task_description' => $task,
+                            ]);
+                        }
+                    }
+                }
+                
+                // Update care needs - first delete existing ones
+                CareNeed::where('general_care_plan_id', $generalCarePlanId)->delete();
+                
+                // Then add new care needs
+                $careCategories = [
+                    1 => ['frequency' => $request->input('frequency.mobility'), 'assistance' => $request->input('assistance.mobility')],
+                    2 => ['frequency' => $request->input('frequency.cognitive'), 'assistance' => $request->input('assistance.cognitive')],
+                    3 => ['frequency' => $request->input('frequency.self_sustainability'), 'assistance' => $request->input('assistance.self_sustainability')],
+                    4 => ['frequency' => $request->input('frequency.disease'), 'assistance' => $request->input('assistance.disease')],
+                    5 => ['frequency' => $request->input('frequency.daily_life'), 'assistance' => $request->input('assistance.daily_life')],
+                    6 => ['frequency' => $request->input('frequency.outdoor'), 'assistance' => $request->input('assistance.outdoor')],
+                    7 => ['frequency' => $request->input('frequency.household'), 'assistance' => $request->input('assistance.household')]
+                ];
+
+                foreach ($careCategories as $categoryId => $data) {
+                    if (!empty($data['frequency']) || !empty($data['assistance'])) {
+                        CareNeed::create([
+                            'general_care_plan_id' => $generalCarePlanId,
+                            'care_category_id' => $categoryId,
+                            'frequency' => $data['frequency'],
+                            'assistance_required' => $data['assistance']
+                        ]);
+                    }
+                }
+            }
+            
+            DB::commit();
+            
+            // Redirect with success message
+            if (Auth::user()->role_id == 1) { // Admin
+                return redirect()->route('admin.beneficiaries.index')
+                    ->with('success', 'Beneficiary ' . $beneficiary->first_name . ' ' . $beneficiary->last_name . ' has been successfully updated!');
+            } elseif (Auth::user()->role_id == 2) { // Care Manager
+                return redirect()->route('manager.beneficiaries.index')
+                    ->with('success', 'Beneficiary ' . $beneficiary->first_name . ' ' . $beneficiary->last_name . ' has been successfully updated!');
+            } else {
+                return redirect()->back()
+                    ->with('success', 'Beneficiary ' . $beneficiary->first_name . ' ' . $beneficiary->last_name . ' has been successfully updated!');
+            }
+            
+        } catch (\Exception $e) {
+            DB::rollBack();
+            \Log::error('Error updating beneficiary: ' . $e->getMessage());
+            return redirect()->back()
+                ->withErrors(['error' => 'An error occurred while updating the beneficiary: ' . $e->getMessage()])
+                ->withInput();
+        }
+    }
+
 }
