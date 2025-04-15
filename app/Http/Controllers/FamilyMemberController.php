@@ -12,11 +12,11 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
 use App\Models\User;
 use App\Models\Municipality;
 use App\Models\FamilyMember;
 use App\Models\Beneficiary;
-
 
 
 class FamilyMemberController extends Controller
@@ -266,4 +266,156 @@ class FamilyMemberController extends Controller
                 ->withErrors(['error' => 'An unexpected error occurred. Please try again.']);
         }
     }
+
+    public function editFamilyMember($id)
+    {
+        // Get the family member with their related beneficiary
+        $familyMember = FamilyMember::findOrFail($id);
+        
+        // Get all beneficiaries for the dropdown
+        $beneficiaries = Beneficiary::select('beneficiary_id', 'first_name', 'last_name')->get();
+        
+        // Return the view with the data
+        return view('admin.editFamily', compact('familyMember', 'beneficiaries'));
+    }
+
+    public function updateFamilyMember(Request $request, $id)
+    {
+        // Validate the input data - similar to your store method but with some modifications
+        $validator = Validator::make($request->all(), [
+            'family_photo' => 'nullable|image|mimes:jpeg,png|max:2048',
+            'first_name' => [
+                'required',
+                'string',
+                'max:100',
+                'regex:/^[A-Z][a-zA-Z]{1,}(?:-[a-zA-Z]{1,})?(?: [a-zA-Z]{2,}(?:-[a-zA-Z]{1,})?)*$/'
+            ],
+            'last_name' => [
+                'required',
+                'string',
+                'max:100',
+                'regex:/^[A-Z][a-zA-Z]{1,}(?:-[a-zA-Z]{1,})?(?: [a-zA-Z]{2,}(?:-[a-zA-Z]{1,})?)*$/'
+            ],
+            'gender' => 'nullable|string|in:Male,Female,Other',
+            'birth_date' => 'required|date|before_or_equal:' . now()->subYears(14)->toDateString(),
+            'relatedBeneficiary' => 'required|integer|exists:beneficiaries,beneficiary_id',
+            'relation_to_beneficiary' => [
+                'required',
+                'string',
+                'in:Son,Daughter,Spouse,Sibling,Grandchild,Other',
+            ],
+            'personal_email' => [
+                'required',
+                'string',
+                'regex:/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/',
+                Rule::unique('family_members', 'email')->ignore($id, 'family_member_id')
+            ],
+            'is_primary_caregiver' => [
+                'required',
+                'boolean',
+            ],
+            'address_details' => [
+                'required',
+                'string',
+                'regex:/^[a-zA-Z0-9\s,.-]+$/',
+            ],
+            'mobile_number' => [
+                'required',
+                'string',
+                'regex:/^[0-9]{10,11}$/',
+                Rule::unique('family_members', 'mobile')->ignore($id, 'family_member_id'),
+            ],
+            'landline_number' => [
+                'nullable',
+                'string',
+                'regex:/^[0-9]{7,10}$/',
+            ],
+        ]);
+
+        if ($validator->fails()) {
+            return redirect()->back()->withErrors($validator)->withInput();
+        }
+
+        try {
+            // Find the existing family member
+            $familyMember = FamilyMember::findOrFail($id);
+            $uniqueIdentifier = Str::random(10);
+
+            // Handle the photo upload if a new one was provided
+            if ($request->hasFile('family_photo')) {
+                // If there's an existing photo, delete it
+                if ($familyMember->photo && file_exists(public_path('storage/' . $familyMember->photo))) {
+                    unlink(public_path('storage/' . $familyMember->photo));
+                }
+                
+                $familyPhotoPath = $request->file('family_photo')->storeAs(
+                    'uploads/family_photos',
+                    $request->input('first_name') . '_' . $request->input('last_name') . '_family_member_photo_' . $uniqueIdentifier . '.' . $request->file('family_photo')->getClientOriginalExtension(),
+                    'public'
+                );
+                
+                $familyMember->photo = $familyPhotoPath;
+            }
+
+            // Get the beneficiary
+            $beneficiary = Beneficiary::find($request->input('relatedBeneficiary'));
+            if (!$beneficiary) {
+                return redirect()->back()->withErrors(['relatedBeneficiary' => 'The selected beneficiary does not exist.'])->withInput();
+            }
+
+            // Handle primary caregiver logic
+            if ($request->input('is_primary_caregiver')) {
+                // Check for existing primary caregiver other than this one
+                $existingPrimaryCaregiver = FamilyMember::where('related_beneficiary_id', $request->input('relatedBeneficiary'))
+                    ->where('is_primary_caregiver', true)
+                    ->where('id', '!=', $id) // Exclude the current member
+                    ->first();
+
+                if ($existingPrimaryCaregiver) {
+                    return redirect()->back()->withErrors([
+                        'is_primary_caregiver' => 'There is already a primary caregiver for this beneficiary.'
+                    ])->withInput();
+                }
+
+                // Update the beneficiary's primary_caregiver field
+                $beneficiary->primary_caregiver = $request->input('first_name') . ' ' . $request->input('last_name');
+                $beneficiary->save();
+            }
+            // If was primary and now isn't, update beneficiary record
+            elseif ($familyMember->is_primary_caregiver && !$request->input('is_primary_caregiver')) {
+                if ($beneficiary->primary_caregiver == $familyMember->first_name . ' ' . $familyMember->last_name) {
+                    $beneficiary->primary_caregiver = null;
+                    $beneficiary->save();
+                }
+            }
+
+            // Update the family member data
+            $familyMember->first_name = $request->input('first_name');
+            $familyMember->last_name = $request->input('last_name');
+            $familyMember->gender = $request->input('gender') ?? null;
+            $familyMember->birthday = $request->input('birth_date');
+            $familyMember->mobile = '+63' . $request->input('mobile_number');
+            $familyMember->landline = $request->input('landline_number') ?? null;
+            $familyMember->is_primary_caregiver = $request->input('is_primary_caregiver') ? true : false;
+            $familyMember->related_beneficiary_id = $request->input('relatedBeneficiary');
+            $familyMember->relation_to_beneficiary = $request->input('relation_to_beneficiary');
+            $familyMember->email = $request->input('personal_email');
+            $familyMember->street_address = $request->input('address_details');
+            $familyMember->updated_by = Auth::id();
+            $familyMember->portal_account_id = $beneficiary->portal_account_id;
+
+            $familyMember->save();
+
+            // Redirect with success message
+            return redirect()->route('admin.families.index')->with('success', 'Family Member ' . $familyMember->first_name . ' ' . $familyMember->last_name .  ' updated successfully!');
+        
+        } catch (\Exception $e) {
+            \Log::error('Error updating family member: ' . $e->getMessage());
+            return redirect()->back()
+                ->withInput()
+                ->withErrors(['error' => 'An error occurred: ' . $e->getMessage()]);
+        }
+    }
+
+
 }

@@ -17,6 +17,12 @@
     <div class="home-section">
         <div class="text-left">FAMILY OR RELATIVE PROFILES</div>
         <div class="container-fluid text-center">
+            @if(session('success'))
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                {{ session('success') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            @endif
             <div class="row mb-3 align-items-center">
                 <!-- Search Bar -->
                 <div class="col-12 col-md-6 col-lg-6 mb-2">
@@ -108,13 +114,9 @@
                                                         <i class="fa fa-eye"></i>
                                                     </button>
                                                 </form>
-                                                <form action="{{ route('admin.families.edit') }}" method="POST" style="display:inline;">
-                                                    @csrf
-                                                    <input type="hidden" name="family_member_id" value="{{ $family_member->family_member_id }}">
-                                                    <button type="submit" class="btn btn-link text-decoration-none" style="color:black;">
-                                                        <i class="bx bxs-edit"></i>
-                                                    </button>
-                                                </form>
+                                                <a href="{{ route('admin.families.edit', $family_member->family_member_id) }}" class="btn btn-link text-decoration-none" style="color:black;">
+                                                    <i class="bx bx-edit"></i>
+                                                </a>
                                             </div>
                                         </td>
                                     </tr>

@@ -57,23 +57,23 @@
                         <div class="row mb-1">
                             <div class="col-md-3">
                                 <label for="firstName" class="form-label">First Name</label>
-                                <input type="text" class="form-control" id="firstName" name="first_name" placeholder="Enter first name" value="{{ $careworker->first_name }}">
+                                <input type="text" class="form-control" id="firstName" name="first_name" placeholder="Enter first name" value="{{ old('first_name', $careworker->first_name) }}">
                             </div>
                             <div class="col-md-3">
                                 <label for="lastName" class="form-label">Last Name</label>
-                                <input type="text" class="form-control" id="lastName" name="last_name" placeholder="Enter last name" value="{{ $careworker->last_name }}">
+                                <input type="text" class="form-control" id="lastName" name="last_name" placeholder="Enter last name" value="{{ old('last_name', $careworker->last_name) }}">
                             </div>
                             <div class="col-md-3">
                                 <label for="birthDate" class="form-label">Birthday</label>
-                                <input type="date" class="form-control" id="birthDate" name="birth_date" value="{{ $birth_date }}">
+                                <input type="date" class="form-control" id="birthDate" name="birth_date" value="{{ old('birth_date', $birth_date) }}">
                             </div>
                             <div class="col-md-3 position-relative">
                                 <label for="gender" class="form-label">Gender</label>
                                 <select class="form-select" id="gender" name="gender">
                                     <option value="" disabled>Select gender</option>
-                                    <option value="Male" {{ $careworker->gender == 'Male' ? 'selected' : '' }}>Male</option>
-                                    <option value="Female" {{ $careworker->gender == 'Female' ? 'selected' : '' }}>Female</option>
-                                    <option value="Other" {{ $careworker->gender == 'Other' ? 'selected' : '' }}>Other</option>
+                                    <option value="Male" {{ old('gender', $careworker->gender) == 'Male' ? 'selected' : '' }}>Male</option>
+                                    <option value="Female" {{ old('gender', $careworker->gender) == 'Female' ? 'selected' : '' }}>Female</option>
+                                    <option value="Other" {{ old('gender', $careworker->gender) == 'Other' ? 'selected' : '' }}>Other</option>
                                 </select>
                             </div>
                         </div>
@@ -82,25 +82,25 @@
                                 <label for="civilStatus" class="form-label">Civil Status</label>
                                 <select class="form-select" id="civilStatus" name="civil_status">
                                     <option value="" disabled>Select civil status</option>
-                                    <option value="Single" {{ $careworker->civil_status == 'Single' ? 'selected' : '' }}>Single</option>
-                                    <option value="Married" {{ $careworker->civil_status == 'Married' ? 'selected' : '' }}>Married</option>
-                                    <option value="Widowed" {{ $careworker->civil_status == 'Widowed' ? 'selected' : '' }}>Widowed</option>
-                                    <option value="Divorced" {{ $careworker->civil_status == 'Divorced' ? 'selected' : '' }}>Divorced</option>
+                                    <option value="Single" {{ old('civil_status', $careworker->civil_status) == 'Single' ? 'selected' : '' }}>Single</option>
+                                    <option value="Married" {{ old('civil_status', $careworker->civil_status) == 'Married' ? 'selected' : '' }}>Married</option>
+                                    <option value="Widowed" {{ old('civil_status', $careworker->civil_status) == 'Widowed' ? 'selected' : '' }}>Widowed</option>
+                                    <option value="Divorced" {{ old('civil_status', $careworker->civil_status) == 'Divorced' ? 'selected' : '' }}>Divorced</option>
                                 </select>
                             </div>
                             <div class="col-md-3">
                                 <label for="religion" class="form-label">Religion</label>
-                                <input type="text" class="form-control" id="religion" name="religion" placeholder="Enter religion" value="{{ $careworker->religion }}"></div>
+                                <input type="text" class="form-control" id="religion" name="religion" placeholder="Enter religion" value="{{ old('religion', $careworker->religion) }}"></div>
                             <div class="col-md-3">
                                 <label for="nationality" class="form-label">Nationality</label>
-                                <input type="text" class="form-control" id="nationality" name="nationality" placeholder="Enter nationality" value="{{ $careworker->nationality }}"></div>
+                                <input type="text" class="form-control" id="nationality" name="nationality" placeholder="Enter nationality" value="{{ old('nationality', $careworker->nationality) }}"></div>
                             <div class="col-md-3 position-relative">
                                 <label for="municipality" class="form-label">Municipality</label>
                                 <select class="form-select" id="municipality" name="municipality">
                                     <option value="" disabled>Select municipality</option>
                                     @foreach($municipalities as $municipality)
                                         <option value="{{ $municipality->municipality_id }}" 
-                                            {{ $careworker->assigned_municipality_id == $municipality->municipality_id ? 'selected' : '' }}>
+                                            {{ old('municipality', $careworker->assigned_municipality_id) == $municipality->municipality_id ? 'selected' : '' }}>
                                             {{ $municipality->municipality_name }}
                                         </option>
                                     @endforeach
@@ -112,9 +112,9 @@
                                 <label for="educationalBackground" class="form-label">Educational Background</label>
                                 <select class="form-select" id="educationalBackground" name="educational_background">
                                     <option value="" disabled>Select Educational Background</option>
-                                    <option value="College" {{ $careworker->educational_background == 'College' ? 'selected' : '' }}>College</option>
-                                    <option value="Highschool" {{ $careworker->educational_background == 'Highschool' ? 'selected' : '' }}>High School</option>
-                                    <option value="Doctorate" {{ $careworker->educational_background == 'Doctorate' ? 'selected' : '' }}>Doctorate</option>
+                                    <option value="College" {{ old('educational_background', $careworker->educational_background) == 'College' ? 'selected' : '' }}>College</option>
+                                    <option value="Highschool" {{ old('educational_background', $careworker->educational_background) == 'Highschool' ? 'selected' : '' }}>High School</option>
+                                    <option value="Doctorate" {{ old('educational_background', $careworker->educational_background) == 'Doctorate' ? 'selected' : '' }}>Doctorate</option>
                                 </select>
                             </div>
                         </div>
@@ -129,7 +129,7 @@
                         <div class="row mb-3">
                             <div class="col-md-12">
                                 <label for="addressDetails" class="form-label">House No., Street, Subdivision, Barangay, City, Province</label>
-                                <textarea class="form-control" id="addressDetails" name="address_details" placeholder="Enter complete current address" rows="2">{{ $careworker->address }}</textarea>
+                                <textarea class="form-control" id="addressDetails" name="address_details" placeholder="Enter complete current address" rows="2">{{ old('address_details', $careworker->address) }}</textarea>
                             </div>
                         </div>
 
@@ -143,14 +143,14 @@
                         <div class="row mb-3">
                             <div class="col-md-4">
                                 <label for="emailAddress" class="form-label">Email Address</label>
-                                <input type="email" class="form-control" id="emailAddress" name="personal_email" placeholder="Enter personal email" value="{{ $careworker->personal_email }}">                            </div>
+                                <input type="email" class="form-control" id="emailAddress" name="personal_email" placeholder="Enter personal email" value="{{ old('personal_email', $careworker->personal_email) }}">                            </div>
                             <div class="col-md-4">
                                 <label for="mobileNumber" class="form-label">Mobile Number</label>
-                                <input type="text" class="form-control" id="mobileNumber" name="mobile_number" placeholder="Enter mobile number" value="{{ ltrim($careworker->mobile, '+63') }}">
+                                <input type="text" class="form-control" id="mobileNumber" name="mobile_number" placeholder="Enter mobile number" value="{{ old('mobile_number', ltrim($careworker->mobile, '+63')) }}">
                             </div>
                             <div class="col-md-4">
                                 <label for="landlineNumber" class="form-label">Landline Number</label>
-                                <input type="text" class="form-control" id="landlineNumber" name="landline_number" placeholder="Enter Landline number" value="{{ $careworker->landline }}">
+                                <input type="text" class="form-control" id="landlineNumber" name="landline_number" placeholder="Enter Landline number" value="{{ old('landline_number', $careworker->landline) }}">
                             </div>
                         </div>
 
@@ -199,14 +199,15 @@
                         <div class="row mb-1">
                             <div class="col-md-4">
                                 <label for="generalCarePlan" class="form-label">SSS ID</label>
-                                <input type="text" class="form-control" id="sssID" name="sss_ID" value="{{ $careworker->sss_id_number }}" placeholder="Enter SSS ID number">
+                                <input type="text" class="form-control" id="sssID" name="sss_ID" value="{{ old('sss_ID', $careworker->sss_id_number) }}" placeholder="Enter SSS ID number">
                             </div>
                             <div class="col-md-4">
                                 <label for="philhealthID" class="form-label">PhilHealth ID</label>
-                                <input type="text" class="form-control" id="philhealthID" name="philhealth_ID" value="{{ $careworker->philhealth_id_number }}" placeholder="Enter PhilHealth ID number">                            </div>
+                                <input type="text" class="form-control" id="philhealthID" name="philhealth_ID" value="{{ old('philhealth_ID', $careworker->philhealth_id_number) }}" placeholder="Enter PhilHealth ID number">                            
+                            </div>
                             <div class="col-md-4">
                                 <label for="pagibigID" class="form-label">Pag-Ibig ID</label>
-                                <input type="text" class="form-control" id="pagibigID" name="pagibig_ID" value="{{ $careworker->pagibig_id_number }}" placeholder="Enter Pag-IBIG ID number">
+                                <input type="text" class="form-control" id="pagibigID" name="pagibig_ID" value="{{ old('pagibig_ID', $careworker->pagibig_id_number) }}" placeholder="Enter Pag-IBIG ID number">
                             </div>
                         </div>
 
@@ -221,7 +222,7 @@
                         <div class="row mb-3">
                             <div class="col-md-4">
                                 <label for="accountEmail" class="form-label">Email</label>
-                                <input type="email" class="form-control" id="accountEmail" name="account[email]" placeholder="Enter email" value="{{ $careworker->email }}">                            </div>
+                                <input type="email" class="form-control" id="accountEmail" name="account[email]" placeholder="Enter email" value="{{ old('account.email', $careworker->email) }}">                            </div>
                             <div class="col-md-4">
                                 <label for="password" class="form-label">Password</label>
                                 <input type="password" class="form-control" id="password" name="account[password]" placeholder="Leave blank to keep current password">

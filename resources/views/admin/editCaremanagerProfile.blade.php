@@ -58,7 +58,7 @@
                             <div class="col-md-3">
                                 <label for="firstName" class="form-label">First Name</label>
                                 <input type="text" class="form-control" id="firstName" name="first_name" 
-                                       value="{{ $caremanager->first_name }}" 
+                                       value="{{ old('first_name', $caremanager->first_name) }}" 
                                        placeholder="Enter first name" required 
                                        pattern="^[A-Z][a-zA-Z]{1,}(?:-[a-zA-Z]{1,})?(?: [a-zA-Z]{2,}(?:-[a-zA-Z]{1,})?)*$"
                                        title="First letter must be capital">
@@ -66,7 +66,7 @@
                             <div class="col-md-3">
                                 <label for="lastName" class="form-label">Last Name</label>
                                 <input type="text" class="form-control" id="lastName" name="last_name" 
-                                       value="{{ $caremanager->last_name }}" 
+                                       value="{{ old('last_name', $caremanager->last_name) }}" 
                                        placeholder="Enter last name" required
                                        pattern="^[A-Z][a-zA-Z]{1,}(?:-[a-zA-Z]{1,})?(?: [a-zA-Z]{2,}(?:-[a-zA-Z]{1,})?)*$"
                                        title="First letter must be capital">
@@ -74,15 +74,15 @@
                             <div class="col-md-3">
                                 <label for="birthDate" class="form-label">Birthday</label>
                                 <input type="date" class="form-control" id="birthDate" name="birth_date" 
-                                       value="{{ $birth_date }}" required>
+                                       value="{{ old('birth_date', $birth_date) }}" required>
                             </div>
                             <div class="col-md-3">
                                 <label for="gender" class="form-label">Gender</label>
                                 <select class="form-select" id="gender" name="gender" required>
                                     <option value="" disabled>Select gender</option>
-                                    <option value="Male" {{ $caremanager->gender == 'Male' ? 'selected' : '' }}>Male</option>
-                                    <option value="Female" {{ $caremanager->gender == 'Female' ? 'selected' : '' }}>Female</option>
-                                    <option value="Other" {{ $caremanager->gender == 'Other' ? 'selected' : '' }}>Other</option>
+                                    <option value="Male" {{ old('gender', $caremanager->gender) == 'Male' ? 'selected' : '' }}>Male</option>
+                                    <option value="Female" {{ old('gender', $caremanager->gender) == 'Female' ? 'selected' : '' }}>Female</option>
+                                    <option value="Other" {{ old('gender', $caremanager->gender) == 'Other' ? 'selected' : '' }}>Other</option>
                                 </select>
                             </div>
                         </div>
@@ -91,28 +91,28 @@
                                 <label for="civilStatus" class="form-label">Civil Status</label>
                                 <select class="form-select" id="civilStatus" name="civil_status" required>
                                     <option value="" disabled>Select civil status</option>
-                                    <option value="Single" {{ $caremanager->civil_status == 'Single' ? 'selected' : '' }}>Single</option>
-                                    <option value="Married" {{ $caremanager->civil_status == 'Married' ? 'selected' : '' }}>Married</option>
-                                    <option value="Widowed" {{ $caremanager->civil_status == 'Widowed' ? 'selected' : '' }}>Widowed</option>
-                                    <option value="Divorced" {{ $caremanager->civil_status == 'Divorced' ? 'selected' : '' }}>Divorced</option>
+                                    <option value="Single" {{ old('civil_status', $caremanager->civil_status) == 'Single' ? 'selected' : '' }}>Single</option>
+                                    <option value="Married" {{ old('civil_status', $caremanager->civil_status) == 'Married' ? 'selected' : '' }}>Married</option>
+                                    <option value="Widowed" {{ old('civil_status', $caremanager->civil_status) == 'Widowed' ? 'selected' : '' }}>Widowed</option>
+                                    <option value="Divorced" {{ old('civil_status', $caremanager->civil_status) == 'Divorced' ? 'selected' : '' }}>Divorced</option>
                                 </select>
                             </div>
                             <div class="col-md-3">
                                 <label for="religion" class="form-label">Religion</label>
                                 <input type="text" class="form-control" id="religion" name="religion" 
-                                       value="{{ $caremanager->religion }}" placeholder="Enter religion">
+                                       value="{{ old('religion', $caremanager->religion) }}" placeholder="Enter religion">
                             </div>
                             <div class="col-md-3">
                                 <label for="nationality" class="form-label">Nationality</label>
                                 <input type="text" class="form-control" id="nationality" name="nationality" 
-                                       value="{{ $caremanager->nationality }}" placeholder="Enter nationality" required>
+                                       value="{{ old('nationality', $caremanager->nationality) }}" placeholder="Enter nationality" required>
                             </div>
                             <div class="col-md-3">
                                 <label for="municipality" class="form-label">Municipality</label>
                                 <select class="form-select" id="municipality" name="municipality" required>
                                     <option value="" disabled>Select municipality</option>
                                     @foreach ($municipalities as $municipality)
-                                        <option value="{{ $municipality->municipality_id }}" {{ $caremanager->assigned_municipality_id == $municipality->municipality_id ? 'selected' : '' }}>
+                                        <option value="{{ $municipality->municipality_id }}" {{ old('municipality', $caremanager->assigned_municipality_id) == $municipality->municipality_id ? 'selected' : '' }}>
                                             {{ $municipality->municipality_name }}
                                         </option>
                                     @endforeach
@@ -124,9 +124,9 @@
                                 <label for="educationalBackground" class="form-label">Educational Background</label>
                                 <select class="form-select" id="educationalBackground" name="educational_background" required>
                                     <option value="" disabled>Select educational background</option>
-                                    <option value="College" {{ $caremanager->educational_background == 'College' ? 'selected' : '' }}>College</option>
-                                    <option value="Highschool" {{ $caremanager->educational_background == 'Highschool' ? 'selected' : '' }}>High School</option>
-                                    <option value="Doctorate" {{ $caremanager->educational_background == 'Doctorate' ? 'selected' : '' }}>Doctorate</option>
+                                    <option value="College" {{ old('educational_background', $caremanager->educational_background) == 'College' ? 'selected' : '' }}>College</option>
+                                    <option value="Highschool" {{ old('educational_background', $caremanager->educational_background) == 'Highschool' ? 'selected' : '' }}>High School</option>
+                                    <option value="Doctorate" {{ old('educational_background', $caremanager->educational_background) == 'Doctorate' ? 'selected' : '' }}>Doctorate</option>
                                 </select>
                             </div>
                         </div>
@@ -142,7 +142,7 @@
                             <div class="col-md-12">
                                 <label for="addressDetails" class="form-label">House No., Street, Subdivision, Barangay, City, Province</label>
                                 <textarea class="form-control" id="addressDetails" name="address_details" 
-                                          placeholder="Enter complete current address" rows="2" required>{{ $caremanager->address }}</textarea>
+                                    placeholder="Enter complete current address" rows="2" required>{{ old('address_details', $caremanager->address) }}</textarea>
                             </div>
                         </div>
 
@@ -157,14 +157,14 @@
                             <div class="col-md-4">
                                 <label for="personalEmail" class="form-label">Personal Email Address</label>
                                 <input type="email" class="form-control" id="personalEmail" name="personal_email" 
-                                       value="{{ $caremanager->personal_email }}" placeholder="Enter personal email" required>
+                                    value="{{ old('personal_email', $caremanager->personal_email) }}" placeholder="Enter personal email" required>
                             </div>
                             <div class="col-md-4">
                                 <label for="mobileNumber" class="form-label">Mobile Number</label>
                                 <div class="input-group">
                                     <span class="input-group-text">+63</span>
                                     <input type="text" class="form-control" id="mobileNumber" name="mobile_number" 
-                                        value="{{ substr($caremanager->mobile, 0, 3) === '+63' ? substr($caremanager->mobile, 3) : $caremanager->mobile }}" 
+                                        value="{{ old('mobile_number', substr($caremanager->mobile, 0, 3) === '+63' ? substr($caremanager->mobile, 3) : $caremanager->mobile) }}" 
                                         placeholder="9XXXXXXXXX" required
                                         pattern="[0-9]{10}"
                                         title="Please enter a valid 10-digit mobile number">
@@ -173,7 +173,7 @@
                             <div class="col-md-4">
                                 <label for="landlineNumber" class="form-label">Landline Number</label>
                                 <input type="text" class="form-control" id="landlineNumber" name="landline_number" 
-                                       value="{{ $caremanager->landline }}" placeholder="Enter landline number" maxlength="10">
+                                    value="{{ old('landline_number', $caremanager->landline) }}" placeholder="Enter landline number" maxlength="10">
                             </div>
                         </div>
 
@@ -223,17 +223,17 @@
                             <div class="col-md-4">
                                 <label for="sssID" class="form-label">SSS ID</label>
                                 <input type="text" class="form-control" id="sssID" name="sss_ID" 
-                                       value="{{ $caremanager->sss_id_number }}" placeholder="Enter SSS ID number">
+                                       value="{{ old('sss_ID', $caremanager->sss_id_number) }}" placeholder="Enter SSS ID number">
                             </div>
                             <div class="col-md-4">
                                 <label for="philhealthID" class="form-label">PhilHealth ID</label>
                                 <input type="text" class="form-control" id="philhealthID" name="philhealth_ID" 
-                                       value="{{ $caremanager->philhealth_id_number }}" placeholder="Enter PhilHealth ID number">
+                                       value="{{ old('philhealth_ID', $caremanager->philhealth_id_number) }}" placeholder="Enter PhilHealth ID number">
                             </div>
                             <div class="col-md-4">
                                 <label for="pagibigID" class="form-label">Pag-Ibig ID</label>
                                 <input type="text" class="form-control" id="pagibigID" name="pagibig_ID" 
-                                       value="{{ $caremanager->pagibig_id_number }}" placeholder="Enter Pag-Ibig ID number">
+                                       value="{{ old('pagibig_ID', $caremanager->pagibig_id_number) }}" placeholder="Enter Pag-Ibig ID number">
                             </div>
                         </div>
 
@@ -248,7 +248,7 @@
                             <div class="col-md-4">
                                 <label for="accountEmail" class="form-label">Email</label>
                                 <input type="email" class="form-control" id="accountEmail" name="account[email]" 
-                                       value="{{ $caremanager->email }}" placeholder="Enter email" required>
+                                       value="{{ old('account.email', $caremanager->email) }}" placeholder="Enter email" required>
                             </div>
                             <div class="col-md-4">
                                 <label for="password" class="form-label">Password (leave blank to keep current)</label>

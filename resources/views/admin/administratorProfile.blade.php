@@ -54,7 +54,6 @@
                                 <option value="" {{ request('filter') ? '' : 'selected' }}>Filter by</option>
                                 <option value="status" {{ request('filter') == 'status' ? 'selected' : '' }}>Status</option>
                                 <option value="organizationrole" {{ request('filter') == 'organizationrole' ? 'selected' : '' }}>Organization Role</option>
-                                <option value="area" {{ request('filter') == 'area' ? 'selected' : '' }}>Area</option>
                             </select>
                         </div>
                     </form>

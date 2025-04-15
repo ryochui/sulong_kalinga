@@ -34,13 +34,9 @@
                         <i class="bx bx-arrow-back"></i> Back
                     </a>-->
                     <!-- Edit Button with Routing -->
-                    <form action="{{ route('admin.families.edit') }}" method="POST" style="display:inline;">
-                        @csrf
-                        <input type="hidden" name="family_member_id" value="{{ $family_member->family_member_id }}">
-                        <button type="submit" class="btn btn-primary">
-                        <i class="bx bxs-edit"></i> Edit
-                        </button>
-                    </form>
+                    <a href="{{ route('admin.families.edit', $family_member->family_member_id) }}" class="btn btn-primary">
+                        <i class="bx bx-edit"></i> Edit
+                    </a>
                     <!-- Delete button to call the delete function -->
                     <button type="button" class="btn btn-danger" onclick="openDeleteFamilyMemberModal('{{ $family_member->family_member_id }}', '{{ $family_member->first_name }} {{ $family_member->last_name }}')">
                         <i class="bx bxs-trash"></i> Delete

@@ -83,6 +83,8 @@ Route::middleware(['auth', '\App\Http\Middleware\CheckRole:administrator'])->pre
         Route::put('/{id}', [FamilyMemberController::class, 'updateFamily'])->name('update');
         Route::post('/delete', [AdminController::class, 'deleteFamilyMember'])->name('delete');
         Route::post('/view-details', [FamilyMemberController::class, 'viewFamilyDetails'])->name('view');
+        Route::get('/{id}/edit', [FamilyMemberController::class, 'editFamilyMember'])->name('edit');
+        Route::put('/{id}', [FamilyMemberController::class, 'updateFamilyMember'])->name('update');
     });
 
     // Weekly Care Plans

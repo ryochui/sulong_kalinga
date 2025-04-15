@@ -60,11 +60,11 @@
                         <div class="row mb-1">
                             <div class="col-md-3">
                                 <label for="firstName" class="form-label">First Name</label>
-                                <input type="text" class="form-control" id="firstName" name="first_name" placeholder="Enter first name" value="{{ $administrator->first_name }}" required>
+                                <input type="text" class="form-control" id="firstName" name="first_name" placeholder="Enter first name" value="{{ old('first_name', $administrator->first_name) }}" required>
                             </div>
                             <div class="col-md-3">
                                 <label for="lastName" class="form-label">Last Name</label>
-                                <input type="text" class="form-control" id="lastName" name="last_name" placeholder="Enter last name" value="{{ $administrator->last_name }}" required>
+                                <input type="text" class="form-control" id="lastName" name="last_name" placeholder="Enter last name" value="{{ old('last_name', $administrator->last_name) }}" required>
                             </div>
                             <!-- <div class="col-md-3">
                                 <label for="birthDate" class="form-label">Birthday</label>
@@ -72,14 +72,15 @@
                             </div> -->
                             <div class="col-md-3">
                                 <label for="birthDate" class="form-label">Birthday</label>
-                                <input type="date" class="form-control" id="birthDate" name="birth_date" value="{{ $birth_date }}" required>
+                                <input type="date" class="form-control" id="birthDate" name="birth_date" 
+                                    value="{{ old('birth_date', $birth_date) }}" required>
                             </div>
                             <div class="col-md-3">
                                 <label for="gender" class="form-label">Gender</label>
                                 <select class="form-control" id="gender" name="gender" required>
-                                    <option value="Male" {{ $administrator->gender == 'Male' ? 'selected' : '' }}>Male</option>
-                                    <option value="Female" {{ $administrator->gender == 'Female' ? 'selected' : '' }}>Female</option>
-                                    <option value="Other" {{ $administrator->gender == 'Other' ? 'selected' : '' }}>Other</option>
+                                    <option value="Male" {{ old('gender', $administrator->gender) == 'Male' ? 'selected' : '' }}>Male</option>
+                                    <option value="Female" {{ old('gender', $administrator->gender) == 'Female' ? 'selected' : '' }}>Female</option>
+                                    <option value="Other" {{ old('gender', $administrator->gender) == 'Other' ? 'selected' : '' }}>Other</option>
                                 </select>
                             </div>
                         </div>
@@ -88,27 +89,27 @@
                                 <label for="civilStatus" class="form-label">Civil Status</label>
                                 <select class="form-select" id="civilStatus" name="civil_status" required>
                                     <option value="" disabled>Select civil status</option>
-                                    <option value="Single" {{ $administrator->civil_status == 'Single' ? 'selected' : '' }}>Single</option>
-                                    <option value="Married" {{ $administrator->civil_status == 'Married' ? 'selected' : '' }}>Married</option>
-                                    <option value="Widowed" {{ $administrator->civil_status == 'Widowed' ? 'selected' : '' }}>Widowed</option>
-                                    <option value="Divorced" {{ $administrator->civil_status == 'Divorced' ? 'selected' : '' }}>Divorced</option>
+                                    <option value="Single" {{ old('civil_status', $administrator->civil_status) == 'Single' ? 'selected' : '' }}>Single</option>
+                                    <option value="Married" {{ old('civil_status', $administrator->civil_status) == 'Married' ? 'selected' : '' }}>Married</option>
+                                    <option value="Widowed" {{ old('civil_status', $administrator->civil_status) == 'Widowed' ? 'selected' : '' }}>Widowed</option>
+                                    <option value="Divorced" {{ old('civil_status', $administrator->civil_status) == 'Divorced' ? 'selected' : '' }}>Divorced</option>
                                 </select>
                             </div>
                             <div class="col-md-3">
                                 <label for="religion" class="form-label">Religion</label>
-                                <input type="text" class="form-control" id="religion" name="religion" placeholder="Enter religion" value="{{ $administrator->religion }}" pattern="^[a-zA-Z\s]*$" title="Only alphabets and spaces are allowed.">
+                                <input type="text" class="form-control" id="religion" name="religion" placeholder="Enter religion" value="{{ old('religion', $administrator->religion) }}" pattern="^[a-zA-Z\s]*$" title="Only alphabets and spaces are allowed.">
                             </div>
                             <div class="col-md-3">
                                 <label for="nationality" class="form-label">Nationality</label>
-                                <input type="text" class="form-control" id="nationality" name="nationality" placeholder="Enter nationality" value="{{ $administrator->nationality }}" required pattern="^[a-zA-Z\s]*$" title="Only alphabets and spaces are allowed.">
+                                <input type="text" class="form-control" id="nationality" name="nationality" placeholder="Enter nationality" value="{{ old('nationality', $administrator->nationality) }}" required pattern="^[a-zA-Z\s]*$" title="Only alphabets and spaces are allowed.">
                             </div>
                             <div class="col-md-3">
                                 <label for="educationalBackground" class="form-label">Educational Background</label>
                                 <select class="form-select" id="educationalBackground" name="educational_background" required>
                                     <option value="" disabled>Select educational background</option>
-                                    <option value="College" {{ $administrator->educational_background == 'College' ? 'selected' : '' }}>College</option>
-                                    <option value="Highschool" {{ $administrator->educational_background == 'Highschool' ? 'selected' : '' }}>High School</option>
-                                    <option value="Doctorate" {{ $administrator->educational_background == 'Doctorate' ? 'selected' : '' }}>Doctorate</option>
+                                    <option value="College" {{ old('educational_background', $administrator->educational_background) == 'College' ? 'selected' : '' }}>College</option>
+                                    <option value="Highschool" {{ old('educational_background', $administrator->educational_background) == 'Highschool' ? 'selected' : '' }}>High School</option>
+                                    <option value="Doctorate" {{ old('educational_background', $administrator->educational_background) == 'Doctorate' ? 'selected' : '' }}>Doctorate</option>
                                 </select>
                             </div>
                         </div>
@@ -124,7 +125,7 @@
                         <div class="row mb-3">
                             <div class="col-md-12">
                                 <label for="addressDetails" class="form-label">House No., Street, Subdivision, Barangay, City, Province</label>
-                                <textarea class="form-control" id="addressDetails" name="address_details" rows="2" required>{{ $administrator->address }}</textarea>
+                                <textarea class="form-control" id="addressDetails" name="address_details" rows="2" required>{{ old('address_details', $administrator->address) }}</textarea>
                             </div>
                         </div>
 
@@ -140,15 +141,15 @@
                         <div class="row mb-3">
                             <div class="col-md-4">
                                 <label for="personalEmail" class="form-label">Personal Email Address</label>
-                                <input type="email" class="form-control" id="personalEmail" name="personal_email" value="{{ $administrator->personal_email }}" required>
+                                <input type="email" class="form-control" id="personalEmail" name="personal_email" value="{{ old('personal_email', $administrator->personal_email) }}" required>
                             </div>
                             <div class="col-md-4">
                                 <label for="mobileNumber" class="form-label">Mobile Number</label>
-                                <input type="text" class="form-control" id="mobileNumber" name="mobile_number" value="{{ ltrim($administrator->mobile, '+63') }}" required oninput="restrictToNumbers(this)" maxlength="10" placeholder="Enter mobile number">
+                                <input type="text" class="form-control" id="mobileNumber" name="mobile_number" value="{{ old('mobile_number', ltrim($administrator->mobile, '+63')) }}" required oninput="restrictToNumbers(this)" maxlength="10" placeholder="Enter mobile number">
                             </div>
                             <div class="col-md-4">
                                 <label for="landlineNumber" class="form-label">Landline Number</label>
-                                <input type="text" class="form-control" id="landlineNumber" name="landline_number" value="{{ $administrator->landline }}" oninput="restrictToNumbers(this)" maxlength="10" placeholder="Enter landline number">
+                                <input type="text" class="form-control" id="landlineNumber" name="landline_number" value="{{ old('landline_number', $administrator->landline) }}" oninput="restrictToNumbers(this)" maxlength="10" placeholder="Enter landline number">
                             </div>
                         </div>
     
@@ -198,15 +199,15 @@
                         <div class="row mb-1">
                             <div class="col-md-4">
                                 <label for="sssID" class="form-label">SSS ID</label>
-                                <input type="text" class="form-control" id="sssID" name="sss_ID" placeholder="Enter SSS ID" maxlength="10" value="{{ $administrator->sss_id_number }}" oninput="restrictToNumbers(this)" title="Must be 10 digits.">
+                                <input type="text" class="form-control" id="sssID" name="sss_ID" placeholder="Enter SSS ID" maxlength="10" value="{{ old('sss_ID', $administrator->sss_id_number) }}" oninput="restrictToNumbers(this)" title="Must be 10 digits.">
                             </div>
                             <div class="col-md-4">
                                 <label for="philhealthID" class="form-label">PhilHealth ID</label>
-                                <input type="text" class="form-control" id="philhealthID" name="philhealth_ID" placeholder="Enter PhilHealth ID" maxlength="12" value="{{ $administrator->philhealth_id_number }}" oninput="restrictToNumbers(this)" title="Must be 12 digits.">
+                                <input type="text" class="form-control" id="philhealthID" name="philhealth_ID" placeholder="Enter PhilHealth ID" maxlength="12" value="{{ old('philhealth_ID', $administrator->philhealth_id_number) }}" oninput="restrictToNumbers(this)" title="Must be 12 digits.">
                             </div>
                             <div class="col-md-4">
                                 <label for="pagibigID" class="form-label">Pag-Ibig ID</label>
-                                <input type="text" class="form-control" id="pagibigID" name="pagibig_ID" placeholder="Enter Pag-Ibig ID" maxlength="12" value="{{ $administrator->pagibig_id_number }}" oninput="restrictToNumbers(this)" title="Must be 12 digits.">
+                                <input type="text" class="form-control" id="pagibigID" name="pagibig_ID" placeholder="Enter Pag-Ibig ID" maxlength="12" value="{{ old('pagibig_ID', $administrator->pagibig_id_number) }}" oninput="restrictToNumbers(this)" title="Must be 12 digits.">
                             </div>
                         </div>
 
@@ -221,7 +222,7 @@
                         <div class="row mb-1">
                             <div class="col-md-4">
                                 <label for="email" class="form-label">Work Email Address</label>
-                                <input type="email" class="form-control" id="email" name="account[email]" value="{{ $administrator->email }}" required placeholder="Enter work email">
+                                <input type="email" class="form-control" id="email" name="account[email]" value="{{ old('account.email', $administrator->email) }}" required placeholder="Enter work email">
                             </div>
                             <div class="col-md-4">
                                 <label for="password" class="form-label">Password</label>
@@ -237,8 +238,8 @@
                                 <label for="organization_Roles" class="form-label">Organization Roles</label>
                                 <select class="form-select" id="Organization_RolesDropdown" name="Organization_Roles" required>
                                     <option value="" disabled {{ !isset($administrator->organization_role_id) ? 'selected' : '' }}>Select organization role</option>
-                                    <option value="2" {{ $administrator->organization_role_id == 2 ? 'selected' : '' }}>Project Coordinator</option>
-                                    <option value="3" {{ $administrator->organization_role_id == 3 ? 'selected' : '' }}>MEAL Coordinator</option>
+                                    <option value="2" {{ old('Organization_Roles', $administrator->organization_role_id) == 2 ? 'selected' : '' }}>Project Coordinator</option>
+                                    <option value="3" {{ old('Organization_Roles', $administrator->organization_role_id) == 3 ? 'selected' : '' }}>MEAL Coordinator</option>
                                 </select>
                             </div>
                         </div>
