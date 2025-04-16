@@ -12,7 +12,7 @@
 <body>
 
     @include('components.userNavbar')
-    @include('components.adminSidebar')
+    @include('components.careManagerSidebar')
     
     <div class="home-section">
         <div class="container-fluid">

@@ -43,14 +43,14 @@ Route::middleware(['auth', '\App\Http\Middleware\CheckRole:care_manager'])->pref
     });
     
     // Family Member Management
-    Route::prefix('family-members')->name('family-members.')->group(function () {
+    Route::prefix('families')->name('families.')->group(function () {
         Route::get('/', [FamilyMemberController::class, 'index'])->name('index');
-        Route::get('/add', [FamilyMemberController::class, 'create'])->name('add');
-        Route::post('/store', [FamilyMemberController::class, 'store'])->name('store');
-        Route::get('/{id}', [FamilyMemberController::class, 'show'])->name('show');
-        Route::get('/{id}/edit', [FamilyMemberController::class, 'edit'])->name('edit');
-        Route::put('/{id}', [FamilyMemberController::class, 'update'])->name('update');
-        Route::post('/view-details', [FamilyMemberController::class, 'viewFamilyDetails'])->name('view-details');
+        Route::get('/add', [FamilyMemberController::class, 'create'])->name('create');
+        Route::post('/store', [FamilyMemberController::class, 'storeFamily'])->name('store');
+        Route::put('/{id}', [FamilyMemberController::class, 'updateFamilyMember'])->name('update');
+        Route::post('/delete', [FamilyMemberController::class, 'deleteFamilyMember'])->name('delete');
+        Route::post('/view-details', [FamilyMemberController::class, 'viewFamilyDetails'])->name('view');
+        Route::get('/{id}/edit', [FamilyMemberController::class, 'editFamilyMember'])->name('edit');
     });
     
     // Weekly Care Plans

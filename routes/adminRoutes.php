@@ -81,11 +81,10 @@ Route::middleware(['auth', '\App\Http\Middleware\CheckRole:administrator'])->pre
         Route::get('/', [FamilyMemberController::class, 'index'])->name('index');
         Route::get('/add', [FamilyMemberController::class, 'create'])->name('create');
         Route::post('/store', [FamilyMemberController::class, 'storeFamily'])->name('store');
-        Route::post('/edit', [FamilyMemberController::class, 'editFamilyProfile'])->name('edit');
-        Route::put('/{id}', [FamilyMemberController::class, 'updateFamily'])->name('update');
-        Route::post('/delete', [AdminController::class, 'deleteFamilyMember'])->name('delete');
-        Route::post('/view-details', [FamilyMemberController::class, 'viewFamilyDetails'])->name('view');
         Route::get('/{id}/edit', [FamilyMemberController::class, 'editFamilyMember'])->name('edit');
+        Route::put('/{id}', [FamilyMemberController::class, 'updateFamily'])->name('update');
+        Route::post('/delete', [FamilyMemberController::class, 'deleteFamilyMember'])->name('delete');
+        Route::post('/view-details', [FamilyMemberController::class, 'viewFamilyDetails'])->name('view');
         Route::put('/{id}', [FamilyMemberController::class, 'updateFamilyMember'])->name('update');
     });
 

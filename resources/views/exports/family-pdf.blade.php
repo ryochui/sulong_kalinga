@@ -5,11 +5,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Family Members Report</title>
     <style>
+        @page {
+            size: letter portrait;
+            margin: 0.5in;
+        }
         body {
             font-family: 'Helvetica', 'Arial', sans-serif;
             line-height: 1.6;
             color: #333;
             font-size: 12px;
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            zoom: 100%; /* Fix scaling issues */
         }
         .header {
             text-align: center;
@@ -28,16 +36,21 @@
         }
         .family-member-profile {
             page-break-inside: avoid;
+            page-break-after: auto;
             margin-bottom: 30px;
             border: 1px solid #ddd;
             padding: 10px;
             background: #fff;
+            width: 100%;
+            box-sizing: border-box;
         }
         .profile-header {
             display: flex;
             margin-bottom: 15px;
             border-bottom: 1px solid #eee;
             padding-bottom: 10px;
+            width: 100%;
+            box-sizing: border-box;
         }
         .profile-image-container {
             width: 80px; 
@@ -67,22 +80,6 @@
             font-style: italic;
             font-size: 11px;
         }
-        .status {
-            display: inline-block;
-            padding: 3px 8px;
-            border-radius: 3px;
-            font-weight: bold;
-            font-size: 11px;
-            float: right;
-        }
-        .status-approved {
-            background: #e8f5e9;
-            color: #2e7d32;
-        }
-        .status-denied {
-            background: #ffebee;
-            color: #c62828;
-        }
         .section-title {
             background-color: #2b5797;
             color: white;
@@ -94,6 +91,7 @@
             width: 100%;
             border-collapse: collapse;
             margin-bottom: 15px;
+            table-layout: fixed;
         }
         table th, table td {
             border: 1px solid #ddd;
@@ -160,7 +158,7 @@
 
     <!-- Table of Contents -->
     <div class="toc-header">Selected Family Members ({{ count($familyMembers) }})</div>
-    <table>
+    <table style="width: 100%; table-layout: fixed;">
         <thead>
             <tr>
                 <th width="5%">No.</th>
@@ -168,7 +166,6 @@
                 <th width="15%">Relationship</th>
                 <th width="25%">Related Beneficiary</th>
                 <th width="15%">Contact</th>
-                <th width="15%">Status</th>
             </tr>
         </thead>
         <tbody>
@@ -176,14 +173,9 @@
             <tr class="toc-item">
                 <td>{{ $index + 1 }}</td>
                 <td>{{ $member->first_name }} {{ $member->last_name }}</td>
-                <td>{{ $member->relationship }}</td>
+                <td>{{ $member->relation_to_beneficiary }}</td>
                 <td>{{ $member->beneficiary->first_name ?? 'N/A' }} {{ $member->beneficiary->last_name ?? '' }}</td>
                 <td>{{ $member->mobile ?? 'N/A' }}</td>
-                <td>
-                    <span class="status {{ $member->status == 'Approved' ? 'status-approved' : 'status-denied' }}" style="float: none;">
-                        {{ $member->status }}
-                    </span>
-                </td>
             </tr>
             @endforeach
         </tbody>
@@ -199,18 +191,14 @@
     
     <div class="family-member-profile">
         <div class="profile-header">
-        <div class="profile-image-container" style="overflow:hidden;">
-            <img src="{{ $family_member->photo ? public_path('storage/' . $family_member->photo) : public_path('images/defaultProfile.png') }}" alt="Profile Picture" 
-                style="width:100%; height:100%; object-fit:cover;">
-        </div>
+            <div class="profile-image-container" style="overflow:hidden; width: 80px; height: 80px; min-width: 80px;">
+                <img src="{{ $family_member->photo ? public_path('storage/' . $family_member->photo) : public_path('images/defaultProfile.png') }}" alt="Profile Picture" 
+                    style="width:80px; height:80px; object-fit:cover;">
+            </div>
             
             <div class="profile-details">
                 <h2>{{ $family_member->first_name }} {{ $family_member->last_name }}</h2>
                 <div class="registration-date">Family Member since {{ \Carbon\Carbon::parse($family_member->created_at)->format('F j, Y') }}</div>
-                
-                <div class="status {{ $family_member->status == 'Approved' ? 'status-approved' : 'status-denied' }}">
-                    Access {{ $family_member->status }}
-                </div>
             </div>
         </div>
         
@@ -263,20 +251,10 @@
         @else
         <p>No related beneficiary found.</p>
         @endif
-        
-        <div class="section-title">Access Information</div>
-        <table>
-            <tbody>
-                <tr>
-                    <td width="30%"><strong>Access Status:</strong></td>
-                    <td>{{ $family_member->status }}</td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
+    </div><!-- Properly closing the family-member-profile div -->
     
     @if(!$loop->last)
-        <div class="page-break"></div>
+    <div style="page-break-after: always;"></div>
     @endif
     @endforeach
 

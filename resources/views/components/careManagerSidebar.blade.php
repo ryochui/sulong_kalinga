@@ -35,7 +35,7 @@
       <ul class="sub-menu">
         <li><a class="link_name">User Management</a></li>
         <li><a href="{{ route('care-manager.beneficiaries.index') }}" class="{{ Request::routeIs('care-manager.showBeneficiary') || Request::routeIs('care-manager.addBeneficiary') ? 'active' : '' }}">Beneficiary Profiles</a></li>
-        <li><a href="{{ route('care-manager.family-members.index') }}" class="{{ Request::routeIs('care-manager.showFamilyMember') || Request::routeIs('care-manager.addFamilyMember') ? 'active' : '' }}">Family or Relative Profiles</a></li>
+        <li><a href="{{ route('care-manager.families.index') }}" class="{{ Request::routeIs('care-manager.showFamilyMember') || Request::routeIs('care-manager.addFamilyMember') ? 'active' : '' }}">Family or Relative Profiles</a></li>
         <li><a href="{{ route('care-manager.care-workers.index') }}" class="{{ Request::routeIs('care-manager.showCareWorker') || Request::routeIs('care-manager.addCareWorker') ? 'active' : '' }}">Care Worker Profiles</a></li>
       </ul>
     </li>

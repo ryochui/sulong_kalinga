@@ -94,7 +94,7 @@ function showDependencyError(message, errorType) {
         errorContent += `
             <div class="mt-2 border-top pt-2">
                 <strong>We're sorry:</strong>
-                <p class="mt-2 mb-2">This family member has acknowledged care plans which must maintain their audit history for compliance purposes.</p>
+                <p class="mt-2 mb-2">This family member has acknowledged weekly care plans and cannot be deleted for data integrity purposes.</p>
             </div>
         `;
     } else if (errorType === 'dependency_audit') {
@@ -122,8 +122,16 @@ function showSuccess() {
     document.getElementById('confirmFamilyMemberDeleteButton').classList.add('d-none');
     document.getElementById('cancelDeleteButton').textContent = 'Close';
     
+    // Use role-specific redirect route
+    let redirectRoute = "{{ route('admin.families.index') }}"; // Default for admin
+    
+    // Use care manager route if current user is a care manager
+    @if(Auth::user()->role_id == 2)
+        redirectRoute = "{{ route('care-manager.families.index') }}";
+    @endif
+    
     setTimeout(function() {
-        window.location.href = "{{ route('admin.families.index') }}";
+        window.location.href = redirectRoute;
     }, 2000);
 }
 
@@ -154,7 +162,11 @@ document.addEventListener('DOMContentLoaded', function() {
         formData.append('_token', '{{ csrf_token() }}');
         
         const xhr1 = new XMLHttpRequest();
-        xhr1.open('POST', "{{ route('admin.validate-password') }}", true);
+        let validatePasswordEndpoint = "{{ route('admin.validate-password') }}";
+        @if(Auth::user()->role_id == 2)
+            validatePasswordEndpoint = "{{ route('care-manager.validate-password') }}";
+        @endif
+        xhr1.open('POST', validatePasswordEndpoint, true);
         xhr1.onload = function() {
             if (xhr1.status === 200) {
                 try {
@@ -170,7 +182,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
                         // Use care manager endpoint if the current user is a care manager
                         @if(Auth::user()->role_id == 2)
-                            endpoint = "{{ route('manager.families.delete') }}";
+                            endpoint = "{{ route('care-manager.families.delete') }}";
                         @endif
                         
                         const xhr2 = new XMLHttpRequest();

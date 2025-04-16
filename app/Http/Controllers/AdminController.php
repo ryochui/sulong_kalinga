@@ -984,17 +984,7 @@ class AdminController extends Controller
         
         return response()->json($result);
     }
-
-    public function deleteFamilyMember(Request $request)
-    {
-        $result = $this->userManagementService->deleteFamilyMember(
-            $request->input('family_member_id'),
-            Auth::user()
-        );
-        
-        return response()->json($result);
-    }
-
+    
     public function municipality()
     {
         try {

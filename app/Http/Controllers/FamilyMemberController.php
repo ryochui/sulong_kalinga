@@ -17,74 +17,136 @@ use App\Models\User;
 use App\Models\Municipality;
 use App\Models\FamilyMember;
 use App\Models\Beneficiary;
-
+use App\Services\UserManagementService;
 
 class FamilyMemberController extends Controller
 {
+    protected $userManagementService;
+    
+    public function __construct(UserManagementService $userManagementService)
+    {
+        $this->userManagementService = $userManagementService;
+    }
+
+    protected function getRolePrefix()
+    {
+        $user = Auth::user();
+        
+        // Match the role_id checking logic used in CheckRole middleware
+        if ($user->role_id == 1) {
+            return 'admin';
+        } elseif ($user->role_id == 2) {
+            return 'careManager';
+        } elseif ($user->role_id == 3) {
+            return 'careWorker';
+        }
+        
+        return 'admin'; // Default fallback
+    }
+
     public function index(Request $request)
     {
         $search = $request->input('search');
         $filter = $request->input('filter');
+        $rolePrefix = $this->getRolePrefix();
 
-        // Fetch family members based on the search query and filters
-        $family_members = FamilyMember::with(['beneficiary.municipality'])
-            ->when($search, function ($query, $search) {
-                return $query->whereRaw('LOWER(first_name) LIKE ?', ['%' . strtolower($search) . '%'])
-                             ->orWhereRaw('LOWER(last_name) LIKE ?', ['%' . strtolower($search) . '%']);
-            })
-            ->when($filter, function ($query, $filter) {
-                if ($filter == 'access') {
-                    return $query->orderBy('access');
-                }
-            })
-            ->orderBy('first_name') // Order by last name alphabetically by default
-            ->get()
-            ->map(function ($family_member) {
-                $family_member->status = $family_member->access ? 'Approved' : 'Denied';
-                $family_member->municipality = $family_member->beneficiary->municipality;
-                return $family_member;
-            });
+        // For care workers, only show family members related to their assigned beneficiaries
+        if (Auth::user()->role_id == 3) {
+            $assignedBeneficiaryIds = Auth::user()->assignedBeneficiaries()->pluck('beneficiary_id');
+            
+            $family_members = FamilyMember::with(['beneficiary.municipality'])
+                ->whereIn('related_beneficiary_id', $assignedBeneficiaryIds)
+                ->when($search, function ($query, $search) {
+                    return $query->whereRaw('LOWER(first_name) LIKE ?', ['%' . strtolower($search) . '%'])
+                                ->orWhereRaw('LOWER(last_name) LIKE ?', ['%' . strtolower($search) . '%']);
+                })
+                ->when($filter, function ($query, $filter) {
+                    if ($filter == 'access') {
+                        return $query->orderBy('access');
+                    }
+                })
+                ->orderBy('first_name')
+                ->get();
+        } else {
+            // For admin and care manager, show all family members
+            $family_members = FamilyMember::with(['beneficiary.municipality'])
+                ->when($search, function ($query, $search) {
+                    return $query->whereRaw('LOWER(first_name) LIKE ?', ['%' . strtolower($search) . '%'])
+                                ->orWhereRaw('LOWER(last_name) LIKE ?', ['%' . strtolower($search) . '%']);
+                })
+                ->when($filter, function ($query, $filter) {
+                    if ($filter == 'access') {
+                        return $query->orderBy('access');
+                    }
+                })
+                ->orderBy('first_name')
+                ->get();
+        }
+        
+        $family_members->map(function ($family_member) {
+            $family_member->status = $family_member->access ? 'Approved' : 'Denied';
+            $family_member->municipality = $family_member->beneficiary->municipality;
+            return $family_member;
+        });
 
-        // Pass the data to the Blade template
-        return view('admin.familyProfile', compact('family_members', 'search', 'filter'));
+        // Determine which view to return based on user role
+        $viewName = $rolePrefix . '.familyProfile';
+        
+        return view($viewName, compact('family_members', 'search', 'filter'));
     }
 
     public function viewFamilyDetails(Request $request)
     {
+        $rolePrefix = $this->getRolePrefix();
+
+        // Get role-specific redirect
+        if (Auth::user()->role_id == 1) { // Admin
+            $rolePrefixRoute = 'admin';
+        } elseif (Auth::user()->role_id == 2) { // Care Manager
+            $rolePrefixRoute = 'care-manager';
+        } else { // Care Worker
+            $rolePrefixRoute = 'care-worker';
+        } 
+
         $family_member_id = $request->input('family_member_id');
         $family_member = FamilyMember::with('beneficiary')->find($family_member_id);
 
         if (!$family_member) {
-            return redirect()->route('familyProfile')->with('error', 'Family member not found.');
+            return redirect()->route($rolePrefixRoute . '.families.index')->with('error', 'Family member not found.');
+        }
+
+        // For care workers, check if they are assigned to this beneficiary
+        if (Auth::user()->role_id == 3) {
+            $assignedBeneficiaryIds = Auth::user()->assignedBeneficiaries()->pluck('beneficiary_id');
+            
+            if (!$assignedBeneficiaryIds->contains($family_member->related_beneficiary_id)) {
+                return redirect()->route($rolePrefix . '.families.index')
+                    ->with('error', 'You do not have permission to view this family member.');
+            }
         }
 
         // Add the status property based on the access value
         $family_member->status = $family_member->access ? 'Approved' : 'Denied';
 
-        return view('admin.viewFamilyDetails', compact('family_member'));
+        return view($rolePrefix . '.viewFamilyDetails', compact('family_member'));
     }
-
-    public function editFamilyProfile(Request $request)
-    {
-        $family_member_id = $request->input('family_member_id');
-        $family_member = FamilyMember::find($family_member_id);
-
-        if (!$family_member) {
-            return redirect()->route('familyProfile')->with('error', 'Family member not found.');
-        }
-
-        return view('admin.editFamilyProfile', compact('family_member'));
-    }
-
     
     // To revise so that dropdown will be dynamic
     public function create()
     {
-        // Fetch all beneficiaries from the database
-        $beneficiaries = Beneficiary::select('beneficiary_id', 'first_name', 'last_name')->get();
-
-        // Pass the beneficiaries to the view
-        return view('admin.addFamily', compact('beneficiaries'));
+        $rolePrefix = $this->getRolePrefix();
+        
+        // For care workers, only show their assigned beneficiaries
+        if (Auth::user()->role_id == 3) {
+            $beneficiaries = Auth::user()->assignedBeneficiaries()
+                ->select('beneficiary_id', 'first_name', 'last_name')
+                ->get();
+        } else {
+            // For admin and care manager, show all beneficiaries
+            $beneficiaries = Beneficiary::select('beneficiary_id', 'first_name', 'last_name')->get();
+        }
+        
+        return view($rolePrefix . '.addFamily', compact('beneficiaries'));
     }
 
     public function storeFamily(Request $request)
@@ -139,7 +201,13 @@ class FamilyMemberController extends Controller
                 'required',
                 'string',
                 'regex:/^[0-9]{10,11}$/', //  10 or 11 digits, +63 preceeding
-                'unique:cose_users,mobile',
+                function ($attribute, $value, $fail) {
+                    // Check uniqueness in family_members table with the +63 prefix
+                    $exists = FamilyMember::where('mobile', '+63'.$value)->exists();
+                    if ($exists) {
+                        $fail('The mobile number has already been taken.');
+                    }
+                }
             ],
             'landline_number' => [
                 'nullable',
@@ -228,15 +296,23 @@ class FamilyMemberController extends Controller
 
         $familymember->save();
 
+        // Get role-specific redirect
+        if (Auth::user()->role_id == 1) { // Admin
+            $redirectRoute = 'admin.families.create';
+        } elseif (Auth::user()->role_id == 2) { // Care Manager
+            $redirectRoute = 'care-manager.families.create';
+        } else { // Care Worker
+            $redirectRoute = 'care-worker.families.create';
+        } 
+        
         // Redirect with success message
-        return redirect()->route('admin.families.create')->with('success', 'Family Member or Relative has been successfully added!');
+        return redirect()->route($redirectRoute)->with('success', 'Family Member or Relative has been successfully added!');
     
         } catch (\Illuminate\Database\QueryException $e) {
             // Check if it's a unique constraint violation
             if ($e->getCode() == 23505) { // PostgreSQL unique violation error code
                 // Check which field caused the violation
-                if (strpos($e->getMessage(), 'cose_users_mobile_unique') !== false || 
-                    strpos($e->getMessage(), 'mobile') !== false) {
+                if (strpos($e->getMessage(), 'mobile') !== false) {
                     return redirect()->back()
                         ->withInput()
                         ->withErrors(['mobile_number' => 'This mobile number is already registered in the system.']);
@@ -269,18 +345,36 @@ class FamilyMemberController extends Controller
 
     public function editFamilyMember($id)
     {
+        $rolePrefix = $this->getRolePrefix();
+        
         // Get the family member with their related beneficiary
         $familyMember = FamilyMember::findOrFail($id);
         
-        // Get all beneficiaries for the dropdown
-        $beneficiaries = Beneficiary::select('beneficiary_id', 'first_name', 'last_name')->get();
+        // For care workers, check if they are assigned to this beneficiary
+        if (Auth::user()->role_id == 3) {
+            $assignedBeneficiaryIds = Auth::user()->assignedBeneficiaries()->pluck('beneficiary_id');
+            
+            if (!$assignedBeneficiaryIds->contains($familyMember->related_beneficiary_id)) {
+                return redirect()->route($rolePrefix . '.families.index')
+                    ->with('error', 'You do not have permission to edit this family member.');
+            }
+            
+            $beneficiaries = Auth::user()->assignedBeneficiaries()
+                ->select('beneficiary_id', 'first_name', 'last_name')
+                ->get();
+        } else {
+            // For admin and care manager, show all beneficiaries
+            $beneficiaries = Beneficiary::select('beneficiary_id', 'first_name', 'last_name')->get();
+        }
         
         // Return the view with the data
-        return view('admin.editFamily', compact('familyMember', 'beneficiaries'));
+        return view($rolePrefix . '.editFamilyProfile', compact('familyMember', 'beneficiaries'));
     }
 
     public function updateFamilyMember(Request $request, $id)
     {
+        $rolePrefix = $this->getRolePrefix();
+
         // Validate the input data - similar to your store method but with some modifications
         $validator = Validator::make($request->all(), [
             'family_photo' => 'nullable|image|mimes:jpeg,png|max:2048',
@@ -323,7 +417,16 @@ class FamilyMemberController extends Controller
                 'required',
                 'string',
                 'regex:/^[0-9]{10,11}$/',
-                Rule::unique('family_members', 'mobile')->ignore($id, 'family_member_id'),
+                function ($attribute, $value, $fail) use ($id) {
+                    // Check uniqueness in family_members table with the +63 prefix
+                    // Exclude the current record being updated
+                    $exists = FamilyMember::where('mobile', '+63'.$value)
+                                          ->where('family_member_id', '!=', $id)
+                                          ->exists();
+                    if ($exists) {
+                        $fail('The mobile number has already been taken.');
+                    }
+                },
             ],
             'landline_number' => [
                 'nullable',
@@ -339,6 +442,17 @@ class FamilyMemberController extends Controller
         try {
             // Find the existing family member
             $familyMember = FamilyMember::findOrFail($id);
+            // For care workers, check if they are assigned to this beneficiary
+            
+            if (Auth::user()->role_id == 3) {
+                $assignedBeneficiaryIds = Auth::user()->assignedBeneficiaries()->pluck('beneficiary_id');
+                
+                if (!$assignedBeneficiaryIds->contains($familyMember->related_beneficiary_id)) {
+                    return redirect()->route($rolePrefix . '.families.index')
+                        ->with('error', 'You do not have permission to update this family member.');
+                }
+            }
+            
             $uniqueIdentifier = Str::random(10);
 
             // Handle the photo upload if a new one was provided
@@ -368,7 +482,7 @@ class FamilyMemberController extends Controller
                 // Check for existing primary caregiver other than this one
                 $existingPrimaryCaregiver = FamilyMember::where('related_beneficiary_id', $request->input('relatedBeneficiary'))
                     ->where('is_primary_caregiver', true)
-                    ->where('id', '!=', $id) // Exclude the current member
+                    ->where('family_member_id', '!=', $id) // Exclude the current member
                     ->first();
 
                 if ($existingPrimaryCaregiver) {
@@ -407,7 +521,16 @@ class FamilyMemberController extends Controller
             $familyMember->save();
 
             // Redirect with success message
-            return redirect()->route('admin.families.index')->with('success', 'Family Member ' . $familyMember->first_name . ' ' . $familyMember->last_name .  ' updated successfully!');
+            if (Auth::user()->role_id == 1) { // Admin
+                return redirect()->route('admin.families.index')
+                ->with('success', 'Family Member ' . $familyMember->first_name . ' ' . $familyMember->last_name . ' updated successfully!');
+            } elseif (Auth::user()->role_id == 2) { // Care Manager
+                return redirect()->route('care-manager.families.index')
+                ->with('success', 'Family Member ' . $familyMember->first_name . ' ' . $familyMember->last_name . ' updated successfully!');
+            } else { // Care Worker
+                return redirect()->route('care-worker.families.index')
+                ->with('success', 'Family Member ' . $familyMember->first_name . ' ' . $familyMember->last_name . ' updated successfully!');
+            }
         
         } catch (\Exception $e) {
             \Log::error('Error updating family member: ' . $e->getMessage());
@@ -417,5 +540,37 @@ class FamilyMemberController extends Controller
         }
     }
 
+    public function deleteFamilyMember(Request $request)
+    {
+        // Only admins and care managers can delete
+        if (Auth::user()->role_id == 3) {
+            return response()->json([
+                'success' => false,
+                'message' => 'You do not have permission to delete family members.'
+            ]);
+        }
+        
+        $family_member_id = $request->input('family_member_id');
+        
+        // Check if the family member has acknowledged any weekly care plans
+        $hasAcknowledgedPlans = \DB::table('weekly_care_plans')
+            ->where('acknowledged_by_family', $family_member_id)
+            ->exists();
+        
+        if ($hasAcknowledgedPlans) {
+            return response()->json([
+                'success' => false,
+                'message' => 'This family member cannot be deleted because they have acknowledged weekly care plans. For data integrity, please retain this record.'
+            ]);
+        }
+        
+        // If no acknowledgments found, proceed with deletion
+        $result = $this->userManagementService->deleteFamilyMember(
+            $family_member_id,
+            Auth::user()
+        );
+        
+        return response()->json($result);
+    }
 
 }
