@@ -180,7 +180,11 @@ function showSuccess(deletedCarePlan) {
     
     // Redirect after a delay
     setTimeout(function() {
-        window.location.href = "{{ route('admin.beneficiaries.index') }}";
+        @if(Auth::user()->role_id == 1)
+            window.location.href = "{{ route('admin.beneficiaries.index') }}";
+        @else
+            window.location.href = "{{ route('care-manager.beneficiaries.index') }}";
+        @endif
     }, 3000);
 }
 
@@ -211,7 +215,14 @@ document.addEventListener('DOMContentLoaded', function() {
         formData.append('_token', '{{ csrf_token() }}');
         
         const xhr1 = new XMLHttpRequest();
-        xhr1.open('POST', "{{ route('admin.validate-password') }}", true);
+        @if(Auth::user()->role_id == 1)
+            xhr1.open('POST', "{{ route('admin.validate-password') }}", true);
+        @else
+            xhr1.open('POST', "{{ route('care-manager.validate-password') }}", true);
+        @endif
+
+        // For password validation (xhr1)
+        xhr1.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
         xhr1.onload = function() {
             if (xhr1.status === 200) {
                 try {
@@ -227,11 +238,13 @@ document.addEventListener('DOMContentLoaded', function() {
                         
                         // Use care manager endpoint if the current user is a care manager
                         @if(Auth::user()->role_id == 2)
-                            endpoint = "{{ route('manager.beneficiaries.delete') }}";
+                            endpoint = "{{ route('care-manager.beneficiaries.delete') }}";
                         @endif
                         
                         const xhr2 = new XMLHttpRequest();
                         xhr2.open('POST', endpoint, true);
+                         // For beneficiary deletion (xhr2)
+                        xhr2.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
                         xhr2.onload = function() {
                             console.log('Delete response status:', xhr2.status);
                             console.log('Delete response text:', xhr2.responseText);

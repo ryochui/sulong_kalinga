@@ -19,53 +19,65 @@ Route::middleware(['auth', '\App\Http\Middleware\CheckRole:care_manager'])->pref
         return view('careManager.managerdashboard', ['showWelcome' => $showWelcome]);
     })->name('dashboard');
     
-    // Care Worker Management (limited)
-    Route::get('/care-workers', [CareWorkerController::class, 'index'])->name('careWorkers');
-    Route::get('/add-care-worker', [CareWorkerController::class, 'create'])->name('addCareWorker');
-    Route::post('/add-care-worker', [CareWorkerController::class, 'store'])->name('storeCareWorker');
-    Route::get('/care-worker/{id}', [CareWorkerController::class, 'show'])->name('showCareWorker');
-    Route::get('/edit-care-worker/{id}', [CareWorkerController::class, 'edit'])->name('editCareWorker');
-    Route::put('/edit-care-worker/{id}', [CareWorkerController::class, 'update'])->name('updateCareWorker');
-    Route::put('/care-worker/{id}/status', [CareWorkerController::class, 'updateStatus'])->name('updateCareWorkerStatus');
+    // Care Worker Management
+    Route::prefix('care-workers')->name('care-workers.')->group(function () {
+        Route::get('/', [CareWorkerController::class, 'index'])->name('index');
+        Route::get('/add', [CareWorkerController::class, 'create'])->name('add');
+        Route::post('/store', [CareWorkerController::class, 'store'])->name('store');
+        Route::get('/{id}', [CareWorkerController::class, 'show'])->name('show');
+        Route::get('/{id}/edit', [CareWorkerController::class, 'edit'])->name('edit');
+        Route::put('/{id}', [CareWorkerController::class, 'update'])->name('update');
+        Route::put('/{id}/status', [CareWorkerController::class, 'updateStatus'])->name('updateStatus');
+    });
     
     // Beneficiary Management
-    Route::get('/beneficiaries', [BeneficiaryController::class, 'index'])->name('beneficiaries');
-    Route::get('/add-beneficiary', [BeneficiaryController::class, 'create'])->name('addBeneficiary');
-    Route::post('/add-beneficiary', [BeneficiaryController::class, 'store'])->name('storeBeneficiary');
-    Route::get('/beneficiary/{id}', [BeneficiaryController::class, 'show'])->name('showBeneficiary');
-    Route::get('/edit-beneficiary/{id}', [BeneficiaryController::class, 'edit'])->name('editBeneficiary');
-    Route::put('/edit-beneficiary/{id}', [BeneficiaryController::class, 'update'])->name('updateBeneficiary');
-    Route::put('/beneficiary/{id}/status', [BeneficiaryController::class, 'updateStatus'])->name('updateBeneficiaryStatus');
-    Route::post('/view-beneficiary-details', [BeneficiaryController::class, 'viewProfileDetails'])->name('viewBeneficiaryDetails');
+    Route::prefix('beneficiaries')->name('beneficiaries.')->group(function () {
+        Route::get('/', [BeneficiaryController::class, 'index'])->name('index');
+        Route::get('/add-beneficiary', [BeneficiaryController::class, 'create'])->name('create');
+        Route::post('/add-beneficiary', [BeneficiaryController::class, 'storeBeneficiary'])->name('store');
+        Route::get('/edit-beneficiary/{id}', [BeneficiaryController::class, 'editBeneficiary'])->name('edit');
+        Route::put('/edit-beneficiary/{id}', [BeneficiaryController::class, 'updateBeneficiary'])->name('update');
+        Route::put('/{id}/status', [BeneficiaryController::class, 'updateStatusAjax'])->name('updateStatusAjax');
+        Route::post('/view-beneficiary-details', [BeneficiaryController::class, 'viewProfileDetails'])->name('view-details');
+        Route::post('/delete', [BeneficiaryController::class, 'deleteBeneficiary'])->name('delete');
+    });
     
     // Family Member Management
-    Route::get('/family-members', [FamilyMemberController::class, 'index'])->name('familyMembers');
-    Route::get('/add-family-member', [FamilyMemberController::class, 'create'])->name('addFamilyMember');
-    Route::post('/add-family-member', [FamilyMemberController::class, 'store'])->name('storeFamilyMember');
-    Route::get('/family-member/{id}', [FamilyMemberController::class, 'show'])->name('showFamilyMember');
-    Route::get('/edit-family-member/{id}', [FamilyMemberController::class, 'edit'])->name('editFamilyMember');
-    Route::put('/edit-family-member/{id}', [FamilyMemberController::class, 'update'])->name('updateFamilyMember');
-    Route::post('/view-family-details', [FamilyMemberController::class, 'viewFamilyDetails'])->name('viewFamilyDetails');
+    Route::prefix('family-members')->name('family-members.')->group(function () {
+        Route::get('/', [FamilyMemberController::class, 'index'])->name('index');
+        Route::get('/add', [FamilyMemberController::class, 'create'])->name('add');
+        Route::post('/store', [FamilyMemberController::class, 'store'])->name('store');
+        Route::get('/{id}', [FamilyMemberController::class, 'show'])->name('show');
+        Route::get('/{id}/edit', [FamilyMemberController::class, 'edit'])->name('edit');
+        Route::put('/{id}', [FamilyMemberController::class, 'update'])->name('update');
+        Route::post('/view-details', [FamilyMemberController::class, 'viewFamilyDetails'])->name('view-details');
+    });
     
     // Weekly Care Plans
-    Route::get('/weekly-care-plans', [WeeklyCareController::class, 'index'])->name('weeklyCarePlans');
-    Route::get('/weekly-care-plan/create', [WeeklyCareController::class, 'create'])->name('createWeeklyCarePlan');
-    Route::post('/weekly-care-plan/store', [WeeklyCareController::class, 'store'])->name('storeWeeklyCarePlan');
-    Route::get('/weekly-care-plan/{id}', [WeeklyCareController::class, 'show'])->name('showWeeklyCarePlan');
-    Route::get('/weekly-care-plan/{id}/edit', [WeeklyCareController::class, 'edit'])->name('editWeeklyCarePlan');
-    Route::put('/weekly-care-plan/{id}', [WeeklyCareController::class, 'update'])->name('updateWeeklyCarePlan');
-    Route::delete('/weekly-care-plan/{id}/delete', [WeeklyCareController::class, 'destroy'])->name('deleteWeeklyCarePlan');
-    Route::get('/weekly-care-plan/beneficiary/{id}', [WeeklyCareController::class, 'getBeneficiaryDetails'])->name('beneficiaryDetails');
-    
-    // Reports
+    Route::prefix('weekly-care-plans')->name('weekly-care-plans.')->group(function () {
+        Route::get('/', [WeeklyCareController::class, 'index'])->name('index');
+        Route::get('/create', [WeeklyCareController::class, 'create'])->name('create');
+        Route::post('/store', [WeeklyCareController::class, 'store'])->name('store');
+        Route::get('/{id}', [WeeklyCareController::class, 'show'])->name('show');
+        Route::get('/{id}/edit', [WeeklyCareController::class, 'edit'])->name('edit');
+        Route::put('/{id}', [WeeklyCareController::class, 'update'])->name('update');
+        Route::delete('/{id}', [WeeklyCareController::class, 'destroy'])->name('delete');
+        Route::get('/beneficiary/{id}', [WeeklyCareController::class, 'getBeneficiaryDetails'])->name('beneficiary-details');
+    });
+
+    // Reports Management
     Route::get('/reports', [ReportsController::class, 'index'])->name('reports');
-    Route::post('/validate-password', [UserController::class, 'validatePassword'])->name('validatePassword');
     
-    // Exports - Limited for Care Manager
-    Route::post('/export/beneficiaries-pdf', [ExportController::class, 'exportBeneficiariesToPdf'])->name('exportBeneficiariesPdf');
-    Route::post('/export/family-pdf', [ExportController::class, 'exportFamilyToPdf'])->name('exportFamilyPdf');
-    Route::post('/export/careworkers-pdf', [ExportController::class, 'exportCareworkersToPdf'])->name('exportCareworkersPdf');
-    Route::post('/export/beneficiaries-excel', [ExportController::class, 'exportBeneficiariesToExcel'])->name('exportBeneficiariesExcel');
-    Route::post('/export/family-excel', [ExportController::class, 'exportFamilyMembersToExcel'])->name('exportFamilyExcel');
-    Route::post('/export/careworkers-excel', [ExportController::class, 'exportCareworkersToExcel'])->name('exportCareworkersExcel');
+    // Password validation route
+    Route::post('/validate-password', [UserController::class, 'validatePassword'])->name('validate-password');
+
+    // Exports
+    Route::prefix('exports')->name('exports.')->group(function () {
+        Route::post('/beneficiaries-pdf', [ExportController::class, 'exportBeneficiariesToPdf'])->name('beneficiaries-pdf');
+        Route::post('/family-pdf', [ExportController::class, 'exportFamilyToPdf'])->name('family-pdf');
+        Route::post('/careworkers-pdf', [ExportController::class, 'exportCareworkersToPdf'])->name('careworkers-pdf');
+        Route::post('/beneficiaries-excel', [ExportController::class, 'exportBeneficiariesToExcel'])->name('beneficiaries-excel');
+        Route::post('/family-excel', [ExportController::class, 'exportFamilyMembersToExcel'])->name('family-excel');
+        Route::post('/careworkers-excel', [ExportController::class, 'exportCareworkersToExcel'])->name('careworkers-excel');
+    });
 });
