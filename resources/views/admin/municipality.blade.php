@@ -42,13 +42,16 @@
         <div class="container-fluid text-center">
         <!-- Search and Filter Row -->
         <div class="row mb-3 align-items-center">
-            <!-- Search Bar -->
+            <!-- Search Bar with Button -->
             <div class="col-12 col-md-6 mb-2">
                 <div class="input-group">
                     <span class="input-group-text">
                         <i class="bx bx-search-alt"></i>
                     </span>
                     <input type="text" class="form-control" placeholder="Search barangay or municipality..." id="searchBar">
+                    <button class="btn btn-primary" type="button" id="searchButton">
+                        Search
+                    </button>
                 </div>
             </div>
 
@@ -141,9 +144,9 @@
     <script src="{{ asset('js/bootstrap.bundle.min.js') }}"></script>
     
     <script>
-        // Search functionality
-        document.getElementById('searchBar').addEventListener('input', function() {
-            const searchText = this.value.toLowerCase();
+        // Function to perform the search
+        function performSearch() {
+            const searchText = document.getElementById('searchBar').value.toLowerCase();
             const rows = document.querySelectorAll('.municipality-row');
             
             rows.forEach(row => {
@@ -156,6 +159,18 @@
                     row.style.display = 'none';
                 }
             });
+        }
+
+        // Search button click event
+        document.getElementById('searchButton').addEventListener('click', function() {
+            performSearch();
+        });
+
+        // Allow search on Enter key
+        document.getElementById('searchBar').addEventListener('keyup', function(event) {
+            if (event.key === 'Enter') {
+                performSearch();
+            }
         });
         
         // Filter functionality

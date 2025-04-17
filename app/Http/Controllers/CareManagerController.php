@@ -10,6 +10,7 @@ use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
 use App\Models\User;
 use App\Models\Municipality;
+use App\Models\Barangay;
 use Carbon\Carbon;
 use Illuminate\Validation\Rule;
 
@@ -512,5 +513,29 @@ class CareManagerController extends Controller
         );
         
         return response()->json($result);
+    }
+
+    public function municipality()
+    {
+        try {
+            // Get all municipalities for the dropdown
+            $municipalities = Municipality::orderBy('municipality_name')->get();
+            
+            // Get all barangays with their associated municipality and beneficiary count
+            $barangays = Barangay::with('municipality')
+                ->withCount('beneficiaries')
+                ->orderBy('municipality_id')
+                ->orderBy('barangay_name')
+                ->get();
+            
+            return view('careManager.municipality', compact('municipalities', 'barangays'));
+        } catch (\Exception $e) {
+            // Log the error but don't expose details to user
+            \Log::error('Error in care manager municipality view: ' . $e->getMessage());
+            
+            // Redirect with a user-friendly message
+            return redirect()->route('care-manager.dashboard')->with('error', 
+                'Unable to load municipality information. Please try again later or contact an administrator.');
+        }
     }
 }

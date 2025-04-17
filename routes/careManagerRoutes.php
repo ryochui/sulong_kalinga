@@ -81,4 +81,7 @@ Route::middleware(['auth', '\App\Http\Middleware\CheckRole:care_manager'])->pref
         Route::post('/family-excel', [ExportController::class, 'exportFamilyMembersToExcel'])->name('family-excel');
         Route::post('/careworkers-excel', [ExportController::class, 'exportCareworkersToExcel'])->name('careworkers-excel');
     });
+
+    //Municipalities (Read-Only)
+    Route::get('/municipalities', [CareManagerController::class, 'municipality'])->name('municipalities.index');
 });
