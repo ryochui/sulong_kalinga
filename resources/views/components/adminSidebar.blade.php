@@ -1,14 +1,15 @@
 <link rel="stylesheet" href="{{ asset('css/sidebar.css') }}">
+<link rel="stylesheet" href="{{ asset('css/boxicons.min.css') }}">
 
 <div class="sidebar">
   <div class="logo-details" id="logoToggle">
-    <i class='bx bx-menu'></i>
+    <i class="bi bi-list"></i>
     <span class="logo_name">Menu</span>
   </div>
   <ul class="nav-links">
     <li>
-      <a href="/admin/dashboard" class="{{ Request::routeIs('admin/dashboard') ? 'active' : '' }}">
-        <i class='bx bx-grid-alt'></i>
+      <a href="/admin/dashboard" class="{{ Request::is('admin/dashboard') ? 'active' : '' }}">
+        <i class="bi bi-grid"></i>
         <span class="link_name">Dashboard</span>
       </a>
       <ul class="sub-menu blank">
@@ -17,7 +18,7 @@
     </li>
     <li>
       <a href="{{ route('admin.reports') }}" class="{{ Request::routeIs('admin.reports') ? 'active' : '' }}">
-        <i class='bx bx-file'></i>
+        <i class="bi bi-file-earmark-text"></i>
         <span class="link_name">Reports Management</span>
       </a>
       <ul class="sub-menu blank">
@@ -25,29 +26,43 @@
       </ul>
     </li>
     <li>
-      <div class="iocn-link">
+      <div class="icon-link">
         <a class="{{ Request::is('admin/beneficiaries*') || Request::is('admin/families*') || Request::is('admin/care-workers*') || Request::is('admin/care-managers*') || Request::is('admin/administrators*') ? 'active' : '' }}">
-          <i class='bx bxs-user-account'></i>
+          <i class="bi bi-people"></i>
           <span class="link_name" onclick="toggleDropdown(this)">User Management</span>
-          <i class='bx bxs-chevron-down arrow' onclick="toggleDropdown(this)"></i>
+          <i class='bi bi-chevron-down arrow' onclick="toggleDropdown(this)"></i>
         </a>
       </div>
       <ul class="sub-menu">
         <li><a class="link_name">User Management</a></li>
-        <li><a href="{{ route('admin.beneficiaries.index') }}" class="{{ Request::routeIs('admin.beneficiaryProfile') || Request::routeIs('admin.addBeneficiary') ? 'active' : '' }}">Beneficiary Profiles</a></li>
-        <li><a href="{{ route('admin.families.index') }}" class="{{ Request::routeIs('admin.familyProfile') || Request::routeIs('admin.addFamily') ? 'active' : '' }}">Family or Relative Profiles</a></li>
-        <li><a href="{{ route('admin.careworkers.index') }}" class="{{ Request::routeIs('admin.careWorkerProfile') || Request::routeIs('admin.addCareWorker*') ? 'active' : '' }}">Care Worker Profiles</a></li>
-        <li><a href="{{ route('admin.caremanagers.index') }}" class="{{ Request::routeIs('admin.careManagerProfile') || Request::routeIs('admin.addCareManager') ? 'active' : '' }}">Care Manager Profiles</a></li>
-        <li>
-          <a href="{{ route('admin.administrators.index') }}" class="{{ Request::routeIs('administratorProfile') || Request::routeIs('admin.addAdministrator') ? 'active' : '' }}">
-            Administrator Profiles
-          </a>
-        </li>
+        <li><a href="{{ route('admin.beneficiaries.index') }}" class="{{ Request::routeIs('admin.beneficiaries.*') ? 'active' : '' }}">Beneficiary Profiles</a></li>
+        <li><a href="{{ route('admin.families.index') }}" class="{{ Request::routeIs('admin.families.*') ? 'active' : '' }}">Family or Relative Profiles</a></li>
+        <li><a href="{{ route('admin.careworkers.index') }}" class="{{ Request::routeIs('admin.careworkers.*') ? 'active' : '' }}">Care Worker Profiles</a></li>
+        <li><a href="{{ route('admin.caremanagers.index') }}" class="{{ Request::routeIs('admin.caremanagers.*') ? 'active' : '' }}">Care Manager Profiles</a></li>
+        <li><a href="{{ route('admin.administrators.index') }}" class="{{ Request::routeIs('admin.administrators.*') ? 'active' : '' }}">Administrator Profiles</a></li>
+      </ul>
+    </li>
+    <li>
+    <a href="{{ route('admin.careworker.performance.index') }}" class="{{ Request::routeIs('admin.careworker.performance.*') ? 'active' : '' }}">
+        <i class="bi bi-bar-chart"></i>
+        <span class="link_name">Care Worker Performance</span>
+      </a>
+      <ul class="sub-menu blank">
+        <li><a class="link_name" href="{{ route('admin.careworker.performance.index') }}">Care Worker Performance</a></li>
+      </ul>
+    </li>
+    <li>
+      <a href="{{ route('admin.schedules.appointments.index') }}" class="{{ Request::routeIs('admin.schedules.appointments.*') ? 'active' : '' }}">
+        <i class="bi bi-calendar-week"></i>
+        <span class="link_name">Schedules / Appointments</span>
+      </a>
+      <ul class="sub-menu blank">
+        <li><a class="link_name" href="{{ route('admin.schedules.appointments.index') }}">Schedules / Appointments</a></li>
       </ul>
     </li>
     <li>
       <a href="{{ route('admin.locations.index') }}" class="{{ Request::routeIs('admin.locations.*') ? 'active' : '' }}">
-        <i class='bx bx-map-alt'></i>
+        <i class="bi bi-map"></i>
         <span class="link_name">Municipality</span>
       </a>
       <ul class="sub-menu blank">
@@ -55,12 +70,39 @@
       </ul>
     </li>
     <li>
-      <a href="{{ route('admin.weeklycareplans.create') }}" class="{{ Request::routeIs('admin.weeklycareplans.*') ? 'active' : '' }}">
-        <i class='bx bx-task'></i>
-        <span class="link_name">Weekly Care Plan</span>
+      <a href="{{ route('admin.beneficiary.map.index') }}" class="{{ Request::routeIs('admin.beneficiary.map.*') ? 'active' : '' }}">
+        <i class="bi bi-pin-map"></i>
+        <span class="link_name">Beneficiary Map</span>
       </a>
       <ul class="sub-menu blank">
-        <li><a class="link_name" href="{{ route('admin.weeklycareplans.create') }}">Weekly Care Plan</a></li>
+        <li><a class="link_name" href="{{ route('admin.beneficiary.map.index') }}">Beneficiary Map</a></li>
+      </ul>
+    </li>
+    <li>
+      <a href="{{ route('admin.weeklycareplans.create') }}" class="{{ Request::routeIs('admin.weeklycareplans.*') ? 'active' : '' }}">
+        <i class="bi bi-clipboard-check"></i>
+        <span class="link_name">Weekly CarePlan</span>
+      </a>
+      <ul class="sub-menu blank">
+        <li><a class="link_name" href="{{ route('admin.weeklycareplans.create') }}">Weekly CarePlan</a></li>
+      </ul>
+    </li>
+    <li>
+      <a href="{{ route('admin.donor.acknowledgement.index') }}" class="{{ Request::routeIs('admin.donor.acknowledgement.*') ? 'active' : '' }}">
+        <i class="bi bi-award"></i>
+        <span class="link_name">Donor Acknowledgement</span>
+      </a>
+      <ul class="sub-menu blank">
+        <li><a class="link_name" href="{{ route('admin.donor.acknowledgement.index') }}">Donor Acknowledgement </a></li>
+      </ul>
+    </li>
+    <li>
+      <a href="{{ route('admin.highlights.events.index') }}" class="{{ Request::routeIs('admin.highlights.events.*') ? 'active' : '' }}">
+        <i class="bi bi-megaphone"></i>
+        <span class="link_name">Highlights & Events</span>
+      </a>
+      <ul class="sub-menu blank">
+        <li><a class="link_name" href="{{ route('admin.highlights.events.index') }}">Highlights & Events</a></li>
       </ul>
     </li>
   </ul>

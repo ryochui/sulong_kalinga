@@ -29,8 +29,6 @@
                                 <ol class="breadcrumb">
                                     <li class="breadcrumb-item active" data-section="personal"><a href="javascript:void(0)">Personal</a></li>
                                     <li class="breadcrumb-item" data-section="contact"><a href="javascript:void(0)">Contact</a></li>
-                                    <li class="breadcrumb-item" data-section="professional"><a href="javascript:void(0)">Professional</a></li>
-                                    <li class="breadcrumb-item" data-section="education"><a href="javascript:void(0)">Education</a></li>
                                     <li class="breadcrumb-item" data-section="settings"><a href="javascript:void(0)">Settings</a></li>
                                 </ol>
                             </nav>
@@ -45,12 +43,12 @@
                                 <h5>Personal Information</h5>
                             </div>
                             <div class="row">
-                                <div class="col-md-3 text-center">
+                                <div class="col-md-4 text-center">
                                     <img src="{{ asset('images/defaultProfile.png') }}" alt="Profile Photo" class="profile-photo">
                                     <h5>John Doe</h5>
                                     <p class="text-muted">Member since: Jan 2020</p>
                                 </div>
-                                <div class="col-md-9">
+                                <div class="col-md-8">
                                     <div class="row info-row">
                                         <div class="col-md-3 info-label">Full Name:</div>
                                         <div class="col-md-9">John Michael Doe</div>
@@ -71,13 +69,6 @@
                                         <div class="col-md-3 info-label">Marital Status:</div>
                                         <div class="col-md-9">Married</div>
                                     </div>
-                                    <div class="row info-row">
-                                        <div class="col-md-3 info-label">Biography:</div>
-                                        <div class="col-md-9">
-                                            Experienced healthcare professional with over 10 years in patient care and administration. 
-                                            Specialized in geriatric care and rehabilitation services.
-                                        </div>
-                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -92,11 +83,11 @@
                                 <div class="col-md-9">john.doe@example.com</div>
                             </div>
                             <div class="row info-row">
-                                <div class="col-md-3 info-label">Phone:</div>
+                                <div class="col-md-3 info-label">Mobile Phone:</div>
                                 <div class="col-md-9">(555) 123-4567</div>
                             </div>
                             <div class="row info-row">
-                                <div class="col-md-3 info-label">Mobile:</div>
+                                <div class="col-md-3 info-label">Landline:</div>
                                 <div class="col-md-9">(555) 987-6543</div>
                             </div>
                             <div class="row info-row">
@@ -108,92 +99,6 @@
                                     United States
                                 </div>
                             </div>
-                            <div class="row info-row">
-                                <div class="col-md-3 info-label">Emergency Contact:</div>
-                                <div class="col-md-9">
-                                    Jane Doe (Spouse)<br>
-                                    (555) 234-5678
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- Professional Information Section -->
-                        <div class="profile-section" id="professional-section">
-                            <div class="profile-header">
-                                <h5>Professional Information</h5>
-                            </div>
-                            <div class="row info-row">
-                                <div class="col-md-3 info-label">Position:</div>
-                                <div class="col-md-9">Senior Care Coordinator</div>
-                            </div>
-                            <div class="row info-row">
-                                <div class="col-md-3 info-label">Department:</div>
-                                <div class="col-md-9">Geriatric Care</div>
-                            </div>
-                            <div class="row info-row">
-                                <div class="col-md-3 info-label">Employee ID:</div>
-                                <div class="col-md-9">HC-2020-0042</div>
-                            </div>
-                            <div class="row info-row">
-                                <div class="col-md-3 info-label">Hire Date:</div>
-                                <div class="col-md-9">March 15, 2020</div>
-                            </div>
-                            <div class="row info-row">
-                                <div class="col-md-3 info-label">Specializations:</div>
-                                <div class="col-md-9">
-                                    <ul>
-                                        <li>Geriatric Care</li>
-                                        <li>Physical Rehabilitation</li>
-                                        <li>Patient Care Coordination</li>
-                                    </ul>
-                                </div>
-                            </div>
-                            <div class="row info-row">
-                                <div class="col-md-3 info-label">Certifications:</div>
-                                <div class="col-md-9">
-                                    <ul>
-                                        <li>Certified Nursing Assistant (CNA)</li>
-                                        <li>CPR/First Aid Certified</li>
-                                        <li>Dementia Care Specialist</li>
-                                    </ul>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- Education Section -->
-                        <div class="profile-section" id="education-section">
-                            <div class="profile-header">
-                                <h5>Education & Training</h5>
-                            </div>
-                            <div class="row info-row">
-                                <div class="col-md-3 info-label">Highest Degree:</div>
-                                <div class="col-md-9">Bachelor of Science in Nursing</div>
-                            </div>
-                            <div class="row info-row">
-                                <div class="col-md-3 info-label">University:</div>
-                                <div class="col-md-9">University of Illinois at Chicago</div>
-                            </div>
-                            <div class="row info-row">
-                                <div class="col-md-3 info-label">Graduation Year:</div>
-                                <div class="col-md-9">2010</div>
-                            </div>
-                            <div class="row info-row">
-                                <div class="col-md-3 info-label">Additional Training:</div>
-                                <div class="col-md-9">
-                                    <div class="mb-2">
-                                        <strong>Advanced Geriatric Care</strong><br>
-                                        American Geriatrics Society, 2015
-                                    </div>
-                                    <div class="mb-2">
-                                        <strong>Palliative Care Certification</strong><br>
-                                        Center to Advance Palliative Care, 2017
-                                    </div>
-                                    <div>
-                                        <strong>Patient Safety Training</strong><br>
-                                        Institute for Healthcare Improvement, 2019
-                                    </div>
-                                </div>
-                            </div>
                         </div>
                         
                         <!-- Account Settings Section -->
@@ -202,8 +107,14 @@
                                 <h5>Account Settings</h5>
                             </div>
                             <div class="row info-row">
-                                <div class="col-md-3 info-label">Username:</div>
-                                <div class="col-md-9">johndoe</div>
+                                <div class="col-md-3 info-label">Email:</div>
+                                <div class="col-md-9">example@gmail.com</div>
+                            </div>
+                            <div class="row info-row">
+                                <div class="col-md-3 info-label">Password:</div>
+                                <div class="col-md-9">
+                                    <span class="text-muted">********</span>
+                                </div>
                             </div>
                             <div class="row info-row">
                                 <div class="col-md-3 info-label">Account Status:</div>
@@ -214,22 +125,52 @@
                                 <div class="col-md-9">Today at 09:42 AM</div>
                             </div>
                             <div class="row info-row">
-                                <div class="col-md-3 info-label">Two-Factor Auth:</div>
-                                <div class="col-md-9">Enabled (SMS)</div>
-                            </div>
-                            <div class="row info-row">
-                                <div class="col-md-3 info-label">Notification Preferences:</div>
-                                <div class="col-md-9">
-                                    <ul>
-                                        <li>Email: On</li>
-                                        <li>SMS: On (urgent only)</li>
-                                        <li>Push Notifications: Off</li>
-                                    </ul>
-                                </div>
-                            </div>
-                            <div class="row info-row">
                                 <div class="col-md-3 info-label">Language:</div>
                                 <div class="col-md-9">English (US)</div>
+                            </div>
+                            <div class="row info-row">
+                                <div class="col-md-12 text-end">
+                                    <button class="btn btn-primary" id="updateEmailBtn">Update Email</button>
+                                    <button class="btn btn-primary" id="updatePasswordBtn">Update Password</button>
+                                </div>
+                            </div>
+                            <!-- Hidden Update Email Form -->
+                            <div class="row mt-3" id="updateEmailForm" style="display: none;">
+                                <div class="col-md-12">
+                                    <form action="" method="POST">
+                                        <!-- @csrf
+                                        @method('PUT') -->
+                                        <div class="mb-3">
+                                            <label for="email" class="form-label">New Email</label>
+                                            <input type="email" class="form-control" id="email" name="email" placeholder="Enter new email" required>
+                                        </div>
+                                        <div class="text-end">
+                                            <button type="submit" class="btn btn-success">Save Email</button>
+                                            <button type="button" class="btn btn-secondary" id="cancelEmailUpdateBtn">Cancel</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                            <!-- Hidden Update Password Form -->
+                            <div class="row mt-3" id="updatePasswordForm" style="display: none;">
+                                <div class="col-md-12">
+                                    <form action="" method="POST">
+                                        <!-- @csrf
+                                        @method('PUT') -->
+                                        <div class="mb-3">
+                                            <label for="password" class="form-label">New Password</label>
+                                            <input type="password" class="form-control" id="password" name="password" placeholder="Enter new password" required>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="password_confirmation" class="form-label">Confirm Password</label>
+                                            <input type="password" class="form-control" id="password_confirmation" name="password_confirmation" placeholder="Confirm new password" required>
+                                        </div>
+                                        <div class="text-end">
+                                            <button type="submit" class="btn btn-success">Save Password</button>
+                                            <button type="button" class="btn btn-secondary" id="cancelPasswordUpdateBtn">Cancel</button>
+                                        </div>
+                                    </form>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -241,6 +182,35 @@
     <script src="{{ asset('js/jquery-3.6.0.min.js') }}"></script>
     <script src="{{ asset('js/bootstrap.bundle.min.js') }}"></script>
     <script src="{{ asset('js/toggleSideBar.js') }}"></script>
+    <script>
+        // Show the Update Email Form
+        document.getElementById('updateEmailBtn').addEventListener('click', function () {
+            document.getElementById('updateEmailForm').style.display = 'block';
+            this.style.display = 'none'; // Hide the button
+            document.getElementById('updatePasswordBtn').style.display = 'none'; // Hide the other button
+        });
+
+        // Cancel the Update Email Form
+        document.getElementById('cancelEmailUpdateBtn').addEventListener('click', function () {
+            document.getElementById('updateEmailForm').style.display = 'none';
+            document.getElementById('updateEmailBtn').style.display = 'inline-block'; // Show the button
+            document.getElementById('updatePasswordBtn').style.display = 'inline-block'; // Show the other button
+        });
+
+        // Show the Update Password Form
+        document.getElementById('updatePasswordBtn').addEventListener('click', function () {
+            document.getElementById('updatePasswordForm').style.display = 'block';
+            this.style.display = 'none'; // Hide the button
+            document.getElementById('updateEmailBtn').style.display = 'none'; // Hide the other button
+        });
+
+        // Cancel the Update Password Form
+        document.getElementById('cancelPasswordUpdateBtn').addEventListener('click', function () {
+            document.getElementById('updatePasswordForm').style.display = 'none';
+            document.getElementById('updatePasswordBtn').style.display = 'inline-block'; // Show the button
+            document.getElementById('updateEmailBtn').style.display = 'inline-block'; // Show the other button
+        });
+    </script>
     <script>
         // Profile section navigation
         function showSection(sectionId) {

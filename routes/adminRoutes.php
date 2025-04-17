@@ -11,6 +11,12 @@ use App\Http\Controllers\ReportsController;
 use App\Http\Controllers\ExportController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\MunicipalityController;
+use App\Http\Controllers\CareWorkerPerformanceController;
+use App\Http\Controllers\SchedulesAndAppointmentsController;
+use App\Http\Controllers\BeneficiaryMapController;
+use App\Http\Controllers\DonorAcknowledgementController;
+use App\Http\Controllers\HighlightsAndEventsController;
+
 
 // All routes with administrator role check
 
@@ -132,6 +138,32 @@ Route::middleware(['auth', '\App\Http\Middleware\CheckRole:administrator'])->pre
     
     // Password validation route
     Route::post('/validate-password', [UserController::class, 'validatePassword'])->name('admin.validate-password');
+
+    // Care Worker Performance
+    Route::prefix('care-worker-performance')->name('admin.careworker.performance.')->group(function () {
+        Route::get('/', [CareWorkerPerformanceController::class, 'index'])->name('index');
+    });
+
+    //Schedules and Appointments
+    Route::prefix('schedules-appointments')->name('admin.schedules.appointments.')->group(function () {
+        Route::get('/', [SchedulesAndAppointmentsController::class, 'index'])->name('index');
+    });
+
+    //Beneficiary Map
+    Route::prefix('beneficiary-map')->name('admin.beneficiary.map.')->group(function () {
+        Route::get('/', [BeneficiaryMapController::class, 'index'])->name('index');
+    });
+
+    //Donor Acknowledgement
+    Route::prefix('donor-acknowledgement')->name('admin.donor.acknowledgement.')->group(function () {
+        Route::get('/', [DonorAcknowledgementController::class, 'index'])->name('index');
+    });
+
+    //Highlights and Events
+    Route::prefix('highlights-events')->name('admin.highlights.events.')->group(function () {
+        Route::get('/', [HighlightsAndEventsController::class, 'index'])->name('index');
+    });
+
 });
 
 // Special Executive Director only routes

@@ -13,7 +13,7 @@
                 <!-- Success message container -->
                 <div id="municipalitySuccessContainer" class="d-none">
                     <p class="text-success">
-                        <i class="bx bx-check-circle"></i>
+                        <i class="bi bi-check-circle"></i>
                         <strong>Success!</strong> <span id="municipalitySuccessMessage">The municipality has been processed successfully.</span>
                     </p>
                     <p>The page will reload shortly.</p>
@@ -24,13 +24,13 @@
                     <h5 class="mb-3">What would you like to do?</h5>
                     <div class="d-grid gap-3">
                         <button type="button" class="btn btn-primary btn-lg text-start p-3" id="addNewBtn">
-                            <i class="bx bx-plus-circle fs-4 me-2"></i>
+                            <i class="bi bi-plus-circle fs-4 me-2"></i>
                             <span class="align-middle">Add New Municipality</span>
                             <p class="text-white-80 mb-0 mt-1 small">Create a new municipality in Northern Samar province</p>
                         </button>
                         
                         <button type="button" class="btn btn-info btn-lg text-start p-3" id="editExistingBtn">
-                            <i class="bx bx-edit fs-4 me-2"></i>
+                            <i class="bi bi-pencil-square fs-4 me-2"></i>
                             <span class="align-middle">Edit Existing Municipality</span>
                             <p class="text-white-80 mb-0 mt-1 small">Modify the name of an existing municipality</p>
                         </button>
@@ -53,7 +53,7 @@
                     
                     <div class="d-grid">
                         <button class="btn btn-primary" id="continueToEditBtn" disabled>
-                            <i class="bx bx-edit"></i> Continue to Edit
+                            <i class="bi bi-pencil-square"></i> Continue to Edit
                         </button>
                     </div>
                 </div>
@@ -75,12 +75,12 @@
                         </div>
                         
                         <div class="alert alert-info">
-                            <small><i class="bx bx-info-circle me-1"></i> This municipality will be assigned to Northern Samar province.</small>
+                            <small><i class="bi bi-info-circle me-1"></i> This municipality will be assigned to Northern Samar province.</small>
                         </div>
                         
                         <div class="d-grid mt-3">
                             <button type="button" class="btn btn-primary" id="submitMunicipality">
-                                <i class="bx bx-save"></i> <span id="submitButtonText">Save Municipality</span>
+                                <i class="bi bi-floppy"></i> <span id="submitButtonText">Save Municipality</span>
                             </button>
                         </div>
                     </div>
@@ -88,7 +88,7 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary d-none" id="backButton">
-                    <i class="bx bx-arrow-back"></i> Back
+                    <i class="bi bi-arrow-bar-left"></i> Back
                 </button>
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="cancelAddButton">Cancel</button>
             </div>
@@ -196,7 +196,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (action === 'edit') {
             modalTitle.textContent = 'Edit Municipality';
             submitButtonText.textContent = 'Update Municipality';
-            submitButton.innerHTML = '<i class="bx bx-edit"></i> Update Municipality';
+            submitButton.innerHTML = '<i class="bi bi-pencil-square"></i> Update Municipality';
             
             // Show back button and set its action to go back to municipality selection
             backButton.classList.remove('d-none');
@@ -204,7 +204,7 @@ document.addEventListener('DOMContentLoaded', function() {
         } else {
             modalTitle.textContent = 'Add New Municipality';
             submitButtonText.textContent = 'Add Municipality';
-            submitButton.innerHTML = '<i class="bx bx-plus"></i> Add Municipality';
+            submitButton.innerHTML = '<i class="bi bi-plus"></i> Add Municipality';
             
             // Show back button and set its action to go back to main selection
             backButton.classList.remove('d-none');
@@ -269,7 +269,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Main error message
         const errorMessage = document.createElement('p');
         errorMessage.className = 'mb-2';
-        errorMessage.innerHTML = `<i class="bx bx-error-circle text-danger me-1"></i> ${message}`;
+        errorMessage.innerHTML = `<i class="bi bi-exclamation-circle text-danger me-1"></i> ${message}`;
         errorContent.appendChild(errorMessage);
         
         // Add guidance for name errors
@@ -365,7 +365,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Add a "fix and try again" message
         const fixMessage = document.createElement('p');
         fixMessage.className = 'mt-2 mb-0 text-primary small';
-        fixMessage.innerHTML = '<i class="bx bx-info-circle"></i> Fix the errors above and try again.';
+        fixMessage.innerHTML = '<i class="bi bi-info-circle"></i> Fix the errors above and try again.';
         errorContent.appendChild(fixMessage);
         
         // Replace error container content
@@ -443,8 +443,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Reset button
                 submitButton.disabled = false;
                 submitButton.innerHTML = isEditing 
-                    ? '<i class="bx bx-edit"></i> Update Municipality' 
-                    : '<i class="bx bx-plus"></i> Add Municipality';
+                    ? '<i class="bi bi-pencil-square"></i> Update Municipality' 
+                    : '<i class="bi bi-plus"></i> Add Municipality';
             }
         })
         .catch(error => {
@@ -456,8 +456,8 @@ document.addEventListener('DOMContentLoaded', function() {
             // Reset button
             submitButton.disabled = false;
             submitButton.innerHTML = isEditing 
-                ? '<i class="bx bx-edit"></i> Update Municipality' 
-                : '<i class="bx bx-plus"></i> Add Municipality';
+                ? '<i class="bi bi-pencil-square"></i> Update Municipality' 
+                : '<i class="bi bi-plus"></i> Add Municipality';
         });
     });
     

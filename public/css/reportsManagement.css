@@ -49,6 +49,11 @@
   align-items: center;
 }
 
+.action-icons a {
+    color: #000;
+    font-size: 1.1rem;
+}
+
 .action-icons i {
   font-size: 22px;
   cursor: pointer;
@@ -95,11 +100,13 @@
     font-size: 16px;
 }
 
+
 .table td, .table th {
     white-space: nowrap; 
-    text-overflow: ellipsis; 
+    text-overflow: ellipsis;
     overflow: hidden; 
     max-width: 200px;
+    vertical-align: middle;
 }
 
 /* Responsive Layout */

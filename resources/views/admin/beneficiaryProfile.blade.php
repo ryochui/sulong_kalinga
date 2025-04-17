@@ -6,8 +6,6 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Dashboard</title>
     <link rel="stylesheet" href="{{ asset('css/bootstrap.min.css') }}">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-    <link href='https://unpkg.com/boxicons@2.0.7/css/boxicons.min.css' rel='stylesheet'>
     <link rel="stylesheet" href="{{ asset('css/reportsManagement.css') }}">
     
 </head>
@@ -32,7 +30,7 @@
                     <form action="{{ route('admin.beneficiaries.index') }}" method="GET">
                         <div class="input-group">
                             <span class="input-group-text">
-                                <i class="bx bx-search-alt"></i>
+                                <i class="bi bi-search"></i>
                             </span>
                             <input type="text" class="form-control" name="search" placeholder="Enter beneficiary name..." id="searchBar" value="{{ request('search') }}">
                             <button type="submit" class="btn btn-primary">Search</button>
@@ -43,7 +41,7 @@
                 <div class="col-12 col-sm-6 col-md-6 col-lg-2 mb-2">
                     <div class="input-group">
                         <span class="input-group-text">
-                            <i class="bx bx-filter-alt"></i>
+                            <i class="bi bi-funnel"></i>
                         </span>
                         <select class="form-select" name="filter" id="filterDropdown" onchange="this.form.submit()">
                             <option value="" {{ request('filter') ? '' : 'selected' }}>Filter by</option>
@@ -59,7 +57,7 @@
                 <div class="col-6 col-md-3 col-lg-2 mb-2">
                     <div class="dropdown">
                         <button class="btn btn-secondary dropdown-toggle w-100" type="button" id="exportDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                            <i class="bx bx-export"></i> Export
+                            <i class="bi bi-box-arrow-up"></i> Export
                         </button>
                         <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="exportDropdown">
                             <li><a class="dropdown-item" href="#" id="exportPdf">Export as PDF</a></li>
@@ -80,7 +78,7 @@
                 <div class="col-6 col-md-3 col-lg-2 mb-2">
                     <a href="{{ route('admin.beneficiaries.create') }}">
                     <button class="btn btn-primary w-100" id="addButton">
-                        <i class="bx bx-plus"></i> Add Beneficiary
+                        <i class="bi bi-plus"></i> Add Beneficiary
                     </button>
                     </a>
                 </div>
@@ -127,12 +125,12 @@
                                                 <form action="{{ route('admin.beneficiaries.view') }}" method="POST" style="display:inline;">
                                                     @csrf
                                                     <input type="hidden" name="beneficiary_id" value="{{ $beneficiary->beneficiary_id }}">
-                                                    <button type="submit" class="btn btn-link text-decoration-none" style="color:black;">
-                                                        <i class="fa fa-eye"></i>
+                                                    <button type="submit" class="btn btn-link pe-2" style="color:black;">
+                                                        <i class="bi bi-eye"></i>
                                                     </button>
                                                 </form>
-                                                <a href="{{ route('admin.beneficiaries.edit', $beneficiary->beneficiary_id) }}" class="btn btn-link text-decoration-none" style="color:black;">
-                                                    <i class="bx bxs-edit"></i>
+                                                <a href="{{ route('admin.beneficiaries.edit', $beneficiary->beneficiary_id) }}" class="btn btn-link ps-2" style="color:black;">
+                                                    <i class="bi bi-pencil-square"></i>
                                                 </a>
                                             </div>
                                         </td>

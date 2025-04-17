@@ -13,7 +13,7 @@
                 <!-- Success message container (new) -->
                 <div id="barangaySuccessContainer" class="d-none">
                     <p class="text-success">
-                        <i class="bx bx-check-circle"></i>
+                        <i class="bi bi-check-circle"></i>
                         <strong>Success!</strong> <span id="barangaySuccessMessage">The barangay has been added successfully.</span>
                     </p>
                     <p>The page will reload shortly.</p>
@@ -42,7 +42,7 @@
                         </div>
                         
                         <div class="alert alert-warning">
-                            <small><i class="bx bx-error-circle me-1"></i> Barangay names must be unique within their municipality.</small>
+                            <small><i class="bi bi-exclamation-circle"></i> Barangay names must be unique within their municipality.</small>
                         </div>
                     </div>
                 </form>
@@ -50,7 +50,7 @@
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="cancelBarangayButton">Cancel</button>
                 <button type="button" class="btn btn-primary" id="submitBarangay">
-                    <i class="bx bx-plus"></i> Add Barangay
+                    <i class="bi bi-plus"></i> Add Barangay
                 </button>
             </div>
         </div>
@@ -130,7 +130,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Main error message
         const errorMessage = document.createElement('p');
         errorMessage.className = 'mb-2';
-        errorMessage.innerHTML = `<i class="bx bx-error-circle text-danger me-1"></i> ${message}`;
+        errorMessage.innerHTML = `<i class="bi bi-exclamation-circle text-danger me-1"></i> ${message}`;
         errorContent.appendChild(errorMessage);
         
         // Add guidance for name errors
@@ -282,7 +282,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 // Reset button
                 submitButton.disabled = false;
-                submitButton.innerHTML = '<i class="bx bx-plus"></i> Add Barangay';
+                submitButton.innerHTML = '<i class="bi bi-plus"></i> Add Barangay';
             }
         })
         .catch(error => {
@@ -292,7 +292,7 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Reset button
             submitButton.disabled = false;
-            submitButton.innerHTML = '<i class="bx bx-plus"></i> Add Barangay';
+            submitButton.innerHTML = '<i class="bi bi-plus"></i> Add Barangay';
         });
     });
     

@@ -5,24 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Reports Management</title>
     <link rel="stylesheet" href="{{ asset('css/bootstrap.min.css') }}">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-    <link href='https://unpkg.com/boxicons@2.0.7/css/boxicons.min.css' rel='stylesheet'>
     <link rel="stylesheet" href="{{ asset('css/reportsManagement.css') }}">
     <style>
-        .action-icons {
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-        }
-        
-        .action-icons a {
-            color: #000 !important;
-            font-size: 1.1rem;
-        }
-        
-        .action-icons a:hover {
-            color: #555 !important;
-        }
+   
     </style>
 </head>
 <body>
@@ -40,7 +25,7 @@
                     <div class="col-12 col-md-6 col-lg-6 mb-2">
                         <div class="input-group">
                             <span class="input-group-text">
-                                <i class="bx bx-search-alt"></i>
+                                <i class="bi bi-search"></i>
                             </span>
                             <input type="text" class="form-control" placeholder="Search by author or beneficiary..." 
                                 id="searchBar" name="search" value="{{ $search ?? '' }}">
@@ -54,7 +39,7 @@
                     <div class="col-12 col-sm-6 col-md-6 col-lg-2 mb-2">
                         <div class="input-group">
                             <span class="input-group-text">
-                                <i class="bx bx-filter-alt"></i>
+                                <i class="bi bi-funnel"></i>
                             </span>
                             <select class="form-select" id="filterDropdown" name="filter" onchange="this.form.submit()">
                                 <option value="" {{ empty($filterType ?? '') ? 'selected' : '' }}>Filter by</option>
@@ -78,7 +63,7 @@
                     <div class="col-6 col-md-3 col-lg-2 mb-2">
                         <div class="dropdown-center">
                             <button class="btn btn-secondary dropdown-toggle w-100" type="button" id="exportDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                                <i class="bx bx-export"></i> Export
+                                <i class="bi bi-box-arrow-up"></i> Export
                             </button>
                             <ul class="dropdown-menu" aria-labelledby="exportDropdown">
                                 <li><a class="dropdown-item" href="#">Export as PDF</a></li>
@@ -119,33 +104,33 @@
                                             <td>
                                             <div class="action-icons">
                                                 @if($report->report_type == 'Weekly Care Plan')
-                                                <a href="{{ route('admin.weeklycareplans.show', $report->report_id) }}" title="View Weekly Care Plan">
-                                                    <i class="fa fa-eye"></i>
+                                                <a href="{{ route('admin.weeklycareplans.show', $report->report_id) }}" class="pe-2" title="View Weekly Care Plan">
+                                                    <i class="bi bi-eye"></i>
                                                 </a>
                                                 @elseif($report->report_type === 'General Care Plan')
                                                     <!-- View GCP link -->
-                                                    <a href="javascript:void(0)" title="View General Care Plan" 
+                                                    <a href="javascript:void(0)" class="pe-2" title="View General Care Plan" 
                                                     onclick="openViewGcpRedirectModal('{{ $report->beneficiary_id }}')">
-                                                        <i class="fa fa-eye"></i>
+                                                        <i class="bi bi-eye"></i>
                                                     </a>
                                                 @else
-                                                    <a href="#" title="View Not Available" onclick="alert('Viewing not available for this report type')">
-                                                        <i class="fa fa-eye text-muted"></i>
+                                                    <a href="#" class="pe-2" title="View Not Available" onclick="alert('Viewing not available for this report type')">
+                                                        <i class="bi bi-eye text-muted"></i>
                                                     </a>
                                                 @endif
                                                 @if($report->report_type == 'Weekly Care Plan')
-                                                    <a href="{{ route('admin.weeklycareplans.edit', $report->report_id) }}" title="Edit Weekly Care Plan">
-                                                        <i class="bx bx-edit"></i>
+                                                    <a href="{{ route('admin.weeklycareplans.edit', $report->report_id) }}" class="ps-2" title="Edit Weekly Care Plan">
+                                                        <i class="bi bi-pencil-square"></i>
                                                     </a>
                                                     @elseif($report->report_type === 'General Care Plan')
                                                         <!-- Edit GCP link -->
-                                                        <a href="javascript:void(0)" title="Edit General Care Plan" 
+                                                        <a href="javascript:void(0)" class="ps-2" title="Edit General Care Plan" 
                                                         onclick="openEditGcpRedirectModal('{{ $report->beneficiary_id }}')">
-                                                            <i class="bx bx-edit"></i>
+                                                            <i class="bi bi-pencil-square"></i>
                                                         </a>
                                                     @else
-                                                    <a href="#" title="Edit Not Available" onclick="alert('Editing not available for this report type')">
-                                                        <i class="bx bx-edit text-muted"></i>
+                                                    <a href="#" title="Edit Not Available" class="ps-2" onclick="alert('Editing not available for this report type')">
+                                                        <i class="bi bi-pencil-square text-muted"></i>
                                                     </a>
                                                 @endif
                                             </div>

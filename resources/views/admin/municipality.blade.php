@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Municipality Management</title>
     <link rel="stylesheet" href="{{ asset('css/bootstrap.min.css') }}">
-    <link href='https://unpkg.com/boxicons@2.0.7/css/boxicons.min.css' rel='stylesheet'>
+    <link rel="stylesheet" href="{{ asset('css/boxicons.min.css') }}">
     <link rel="stylesheet" href="{{ asset('css/municipality.css') }}">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 </head>
@@ -25,7 +25,7 @@
     <!-- Display success and error messages -->
     @if(session('success'))
         <div class="alert alert-success alert-dismissible fade show" role="alert">
-            <i class="bx bx-check-circle me-2"></i>
+            <i class="bi bi-check-circle me-2"></i>
             {{ session('success') }}
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
@@ -33,7 +33,7 @@
 
     @if(session('error'))
         <div class="alert alert-danger alert-dismissible fade show" role="alert">
-            <i class="bx bx-error-circle me-2"></i>
+            <i class="bi bi-exclamation-circle me-2"></i>
             {{ session('error') }}
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
@@ -46,7 +46,7 @@
             <div class="col-12 col-md-6 mb-2">
                 <div class="input-group">
                     <span class="input-group-text">
-                        <i class="bx bx-search-alt"></i>
+                        <i class="bi bi-search"></i>
                     </span>
                     <input type="text" class="form-control" placeholder="Search barangay or municipality..." id="searchBar">
                 </div>
@@ -56,7 +56,7 @@
             <div class="col-12 col-md-6 mb-2">
                 <div class="input-group">
                     <span class="input-group-text">
-                        <i class="bx bx-filter-alt"></i>
+                        <i class="bi bi-funnel"></i>
                     </span>
                     <select class="form-select" id="filterDropdown">
                         <option value="">All Municipalities</option>
@@ -73,14 +73,14 @@
             <div class="col-12">
                 <div class="d-flex gap-2 justify-content-center">
                 <button type="button" class="btn btn-primary flex-grow-1" onclick="openMunicipalityModal()">
-                    <i class="bx bx-building-house"></i> Add / Edit Municipality
+                    <i class="bi bi-building-fill-add" style="padding-right: 10px;"></i> Add / Edit Municipality
                 </button>
                 <button class="btn btn-primary flex-grow-1" id="addBarangayButton" data-bs-toggle="modal" data-bs-target="#addBarangayModal">
-                    <i class="bx bx-plus"></i> Add Barangay
+                    <i class="bi bi-plus" style="padding-right: 10px;"></i> Add Barangay
                 </button>
-                    <button class="btn btn-danger flex-grow-1" id="deleteMunicipalityButton">
-                        <i class="bx bx-trash"></i> Delete Municipality
-                    </button>
+                <button class="btn btn-danger flex-grow-1" id="deleteMunicipalityButton">
+                    <i class="bi bi-trash" style="padding-right: 10px;"></i>Delete Municipality
+                </button>
                 </div>
             </div>
         </div>
@@ -105,12 +105,12 @@
                                         <td>{{ $barangay->beneficiaries_count }}</td>
                                         <td>
                                             <div class="action-icons">
-                                            <i class='bx bx-trash' 
+                                            <i class="bi bi-trash p-" 
                                                 data-id="{{ $barangay->barangay_id }}" 
                                                 data-name="{{ $barangay->barangay_name }}"
                                                 style="cursor: pointer;"
                                                 onclick="openDeleteBarangayModal('{{ $barangay->barangay_id }}', '{{ $barangay->barangay_name }}')"></i>
-                                                <i class='bx bxs-edit' 
+                                                <i class="bi bi-pencil-square p-0" 
                                                 data-id="{{ $barangay->barangay_id }}"
                                                 data-name="{{ $barangay->barangay_name }}"
                                                 data-municipality="{{ $barangay->municipality_id }}"
@@ -297,7 +297,7 @@
                                 if (modalBody) {
                                     modalBody.innerHTML = `
                                         <div class="text-center mb-4">
-                                            <i class="bx bx-check-circle text-success" style="font-size: 3rem;"></i>
+                                            <i class="bi bi-check-circle text-success" style="font-size: 3rem;"></i>
                                             <h5 class="mt-3 text-success">Success!</h5>
                                             <p>The barangay has been successfully deleted.</p>
                                             <p class="small text-muted">The page will reload shortly...</p>
@@ -320,14 +320,14 @@
                                 // Here's where we ensure the error is shown
                                 forceShowBarangayError(data.message || 'Failed to delete barangay.');
                                 this.disabled = false;
-                                this.innerHTML = '<i class="bx bxs-trash"></i> Delete Barangay';
+                                this.innerHTML = '<i class="bi bi-trash-fill"></i> Delete Barangay';
                             }
                         })
                         .catch(error => {
                             console.error('Error:', error);
                             forceShowBarangayError('An unexpected error occurred.');
                             this.disabled = false;
-                            this.innerHTML = '<i class="bx bxs-trash"></i> Delete Barangay';
+                            this.innerHTML = '<i class="bi bi-trash-fill"></i> Delete Barangay';
                         });
                     });
                 }

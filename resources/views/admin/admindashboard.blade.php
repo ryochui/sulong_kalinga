@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard</title>
     <link rel="stylesheet" href="{{ asset('css/bootstrap.min.css') }}">
-    <link href='https://unpkg.com/boxicons@2.0.7/css/boxicons.min.css' rel='stylesheet'>
     <link rel="stylesheet" href="{{ asset('css/dashboard.css') }}">
 </head>
 <body>
@@ -22,7 +21,7 @@
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body text-center">
-                    <i class='bx bxs-party display-4 text-primary mb-3'></i>
+                    <i class='bi bi-gem display-4 text-primary mb-3'></i>
                     <h4>Hello, {{ auth()->user()->first_name }} {{ auth()->user()->last_name }}!</h4>
                     <p>Welcome back to your Administrator Dashboard.</p>
                 </div>
@@ -65,7 +64,7 @@
                                     <form action="" method="GET" id="filterForm">
                                         <div class="input-group">
                                             <span class="input-group-text">
-                                                <i class="bx bx-search-alt"></i>
+                                                <i class="bi bi-search"></i>
                                             </span>
                                             <input type="text" class="form-control" name="search" placeholder="Search report.." id="searchBar" value="{{ request('search') }}">
                                         </div>
@@ -74,7 +73,7 @@
                                 <div class="col-md-3 col-sm-5 ps-0">
                                     <div class="input-group" id="filterGroup">
                                         <span class="input-group-text">
-                                            <i class="bx bx-filter-alt"></i>
+                                            <i class="bi bi-funnel"></i>
                                         </span>
                                         <select class="form-select" name="filter" id="filterDropdown" form="filterForm" onchange="document.getElementById('filterForm').submit();">
                                             <option value="" selected>Filter by</option>

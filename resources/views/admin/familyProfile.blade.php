@@ -5,8 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard</title>
     <link rel="stylesheet" href="{{ asset('css/bootstrap.min.css') }}">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-    <link href='https://unpkg.com/boxicons@2.0.7/css/boxicons.min.css' rel='stylesheet'>
     <link rel="stylesheet" href="{{ asset('css/reportsManagement.css') }}">
 </head>
 <body>
@@ -29,7 +27,7 @@
                     <form action="{{ route('admin.families.index') }}" method="GET" id="filterForm">
                         <div class="input-group">
                             <span class="input-group-text">
-                                <i class="bx bx-search-alt"></i>
+                                <i class="bi bi-search"></i>
                             </span>
                             <input type="text" class="form-control" name="search" placeholder="Search family members..." id="searchBar" value="{{ request('search') }}">
                             <button type="submit" class="btn btn-primary">Search</button>
@@ -55,7 +53,7 @@
                 <div class="col-6 col-md-3 col-lg-3 mb-2">
                     <div class="dropdown">
                         <button class="btn btn-secondary dropdown-toggle w-100" type="button" id="exportDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                            <i class="bx bx-export"></i> Export
+                            <i class="bi bi-box-arrow-up"></i> Export
                         </button>
                         <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="exportDropdown">
                             <li><a class="dropdown-item" href="#" id="exportPdf">Export as PDF</a></li>
@@ -75,7 +73,7 @@
                 <div class="col-6 col-md-3 col-lg-3 mb-2">
                     <a href="{{ route('admin.families.create') }}">
                         <button class="btn btn-primary w-100" id="addButton">
-                            <i class="bx bx-plus"></i> Add Family
+                            <i class="bi bi-plus"></i> Add Family
                         </button>
                     </a>
                 </div>
@@ -110,12 +108,12 @@
                                                 <form action="{{ route('admin.families.view') }}" method="POST" style="display:inline;">
                                                     @csrf
                                                     <input type="hidden" name="family_member_id" value="{{ $family_member->family_member_id }}">
-                                                    <button type="submit" class="btn btn-link text-decoration-none" style="color:black;">
-                                                        <i class="fa fa-eye"></i>
+                                                    <button type="submit" class="btn btn-link pe-2" style="color:black;">
+                                                        <i class="bi bi-eye"></i>
                                                     </button>
                                                 </form>
-                                                <a href="{{ route('admin.families.edit', $family_member->family_member_id) }}" class="btn btn-link text-decoration-none" style="color:black;">
-                                                    <i class="bx bx-edit"></i>
+                                                <a href="{{ route('admin.families.edit', $family_member->family_member_id) }}" class="btn btn-link ps-2" style="color:black;">
+                                                    <i class="bi bi-pencil-square"></i>
                                                 </a>
                                             </div>
                                         </td>

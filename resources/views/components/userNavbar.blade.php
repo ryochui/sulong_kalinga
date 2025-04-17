@@ -1,6 +1,6 @@
 <link rel="stylesheet" href="{{ asset('css/navbar.css') }}">
 <link rel="stylesheet" href="{{ asset('css/userNavbar.css') }}">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.0/font/bootstrap-icons.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
 
 <nav class="navbar navbar-expand-lg navbar-light bg-light shadow-sm">
     <div class="container-fluid">
@@ -108,11 +108,28 @@
                         Account
                     </a>
                     <ul class="dropdown-menu dropdown-menu-end">
-                        <li><a class="dropdown-item {{ Request::routeIs('account') ? 'active' : '' }}" href="viewProfile">Account Profile</a></li>
-                        <li><form action="{{ route('logout') }}" method="POST">
-                            @csrf
-                            <button type="submit" class="dropdown-item">Logout</button>
-                        </form></li>
+                        <li>
+                            <a class="dropdown-item {{ Request::routeIs('account') ? 'active' : '' }}" href="viewProfile">Account Profile</a>
+                        </li>
+                        <li>
+                            <form action="{{ route('logout') }}" method="POST">
+                                @csrf
+                                <button type="submit" class="dropdown-item">Logout</button>
+                            </form>
+                        </li>
+                        <li>
+                            <div class="dropdown-item d-flex align-items-center justify-content-between">
+                                <div class="d-flex align-items-center">
+                                    <i class="bi bi-translate me-2"></i>
+                                    <label for="languageToggle" class="m-0" style="cursor: pointer;" onclick="event.stopPropagation();">
+                                        <span>Tagalog</span>
+                                    </label>
+                                </div>
+                                <div class="form-check form-switch ms-3">
+                                    <input class="form-check-input" type="checkbox" id="languageToggle" style="cursor: pointer;">
+                                </div>
+                            </div>
+                        </li>
                     </ul>
                 </li>
             </ul>
@@ -296,4 +313,25 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 });
+</script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const languageToggle = document.getElementById('languageToggle');
+
+        // Initialize the toggle state (optional, for demo purposes)
+        let isTagalog = false;
+
+        // Add event listener for the toggle
+        languageToggle.addEventListener('change', function () {
+            isTagalog = this.checked;
+            if (isTagalog) {
+                console.log('Tagalog selected');
+                // Add any additional frontend behavior here
+            } else {
+                console.log('English selected');
+                // Add any additional frontend behavior here
+            }
+        });
+    });
 </script>
