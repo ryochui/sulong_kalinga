@@ -2,7 +2,13 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header" style="background-color:#0d6efd;">
-                <h5 class="modal-title text-white" id="editGcpRedirectModalLabel">Redirecting to Edit Beneficiary</h5>
+                <h5 class="modal-title text-white" id="editGcpRedirectModalLabel">
+                    @if(Auth::user()->role_id == 3)
+                        Redirecting to Update Beneficiary
+                    @else
+                        Redirecting to Edit Beneficiary
+                    @endif
+                </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body text-center">
@@ -11,7 +17,15 @@
                 </div>
                 <h5>General Care Plan Editing Information</h5>
                 <p>The General Care Plan is incorporated directly into the beneficiary profile.</p>
-                <p>Editing a General Care Plan affects the beneficiary information directly.</p>
+                
+                @if(Auth::user()->role_id == 3)
+                <p>As a Care Worker, you can update certain elements of the General Care Plan for your assigned beneficiaries.</p>
+                @elseif(Auth::user()->role_id == 2)
+                <p>As a Care Manager, you have full editing capabilities for the General Care Plans of all beneficiaries.</p>
+                @else
+                <p>As an Administrator, you have full control over all General Care Plan information.</p>
+                @endif
+                
                 <p>You will be redirected to the Edit Beneficiary page where you can modify the General Care Plan information.</p>
                 
                 <div class="progress mt-4">
@@ -32,7 +46,27 @@
 <script>
 let editGcpCountdownInterval;
 
+// Helper function to check if care worker can edit this beneficiary
+function canEditBeneficiary(beneficiaryId) {
+    @if(Auth::user()->role_id == 3)
+        // For care workers, check if they are assigned to this beneficiary
+        const assignedBeneficiaries = @json(Auth::user()->assignedBeneficiaries()->pluck('beneficiary_id')->toArray());
+        return assignedBeneficiaries.includes(parseInt(beneficiaryId));
+    @else
+        // Admins and Care Managers can edit all beneficiaries
+        return true;
+    @endif
+}
+
 function openEditGcpRedirectModal(beneficiaryId) {
+    // Check permissions for care workers
+    @if(Auth::user()->role_id == 3)
+    if (!canEditBeneficiary(beneficiaryId)) {
+        alert('You do not have permission to edit this beneficiary. You can only edit beneficiaries assigned to you.');
+        return;
+    }
+    @endif
+    
     // Set the beneficiary ID for redirect
     document.getElementById('editGcpBeneficiaryId').value = beneficiaryId;
     
@@ -71,8 +105,15 @@ function openEditGcpRedirectModal(beneficiaryId) {
 
 function redirectToEditBeneficiary() {
     const beneficiaryId = document.getElementById('editGcpBeneficiaryId').value;
-    // Use the proper route for editing a beneficiary
-    window.location.href = `{{ route('admin.beneficiaries.edit', ':id') }}`.replace(':id', beneficiaryId);
+    
+    // Use role-specific routes
+    @if(Auth::user()->role_id == 2)
+        window.location.href = `{{ route('care-manager.beneficiaries.edit', ':id') }}`.replace(':id', beneficiaryId);
+    @elseif(Auth::user()->role_id == 3)
+        window.location.href = `{{ route('care-worker.beneficiaries.edit', ':id') }}`.replace(':id', beneficiaryId);
+    @else
+        window.location.href = `{{ route('admin.beneficiaries.edit', ':id') }}`.replace(':id', beneficiaryId);
+    @endif
 }
 
 // When document is ready

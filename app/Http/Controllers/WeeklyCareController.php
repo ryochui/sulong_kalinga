@@ -18,23 +18,62 @@ use App\Models\VitalSigns;
 
 class WeeklyCareController extends Controller
 {
+
+    protected function getRolePrefixRoute()
+    {
+        $user = Auth::user();
+        
+        if ($user->role_id == 1) {
+            return 'admin';
+        } elseif ($user->role_id == 2) {
+            return 'care-manager';
+        } elseif ($user->role_id == 3) {
+            return 'care-worker';
+        }
+        
+        return 'admin'; // Default fallback
+    }
+
+    protected function getRolePrefixView()
+    {
+        $user = Auth::user();
+        
+        if ($user->role_id == 1) {
+            return 'admin';
+        } elseif ($user->role_id == 2) {
+            return 'careManager';
+        } elseif ($user->role_id == 3) {
+            return 'careWorker';
+        }
+        
+        return 'admin'; // Default fallback
+    }
+
     /**
      * Show the form for creating a new weekly care plan
      */
     public function create()
     {
-        // Fetch all beneficiaries, regardless of who creates the WCP
-        $beneficiaries = Beneficiary::orderBy('last_name')->orderBy('first_name')->get();
+        $rolePrefix = $this->getRolePrefixView();
+        
+        // Fetch all beneficiaries for admins and care managers
+        // For care workers, only fetch their assigned beneficiaries
+        if (Auth::user()->role_id == 3) {
+            $beneficiaries = Auth::user()->assignedBeneficiaries()
+                ->orderBy('last_name')
+                ->orderBy('first_name')
+                ->get();
+        } else {
+            $beneficiaries = Beneficiary::orderBy('last_name')
+                ->orderBy('first_name')
+                ->get();
+        }
         
         // Get all care categories with their interventions
         $careCategories = CareCategory::with('interventions')->get();
         
-        // Check user role and return appropriate view
-        if (Auth::user()->role_id == 1) { // Admin user
-            return view('admin.weeklyCareplan', compact('beneficiaries', 'careCategories'));
-        } else { // Care worker or other roles
-            return view('careWorker.weeklyCareplan', compact('beneficiaries', 'careCategories'));
-        }
+        // Return view based on user role
+        return view($rolePrefix . '.weeklyCareplan', compact('beneficiaries', 'careCategories'));
     }
     
     /**
@@ -63,7 +102,8 @@ class WeeklyCareController extends Controller
      */
     public function store(Request $request)
     {
-        Log::info('Store method called with request data:', $request->all());
+        $rolePrefix = $this->getRolePrefixRoute();
+        $user = Auth::user();
 
         // Validate the request
         $validated = $request->validate([
@@ -131,6 +171,14 @@ class WeeklyCareController extends Controller
         Log::info('Validation passed');
 
         try {
+            if ($user->role_id == 3) {
+                $assignedBeneficiaryIds = $user->assignedBeneficiaries()->pluck('beneficiary_id');
+                if (!$assignedBeneficiaryIds->contains($request->beneficiary_id)) {
+                    return redirect()->route($rolePrefix . '.weeklycareplans.create')
+                        ->with('error', 'You can only create plans for your assigned beneficiaries.');
+                }
+            }
+            
             DB::beginTransaction();
 
             // 1. Create vital signs record
@@ -211,13 +259,8 @@ class WeeklyCareController extends Controller
 
             DB::commit();
 
-            if (Auth::user()->role_id == 1) {
-                return redirect()->route('admin.weeklycareplans.create')
-                    ->with('success', 'Weekly care plan created successfully!');
-            } else {
-                return redirect()->route('careworker.weeklycareplans.create') 
-                    ->with('success', 'Weekly care plan created successfully!');
-            }
+            return redirect()->route($rolePrefix . '.weeklycareplans.create')
+                ->with('success', 'Weekly care plan created successfully!');
                 
         } catch (\Exception $e) {
             DB::rollBack();
@@ -232,15 +275,23 @@ class WeeklyCareController extends Controller
      */
     public function index()
     {
-        $weeklyCarePlans = WeeklyCarePlan::with(['beneficiary', 'vitalSigns', 'interventions'])
-            ->orderBy('created_at', 'desc')
-            ->paginate(10);
-            
-            if (Auth::user()->role_id == 1) {
-                return view('admin.weeklyCarePlansList', compact('weeklyCarePlans'));
-            } else {
-                return view('careWorker.weeklyCarePlansList', compact('weeklyCarePlans'));
-            }
+        $rolePrefix = $this->getRolePrefixView();
+        $user = Auth::user();
+        
+        // For care workers, only show their own plans
+        if ($user->role_id == 3) {
+            $weeklyCarePlans = WeeklyCarePlan::with(['beneficiary', 'vitalSigns', 'interventions'])
+                ->where('care_worker_id', $user->id)
+                ->orderBy('created_at', 'desc')
+                ->paginate(10);
+        } else {
+            // For admins and care managers, show all plans
+            $weeklyCarePlans = WeeklyCarePlan::with(['beneficiary', 'vitalSigns', 'interventions'])
+                ->orderBy('created_at', 'desc')
+                ->paginate(10);
+        }
+        
+        return view($rolePrefix . '.weeklyCarePlansList', compact('weeklyCarePlans'));
     }
 
     public function customInterventions()
@@ -251,15 +302,24 @@ class WeeklyCareController extends Controller
 
     public function show($id)
     {
-        // Get the weekly care plan with beneficiary
+        $rolePrefix = $this->getRolePrefixView();
+        $user = Auth::user();
+        
+        // Get the weekly care plan with related data
         $weeklyCareplan = WeeklyCarePlan::with('beneficiary', 
-        'beneficiary.generalCarePlan.healthHistory', 
-        'vitalSigns',
-        'acknowledgedByBeneficiary',
-        'acknowledgedByFamily')
+            'beneficiary.generalCarePlan.healthHistory', 
+            'vitalSigns',
+            'acknowledgedByBeneficiary',
+            'acknowledgedByFamily')
             ->findOrFail($id);
         
-        // Explicitly fetch standard interventions with correct relationship structure
+        // For care workers, check if they are the author
+        if ($user->role_id == 3 && $weeklyCareplan->care_worker_id != $user->id) {
+            return redirect()->route('care-worker.reports')
+                ->with('error', 'You do not have permission to view this care plan.');
+        }
+        
+        // Get standard and custom interventions (rest of your existing code)
         $standardInterventions = DB::table('weekly_care_plan_interventions as wpi')
             ->join('interventions as i', 'wpi.intervention_id', '=', 'i.intervention_id')
             ->where('wpi.weekly_care_plan_id', $id)
@@ -267,34 +327,22 @@ class WeeklyCareController extends Controller
             ->select('i.intervention_description', 'wpi.duration_minutes', 'i.care_category_id')
             ->get();
         
-        // Group standard interventions by category
         $interventionsByCategory = $standardInterventions->groupBy('care_category_id');
         
-        // Get custom interventions (with null intervention_id)
         $customInterventions = DB::table('weekly_care_plan_interventions')
             ->where('weekly_care_plan_id', $id)
             ->whereNull('intervention_id')
             ->get();
         
-        // Get all care categories
         $categories = CareCategory::all();
         
-        // Check user role and return appropriate view
-        if (Auth::user()->role_id == 1) { // Admin user
-            return view('admin.viewWeeklyCareplan', compact(
-                'weeklyCareplan',
-                'interventionsByCategory',
-                'customInterventions',
-                'categories'
-            ));
-        } else { // Care worker or other roles
-            return view('careWorker.viewWeeklyCareplan', compact(
-                'weeklyCareplan',
-                'interventionsByCategory',
-                'customInterventions',
-                'categories'
-            ));
-        }
+        // Return view based on user role
+        return view($rolePrefix . '.viewWeeklyCareplan', compact(
+            'weeklyCareplan',
+            'interventionsByCategory',
+            'customInterventions',
+            'categories'
+        ));
     }
 
     /*  public function edit($id)
@@ -313,6 +361,9 @@ class WeeklyCareController extends Controller
 
     public function edit($id)
     {
+        $rolePrefix = $this->getRolePrefixView();
+        $user = Auth::user();
+        
         // Get the weekly care plan with all related data
         $weeklyCarePlan = WeeklyCarePlan::with([
             'beneficiary', 
@@ -321,30 +372,35 @@ class WeeklyCareController extends Controller
             'interventions'
         ])->findOrFail($id);
         
-        // Check authorization - only allow admins or the creator to edit
-        if (Auth::user()->role_id > 2 && $weeklyCarePlan->care_worker_id != Auth::id()) {
-            return redirect()->back()->with('error', 'You are not authorized to edit this care plan');
+        // Check authorization:
+        // - Admins and care managers can edit all plans
+        // - Care workers can only edit their own plans
+        if ($user->role_id == 3 && $weeklyCarePlan->care_worker_id != $user->id) {
+            return redirect()->route('care-worker.reports')
+                ->with('error', 'You do not have permission to edit this care plan.');
         }
         
-        // Get all beneficiaries for dropdown
-        $beneficiaries = Beneficiary::orderBy('last_name')->orderBy('first_name')->get();
+        // Get all relevant data for the form
+        if ($user->role_id == 3) {
+            $beneficiaries = $user->assignedBeneficiaries()
+                ->orderBy('last_name')->orderBy('first_name')->get();
+        } else {
+            $beneficiaries = Beneficiary::orderBy('last_name')->orderBy('first_name')->get();
+        }
         
-        // Get care categories with interventions
         $careCategories = CareCategory::with('interventions')->get();
         
-        // Group interventions by category and format for the form
+        // Rest of your existing code for preparing form data
         $selectedInterventions = [];
         $interventionDurations = [];
         
         foreach ($weeklyCarePlan->interventions as $intervention) {
             if ($intervention->intervention_id) {
-                // Standard intervention
                 $selectedInterventions[] = $intervention->intervention_id;
                 $interventionDurations[$intervention->intervention_id] = $intervention->duration_minutes;
             }
         }
         
-        // Get custom interventions
         $customInterventions = $weeklyCarePlan->interventions()
             ->whereNull('intervention_id')
             ->get();
@@ -356,41 +412,34 @@ class WeeklyCareController extends Controller
             }
             $customInterventionsByCategory[$intervention->care_category_id][] = $intervention;
         }
-
-
         
-        // Check user role and return appropriate view
-        if (Auth::user()->role_id == 1) { // Admin
-            return view('admin.editWeeklyCareplan', compact(
-                'weeklyCarePlan',
-                'beneficiaries',
-                'careCategories',
-                'selectedInterventions',
-                'interventionDurations',
-                'customInterventions',
-                'customInterventionsByCategory'
-            ));
-        } else { // Care worker
-            return view('careWorker.editWeeklyCareplan', compact(
-                'weeklyCarePlan',
-                'beneficiaries',
-                'careCategories',
-                'selectedInterventions',
-                'interventionDurations',
-                'customInterventions',
-                'customInterventionsByCategory'
-            ));
-        }
+        // Return view based on user role
+        return view($rolePrefix . '.editWeeklyCareplan', compact(
+            'weeklyCarePlan',
+            'beneficiaries',
+            'careCategories',
+            'selectedInterventions',
+            'interventionDurations',
+            'customInterventions',
+            'customInterventionsByCategory'
+        ));
     }
 
     public function update(Request $request, $id)
     {
+
+        $rolePrefix = $this->getRolePrefixRoute();
+        $user = Auth::user();
+
         // Find the weekly care plan
         $weeklyCarePlan = WeeklyCarePlan::findOrFail($id);
         
-        // Check authorization - only allow admins or the creator to update
-        if (Auth::user()->role_id > 2 && $weeklyCarePlan->care_worker_id != Auth::id()) {
-            return redirect()->back()->with('error', 'You are not authorized to update this care plan');
+        // Check authorization:
+        // - Admins and care managers can update all plans
+        // - Care workers can only update their own plans
+        if ($user->role_id == 3 && $weeklyCarePlan->care_worker_id != $user->id) {
+            return redirect()->route('care-worker.weekly-care-plans.index')
+                ->with('error', 'You do not have permission to update this care plan.');
         }
 
         // Validate the request (same validation as store method)
@@ -479,13 +528,9 @@ class WeeklyCareController extends Controller
             
             DB::commit();
             
-            if (Auth::user()->role_id == 1) {
-                return redirect()->route('admin.weeklycareplans.show', $weeklyCarePlan->weekly_care_plan_id)
-                    ->with('success', 'Weekly care plan updated successfully!');
-            } else {
-                return redirect()->route('careworker.weeklycareplans.show', $weeklyCarePlan->weekly_care_plan_id)
-                    ->with('success', 'Weekly care plan updated successfully!');
-            }
+            //This is the one telling it where to go (Note for Nadine)
+            return redirect()->route($rolePrefix . '.reports')
+            ->with('success', 'Weekly care plan updated successfully!');
             
         } catch (\Exception $e) {
             DB::rollBack();
@@ -497,6 +542,16 @@ class WeeklyCareController extends Controller
 
     public function destroy(Request $request, $id)
     {
+        $user = Auth::user();
+        
+        // Only admins and care managers can delete plans
+        if ($user->role_id == 3) {
+            return response()->json([
+                'success' => false,
+                'message' => 'You do not have permission to delete care plans.'
+            ], 403);
+        }
+
         try {
             // Log incoming request for debugging
             Log::info('Delete request received for weekly care plan ID: ' . $id);
@@ -547,9 +602,14 @@ class WeeklyCareController extends Controller
                 
                 DB::commit();
                 
+                $reportsRoute = auth()->user()->role_id == 2 
+                    ? route('care-manager.reports') 
+                    : route('admin.reports');
+
                 return response()->json([
                     'success' => true,
-                    'message' => 'Weekly care plan deleted successfully.'
+                    'message' => 'Weekly care plan deleted successfully.',
+                    'redirectTo' => $reportsRoute  // Add this line
                 ]);
             } catch (\Exception $e) {
                 DB::rollBack();
@@ -569,9 +629,14 @@ class WeeklyCareController extends Controller
             Log::error('Weekly care plan deletion error: ' . $e->getMessage());
             Log::error('Stack trace: ' . $e->getTraceAsString());
             
+            $reportsRoute = auth()->user()->role_id == 2 
+            ? route('care-manager.reports') 
+            : route('admin.reports');
+
             return response()->json([
                 'success' => false,
-                'message' => 'An error occurred while processing your request: ' . $e->getMessage()
+                'message' => 'An error occurred while processing your request: ' . $e->getMessage(),
+                'redirectTo' => $reportsRoute  // Add this line
             ], 500);
         }
     }

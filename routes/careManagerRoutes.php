@@ -55,7 +55,7 @@ Route::middleware(['auth', '\App\Http\Middleware\CheckRole:care_manager'])->pref
     });
     
     // Weekly Care Plans
-    Route::prefix('weekly-care-plans')->name('weekly-care-plans.')->group(function () {
+    Route::prefix('weekly-care-plans')->name('weeklycareplans.')->group(function () {
         Route::get('/', [WeeklyCareController::class, 'index'])->name('index');
         Route::get('/create', [WeeklyCareController::class, 'create'])->name('create');
         Route::post('/store', [WeeklyCareController::class, 'store'])->name('store');
@@ -63,7 +63,7 @@ Route::middleware(['auth', '\App\Http\Middleware\CheckRole:care_manager'])->pref
         Route::get('/{id}/edit', [WeeklyCareController::class, 'edit'])->name('edit');
         Route::put('/{id}', [WeeklyCareController::class, 'update'])->name('update');
         Route::delete('/{id}', [WeeklyCareController::class, 'destroy'])->name('delete');
-        Route::get('/beneficiary/{id}', [WeeklyCareController::class, 'getBeneficiaryDetails'])->name('beneficiary-details');
+        Route::get('/beneficiary/{id}', [WeeklyCareController::class, 'getBeneficiaryDetails'])->name('beneficiaryDetails');
     });
 
     // Reports Management
