@@ -95,7 +95,7 @@
                             </div>
                             <div class="col-md-3 position-relative">
                                 <label for="primaryCaregiver" class="form-label">Primary Caregiver</label>
-                                <input type="text" class="form-control" id="primaryCaregiver" name="primary_caregiver" value="{{ old('primary_caregiver') }}" placeholder="Enter Primary Caregiver name" required>                            
+                                <input type="text" class="form-control" id="primaryCaregiver" name="primary_caregiver" value="{{ old('primary_caregiver') }}" placeholder="Enter Primary Caregiver name">                            
                             </div>
                             <div class="col-md-3">
                                 <label for="mobileNumber" class="form-label">Mobile Number</label>
@@ -106,7 +106,7 @@
                             </div>
                             <div class="col-md-3">
                                 <label for="landlineNumber" class="form-label">Landline Number</label>
-                                <input type="text" class="form-control" id="landlineNumber" name="landline_number" value="{{ old('landline_number') }}" placeholder="Enter Landline number" maxlength="10" required oninput="restrictToNumbers(this)" title="Must be between 7 and 10 digits.">
+                                <input type="text" class="form-control" id="landlineNumber" name="landline_number" value="{{ old('landline_number') }}" placeholder="Enter Landline number" maxlength="10" oninput="restrictToNumbers(this)" title="Must be between 7 and 10 digits.">
                             </div>
                         </div>
 
@@ -457,7 +457,7 @@
                                 <input type="email" class="form-control" id="emailAddress" name="emergency_contact[email]" 
                                     value="{{ old('emergency_contact.email') }}"
                                     placeholder="Enter email address" 
-                                    required>
+                                    >
                             </div>
                         </div>
 
@@ -537,7 +537,6 @@
                                 <label for="beneficiaryProfilePic" class="form-label">Upload Beneficiary Picture</label>
                                 <input type="file" class="form-control" id="beneficiaryProfilePic" name="beneficiaryProfilePic" 
                                     accept="image/png, image/jpeg" 
-                                    required 
                                     title="Only PNG and JPEG images are allowed.">
                                 @if($errors->any())
                                 <small class="text-danger">Note: You need to select the file again after a validation error.</small>
@@ -727,16 +726,16 @@
         newRow.className = 'row mb-2 align-items-center medication-row';
         newRow.innerHTML = `
             <div class="col-md-3">
-                <input type="text" class="form-control" name="medication_name[]" value="${name}" placeholder="Enter medication name" required>
+                <input type="text" class="form-control" name="medication_name[]" value="${name}" placeholder="Enter medication name">
             </div>
             <div class="col-md-2">
-                <input type="text" class="form-control" name="dosage[]" value="${dosage}" placeholder="Enter dosage" required>
+                <input type="text" class="form-control" name="dosage[]" value="${dosage}" placeholder="Enter dosage">
             </div>
             <div class="col-md-2">
-                <input type="text" class="form-control" name="frequency[]" value="${freq}" placeholder="Enter frequency" required>
+                <input type="text" class="form-control" name="frequency[]" value="${freq}" placeholder="Enter frequency">
             </div>
             <div class="col-md-4">
-                <textarea class="form-control" name="administration_instructions[]" placeholder="Enter administration instructions" rows="1" required>${instructions}</textarea>
+                <textarea class="form-control" name="administration_instructions[]" placeholder="Enter administration instructions" rows="1">${instructions}</textarea>
             </div>
             <div class="col-md-1 d-flex text-start">
                 <button type="button" class="btn btn-danger" onclick="removeMedicationRow(this)">Delete</button>

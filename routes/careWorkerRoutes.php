@@ -1,79 +1,47 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\ReportsController;
 use App\Http\Controllers\BeneficiaryController;
 use App\Http\Controllers\FamilyMemberController;
 use App\Http\Controllers\CareWorkerController;
 use App\Http\Controllers\WeeklyCareController;
-use App\Http\Controllers\MunicipalityController;
-use App\Http\Controllers\ExportController;
+use App\Http\Controllers\ReportsController;
+use App\Http\Controllers\UserController;
 
 // All routes with care_worker role check
-Route::middleware(['auth', 'role:care_worker'])->group(function () {
+Route::middleware(['auth', 'role:care_worker'])->prefix('care-worker')->name('care-worker.')->group(function () {
     // Dashboard
-    Route::get('/worker/dashboard', function () {
-        $showWelcome = session()->pull('show_welcome', false);
-        return view('careWorker.workerdashboard', ['showWelcome' => $showWelcome]);
-    })->name('workerdashboard');
+    Route::get('/dashboard', [CareWorkerController::class, 'dashboard'])->name('dashboard');
     
-    // Beneficiary Management - READ ONLY
-    Route::get('/worker/beneficiaryProfile', [BeneficiaryController::class, 'index'])
-        ->name('worker.beneficiaryProfile');
-    Route::post('/worker/viewProfileDetails', [BeneficiaryController::class, 'viewProfileDetails'])
-        ->name('worker.viewProfileDetails');
+    // Care Worker Profile
+    Route::get('/profile', [CareWorkerController::class, 'profile'])->name('profile');
+    Route::post('/update-profile', [CareWorkerController::class, 'updateProfile'])->name('updateProfile');
     
-    // Family Member Management - READ ONLY
-    Route::get('/worker/familyProfile', [FamilyMemberController::class, 'index'])
-        ->name('worker.familyProfile');
-    Route::post('/worker/viewFamilyDetails', [FamilyMemberController::class, 'viewFamilyDetails'])
-        ->name('worker.viewFamilyDetails');
+    // Assigned Beneficiaries - read only for most actions
+    Route::get('/beneficiaries', [BeneficiaryController::class, 'indexForCareWorker'])->name('beneficiaries');
+    Route::get('/beneficiary/{id}', [BeneficiaryController::class, 'showForCareWorker'])->name('showBeneficiary');
+    Route::post('/view-beneficiary-details', [BeneficiaryController::class, 'viewProfileDetailsForCareWorker'])->name('viewBeneficiaryDetails');
     
-    // Weekly Care Plans - FULL ACCESS (primary responsibility)
-    Route::get('/worker/weeklyCareplan', function () {
-        return view('careWorker.weeklyCareplan');
-    })->name('weeklyCareplan');
+    // Limited Family Member Access
+    Route::get('/beneficiary/{id}/family-members', [FamilyMemberController::class, 'indexForCareWorker'])->name('familyMembers');
+    Route::get('/family-member/{id}', [FamilyMemberController::class, 'showForCareWorker'])->name('showFamilyMember');
     
-    Route::get('/worker/viewWeeklyCareplan', function () {
-        return view('careWorker.viewWeeklyCareplan');
-    })->name('viewWeeklyCareplan');
+    // Weekly Care Plans - can create and edit for assigned beneficiaries
+    Route::get('/weekly-care-plans', [WeeklyCareController::class, 'indexForCareWorker'])->name('weeklyCarePlans');
+    Route::get('/weekly-care-plan/create', [WeeklyCareController::class, 'createForCareWorker'])->name('createWeeklyCarePlan');
+    Route::post('/weekly-care-plan/store', [WeeklyCareController::class, 'storeForCareWorker'])->name('storeWeeklyCarePlan');
+    Route::get('/weekly-care-plan/{id}', [WeeklyCareController::class, 'showForCareWorker'])->name('showWeeklyCarePlan');
+    Route::get('/weekly-care-plan/{id}/edit', [WeeklyCareController::class, 'editForCareWorker'])->name('editWeeklyCarePlan');
+    Route::put('/weekly-care-plan/{id}', [WeeklyCareController::class, 'updateForCareWorker'])->name('updateWeeklyCarePlan');
+    Route::get('/weekly-care-plan/beneficiary/{id}', [WeeklyCareController::class, 'getBeneficiaryDetailsForCareWorker'])->name('beneficiaryDetails');
     
-    Route::get('/worker/weekly-care-plans', [WeeklyCareController::class, 'index'])
-        ->name('worker.weeklycareplans.index');
-    Route::get('/worker/weekly-care-plan', [WeeklyCareController::class, 'create'])
-        ->name('worker.weeklycareplans.create');
-    Route::post('/worker/weekly-care-plan/store', [WeeklyCareController::class, 'store'])
-        ->name('worker.weeklycareplans.store');
-    Route::get('/worker/weekly-care-plans/{id}', [WeeklyCareController::class, 'show'])
-        ->name('worker.weeklycareplans.show');
-    Route::get('/worker/weekly-care-plans/{id}/edit', [WeeklyCareController::class, 'edit'])
-        ->name('worker.weeklycareplans.edit');
-    Route::put('/worker/weekly-care-plans/{id}', [WeeklyCareController::class, 'update'])
-        ->name('worker.weeklycareplans.update');
-    Route::get('/worker/weekly-care-plan/beneficiary/{id}', [WeeklyCareController::class, 'getBeneficiaryDetails'])
-        ->name('worker.weeklycareplans.beneficiaryDetails');
+    // Interventions and Visits
+    Route::get('/interventions', [WeeklyCareController::class, 'interventionsForCareWorker'])->name('interventions');
+    Route::post('/intervention/complete/{id}', [WeeklyCareController::class, 'completeInterventionForCareWorker'])->name('completeIntervention');
+    Route::post('/intervention/reschedule/{id}', [WeeklyCareController::class, 'rescheduleInterventionForCareWorker'])->name('rescheduleIntervention');
+    Route::post('/record-visit', [WeeklyCareController::class, 'recordVisitForCareWorker'])->name('recordVisit');
     
-    // Reports - Limited to their own reports
-    Route::get('/worker/reports', [ReportsController::class, 'index'])
-        ->name('worker.reports');
-    
-    // Municipality - READ ONLY
-    Route::get('/worker/municipality', [MunicipalityController::class, 'index'])
-        ->name('worker.municipality');
-    
-    // Export functionality - Limited to their own reports
-    Route::post('/worker/export/weekly-care-pdf', [ExportController::class, 'exportWeeklyCareToPdf'])
-        ->name('worker.export.weeklycare.pdf');
-    Route::post('/worker/export/weekly-care-excel', [ExportController::class, 'exportWeeklyCareToExcel'])
-        ->name('worker.export.weeklycare.excel');
-    
-    // Care Worker Profile - Only their own profile
-    Route::get('/worker/profile', [CareWorkerController::class, 'viewOwnProfile'])
-        ->name('worker.profile');
-    Route::get('/worker/profile/edit', [CareWorkerController::class, 'editOwnProfile'])
-        ->name('worker.profile.edit');
-    Route::put('/worker/profile/update', [CareWorkerController::class, 'updateOwnProfile'])
-        ->name('worker.profile.update');
-    Route::post('/worker/profile/change-password', [CareWorkerController::class, 'changePassword'])
-        ->name('worker.profile.changePassword');
+    // Limited Reports
+    Route::get('/reports', [ReportsController::class, 'indexForCareWorker'])->name('reports');
+    Route::post('/validate-password', [UserController::class, 'validatePassword'])->name('validatePassword');
 });

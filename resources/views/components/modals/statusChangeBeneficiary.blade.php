@@ -50,27 +50,42 @@
     </div>
 </div>
 
+<!-- Update the modal script portion with role detection -->
 <script>
 document.addEventListener("DOMContentLoaded", function () {
     let selectedStatusElement = null;
-    let entityType = ""; // Store the entity type dynamically
-    let beneficiaryId = null; // Store the beneficiary ID dynamically
-    let oldStatus = ""; // Store the old status dynamically
+    let entityType = ""; 
+    let beneficiaryId = null;
+    let oldStatus = "";
+    
+    // Determine user role from current URL path
+    const currentPath = window.location.pathname;
+    const isAdmin = currentPath.includes('/admin/');
+    const isCareManager = currentPath.includes('/care-manager/');
+    
+    // Set the appropriate validation and update URLs based on role
+    const passwordValidationUrl = isAdmin 
+        ? "{{ route('admin.validate-password') }}"
+        : "{{ route('care-manager.validate-password') }}";
+        
+    const statusUpdateBaseUrl = isAdmin
+        ? "/admin/beneficiaries"
+        : "/care-manager/beneficiaries";
 
     // Function to open the modal and store the selected status element
     window.openStatusChangeModal = function (selectElement, type, id, currentStatus) {
-        selectedStatusElement = selectElement; // Store the reference to the dropdown
-        entityType = type; // Set the entity type dynamically
-        beneficiaryId = id; // Set the beneficiary ID dynamically
-        oldStatus = currentStatus; // Set the old status dynamically
-        document.getElementById("entityType").textContent = entityType; // Update the modal text
+        selectedStatusElement = selectElement;
+        entityType = type;
+        beneficiaryId = id;
+        oldStatus = currentStatus;
+        document.getElementById("entityType").textContent = entityType;
         const statusChangeModal = new bootstrap.Modal(document.getElementById("statusChangeModal"));
         statusChangeModal.show();
 
         // Handle modal close event
         document.getElementById("statusChangeModal").addEventListener('hidden.bs.modal', function () {
             if (!selectedStatusElement.dataset.confirmed) {
-                location.reload(); // Reload the page if not confirmed
+                location.reload();
             }
         }, { once: true });
 
@@ -87,7 +102,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // Function to validate the password
     function validatePassword(password) {
-        return fetch("{{ route('admin.validate-password') }}", {
+        return fetch(passwordValidationUrl, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -138,9 +153,9 @@ document.addEventListener("DOMContentLoaded", function () {
                 const successMessage = document.getElementById("successMessage");
                 successMessage.style.display = 'block';
                 
-                // Make the AJAX call to update status
-                fetch(`/admin/beneficiaries/${beneficiaryId}/update-status-ajax`, {
-                    method: 'POST',
+                // Make the AJAX call to update status - using role-appropriate URL
+                fetch(`${statusUpdateBaseUrl}/${beneficiaryId}/status`, {
+                    method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',
                         'X-CSRF-TOKEN': '{{ csrf_token() }}',

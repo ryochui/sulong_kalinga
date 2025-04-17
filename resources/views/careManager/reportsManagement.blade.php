@@ -28,12 +28,20 @@
 <body>
     @include('components.userNavbar')
     @include('components.careManagerSidebar')
+    @include('components.modals.viewGcpRedirect')
+    @include('components.modals.editGcpRedirect')
     
     <div class="home-section">
-        <div class="text-left">REPORTS MANAGEMENT CM</div>
-        
+    @if(session('success'))
+        <div id="success-message" class="alert alert-success alert-dismissible fade show mx-3" 
+            style="display: block !important; visibility: visible !important; opacity: 1 !important; margin-top: 15px !important; margin-bottom: 15px !important;">
+            <strong>Success!</strong> {{ session('success') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    @endif
+        <div class="text-left">REPORTS MANAGEMENT</div>
         <div class="container-fluid text-center">
-            <form action="{{ route('reports') }}" method="GET" id="searchFilterForm">
+        <form action="{{ route('care-manager.reports') }}" method="GET" id="searchFilterForm">
                 <div class="row mb-3 align-items-center">
                     <div class="col-12 col-md-6 col-lg-6 mb-2">
                         <div class="input-group">
@@ -115,14 +123,38 @@
                                             <td>{{ $report->beneficiary_first_name ?? 'Unknown' }} {{ $report->beneficiary_last_name ?? '' }}</td>
                                             <td class="d-none d-sm-table-cell">{{ isset($report->created_at) ? \Carbon\Carbon::parse($report->created_at)->format('M d, Y') : 'Unknown' }}</td>
                                             <td>
-                                                <div class="action-icons">
-                                                    <a href="viewWeeklyCareplan" title="View Report">
+                                            <div class="action-icons">
+                                                @if($report->report_type == 'Weekly Care Plan')
+                                                <a href="{{ route('care-manager.weeklycareplans.show', $report->report_id) }}" title="View Weekly Care Plan">
+                                                    <i class="fa fa-eye"></i>
+                                                </a>
+                                                @elseif($report->report_type === 'General Care Plan')
+                                                    <!-- View GCP link -->
+                                                    <a href="javascript:void(0)" title="View General Care Plan" 
+                                                    onclick="openViewGcpRedirectModal('{{ $report->beneficiary_id }}')">
                                                         <i class="fa fa-eye"></i>
                                                     </a>
-                                                    <a href="#" title="Edit Report">
-                                                        <i class='bx bxs-edit'></i>
+                                                @else
+                                                    <a href="#" title="View Not Available" onclick="alert('Viewing not available for this report type')">
+                                                        <i class="fa fa-eye text-muted"></i>
                                                     </a>
-                                                </div>
+                                                @endif
+                                                @if($report->report_type == 'Weekly Care Plan')
+                                                    <a href="{{ route('care-manager.weeklycareplans.edit', $report->report_id) }}" title="Edit Weekly Care Plan">
+                                                        <i class="bx bx-edit"></i>
+                                                    </a>
+                                                    @elseif($report->report_type === 'General Care Plan')
+                                                        <!-- Edit GCP link -->
+                                                        <a href="javascript:void(0)" title="Edit General Care Plan" 
+                                                        onclick="openEditGcpRedirectModal('{{ $report->beneficiary_id }}')">
+                                                            <i class="bx bx-edit"></i>
+                                                        </a>
+                                                    @else
+                                                    <a href="#" title="Edit Not Available" onclick="alert('Editing not available for this report type')">
+                                                        <i class="bx bx-edit text-muted"></i>
+                                                    </a>
+                                                @endif
+                                            </div>
                                             </td>
                                         </tr>
                                     @endforeach

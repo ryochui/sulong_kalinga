@@ -21,11 +21,51 @@ use App\Services\UserManagementService;
 class CareWorkerController extends Controller
 {
 
-    public function index(Request $request)
+    protected $userManagementService;
+    
+    public function __construct(UserManagementService $userManagementService)
+    {
+        $this->userManagementService = $userManagementService;
+    }
+
+    protected function getRolePrefixView()
+    {
+        $user = Auth::user();
+        
+        // Match the role_id checking logic used in CheckRole middleware
+        if ($user->role_id == 1) {
+            return 'admin';
+        } elseif ($user->role_id == 2) {
+            return 'careManager';
+        } elseif ($user->role_id == 3) {
+            return 'careWorker';
+        }
+        
+        return 'admin'; // Default fallback
+    }
+
+    protected function getRolePrefixRoute()
     {
 
+        $user = Auth::user();
+        
+        // Match the role_id checking logic used in CheckRole middleware
+        if ($user->role_id == 1) {
+            return 'admin';
+        } elseif ($user->role_id == 2) {
+            return 'care-manager';
+        } elseif ($user->role_id == 3) {
+            return 'care-worker';
+        }
+        
+        return 'admin'; // Default fallback
+    }
+
+    public function index(Request $request)
+    {
         $search = $request->input('search');
         $filter = $request->input('filter');
+        $rolePrefix = $this->getRolePrefixView();
 
         // Fetch careworkers based on the search query and filters
         $careworkers = User::where('role_id', 3)
@@ -33,7 +73,7 @@ class CareWorkerController extends Controller
         ->when($search, function ($query, $search) {
             return $query->where(function ($query) use ($search) {
                 $query->whereRaw('LOWER(first_name) LIKE ?', ['%' . strtolower($search) . '%'])
-                      ->orWhereRaw('LOWER(last_name) LIKE ?', ['%' . strtolower($search) . '%']);
+                    ->orWhereRaw('LOWER(last_name) LIKE ?', ['%' . strtolower($search) . '%']);
             });
         })
         ->when($filter, function ($query, $filter) {
@@ -46,21 +86,19 @@ class CareWorkerController extends Controller
         ->orderBy('first_name') // Order by first name alphabetically by default
         ->get();
 
-        // Debugging: Check the data
-        //dd($careworkers);
-
-        // Pass the data to the Blade template
-        return view('admin.careWorkerProfile', compact('careworkers'));
+        // Pass the data to the Blade template using role-specific view
+        return view($rolePrefix . '.careWorkerProfile', compact('careworkers'));
     }
 
     public function viewCareworkerDetails(Request $request)
     {
+        $rolePrefix = $this->getRolePrefixView();
         $careworker_id = $request->input('careworker_id');
         $careworker = User::where('role_id', 3)
         ->with('municipality')->find($careworker_id);
 
         if (!$careworker) {
-            return redirect()->route('careWorkerProfile')->with('error', 'Care worker not found.');
+            return redirect()->route($rolePrefix . '.careworkers.index')->with('error', 'Care worker not found.');
         }
 
         // Fetch all general care plans associated with this care worker
@@ -69,11 +107,12 @@ class CareWorkerController extends Controller
         // Fetch all beneficiaries associated with these general care plans
         $beneficiaries = Beneficiary::whereIn('general_care_plan_id', $generalCarePlans->pluck('general_care_plan_id'))->get();
 
-        return view('admin.viewCareworkerDetails', compact('careworker', 'beneficiaries'));
+        return view($rolePrefix . '.viewCareworkerDetails', compact('careworker', 'beneficiaries'));
     }
 
     public function editCareworkerProfile($id)
     {
+        $rolePrefix = $this->getRolePrefixView();
         $careworker = User::where('role_id', 3)->findOrFail($id);
 
         // Fetch all municipalities for the dropdown
@@ -85,12 +124,14 @@ class CareWorkerController extends Controller
             $birth_date = Carbon::parse($careworker->birthday)->format('Y-m-d');
         }
 
-        // Pass data to the view
-        return view('admin.editCareworkerProfile', compact('careworker', 'municipalities', 'birth_date'));
+        // Pass data to the view using role-specific path
+        return view($rolePrefix . '.editCareworkerProfile', compact('careworker', 'municipalities', 'birth_date'));
     }
 
     public function updateCareWorker(Request $request, $id)
     {
+        $rolePrefix = $this->getRolePrefixRoute();
+
         // Find the care worker by ID
         $careworker = User::where('role_id', 3)->findOrFail($id);
 
@@ -207,6 +248,13 @@ class CareWorkerController extends Controller
                     'public'
                 );
                 $careworker->photo = $careworkerPhotoPath;
+            } else {
+                // If no new photo is uploaded, keep the existing one
+                if ($careworker->photo) {
+                    $careworkerPhotoPath = $careworker->photo;
+                } else {
+                    $careworkerPhotoPath = null; // No photo available
+                }
             }
 
             // Process new government ID if uploaded
@@ -257,7 +305,7 @@ class CareWorkerController extends Controller
             $careworker->save();
 
             // Redirect with success message
-            return redirect()->route('admin.careworkers.index')
+            return redirect()->route($rolePrefix . '.careworkers.index')
                 ->with('success', 'Care Worker ' . $careworker->first_name . ' ' . $careworker->last_name . ' has been successfully updated!');
                 
         } catch (\Illuminate\Database\QueryException $e) {
@@ -297,15 +345,19 @@ class CareWorkerController extends Controller
     // To revise so that dropdown will be dynamic
     public function create()
     {
+        $rolePrefix = $this->getRolePrefixView();
+        
         // Fetch all municipalities from the database
         $municipalities = Municipality::all();
 
-        // Pass the municipalities to the view
-        return view('admin.addCareWorker', compact('municipalities'));
+        // Pass the municipalities to the view using role-specific path
+        return view($rolePrefix . '.addCareWorker', compact('municipalities'));
     }
 
     public function storeCareWorker(Request $request)
     {
+        $rolePrefix = $this->getRolePrefixRoute();
+
         // Validate the input data
         $validator = Validator::make($request->all(), [
             // Personal Details
@@ -465,7 +517,7 @@ class CareWorkerController extends Controller
         $careworker->assigned_municipality_id = $request->input('municipality');
 
         // Save file paths and IDs
-        $careworker->photo = $careworkerPhotoPath;
+        $careworker->photo = $careworkerPhotoPath ?? null;
         $careworker->government_issued_id = $request->hasFile('government_ID') ? $governmentIDPath : null;
         $careworker->cv_resume = $request->hasFile('resume') ? $resumePath : null;
         $careworker->sss_id_number = $request->input('sss_ID') ?? null;
@@ -479,7 +531,7 @@ class CareWorkerController extends Controller
         $careworker->save();
 
         // Redirect with success message
-        return redirect()->route('admin.careworkers.create')
+        return redirect()->route($rolePrefix . '.careworkers.create')
             ->with('success', 'Care worker added successfully.');
             
         } catch (\Illuminate\Database\QueryException $e) {
@@ -553,5 +605,29 @@ class CareWorkerController extends Controller
             \Log::error('Careworker status update failed: ' . $e->getMessage());
             return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
         }
+    }
+
+    public function deleteCareworker(Request $request)
+    {
+        // Check for dependencies before deleting
+        $careworker_id = $request->input('careworker_id');
+        
+        // Check if the care worker has assigned beneficiaries
+        $hasAssignedBeneficiaries = GeneralCarePlan::where('care_worker_id', $careworker_id)->exists();
+        
+        if ($hasAssignedBeneficiaries) {
+            return response()->json([
+                'success' => false,
+                'message' => 'This care worker has assigned beneficiaries and cannot be deleted. Please reassign the beneficiaries first.',
+                'error_type' => 'has_beneficiaries'
+            ]);
+        }
+        
+        $result = $this->userManagementService->deleteCareworker(
+            $careworker_id,
+            Auth::user()
+        );
+        
+        return response()->json($result);
     }
 }

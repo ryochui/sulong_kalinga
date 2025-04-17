@@ -53,7 +53,8 @@ Route::middleware(['auth', '\App\Http\Middleware\CheckRole:administrator'])->pre
         Route::post('/store', [CareManagerController::class, 'storeCareManager'])->name('store');
         Route::get('/{id}/edit', [CareManagerController::class, 'editCaremanagerProfile'])->name('edit');
         Route::put('/{id}', [CareManagerController::class, 'updateCaremanager'])->name('update');
-        Route::post('/{id}/update-status-ajax', [CareManagerController::class, 'updateStatusAjax'])->name('updateStatusAjax');        Route::post('/delete', [AdminController::class, 'deleteCaremanager'])->name('delete');
+        Route::post('/{id}/update-status-ajax', [CareManagerController::class, 'updateStatusAjax'])->name('updateStatusAjax');        
+        Route::post('/delete', [AdminController::class, 'deleteCaremanager'])->name('delete');
         Route::post('/view-details', [CareManagerController::class, 'viewCaremanagerDetails'])->name('view');
     });
 
@@ -64,7 +65,8 @@ Route::middleware(['auth', '\App\Http\Middleware\CheckRole:administrator'])->pre
         Route::post('/store', [CareWorkerController::class, 'storeCareWorker'])->name('store');
         Route::get('/{id}/edit', [CareWorkerController::class, 'editCareworkerProfile'])->name('edit');
         Route::put('/{id}', [CareWorkerController::class, 'updateCareWorker'])->name('update');
-        Route::post('/{id}/update-status-ajax', [CareWorkerController::class, 'updateStatusAjax'])->name('updateStatusAjax');        Route::post('/delete', [AdminController::class, 'deleteCareworker'])->name('delete');
+        Route::post('/{id}/update-status-ajax', [CareWorkerController::class, 'updateStatusAjax'])->name('updateStatusAjax');        
+        Route::post('/delete', [CareWorkerController::class, 'deleteCareworker'])->name('delete');
         Route::post('/view-details', [CareWorkerController::class, 'viewCareworkerDetails'])->name('view');
     });
 
@@ -76,7 +78,7 @@ Route::middleware(['auth', '\App\Http\Middleware\CheckRole:administrator'])->pre
         Route::get('/{id}/edit', [BeneficiaryController::class, 'editBeneficiary'])->name('edit');
         Route::put('/{id}', [BeneficiaryController::class, 'updateBeneficiary'])->name('update');
         Route::post('/{id}/update-status-ajax', [BeneficiaryController::class, 'updateStatusAjax'])->name('updateStatusAjax');        Route::put('/{id}/activate', [BeneficiaryController::class, 'activate'])->name('activate');
-        Route::post('/delete', [AdminController::class, 'deleteBeneficiary'])->name('delete');
+        Route::post('/delete', [BeneficiaryController::class, 'deleteBeneficiary'])->name('delete');
         Route::post('/view-details', [BeneficiaryController::class, 'viewProfileDetails'])->name('view');
     });
 
@@ -85,11 +87,10 @@ Route::middleware(['auth', '\App\Http\Middleware\CheckRole:administrator'])->pre
         Route::get('/', [FamilyMemberController::class, 'index'])->name('index');
         Route::get('/add', [FamilyMemberController::class, 'create'])->name('create');
         Route::post('/store', [FamilyMemberController::class, 'storeFamily'])->name('store');
-        Route::post('/edit', [FamilyMemberController::class, 'editFamilyProfile'])->name('edit');
-        Route::put('/{id}', [FamilyMemberController::class, 'updateFamily'])->name('update');
-        Route::post('/delete', [AdminController::class, 'deleteFamilyMember'])->name('delete');
-        Route::post('/view-details', [FamilyMemberController::class, 'viewFamilyDetails'])->name('view');
         Route::get('/{id}/edit', [FamilyMemberController::class, 'editFamilyMember'])->name('edit');
+        Route::put('/{id}', [FamilyMemberController::class, 'updateFamily'])->name('update');
+        Route::post('/delete', [FamilyMemberController::class, 'deleteFamilyMember'])->name('delete');
+        Route::post('/view-details', [FamilyMemberController::class, 'viewFamilyDetails'])->name('view');
         Route::put('/{id}', [FamilyMemberController::class, 'updateFamilyMember'])->name('update');
     });
 
@@ -174,7 +175,6 @@ Route::middleware(['auth', '\App\Http\Middleware\CheckRole:executive_director'])
         // Add other executive director only functionalities here
     });
 });
-
 
 Route::get('/admin/viewProfile', function () {
     return view('components.viewProfile');

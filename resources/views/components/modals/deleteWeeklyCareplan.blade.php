@@ -115,7 +115,12 @@ function showWeeklyCarePlanSuccess() {
     
     // Set timeout to redirect to the reports page
     setTimeout(function() {
-        window.location.href = "{{ route('admin.reports') }}";
+        // Use role-specific reports route
+        @if(Auth::user()->role_id == 2)
+            window.location.href = "{{ route('care-manager.reports') }}";
+        @else
+            window.location.href = "{{ route('admin.reports') }}";
+        @endif
     }, 2000);
 }
 
@@ -145,7 +150,7 @@ document.addEventListener('DOMContentLoaded', function() {
         this.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Deleting...';
         
         // Send delete request with CSRF token and password
-        fetch(`/admin/weekly-care-plans/${weeklyCarePlanId}/delete`, {            
+        fetch(`{{ Auth::user()->role_id == 2 ? '/care-manager' : '/admin' }}/weekly-care-plans/${weeklyCarePlanId}`, {
             method: 'DELETE',
             headers: {
                 'Content-Type': 'application/json',

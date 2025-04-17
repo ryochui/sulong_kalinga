@@ -16,10 +16,10 @@ class ReportsController extends Controller
 {
     public function index(Request $request)
     {
-         // Get request parameters
-         $search = $request->input('search', '');
-         $filterType = $request->input('filter', '');
-         $sortOrder = $request->input('sort', 'asc'); 
+        // Get request parameters
+        $search = $request->input('search', '');
+        $filterType = $request->input('filter', '');
+        $sortOrder = $request->input('sort', 'asc'); 
 
         try {
             // Get current user info
@@ -43,6 +43,7 @@ class ReportsController extends Controller
             // STEP 1: Get Weekly Care Plans with eager loading
             $weeklyPlans = WeeklyCarePlan::with(['author', 'beneficiary'])
                 ->when($userRole == 3, function($query) use ($userId) {
+                    // Care worker only sees their authored reports
                     return $query->where('created_by', $userId);
                 })
                 ->get();
@@ -174,7 +175,15 @@ class ReportsController extends Controller
                 'sort_method' => $filterType ?: 'author_first_name'
             ]);
 
-            return view('admin.reportsManagement', [
+            // Determine which view to return based on the user's role
+            $viewName = match ($userRole) {
+                1 => 'admin.reportsManagement',        // Administrator
+                2 => 'careManager.reportsManagement',  // Care Manager
+                3 => 'careWorker.reportsManagement',   // Care Worker
+                default => 'admin.reportsManagement',  // Default fallback
+            };
+
+            return view($viewName, [
                 'reports' => $reports,
                 'search' => $search,
                 'filterType' => $filterType,
@@ -190,7 +199,15 @@ class ReportsController extends Controller
                 'trace' => $e->getTraceAsString()
             ]);
             
-            return view('admin.reportsManagement', [
+            // Determine which view to return based on the user's role
+            $viewName = match ($userRole) {
+                1 => 'admin.reportsManagement',        // Administrator
+                2 => 'careManager.reportsManagement',  // Care Manager
+                3 => 'careWorker.reportsManagement',   // Care Worker
+                default => 'admin.reportsManagement',  // Default fallback
+            };
+            
+            return view($viewName, [
                 'reports' => collect([]),
                 'search' => $search,
                 'filterType' => $filterType,

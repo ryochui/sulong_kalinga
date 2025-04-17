@@ -63,7 +63,12 @@ document.addEventListener("DOMContentLoaded", function () {
             }
 
             // Validate the password with the server
-            fetch("{{ route('admin.validate-password') }}", {
+            let validatePasswordEndpoint = "{{ route('admin.validate-password') }}";
+            @if(Auth::user()->role_id == 2)
+                validatePasswordEndpoint = "{{ route('care-manager.validate-password') }}";
+            @endif
+
+            fetch(validatePasswordEndpoint, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -75,7 +80,14 @@ document.addEventListener("DOMContentLoaded", function () {
             .then(data => {
                 if (data.valid) {
                     // Update the status in the database
-                    fetch(`/admin/care-workers/${careworkerId}/update-status-ajax`, {
+                    let updateStatusEndpoint;
+                    @if(Auth::user()->role_id == 2)
+                        updateStatusEndpoint = "{{ route('care-manager.careworkers.updateStatusAjax', '999999') }}".replace('/999999', '/' + careworkerId);
+                    @else
+                        updateStatusEndpoint = "{{ route('admin.careworkers.updateStatusAjax', '999999') }}".replace('/999999', '/' + careworkerId);
+                    @endif
+
+                    fetch(updateStatusEndpoint, {
                         method: 'POST',  // Changed from PUT to POST
                         headers: {
                             'Content-Type': 'application/json',
@@ -108,13 +120,20 @@ document.addEventListener("DOMContentLoaded", function () {
                                 if (statusCell) {
                                     statusCell.textContent = selectedCareworkerStatusElement.value.charAt(0).toUpperCase() + selectedCareworkerStatusElement.value.slice(1);
                                     statusCell.className = `status-cell ${selectedCareworkerStatusElement.value.toLowerCase()}`;
+                                    
+                                    // Update the status badge color if it exists
+                                    const statusBadge = document.querySelector(`#careworker-${careworkerId} .status-badge`);
+                                    if (statusBadge) {
+                                        statusBadge.className = `status-badge ${selectedCareworkerStatusElement.value.toLowerCase()}-badge`;
+                                    }
                                 } else {
                                     // Fallback to page reload if we can't find the cell to update
                                     location.reload();
                                 }
                             }, 2000);
                         } else {
-                            messageElement.textContent = "Failed to update status. Please try again.";
+                            let roleText = "{{ Auth::user()->role_id == 2 ? 'care manager' : 'administrator' }}";
+                            messageElement.textContent = `Failed to update status. Please try again or contact your system ${roleText === 'care manager' ? 'administrator' : 'technical support'}.`;
                             messageElement.classList.remove("d-none", "alert-success");
                             messageElement.classList.add("alert-danger");
                         }

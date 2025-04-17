@@ -26,8 +26,17 @@ use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Carbon\Carbon;
 
+use App\Services\UserManagementService;
+
 class BeneficiaryController extends Controller
 {
+    protected $userManagementService;
+
+    public function __construct(UserManagementService $userManagementService)
+    {
+        $this->userManagementService = $userManagementService;
+    }
+
     private function resetGeneralCarePlanSequence()
     {
         // Get the maximum ID currently in the table
@@ -65,8 +74,8 @@ class BeneficiaryController extends Controller
             })
             ->orderBy('first_name'); // Order by first name alphabetically by default
         
-        // Apply role-based filtering if needed
-        if (Auth::user()->role_id == 3) { // Care Worker
+        // Care Workers can only see assigned beneficiaries
+        if (Auth::user()->role_id == 3) {
             $query->where('assigned_care_worker_id', Auth::id());
         }
         
@@ -82,31 +91,14 @@ class BeneficiaryController extends Controller
         }
     }
 
-    /*public function updateStatus($id, Request $request)
-    {
-        $request->validate([
-            'status' => 'required|string',
-            'reason' => 'required|string'
-        ]);
-
-        try {
-            $beneficiary = Beneficiary::findOrFail($id);
-            $status = BeneficiaryStatus::where('status_name', $request->input('status'))->firstOrFail();
-            $beneficiary->beneficiary_status_id = $status->beneficiary_status_id;
-            $beneficiary->status_reason = $request->input('reason');
-            $beneficiary->updated_by = Auth::id(); // Set the updated_by column to the current user's ID
-            $beneficiary->updated_at = now(); // Set the updated_at column to the current timestamp
-            $beneficiary->save();
-
-            return response()->json(['success' => true]);
-        } catch (\Exception $e) {
-            \Log::error('Error updating beneficiary status: ' . $e->getMessage());
-            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
-        }
-    }*/
-
+    // For status change methods, restrict to admin and care manager only
     public function updateStatusAjax($id, Request $request)
     {
+        // Only admin and care manager can change status
+        if (Auth::user()->role_id == 3) { // Care Worker
+            return response()->json(['success' => false, 'message' => 'Unauthorized. Care workers cannot change beneficiary status.'], 403);
+        }
+        
         try {
             \Log::info('Update status AJAX request', [
                 'beneficiary_id' => $id,
@@ -154,11 +146,16 @@ class BeneficiaryController extends Controller
 
     public function activate($id, Request $request)
     {
+        // Only admin and care manager can activate beneficiaries
+        if (Auth::user()->role_id == 3) { // Care Worker
+            return response()->json(['success' => false, 'message' => 'Unauthorized. Care workers cannot change beneficiary status.'], 403);
+        }
+        
         $beneficiary = Beneficiary::findOrFail($id);
         $beneficiary->beneficiary_status_id = 1;
         $beneficiary->status_reason = null;
-        $beneficiary->updated_by = Auth::id(); // Set the updated_by column to the current user's ID
-        $beneficiary->updated_at = now(); // Set the updated_at column to the current timestamp
+        $beneficiary->updated_by = Auth::id();
+        $beneficiary->updated_at = now();
         $beneficiary->save();
 
         return response()->json(['success' => true]);
@@ -181,9 +178,15 @@ class BeneficiaryController extends Controller
             'generalCarePlan.medications',
             'generalCarePlan.healthHistory',
             'generalCarePlan.careWorkerResponsibility',
-            ])->find($beneficiary_id);
+        ])->find($beneficiary_id);
+        
         if (!$beneficiary) {
-            return redirect()->route('beneficiaryProfile')->with('error', 'Beneficiary not found.');
+            return redirect()->back()->with('error', 'Beneficiary not found.');
+        }
+
+        // For care workers, check if they're assigned to this beneficiary
+        if (Auth::user()->role_id == 3 && $beneficiary->assigned_care_worker_id != Auth::id()) {
+            abort(403, 'Unauthorized. You can only view details of beneficiaries assigned to you.');
         }
 
         $careNeeds1 = $beneficiary->generalCarePlan->careNeeds->where('care_category_id', 1);
@@ -198,7 +201,14 @@ class BeneficiaryController extends Controller
         $careWorkerResponsibility = $beneficiary->generalCarePlan->careWorkerResponsibility->first();
         $careWorker = $careWorkerResponsibility ? $careWorkerResponsibility->careWorker : null;
 
-        return view('admin.viewProfileDetails', compact('beneficiary', 'careNeeds1', 'careNeeds2', 'careNeeds3', 'careNeeds4', 'careNeeds5', 'careNeeds6', 'careNeeds7', 'careWorker')); 
+        // Return appropriate view based on user role
+        if (Auth::user()->role_id == 1) { // Admin
+            return view('admin.viewProfileDetails', compact('beneficiary', 'careNeeds1', 'careNeeds2', 'careNeeds3', 'careNeeds4', 'careNeeds5', 'careNeeds6', 'careNeeds7', 'careWorker')); 
+        } elseif (Auth::user()->role_id == 2) { // Care Manager
+            return view('careManager.viewProfileDetails', compact('beneficiary', 'careNeeds1', 'careNeeds2', 'careNeeds3', 'careNeeds4', 'careNeeds5', 'careNeeds6', 'careNeeds7', 'careWorker')); 
+        } else { // Care Worker
+            return view('careWorker.viewProfileDetails', compact('beneficiary', 'careNeeds1', 'careNeeds2', 'careNeeds3', 'careNeeds4', 'careNeeds5', 'careNeeds6', 'careNeeds7', 'careWorker')); 
+        }
     }
 
     public function editProfile(Request $request)
@@ -231,8 +241,8 @@ class BeneficiaryController extends Controller
             return view('admin.addBeneficiary', compact('municipalities', 'barangays', 'careWorkers', 'categories'));
         } elseif (Auth::user()->role_id == 2) { // Care Manager
             return view('careManager.addBeneficiary', compact('municipalities', 'barangays', 'careWorkers', 'categories'));
-        } else {
-            abort(403, 'Unauthorized action.');
+        } else { // Care Worker - now allowed to add beneficiaries
+            return view('careWorker.addBeneficiary', compact('municipalities', 'barangays', 'careWorkers', 'categories'));
         }
     }
 
@@ -272,7 +282,7 @@ class BeneficiaryController extends Controller
                 'before_or_equal:' . now()->subYears(14)->toDateString(), // Must be at least 14 years old
             ],
             'primary_caregiver' => [
-                'required',
+                'nullable',
                 'string',
                 'max:100',
                 'regex:/^[A-Z][a-zA-Z]*(?:-[a-zA-Z]+)?(?: [a-zA-Z]+(?:-[a-zA-Z]+)*)*$/', // First letter uppercase, allows hyphens and spaces
@@ -515,7 +525,7 @@ class BeneficiaryController extends Controller
             ],
 
             // Beneficiary Picture
-            'beneficiaryProfilePic' => 'required|file|mimes:jpeg,png|max:2048', // Max size: 2MB
+            'beneficiaryProfilePic' => 'nullable|file|mimes:jpeg,png|max:2048', // Max size: 2MB
 
             // Review Date
             'date' => 'required|date|after_or_equal:today|before_or_equal:' . now()->addYear()->format('Y-m-d'),
@@ -745,7 +755,7 @@ class BeneficiaryController extends Controller
                 'emergency_contact_mobile' => $emergencyContactMobile,
                 'emergency_contact_email' => $request->input('emergency_contact.email'),
                 'emergency_procedure' => $request->input('emergency_plan.procedures'),
-                'primary_caregiver' => $request->input('primary_caregiver'),
+                'primary_caregiver' => $request->input('primary_caregiver') ?? null,
                 'care_service_agreement_doc' => $careServiceAgreementPath,
                 'general_care_plan_doc' => $generalCarePlanPath,
                 'photo' => $beneficiaryPhotoPath ?? null,
@@ -859,7 +869,7 @@ class BeneficiaryController extends Controller
             if (Auth::user()->role_id == 1) { // Admin
                 return redirect()->route('admin.beneficiaries.create')->with('success', 'Beneficiary has been successfully added!');
             } elseif (Auth::user()->role_id == 2) { // Care manager
-                return redirect()->route('manager.beneficiaries.create')->with('success', 'Beneficiary has been successfully added!');
+                return redirect()->route('care-manager.beneficiaries.create')->with('success', 'Beneficiary has been successfully added!');
             } else {
                 // Fallback - should not happen since only admins and care managers can add beneficiaries
                 return redirect()->back()->with('success', 'Beneficiary has been successfully added!');
@@ -887,6 +897,11 @@ class BeneficiaryController extends Controller
             'generalCarePlan.careNeeds',
             'generalCarePlan.careWorkerResponsibility'
         ])->findOrFail($id);
+
+        // For care workers, check if they're assigned to this beneficiary
+        if (Auth::user()->role_id == 3 && $beneficiary->assigned_care_worker_id != Auth::id()) {
+            abort(403, 'Unauthorized. You can only edit beneficiaries assigned to you.');
+        }
 
         // Format the date for the form
         $birth_date = null;
@@ -941,8 +956,10 @@ class BeneficiaryController extends Controller
             return view('careManager.editBeneficiary', compact('beneficiary', 'municipalities', 'barangays', 
                 'categories', 'careWorkers', 'birth_date', 'review_date', 'currentCareWorker', 
                 'currentCareWorkerTasks', 'careNeeds'));
-        } else {
-            abort(403, 'Unauthorized action.');
+        } else { // Care Worker - now allowed to edit beneficiaries
+            return view('careWorker.editBeneficiary', compact('beneficiary', 'municipalities', 'barangays', 
+                'categories', 'careWorkers', 'birth_date', 'review_date', 'currentCareWorker', 
+                'currentCareWorkerTasks', 'careNeeds'));
         }
     }
 
@@ -979,7 +996,7 @@ class BeneficiaryController extends Controller
                 'before_or_equal:' . now()->subYears(14)->toDateString(),
             ],
             'primary_caregiver' => [
-                'required',
+                'nullable',
                 'string',
                 'max:100',
                 'regex:/^[A-Z][a-zA-Z]*(?:-[a-zA-Z]+)?(?: [a-zA-Z]+(?:-[a-zA-Z]+)*)*$/',
@@ -1228,7 +1245,7 @@ class BeneficiaryController extends Controller
             $beneficiary->emergency_contact_mobile = $emergencyContactMobile;
             $beneficiary->emergency_contact_email = $request->input('emergency_contact.email');
             $beneficiary->emergency_procedure = $request->input('emergency_plan.procedures');
-            $beneficiary->primary_caregiver = $request->input('primary_caregiver');
+            $beneficiary->primary_caregiver = $request->input('primary_caregiver') ?? null;
             $beneficiary->care_service_agreement_doc = $careServiceAgreementPath;
             $beneficiary->general_care_plan_doc = $generalCarePlanPath;
             $beneficiary->photo = $beneficiaryPhotoPath;
@@ -1366,7 +1383,7 @@ class BeneficiaryController extends Controller
                 return redirect()->route('admin.beneficiaries.index')
                     ->with('success', 'Beneficiary ' . $beneficiary->first_name . ' ' . $beneficiary->last_name . ' has been successfully updated!');
             } elseif (Auth::user()->role_id == 2) { // Care Manager
-                return redirect()->route('manager.beneficiaries.index')
+                return redirect()->route('care-manager.beneficiaries.index')
                     ->with('success', 'Beneficiary ' . $beneficiary->first_name . ' ' . $beneficiary->last_name . ' has been successfully updated!');
             } else {
                 return redirect()->back()
@@ -1380,6 +1397,17 @@ class BeneficiaryController extends Controller
                 ->withErrors(['error' => 'An error occurred while updating the beneficiary: ' . $e->getMessage()])
                 ->withInput();
         }
+    }
+
+    public function deleteBeneficiary(Request $request)
+    {
+        // This should be identical to what was in AdminController
+        $result = $this->userManagementService->deleteBeneficiary(
+            $request->input('beneficiary_id'),
+            Auth::user()
+        );
+        
+        return response()->json($result);
     }
 
 }

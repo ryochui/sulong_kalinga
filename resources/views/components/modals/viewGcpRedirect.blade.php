@@ -11,7 +11,12 @@
                 </div>
                 <h5>General Care Plan Information</h5>
                 <p>The General Care Plan is incorporated directly into the beneficiary profile.</p>
+                
+                @if(Auth::user()->role_id == 3)
+                <p>You will be redirected to the beneficiary profile where you can view General Care Plan information for your assigned beneficiary.</p>
+                @else
                 <p>You will be redirected to the beneficiary profile where you can view all General Care Plan information.</p>
+                @endif
                 
                 <div class="progress mt-4">
                     <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width: 0%"></div>
@@ -19,8 +24,12 @@
                 
                 <p class="mt-3 mb-0">Redirecting in <span id="viewGcpCountdown">5</span> seconds...</p>
                 
-                <!-- Hidden form for POST submission -->
-                <form id="viewBeneficiaryForm" action="{{ route('admin.beneficiaries.view') }}" method="POST" style="display: none;">
+                <!-- Hidden form for POST submission with role-based route -->
+                <form id="viewBeneficiaryForm" action="{{ 
+                    Auth::user()->role_id == 1 ? route('admin.beneficiaries.view') : 
+                    (Auth::user()->role_id == 2 ? route('care-manager.beneficiaries.view-details') : 
+                    route('care-worker.beneficiaries.view'))
+                }}" method="POST" style="display: none;">
                     @csrf
                     <input type="hidden" name="beneficiary_id" id="beneficiaryIdInput">
                 </form>
@@ -34,6 +43,7 @@
 </div>
 
 <script>
+// The JavaScript code can remain the same as it just handles the countdown and form submission
 let viewGcpCountdownInterval;
 
 function openViewGcpRedirectModal(beneficiaryId) {

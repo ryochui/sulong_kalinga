@@ -48,7 +48,7 @@ class LoginController extends Controller
             }
             if ($user->role_id == 2) {
                 session()->put('show_welcome', true);
-                return redirect()->route('managerdashboard');
+                return redirect()->route('care-manager.dashboard');
             }
             if ($user->role_id == 3) {
                 session()->put('show_welcome', true);

@@ -38,7 +38,6 @@ class FamilyMembersExport implements FromCollection, WithHeadings, WithMapping, 
             'Full Name',
             'Registered Beneficiary',
             'Relation to Beneficiary',
-            'Access Status',
             'Age',
             'Birthday',
             'Gender',
@@ -55,7 +54,6 @@ class FamilyMembersExport implements FromCollection, WithHeadings, WithMapping, 
             $familyMember->first_name . ' ' . $familyMember->last_name,
             $familyMember->beneficiary->first_name . ' ' . $familyMember->beneficiary->last_name,
             $familyMember->relation_to_beneficiary ?? 'N/A',
-            $familyMember->access ? 'Approved' : 'Denied',
             \Carbon\Carbon::parse($familyMember->birthday)->age ?? 'N/A',
             $familyMember->birthday ? \Carbon\Carbon::parse($familyMember->birthday)->format('m/d/Y') : 'N/A',
             $familyMember->gender ?? 'N/A',
@@ -95,8 +93,8 @@ class FamilyMembersExport implements FromCollection, WithHeadings, WithMapping, 
                 ]
             ],
             
-            // Style for all cells - UPDATED from F to K for all 11 columns
-            'A1:K'.$highestRow => [
+            // Style for all cells - UPDATED from F to J for all 11 columns
+            'A1:J'.$highestRow => [
                 'alignment' => [
                     'vertical' => Alignment::VERTICAL_CENTER,
                     'horizontal' => Alignment::HORIZONTAL_LEFT,
@@ -124,11 +122,11 @@ class FamilyMembersExport implements FromCollection, WithHeadings, WithMapping, 
                 // Get worksheet
                 $sheet = $event->sheet->getDelegate();
                 
-                // Apply striped rows for better readability - UPDATED from F to K
+                // Apply striped rows for better readability - UPDATED from F to J
                 $highestRow = $sheet->getHighestRow();
                 for ($row = 2; $row <= $highestRow; $row++) {
                     if ($row % 2 == 0) {
-                        $sheet->getStyle('A'.$row.':K'.$row)->applyFromArray([
+                        $sheet->getStyle('A'.$row.':J'.$row)->applyFromArray([
                             'fill' => [
                                 'fillType' => Fill::FILL_SOLID,
                                 'startColor' => ['rgb' => 'F5F5F5'] // Light grey for even rows
@@ -145,17 +143,16 @@ class FamilyMembersExport implements FromCollection, WithHeadings, WithMapping, 
                 $event->sheet->getColumnDimension('A')->setWidth(25); // Full Name
                 $event->sheet->getColumnDimension('B')->setWidth(25); // Registered Beneficiary
                 $event->sheet->getColumnDimension('C')->setWidth(20); // Relation to Beneficiary
-                $event->sheet->getColumnDimension('D')->setWidth(15); // Access Status
-                $event->sheet->getColumnDimension('E')->setWidth(10); // Age
-                $event->sheet->getColumnDimension('F')->setWidth(15); // Birthday
-                $event->sheet->getColumnDimension('G')->setWidth(12); // Gender
-                $event->sheet->getColumnDimension('H')->setWidth(15); // Mobile Number
-                $event->sheet->getColumnDimension('I')->setWidth(15); // Landline Number
-                $event->sheet->getColumnDimension('J')->setWidth(25); // Email Address
-                $event->sheet->getColumnDimension('K')->setWidth(30); // Current Address
+                $event->sheet->getColumnDimension('D')->setWidth(10); // Age
+                $event->sheet->getColumnDimension('E')->setWidth(15); // Birthday
+                $event->sheet->getColumnDimension('F')->setWidth(12); // Gender
+                $event->sheet->getColumnDimension('G')->setWidth(15); // Mobile Number
+                $event->sheet->getColumnDimension('H')->setWidth(15); // Landline Number
+                $event->sheet->getColumnDimension('I')->setWidth(25); // Email Address
+                $event->sheet->getColumnDimension('J')->setWidth(30); // Current Address
                 
-                // Add auto-filter - UPDATED from F to K
-                $sheet->setAutoFilter('A1:K' . $highestRow);
+                // Add auto-filter - UPDATED from F to J
+                $sheet->setAutoFilter('A1:J' . $highestRow);
                 
                 // Freeze the header row
                 $sheet->freezePane('A2');

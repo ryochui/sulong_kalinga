@@ -58,7 +58,7 @@
 <body>
 
     @include('components.userNavbar')
-    @include('components.adminSidebar')
+    @include('components.careManagerSidebar')
     
     <div class="home-section">
     @if(session('success'))
@@ -69,7 +69,6 @@
         </div>
     @endif
         <h4 class="text-center mt-2">EDIT WEEKLY CARE PLAN FORM</h4>
-        
             <div class="container-fluid">
                 <div class="row mb-1" id="weeklyCareplanForm">
                     <div class="col-12">
@@ -94,7 +93,7 @@
                             </div>
                         </div>
                         
-                        <form id="weeklyCarePlanForm" action="{{ Auth::user()->role_id == 1 ? route('admin.weeklycareplans.update', $weeklyCarePlan->weekly_care_plan_id) : route('careworker.weeklycareplans.update', $weeklyCarePlan->weekly_care_plan_id) }}" method="POST" novalidate>
+                        <form id="weeklyCarePlanForm" action="{{ route('care-manager.weeklycareplans.update', $weeklyCarePlan->weekly_care_plan_id) }}" method="POST" novalidate>
                             @csrf
                             @method('PUT')
                             <div class="row">
@@ -509,7 +508,7 @@
         }
         
         // Fetch beneficiary details via AJAX
-        fetch(`{{ route('admin.weeklycareplans.beneficiaryDetails', ['id' => ':id']) }}`.replace(':id', beneficiaryId))
+        fetch(`{{ route('care-manager.weeklycareplans.beneficiaryDetails', ['id' => ':id']) }}`.replace(':id', beneficiaryId))
             .then(response => {
                 if (!response.ok) {
                     throw new Error('Network response was not ok');

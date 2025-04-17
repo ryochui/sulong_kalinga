@@ -12,15 +12,15 @@
 <body>
 
     @include('components.userNavbar')
-    @include('components.adminSidebar')
+    @include('components.careManagerSidebar')
     
     <div class="home-section">
         <div class="container-fluid">
             <div class="d-flex justify-content-between align-items-center mb-3">
-                <a href="{{ route('admin.beneficiaries.index') }}" class="btn btn-secondary">
+                <a href="{{ route('care-manager.beneficiaries.index') }}" class="btn btn-secondary">
                     <i class="bx bx-arrow-back"></i> Back
                 </a>
-                <div class="mx-auto text-center" style="flex-grow: 1; font-weight: bold; font-size: 20px;">EDIT BENEFICIARY</div>
+                <div class="mx-auto text-center" style="flex-grow: 1; font-weight: bold; font-size: 20px;">ADD BENEFICIARY</div>
             </div>
             <div class="row" id="addUserForm">
                 <div class="col-12">
@@ -39,10 +39,8 @@
                             {{ session('success') }}
                         </div>
                     @endif
-
-                    <form action="{{ route('admin.beneficiaries.update', $beneficiary->beneficiary_id) }}" method="POST" enctype="multipart/form-data" id="beneficiaryForm">
+                    <form action="{{ route('care-manager.beneficiaries.store') }}" method="POST" enctype="multipart/form-data">
                         @csrf
-                        @method('PUT')
                         <!-- Row 1: Personal Details -->
                         <div class="row mb-1 mt-3">
                             <div class="col-12">
@@ -53,7 +51,7 @@
                             <div class="col-md-3 relative">
                                 <label for="firstName" class="form-label">First Name<label style="color:red;"> * </label></label>
                                 <input type="text" class="form-control" id="firstName" name="first_name" 
-                                        value="{{ old('first_name', $beneficiary->first_name) }}"
+                                        value="{{ old('first_name') }}"
                                         placeholder="Enter first name" 
                                         required 
                                         oninput="validateName(this)" 
@@ -63,7 +61,7 @@
                             <div class="col-md-3 relative">
                                 <label for="lastName" class="form-label">Last Name<label style="color:red;"> * </label></label>
                                 <input type="text" class="form-control" id="lastName" name="last_name" 
-                                        value="{{ old('last_name', $beneficiary->last_name) }}"
+                                        value="{{ old('last_name') }}"
                                         placeholder="Enter last name" 
                                         required 
                                         oninput="validateName(this)" 
@@ -73,42 +71,42 @@
                             <div class="col-md-3 relative">
                                 <label for="civilStatus" class="form-label">Civil Status<label style="color:red;"> * </label></label>
                                 <select class="form-select" id="civilStatus" name="civil_status" required>
-                                    <option value="" disabled>Select civil status</option>
-                                    <option value="Single" {{ old('civil_status', $beneficiary->civil_status) == 'Single' ? 'selected' : '' }}>Single</option>
-                                    <option value="Married" {{ old('civil_status', $beneficiary->civil_status) == 'Married' ? 'selected' : '' }}>Married</option>
-                                    <option value="Widowed" {{ old('civil_status', $beneficiary->civil_status) == 'Widowed' ? 'selected' : '' }}>Widowed</option>
-                                    <option value="Divorced" {{ old('civil_status', $beneficiary->civil_status) == 'Divorced' ? 'selected' : '' }}>Divorced</option>
+                                    <option value="" disabled {{ old('civil_status') ? '' : 'selected' }}>Select civil status</option>
+                                    <option value="Single" {{ old('civil_status') == 'Single' ? 'selected' : '' }}>Single</option>
+                                    <option value="Married" {{ old('civil_status') == 'Married' ? 'selected' : '' }}>Married</option>
+                                    <option value="Widowed" {{ old('civil_status') == 'Widowed' ? 'selected' : '' }}>Widowed</option>
+                                    <option value="Divorced" {{ old('civil_status') == 'Divorced' ? 'selected' : '' }}>Divorced</option>
                                 </select>
                             </div>
                             <div class="col-md-3 relative">
                                 <label for="gender" class="form-label">Gender<label style="color:red;"> * </label></label>
                                 <select class="form-select" id="gender" name="gender" required>
-                                    <option value="" disabled>Select gender</option>
-                                    <option value="Male" {{ old('gender', $beneficiary->gender) == 'Male' ? 'selected' : '' }}>Male</option>
-                                    <option value="Female" {{ old('gender', $beneficiary->gender) == 'Female' ? 'selected' : '' }}>Female</option>
-                                    <option value="Other" {{ old('gender', $beneficiary->gender) == 'Other' ? 'selected' : '' }}>Other</option>
+                                    <option value="" disabled {{ old('gender') ? '' : 'selected' }}>Select gender</option>
+                                    <option value="Male" {{ old('gender') == 'Male' ? 'selected' : '' }}>Male</option>
+                                    <option value="Female" {{ old('gender') == 'Female' ? 'selected' : '' }}>Female</option>
+                                    <option value="Other" {{ old('gender') == 'Other' ? 'selected' : '' }}>Other</option>
                                 </select>
                             </div>
                         </div>
                         <div class="row mb-3">
                         <div class="col-md-3">
                                 <label for="birthDate" class="form-label">Birthday<label style="color:red;"> * </label></label>
-                                <input type="date" class="form-control" id="birthDate" name="birth_date" value="{{ old('birth_date', $birth_date) }}" required onkeydown="return true">
+                                <input type="date" class="form-control" id="birthDate" name="birth_date" value="{{ old('birth_date') }}" required onkeydown="return true">
                             </div>
                             <div class="col-md-3 position-relative">
                                 <label for="primaryCaregiver" class="form-label">Primary Caregiver</label>
-                                <input type="text" class="form-control" id="primaryCaregiver" name="primary_caregiver" value="{{ old('primary_caregiver', $beneficiary->primary_caregiver) }}" placeholder="Enter Primary Caregiver name" required>
+                                <input type="text" class="form-control" id="primaryCaregiver" name="primary_caregiver" value="{{ old('primary_caregiver') }}" placeholder="Enter Primary Caregiver name">                            
                             </div>
                             <div class="col-md-3">
                                 <label for="mobileNumber" class="form-label">Mobile Number</label>
                                 <div class="input-group">
                                     <span class="input-group-text">+63</span>
-                                    <input type="text" class="form-control" id="mobileNumber"  name="mobile_number" value="{{ old('mobile_number', ltrim($beneficiary->mobile, '+63')) }}" placeholder="Enter mobile number" maxlength="11" required oninput="restrictToNumbers(this)" title="Must be 10 or 11digits.">
+                                    <input type="text" class="form-control" id="mobileNumber"  name="mobile_number" value="{{ old('mobile_number') }}" placeholder="Enter mobile number" maxlength="11" required oninput="restrictToNumbers(this)" title="Must be 10 or 11digits.">
                                 </div>
                             </div>
                             <div class="col-md-3">
                                 <label for="landlineNumber" class="form-label">Landline Number</label>
-                                <input type="text" class="form-control" id="landlineNumber" name="landline_number" value="{{ old('landline_number', $beneficiary->landline) }}" placeholder="Enter Landline number" maxlength="10" required oninput="restrictToNumbers(this)" title="Must be between 7 and 10 digits.">
+                                <input type="text" class="form-control" id="landlineNumber" name="landline_number" value="{{ old('landline_number') }}" placeholder="Enter Landline number" maxlength="10" oninput="restrictToNumbers(this)" title="Must be between 7 and 10 digits.">
                             </div>
                         </div>
 
@@ -128,15 +126,14 @@
                                 required 
                                 pattern="^[a-zA-Z0-9\s,.-]+$" 
                                 title="Only alphanumeric characters, spaces, commas, periods, and hyphens are allowed."
-                                oninput="validateAddress(this)">{{ old('address_details', $beneficiary->street_address) }}</textarea>
+                                oninput="validateAddress(this)">{{ old('address_details') }}</textarea>
                             </div>
                             <div class="col-md-3">
                                 <label for="municipality" class="form-label">Municipality<label style="color:red;"> * </label></label>
                                 <select class="form-select" id="municipality" name="municipality" required>
-                                    <option value="" disabled>Select municipality</option>
+                                    <option value="" disabled {{ old('municipality') ? '' : 'selected' }}>Select municipality</option>
                                     @foreach ($municipalities as $municipality)
-                                    <option value="{{ $municipality->municipality_id }}" 
-                                            {{ old('municipality', $beneficiary->municipality_id) == $municipality->municipality_id ? 'selected' : '' }}>
+                                    <option value="{{ $municipality->municipality_id }}" {{ old('municipality') == $municipality->municipality_id ? 'selected' : '' }}>
                                         {{ $municipality->municipality_name }}
                                     </option>
                                     @endforeach
@@ -145,12 +142,12 @@
                             <div class="col-md-3">
                                 <label for="barangay" class="form-label">Barangay<label style="color:red;"> * </label></label>
                                 <select class="form-select" id="barangay" name="barangay" required>
-                                    <option value="" disabled>Select barangay</option>
+                                    <option value="" disabled {{ old('barangay') ? '' : 'selected' }}>Select barangay</option>
                                     @foreach ($barangays as $b)
                                     <option value="{{ $b->barangay_id }}" 
                                             data-municipality-id="{{ $b->municipality_id }}"
-                                            {{ old('barangay', $beneficiary->barangay_id) == $b->barangay_id ? 'selected' : '' }}
-                                            style="{{ $beneficiary->municipality_id != $b->municipality_id ? 'display:none' : '' }}">
+                                            {{ old('barangay') == $b->barangay_id ? 'selected' : '' }}
+                                            style="{{ old('municipality') != $b->municipality_id ? 'display:none' : '' }}">
                                         {{ $b->barangay_name }}
                                     </option>
                                     @endforeach
@@ -168,18 +165,19 @@
                         <div class="row mb-1">
                             <div class="col-md-3">
                                 <label for="medicalConditions" class="form-label">Medical Conditions</label>
-                                <textarea class="form-control" id="medicalConditions" name="medical_conditions" placeholder="List all medical conditions" rows="3">{{ old('medical_conditions', $beneficiary->generalCarePlan->healthHistory->medical_conditions ?? '') }}</textarea>                            </div>
+                                <textarea class="form-control" id="medicalConditions" name="medical_conditions" placeholder="List all medical conditions" rows="3">{{ old('medical_conditions') }}</textarea>
+                            </div>
                             <div class="col-md-3">
                                 <label for="medications" class="form-label">Medications</label>
-                                <textarea class="form-control" id="medications" name="medications" placeholder="List all medications" rows="3">{{ old('medications', $beneficiary->generalCarePlan->healthHistory->medications ?? '') }}</textarea>
+                                <textarea class="form-control" id="medications" name="medications" placeholder="List all medications" rows="3">{{ old('medications') }}</textarea>
                             </div>
                             <div class="col-md-3">
                                 <label for="allergies" class="form-label">Allergies</label>
-                                <textarea class="form-control" id="allergies" name="allergies" placeholder="List all allergies" rows="3">{{ old('allergies', $beneficiary->generalCarePlan->healthHistory->allergies ?? '') }}</textarea>
+                                <textarea class="form-control" id="allergies" name="allergies" placeholder="List all allergies" rows="3">{{ old('allergies') }}</textarea>
                             </div>
                             <div class="col-md-3">
                                 <label for="immunizations" class="form-label">Immunizations</label>
-                                <textarea class="form-control" id="immunizations" name="immunizations" placeholder="List all immunizations" rows="3">{{ old('immunizations', $beneficiary->generalCarePlan->healthHistory->immunizations ?? '') }}</textarea>
+                                <textarea class="form-control" id="immunizations" name="immunizations" placeholder="List all immunizations" rows="3">{{ old('immunizations') }}</textarea>
                             </div>
                         </div>
                         <div class="row mb-3">
@@ -187,11 +185,11 @@
                             <div class="col-md-3 position-relative">
                                 <label for="category" class="form-label">Category<label style="color:red;"> * </label></label>
                                 <select class="form-select" id="category" name="category" required>
-                                    <option value="" disabled>Select category</option>
+                                    <option value="" disabled {{old('catogory') ? '' : 'selected' }}>Select category</option>
                                     @foreach ($categories as $category)
-                                    <option value="{{ $category->category_id }}" {{ old('category', $beneficiary->category_id) == $category->category_id ? 'selected' : '' }}>
-                                        {{ $category->category_name }}
-                                    </option>
+                                        <option value="{{ $category->category_id }}" {{ old('category') == $category->category_id ? 'selected' : '' }}>
+                                            {{ $category->category_name }}
+                                        </option>
                                     @endforeach
                                 </select>
                             </div>
@@ -211,10 +209,10 @@
                                 <label class="form-label">Mobility</label>
                             </div>
                             <div class="col-md-4">
-                                <textarea class="form-control" id="mobilityFrequency" name="frequency[mobility]" placeholder="Frequency" rows="2">{{ old('frequency.mobility', $careNeeds[1]['frequency'] ?? '') }}</textarea>
+                                <textarea class="form-control" id="mobilityFrequency" name="frequency[mobility]" placeholder="Frequency" rows="2">{{ old('frequency.mobility') }}</textarea>
                             </div>
                             <div class="col-md-4">
-                                <textarea class="form-control" id="mobilityAssistance" name="assistance[mobility]" placeholder="Assistance Required" rows="2">{{ old('assistance.mobility', $careNeeds[1]['assistance'] ?? '') }}</textarea>
+                                <textarea class="form-control" id="mobilityAssistance" name="assistance[mobility]" placeholder="Assistance Required" rows="2">{{ old('assistance.mobility') }}</textarea>
                             </div>
                         </div>
                         <div class="row mb-2 align-items-center">
@@ -222,10 +220,10 @@
                                 <label class="form-label">Cognitive / Communication</label>
                             </div>
                             <div class="col-md-4">
-                                <textarea class="form-control" id="cognitiveFrequency" name="frequency[cognitive]" placeholder="Frequency" rows="2">{{ old('frequency.cognitive', $careNeeds[2]['frequency'] ?? '') }}</textarea>
+                                <textarea class="form-control" id="cognitiveFrequency" name="frequency[cognitive]" placeholder="Frequency" rows="2">{{ old('frequency.cognitive') }}</textarea>
                             </div>
                             <div class="col-md-4">
-                                <textarea class="form-control" id="cognitiveAssistance" name="assistance[cognitive]" placeholder="Assistance Required" rows="2">{{ old('assistance.cognitive', $careNeeds[2]['assistance'] ?? '') }}</textarea>
+                                <textarea class="form-control" id="cognitiveAssistance" name="assistance[cognitive]" placeholder="Assistance Required" rows="2">{{ old('assistance.cognitive') }}</textarea>
                             </div>
                         </div>
                         <div class="row mb-2 align-items-center">
@@ -233,10 +231,10 @@
                                 <label class="form-label">Self-sustainability</label>
                             </div>
                             <div class="col-md-4">
-                                <textarea class="form-control" id="selfSustainabilityFrequency" name="frequency[self_sustainability]" placeholder="Frequency" rows="2">{{ old('frequency.self_sustainability', $careNeeds[3]['frequency'] ?? '') }}</textarea>
+                                <textarea class="form-control" id="selfSustainabilityFrequency" name="frequency[self_sustainability]" placeholder="Frequency" rows="2">{{ old('frequency.self_sustainability') }}</textarea>
                             </div>
                             <div class="col-md-4">
-                                <textarea class="form-control" id="selfSustainabilityAssistance" name="assistance[self_sustainability]" placeholder="Assistance Required" rows="2">{{ old('assistance.self_sustainability', $careNeeds[3]['assistance'] ?? '') }}</textarea>
+                                <textarea class="form-control" id="selfSustainabilityAssistance" name="assistance[self_sustainability]" placeholder="Assistance Required" rows="2">{{ old('assistance.self_sustainability') }}</textarea>
                             </div>
                         </div>
                         <div class="row mb-2 align-items-center">
@@ -244,10 +242,10 @@
                                 <label class="form-label">Disease / Therapy Handling</label>
                             </div>
                             <div class="col-md-4">
-                                <textarea class="form-control" id="diseaseFrequency" name="frequency[disease]" placeholder="Frequency" rows="2">{{ old('frequency.disease', $careNeeds[4]['frequency'] ?? '') }}</textarea>
+                                <textarea class="form-control" id="diseaseFrequency" name="frequency[disease]" placeholder="Frequency" rows="2">{{ old('frequency.disease') }}</textarea>
                             </div>
                             <div class="col-md-4">
-                                <textarea class="form-control" id="diseaseAssistance" name="assistance[disease]" placeholder="Assistance Required" rows="2">{{ old('assistance.disease', $careNeeds[4]['assistance'] ?? '') }}</textarea>
+                                <textarea class="form-control" id="diseaseAssistance" name="assistance[disease]" placeholder="Assistance Required" rows="2">{{ old('assistance.disease') }}</textarea>
                             </div>
                         </div>
                         <div class="row mb-2 align-items-center">
@@ -255,10 +253,10 @@
                                 <label class="form-label">Daily Life / Social Contact</label>
                             </div>
                             <div class="col-md-4">
-                                <textarea class="form-control" id="dailyLifeFrequency" name="frequency[daily_life]" placeholder="Frequency" rows="2">{{ old('frequency.daily_life', $careNeeds[5]['frequency'] ?? '') }}</textarea>
+                                <textarea class="form-control" id="dailyLifeFrequency" name="frequency[daily_life]" placeholder="Frequency" rows="2">{{ old('frequency.daily_life') }}</textarea>
                             </div>
                             <div class="col-md-4">
-                                <textarea class="form-control" id="dailyLifeAssistance" name="assistance[daily_life]" placeholder="Assistance Required" rows="2">{{ old('assistance.daily_life', $careNeeds[5]['assistance'] ?? '') }}</textarea>
+                                <textarea class="form-control" id="dailyLifeAssistance" name="assistance[daily_life]" placeholder="Assistance Required" rows="2">{{ old('assistance.daily_life') }}</textarea>
                             </div>
                         </div>
                         <div class="row mb-2 align-items-center">
@@ -266,10 +264,10 @@
                                 <label class="form-label">Outdoor Activities</label>
                             </div>
                             <div class="col-md-4">
-                                <textarea class="form-control" id="outdoorFrequency" name="frequency[outdoor]" placeholder="Frequency" rows="2">{{ old('frequency.outdoor', $careNeeds[6]['frequency'] ?? '') }}</textarea>
+                                <textarea class="form-control" id="outdoorFrequency" name="frequency[outdoor]" placeholder="Frequency" rows="2">{{ old('frequency.outdoor') }}</textarea>
                             </div>
                             <div class="col-md-4">
-                                <textarea class="form-control" id="outdoorAssistance" name="assistance[outdoor]" placeholder="Assistance Required" rows="2">{{ old('assistance.outdoor', $careNeeds[6]['assistance'] ?? '') }}</textarea>
+                                <textarea class="form-control" id="outdoorAssistance" name="assistance[outdoor]" placeholder="Assistance Required" rows="2">{{ old('assistance.outdoor') }}</textarea>
                             </div>
                         </div>
                         <div class="row mb-3 align-items-center">
@@ -277,10 +275,11 @@
                                 <label class="form-label">Household Keeping</label>
                             </div>
                             <div class="col-md-4">
-                                <textarea class="form-control" id="householdFrequency" name="frequency[household]" placeholder="Frequency" rows="2">{{ old('frequency.household', $careNeeds[7]['frequency'] ?? '') }}</textarea>
+                                <textarea class="form-control" id="householdFrequency" name="frequency[household]" placeholder="Frequency" rows="2">{{ old('frequency.household') }}</textarea>
                             </div>
                             <div class="col-md-4">
-                                <textarea class="form-control" id="householdAssistance" name="assistance[household]" placeholder="Assistance Required" rows="2">{{ old('assistance.household', $careNeeds[7]['assistance'] ?? '') }}</textarea>                            </div>
+                                <textarea class="form-control" id="householdAssistance" name="assistance[household]" placeholder="Assistance Required" rows="2">{{ old('assistance.household') }}</textarea>
+                            </div>
                         </div>
 
                         <hr class="my-4">
@@ -291,73 +290,23 @@
                             </div>
                         </div>
                         <div id="medicationManagement">
-                            @if(old('medication_name'))
-                                @foreach(old('medication_name') as $index => $name)
-                                    <div class="row mb-1 align-items-center medication-row">
-                                        <div class="col-md-3">
-                                            <input type="text" class="form-control" name="medication_name[]" 
-                                                value="{{ $name }}" placeholder="Enter Medication name">
-                                        </div>
-                                        <div class="col-md-2">
-                                            <input type="text" class="form-control" name="dosage[]" 
-                                                value="{{ old('dosage.'.$index) }}" placeholder="Enter Dosage">
-                                        </div>
-                                        <div class="col-md-2">
-                                            <input type="text" class="form-control" name="frequency[]" 
-                                                value="{{ old('frequency.'.$index) }}" placeholder="Enter Frequency">
-                                        </div>
-                                        <div class="col-md-4">
-                                            <textarea class="form-control" name="administration_instructions[]" 
-                                                placeholder="Enter Administration Instructions" rows="1">{{ old('administration_instructions.'.$index) }}</textarea>
-                                        </div>
-                                        <div class="col-md-1 d-flex text-start">
-                                            <button type="button" class="btn btn-danger" onclick="removeMedicationRow(this)">Delete</button>
-                                        </div>
-                                    </div>
-                                @endforeach
-                            @elseif($beneficiary->generalCarePlan && $beneficiary->generalCarePlan->medications->count() > 0)
-                                @foreach($beneficiary->generalCarePlan->medications as $medication)
-                                    <div class="row mb-1 align-items-center medication-row">
-                                        <div class="col-md-3">
-                                            <input type="text" class="form-control" name="medication_name[]" 
-                                                value="{{ $medication->medication }}" placeholder="Enter Medication name">
-                                        </div>
-                                        <div class="col-md-2">
-                                            <input type="text" class="form-control" name="dosage[]" 
-                                                value="{{ $medication->dosage }}" placeholder="Enter Dosage">
-                                        </div>
-                                        <div class="col-md-2">
-                                            <input type="text" class="form-control" name="frequency[]" 
-                                                value="{{ $medication->frequency }}" placeholder="Enter Frequency">
-                                        </div>
-                                        <div class="col-md-4">
-                                            <textarea class="form-control" name="administration_instructions[]" 
-                                                placeholder="Enter Administration Instructions" rows="1">{{ $medication->administration_instructions }}</textarea>
-                                        </div>
-                                        <div class="col-md-1 d-flex text-start">
-                                            <button type="button" class="btn btn-danger" onclick="removeMedicationRow(this)">Delete</button>
-                                        </div>
-                                    </div>
-                                @endforeach
-                            @else
-                                <div class="row mb-1 align-items-center medication-row">
-                                    <div class="col-md-3">
-                                        <input type="text" class="form-control" name="medication_name[]" placeholder="Enter Medication name">
-                                    </div>
-                                    <div class="col-md-2">
-                                        <input type="text" class="form-control" name="dosage[]" placeholder="Enter Dosage">
-                                    </div>
-                                    <div class="col-md-2">
-                                        <input type="text" class="form-control" name="frequency[]" placeholder="Enter Frequency">
-                                    </div>
-                                    <div class="col-md-4">
-                                        <textarea class="form-control" name="administration_instructions[]" placeholder="Enter Administration Instructions" rows="1"></textarea>
-                                    </div>
-                                    <div class="col-md-1 d-flex text-start">
-                                        <button type="button" class="btn btn-danger" onclick="removeMedicationRow(this)">Delete</button>
-                                    </div>
+                            <div class="row mb-1 align-items-center medication-row">
+                                <div class="col-md-3">
+                                    <input type="text" class="form-control" name="medication_name[]" placeholder="Enter Medication name" >
                                 </div>
-                            @endif
+                                <div class="col-md-2">
+                                    <input type="text" class="form-control" name="dosage[]" placeholder="Enter Dosage" >
+                                </div>
+                                <div class="col-md-2">
+                                    <input type="text" class="form-control" name="frequency[]" placeholder="Enter Frequency" >
+                                </div>
+                                <div class="col-md-4">
+                                    <textarea class="form-control" name="administration_instructions[]" placeholder="Enter Administration Instructions" rows="1" ></textarea>
+                                </div>
+                                <div class="col-md-1 d-flex text-start">
+                                    <button type="button" class="btn btn-danger" onclick="removeMedicationRow(this)">Delete</button>
+                                </div>
+                            </div>
                         </div>
                         <div class="row mb-3">
                             <div class="col-12 text-start">
@@ -373,23 +322,23 @@
                                 <div class="mb-1">
                                     <label for="walkingAbility" class="form-label">Walking Ability</label>
                                     <textarea class="form-control" id="walkingAbility" name="mobility[walking_ability]" 
-                                        placeholder="Enter details about walking ability" rows="2" 
-                                        pattern="^[A-Za-z0-9\s.,\-()'\"+'!?]+$"!?]+$" 
-                                        title="Only letters, numbers, spaces, commas, periods, hyphens, and parentheses are allowed.">{{ old('mobility.walking_ability', $beneficiary->generalCarePlan->mobility->walking_ability ?? '') }}</textarea>
+                                            placeholder="Enter details about walking ability" rows="2" 
+                                            pattern="^[A-Za-z0-9\s.,\-()'\"+’!?]+$"!?]+$" 
+                                            title="Only letters, numbers, spaces, commas, periods, hyphens, and parentheses are allowed.">{{ old('mobility.walking_ability') }}</textarea>
                                 </div>
                                 <div class="mb-1">
                                     <label for="assistiveDevices" class="form-label">Assistive Devices</label>
                                     <textarea class="form-control" id="assistiveDevices" name="mobility[assistive_devices]" 
-                                        placeholder="Enter details about assistive devices" rows="2" 
-                                        pattern="^[A-Za-z0-9\s.,\-()'\"+'!?]+$"!?]+$" 
-                                        title="Only letters, numbers, spaces, commas, periods, hyphens, and parentheses are allowed.">{{ old('mobility.assistive_devices', $beneficiary->generalCarePlan->mobility->assistive_devices ?? '') }}</textarea>
+                                            placeholder="Enter details about assistive devices" rows="2" 
+                                            pattern="^[A-Za-z0-9\s.,\-()'\"+’!?]+$"!?]+$" 
+                                            title="Only letters, numbers, spaces, commas, periods, hyphens, and parentheses are allowed.">{{ old('mobility.assistive_devices') }}</textarea>
                                 </div>
                                 <div class="mb-3">
                                     <label for="transportationNeeds" class="form-label">Transportation Needs</label>
                                     <textarea class="form-control" id="transportationNeeds" name="mobility[transportation_needs]" 
-                                        placeholder="Enter details about transportation needs" rows="2" 
-                                        pattern="^[A-Za-z0-9\s.,\-()'\"+'!?]+$"!?]+$" 
-                                        title="Only letters, numbers, spaces, commas, periods, hyphens, and parentheses are allowed.">{{ old('mobility.transportation_needs', $beneficiary->generalCarePlan->mobility->transportation_needs ?? '') }}</textarea>
+                                            placeholder="Enter details about transportation needs" rows="2" 
+                                            pattern="^[A-Za-z0-9\s.,\-()'\"+’!?]+$"!?]+$" 
+                                            title="Only letters, numbers, spaces, commas, periods, hyphens, and parentheses are allowed.">{{ old('mobility.transportation_needs') }}</textarea>
                                 </div>
                             </div>
 
@@ -399,30 +348,30 @@
                                 <div class="mb-1">
                                     <label for="memory" class="form-label">Memory</label>
                                     <textarea class="form-control" id="memory" name="cognitive[memory]" 
-                                        placeholder="Enter details about memory" rows="2" 
-                                        pattern="^[A-Za-z0-9\s.,\-()'\"+'!?]+$"!?]+$" 
-                                        title="Only letters, numbers, spaces, commas, periods, hyphens, and parentheses are allowed.">{{ old('cognitive.memory', $beneficiary->generalCarePlan->cognitiveFunction->memory ?? '') }}</textarea>
+                                            placeholder="Enter details about memory" rows="2" 
+                                            pattern="^[A-Za-z0-9\s.,\-()'\"+’!?]+$"!?]+$" 
+                                            title="Only letters, numbers, spaces, commas, periods, hyphens, and parentheses are allowed.">{{ old('cognitive.memory') }}</textarea>
                                 </div>
                                 <div class="mb-1">
                                     <label for="thinkingSkills" class="form-label">Thinking Skills</label>
                                     <textarea class="form-control" id="thinkingSkills" name="cognitive[thinking_skills]" 
-                                        placeholder="Enter details about thinking skills" rows="2" 
-                                        pattern="^[A-Za-z0-9\s.,\-()'\"+'!?]+$"!?]+$" 
-                                        title="Only letters, numbers, spaces, commas, periods, hyphens, and parentheses are allowed.">{{ old('cognitive.thinking_skills', $beneficiary->generalCarePlan->cognitiveFunction->thinking_skills ?? '') }}</textarea>
+                                            placeholder="Enter details about thinking skills" rows="2" 
+                                            pattern="^[A-Za-z0-9\s.,\-()'\"+’!?]+$"!?]+$" 
+                                            title="Only letters, numbers, spaces, commas, periods, hyphens, and parentheses are allowed.">{{ old('cognitive.thinking_skills') }}</textarea>
                                 </div>
                                 <div class="mb-1">
                                     <label for="orientation" class="form-label">Orientation</label>
                                     <textarea class="form-control" id="orientation" name="cognitive[orientation]" 
-                                        placeholder="Enter details about orientation" rows="2" 
-                                        pattern="^[A-Za-z0-9\s.,\-()'\"+'!?]+$"!?]+$" 
-                                        title="Only letters, numbers, spaces, commas, periods, hyphens, and parentheses are allowed.">{{ old('cognitive.orientation', $beneficiary->generalCarePlan->cognitiveFunction->orientation ?? '') }}</textarea>
+                                            placeholder="Enter details about orientation" rows="2" 
+                                            pattern="^[A-Za-z0-9\s.,\-()'\"+’!?]+$"!?]+$" 
+                                            title="Only letters, numbers, spaces, commas, periods, hyphens, and parentheses are allowed.">{{ old('cognitive.orientation') }}</textarea>
                                 </div>
                                 <div class="mb-3">
                                     <label for="behavior" class="form-label">Behavior</label>
                                     <textarea class="form-control" id="behavior" name="cognitive[behavior]" 
-                                        placeholder="Enter details about behavior" rows="2" 
-                                        pattern="^[A-Za-z0-9\s.,\-()'\"+'!?]+$"!?]+$" 
-                                        title="Only letters, numbers, spaces, commas, periods, hyphens, and parentheses are allowed.">{{ old('cognitive.behavior', $beneficiary->generalCarePlan->cognitiveFunction->behavior ?? '') }}</textarea>
+                                            placeholder="Enter details about behavior" rows="2" 
+                                            pattern="^[A-Za-z0-9\s.,\-()'\"+’!?]+$"!?]+$" 
+                                            title="Only letters, numbers, spaces, commas, periods, hyphens, and parentheses are allowed.">{{ old('cognitive.behavior') }}</textarea>
                                 </div>
                             </div>
 
@@ -432,23 +381,23 @@
                                 <div class="mb-1">
                                     <label for="mood" class="form-label">Mood</label>
                                     <textarea class="form-control" id="mood" name="emotional[mood]" 
-                                        placeholder="Enter details about mood" rows="2" 
-                                        pattern="^[A-Za-z0-9\s.,\-()'\"+'!?]+$"!?]+$" 
-                                        title="Only letters, numbers, spaces, commas, periods, hyphens, and parentheses are allowed.">{{ old('emotional.mood', $beneficiary->generalCarePlan->emotionalWellbeing->mood ?? '') }}</textarea>
+                                            placeholder="Enter details about mood" rows="2" 
+                                            pattern="^[A-Za-z0-9\s.,\-()'\"+’!?]+$"!?]+$" 
+                                            title="Only letters, numbers, spaces, commas, periods, hyphens, and parentheses are allowed.">{{ old('emotional.mood') }}</textarea>
                                 </div>
                                 <div class="mb-1">
                                     <label for="socialInteractions" class="form-label">Social Interactions</label>
                                     <textarea class="form-control" id="socialInteractions" name="emotional[social_interactions]" 
-                                        placeholder="Enter details about social interactions" rows="2" 
-                                        pattern="^[A-Za-z0-9\s.,\-()'\"+'!?]+$"!?]+$" 
-                                        title="Only letters, numbers, spaces, commas, periods, hyphens, and parentheses are allowed.">{{ old('emotional.social_interactions', $beneficiary->generalCarePlan->emotionalWellbeing->social_interactions ?? '') }}</textarea>
+                                            placeholder="Enter details about social interactions" rows="2" 
+                                            pattern="^[A-Za-z0-9\s.,\-()'\"+’!?]+$"!?]+$" 
+                                            title="Only letters, numbers, spaces, commas, periods, hyphens, and parentheses are allowed.">{{ old('emotional.social_interactions') }}</textarea>
                                 </div>
                                 <div class="mb-3">
                                     <label for="emotionalSupport" class="form-label">Emotional Support Need</label>
                                     <textarea class="form-control" id="emotionalSupport" name="emotional[emotional_support]" 
-                                        placeholder="Enter details about emotional support need" rows="2" 
-                                        pattern="^[A-Za-z0-9\s.,\-()'\"+'!?]+$"!?]+$" 
-                                        title="Only letters, numbers, spaces, commas, periods, hyphens, and parentheses are allowed.">{{ old('emotional.emotional_support', $beneficiary->generalCarePlan->emotionalWellbeing->emotional_support_needs ?? '') }}</textarea>
+                                            placeholder="Enter details about emotional support need" rows="2" 
+                                            pattern="^[A-Za-z0-9\s.,\-()'\"+’!?]+$"!?]+$" 
+                                            title="Only letters, numbers, spaces, commas, periods, hyphens, and parentheses are allowed.">{{ old('emotional.emotional_support') }}</textarea>
                                 </div>
                             </div>
                         </div>
@@ -465,7 +414,7 @@
                             <div class="col-md-3">
                                 <label for="contactName" class="form-label">Contact Name<label style="color:red;"> * </label></label>
                                 <input type="text" class="form-control" id="contactName" name="emergency_contact[name]" 
-                                    value="{{ old('emergency_contact.name', $beneficiary->emergency_contact_name) }}"
+                                    value="{{ old('emergency_contact.name') }}"
                                     placeholder="Enter contact name" 
                                     required 
                                     pattern="^[A-Z][a-zA-Z]*(?: [A-Z][a-zA-Z]*)+$" 
@@ -476,14 +425,14 @@
                             <div class="col-md-3">
                                 <label for="relation" class="form-label">Relation<label style="color:red;"> * </label></label>
                                 <select class="form-select" id="relation" name="emergency_contact[relation]" required>
-                                    <option value="" disabled>Select relation</option>
-                                    <option value="Parent" {{ old('emergency_contact.relation', $beneficiary->emergency_contact_relation) == 'Parent' ? 'selected' : '' }}>Parent</option>
-                                    <option value="Sibling" {{ old('emergency_contact.relation', $beneficiary->emergency_contact_relation) == 'Sibling' ? 'selected' : '' }}>Sibling</option>
-                                    <option value="Spouse" {{ old('emergency_contact.relation', $beneficiary->emergency_contact_relation) == 'Spouse' ? 'selected' : '' }}>Spouse</option>
-                                    <option value="Child" {{ old('emergency_contact.relation', $beneficiary->emergency_contact_relation) == 'Child' ? 'selected' : '' }}>Child</option>
-                                    <option value="Relative" {{ old('emergency_contact.relation', $beneficiary->emergency_contact_relation) == 'Relative' ? 'selected' : '' }}>Relative</option>
-                                    <option value="Friend" {{ old('emergency_contact.relation', $beneficiary->emergency_contact_relation) == 'Friend' ? 'selected' : '' }}>Friend</option>
-                                    <option value="Other" {{ old('emergency_contact.relation', $beneficiary->emergency_contact_relation) == 'Other' ? 'selected' : '' }}>Other</option>
+                                    <option value="" disabled {{ old('emergency_contact.relation') ? '' : 'selected' }}>Select relation</option>
+                                    <option value="Parent" {{old('emergency_contact.relation') == 'Parent' ? 'selected' : '' }}>Parent</option>
+                                    <option value="Sibling" {{old('emergency_contact.relation') == 'Sibling' ? 'selected' : '' }}>Sibling</option>
+                                    <option value="Spouse" {{old('emergency_contact.relation') == 'Spouse' ? 'selected' : '' }}>Spouse</option>
+                                    <option value="Child" {{old('emergency_contact.relation') == 'Child' ? 'selected' : '' }}>Child</option>
+                                    <option value="Relative" {{old('emergency_contact.relation') == 'Relative' ? 'selected' : '' }}>Relative</option>
+                                    <option value="Friend" {{old('emergency_contact.relation') == 'Friend' ? 'selected' : '' }}>Friend</option>
+                                    <option value="Other" {{old('emergency_contact.relation') == 'Other' ? 'selected' : '' }}>Other</option>
                                 </select>
                             </div>
 
@@ -493,7 +442,7 @@
                                 <div class="input-group">
                                     <span class="input-group-text">+63</span>
                                     <input type="text" class="form-control" id="emergencyMobileNumber" name="emergency_contact[mobile]" 
-                                        value="{{ old('emergency_contact.mobile', str_replace('+63', '', $beneficiary->emergency_contact_mobile)) }}"
+                                        value="{{ old('emergency_contact.mobile') }}"
                                         placeholder="Enter mobile number" 
                                         maxlength="10" 
                                         required 
@@ -506,9 +455,8 @@
                             <div class="col-md-3">
                                 <label for="emailAddress" class="form-label">Email Address</label>
                                 <input type="email" class="form-control" id="emailAddress" name="emergency_contact[email]" 
-                                    value="{{ old('emergency_contact.email', $beneficiary->emergency_contact_email) }}"
-                                    placeholder="Enter email address" 
-                                    required>
+                                    value="{{ old('emergency_contact.email') }}"
+                                    placeholder="Enter email address">
                             </div>
                         </div>
 
@@ -523,11 +471,11 @@
                             <div class="col-12">
                                 <label for="emergencyProcedures" class="form-label">Emergency Procedures<label style="color:red;"> * </label></label>
                                 <textarea class="form-control" id="emergencyProcedures" name="emergency_plan[procedures]" 
-                                    placeholder="Enter emergency procedures" 
-                                    rows="3" 
-                                    required 
-                                    pattern="^[A-Za-z0-9\s.,\-()'\"+'!?]+$"!?]+$" 
-                                    title="Only letters, numbers, spaces, commas, periods, hyphens, parentheses, single quotes, double quotes, apostrophes, and exclamation/question marks are allowed.">{{ old('emergency_plan.procedures', $beneficiary->emergency_procedure) }}</textarea>
+                                        placeholder="Enter emergency procedures" 
+                                        rows="3" 
+                                        required 
+                                        pattern="^[A-Za-z0-9\s.,\-()'\"+’!?]+$"!?]+$" 
+                                        title="Only letters, numbers, spaces, commas, periods, hyphens, parentheses, single quotes, double quotes, apostrophes, and exclamation/question marks are allowed.">{{ old('emergency_plan.procedures') }}</textarea>
                             </div>
                         </div>
                         
@@ -543,9 +491,9 @@
                             <div class="col-md-3">
                                 <label for="careworkerName" class="form-label">Select Care Worker<label style="color:red;"> * </label></label>
                                 <select class="form-select" id="careworkerName" name="care_worker[careworker_id]" required>
-                                    <option value="" disabled>Select Care Worker</option>
+                                    <option value="" disabled {{ old('care_worker.careworker_id') ? '' : 'selected' }}>Select Care Worker<label style="color:red;"> * </label></option>
                                     @foreach ($careWorkers as $careWorker)
-                                        <option value="{{ $careWorker->id }}" {{ old('care_worker.careworker_id', $currentCareWorker) == $careWorker->id ? 'selected' : '' }}>
+                                        <option value="{{ $careWorker->id }}" {{ old('care_worker.careworker_id') == $careWorker->id ? 'selected' : '' }}>
                                             {{ $careWorker->name }}
                                         </option>
                                     @endforeach
@@ -556,37 +504,14 @@
                             <div class="col-md-5">
                                 <label class="form-label">Tasks and Responsibilities<label style="color:red;"> * </label></label>
                                 <div id="tasksContainer">
-                                    @if(old('care_worker.tasks'))
-                                        @foreach(old('care_worker.tasks') as $task)
-                                            <div class="input-group mb-2">
-                                                <input type="text" class="form-control" name="care_worker[tasks][]"
-                                                    value="{{ $task }}" 
-                                                    placeholder="Enter task or responsibility" 
-                                                    required 
-                                                    pattern="^[A-Za-z0-9\s.,\-()'\"+'!?]+$" 
-                                                    title="Only letters, numbers, spaces, commas, periods, hyphens, and parentheses are allowed.">
-                                            </div>
-                                        @endforeach
-                                    @elseif(isset($currentCareWorkerTasks) && count($currentCareWorkerTasks) > 0)
-                                        @foreach($currentCareWorkerTasks as $task)
-                                            <div class="input-group mb-2">
-                                                <input type="text" class="form-control" name="care_worker[tasks][]"
-                                                    value="{{ $task }}" 
-                                                    placeholder="Enter task or responsibility" 
-                                                    required 
-                                                    pattern="^[A-Za-z0-9\s.,\-()'\"+'!?]+$" 
-                                                    title="Only letters, numbers, spaces, commas, periods, hyphens, and parentheses are allowed.">
-                                            </div>
-                                        @endforeach
-                                    @else
-                                        <div class="input-group mb-2">
-                                            <input type="text" class="form-control" name="care_worker[tasks][]"
-                                                placeholder="Enter task or responsibility" 
-                                                required 
-                                                pattern="^[A-Za-z0-9\s.,\-()'\"+'!?]+$" 
-                                                title="Only letters, numbers, spaces, commas, periods, hyphens, and parentheses are allowed.">
-                                        </div>
-                                    @endif
+                                    <div class="input-group mb-2">
+                                        <input type="text" class="form-control" name="care_worker[tasks][]"
+                                            value="{{ old('care_worker.tasks.0') ?? '' }}" 
+                                            placeholder="Enter task or responsibility" 
+                                            required 
+                                            pattern="^[A-Za-z0-9\s.,\-()'\"+’!?]+$"!?]+$" 
+                                            title="Only letters, numbers, spaces, commas, periods, and hyphens are allowed.">
+                                    </div>
                                 </div>
                             </div>
 
@@ -607,28 +532,21 @@
                         </div>
                         <div class="row mb-1">
                         <!-- Beneficiary Picture -->
-                        <div class="col-md-3">
-                            <label for="beneficiaryProfilePic" class="form-label">Beneficiary Picture</label>
-                            <input type="file" class="form-control" id="beneficiaryProfilePic" name="beneficiaryProfilePic" 
-                                accept="image/png, image/jpeg" 
-                                title="Only PNG and JPEG images are allowed.">
-                                @if($beneficiary->photo)
-                                    <div class="d-flex align-items-center mt-1">
-                                        <i class="bx bx-file text-primary"></i>
-                                        <small class="text-muted ms-1 file-name-container" title="{{ basename($beneficiary->photo) }}">
-                                            Current file: {{ substr(basename($beneficiary->photo), 0, 30) }}{{ strlen(basename($beneficiary->photo)) > 30 ? '...' : '' }}
-                                        </small>
-                                    </div>
-                                @else
-                                    <small class="text-muted">No file uploaded</small>
+                            <div class="col-md-3">
+                                <label for="beneficiaryProfilePic" class="form-label">Upload Beneficiary Picture</label>
+                                <input type="file" class="form-control" id="beneficiaryProfilePic" name="beneficiaryProfilePic" 
+                                    accept="image/png, image/jpeg" 
+                                    title="Only PNG and JPEG images are allowed.">
+                                @if($errors->any())
+                                <small class="text-danger">Note: You need to select the file again after a validation error.</small>
                                 @endif
-                        </div>
+                            </div>
 
                             <!-- Review Date -->
                             <div class="col-md-3">
                                 <label for="datePicker" class="form-label">Review Date</label>
                                 <input type="date" class="form-control" id="datePicker" name="date" 
-                                    value="{{ old('date', $review_date ?? date('Y-m-d')) }}" 
+                                    value="{{ date('Y-m-d') }}" 
                                     required 
                                     max="{{ date('Y-m-d', strtotime('+1 year')) }}" 
                                     min="{{ date('Y-m-d') }}" 
@@ -640,17 +558,11 @@
                                 <label for="careServiceAgreement" class="form-label">Care Service Agreement</label>
                                 <input type="file" class="form-control" id="careServiceAgreement" name="care_service_agreement" 
                                     accept=".pdf,.doc,.docx" 
+                                    required 
                                     title="Only PDF, DOC, and DOCX files are allowed.">
-                                    @if($beneficiary->care_service_agreement_doc)
-                                        <div class="d-flex align-items-center mt-1">
-                                            <i class="bx bx-file text-primary"></i>
-                                            <small class="text-muted ms-1 file-name-container" title="{{ basename($beneficiary->care_service_agreement_doc) }}">
-                                                Current file: {{ substr(basename($beneficiary->care_service_agreement_doc), 0, 30) }}{{ strlen(basename($beneficiary->care_service_agreement_doc)) > 30 ? '...' : '' }}
-                                            </small>
-                                        </div>
-                                    @else
-                                    <small class="text-muted">No file uploaded</small>
-                                    @endif
+                                @if($errors->any())
+                                <small class="text-danger">Note: You need to select the file again after a validation error.</small>
+                                @endif
                             </div>
 
                             <!-- General Careplan -->
@@ -659,16 +571,9 @@
                                 <input type="file" class="form-control" id="generalCareplan" name="general_careplan" 
                                     accept=".pdf,.doc,.docx" 
                                     title="Only PDF, DOC, and DOCX files are allowed.">
-                                    @if($beneficiary->general_care_plan_doc)
-                                        <div class="d-flex align-items-center mt-1">
-                                            <i class="bx bx-file text-primary"></i>
-                                            <small class="text-muted ms-1 file-name-container" title="{{ basename($beneficiary->general_care_plan_doc) }}">
-                                                Current file: {{ substr(basename($beneficiary->general_care_plan_doc), 0, 30) }}{{ strlen(basename($beneficiary->general_care_plan_doc)) > 30 ? '...' : '' }}
-                                            </small>
-                                        </div>
-                                    @else
-                                    <small class="text-muted">No file uploaded</small>
-                                    @endif
+                                @if($errors->any())
+                                <small class="text-danger">Note: You need to select the file again after a validation error.</small>
+                                @endif
                             </div>
                         </div>
 
@@ -680,7 +585,7 @@
                                     <div class="col-md-12">
                                         <div class="form-group mt-3">
                                             <div class="d-flex justify-content-between align-items-center mb-2">
-                                            <label for="beneficiarySignatureUpload" class="form-label">Upload Beneficiary Signature</label>
+                                                <label>Beneficiary Signature</label>
                                                 <button type="button" id="clear-signature-1" class="btn btn-danger btn-sm">Clear</button>
                                             </div>
                                             <div id="signature-pad-1" class="signature-pad">
@@ -691,24 +596,13 @@
                                         </div>
                                     </div>
                                 @if($errors->any())
-                                <small class="text-danger">Note: The old signature is saved after a validation error. You need to enter the new one again.</small>
+                                <small class="text-danger">Note: You need to upload/sign again after a validation error.</small>
                                 @endif
                                 </div>
                                 <div class="row mb-1">
                                     <div class="col-md-12">
                                         <label for="beneficiarySignatureUpload" class="form-label">Upload Beneficiary Signature</label>
                                         <input type="file" class="form-control" id="beneficiarySignatureUpload" name="beneficiary_signature_upload" accept="image/png, image/jpeg">
-                                                @if($beneficiary->beneficiary_signature)
-                                                    <div class="d-flex align-items-center mt-1">
-                                                        <i class="bx bx-file text-primary"></i>
-                                                        <small class="text-muted ms-1 file-name-container" title="{{ basename($beneficiary->beneficiary_signature) }}">
-                                                            Current signature: {{ substr(basename($beneficiary->beneficiary_signature), 0, 50) }}{{ strlen(basename($beneficiary->beneficiary_signature)) > 50 ? '...' : '' }}
-                                                        </small>
-                                                    </div>
-                                                    <img src="{{ asset('storage/' . $beneficiary->beneficiary_signature) }}" class="img-thumbnail signature-preview" style="max-height: 100px;" alt="Current beneficiary signature">
-                                                @else
-                                                    <small class="text-muted">No signature uploaded</small>
-                                                @endif
                                     </div>
                                 </div>
                                 <!-- Hidden input to store the canvas signature as base64 -->
@@ -732,24 +626,13 @@
                                         </div>
                                     </div>
                                 @if($errors->any())
-                                <small class="text-danger">Note: The old signature is saved after a validation error. You need to enter the new one again.</small>
+                                <small class="text-danger">Note: You need to upload/sign again after a validation error.</small>
                                 @endif
                                 </div>
                                 <div class="row mb-1">
                                     <div class="col-md-12">
                                         <label for="careWorkerSignatureUpload" class="form-label">Upload Care Worker Signature</label>
                                         <input type="file" class="form-control" id="careWorkerSignatureUpload" name="care_worker_signature_upload" accept="image/png, image/jpeg">
-                                                @if($beneficiary->care_worker_signature)
-                                                    <div class="d-flex align-items-center mt-1">
-                                                        <i class="bx bx-file text-primary"></i>
-                                                        <small class="text-muted ms-1 file-name-container" title="{{ basename($beneficiary->care_worker_signature) }}">
-                                                            Current signature: {{ substr(basename($beneficiary->care_worker_signature), 0, 60) }}{{ strlen(basename($beneficiary->care_worker_signature)) > 60 ? '...' : '' }}
-                                                        </small>
-                                                    </div>
-                                                    <img src="{{ asset('storage/' . $beneficiary->care_worker_signature) }}" class="img-thumbnail signature-preview" style="max-height: 100px;" alt="Current beneficiary signature">
-                                                @else
-                                                    <small class="text-muted">No signature uploaded</small>
-                                                @endif
                                     </div>
                                 </div>
                                 <!-- Hidden input to store the canvas signature as base64 -->
@@ -770,7 +653,7 @@
                                 <label for="accountEmail" class="form-label">Email<label style="color:red;"> * </label></label>
                                 <input type="email" class="form-control" id="accountEmail" name="account[email]" 
                                     placeholder="Enter email"
-                                    value="{{ $beneficiary->portalAccount->portal_email ?? '' }}" 
+                                    value="{{ old('account.email') }}" 
                                     required 
                                     pattern="^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$" 
                                     title="Enter a valid email address (e.g., example@domain.com)" 
@@ -779,18 +662,20 @@
 
                             <!-- Password -->
                             <div class="col-md-4">
-                                <label for="password" class="form-label">Password</label>
+                                <label for="password" class="form-label">Password<label style="color:red;"> * </label></label>
                                 <input type="password" class="form-control" id="password" name="account[password]" 
-                                    placeholder="Leave blank to keep current password" 
+                                    placeholder="Enter password" 
+                                    required 
                                     minlength="8" 
                                     title="Password must be at least 8 characters long.">
                             </div>
 
                             <!-- Confirm Password -->
                             <div class="col-md-4">
-                                <label for="confirmPassword" class="form-label">Confirm Password</label>
+                                <label for="confirmPassword" class="form-label">Confirm Password<label style="color:red;"> * </label></label>
                                 <input type="password" class="form-control" id="confirmPassword" name="account[password_confirmation]" 
-                                    placeholder="Confirm new password if changing" 
+                                    placeholder="Confirm password" 
+                                    required 
                                     title="Passwords must match.">
                             </div>
                         </div>
@@ -840,16 +725,16 @@
         newRow.className = 'row mb-2 align-items-center medication-row';
         newRow.innerHTML = `
             <div class="col-md-3">
-                <input type="text" class="form-control" name="medication_name[]" value="${name}" placeholder="Enter medication name" required>
+                <input type="text" class="form-control" name="medication_name[]" value="${name}" placeholder="Enter medication name">
             </div>
             <div class="col-md-2">
-                <input type="text" class="form-control" name="dosage[]" value="${dosage}" placeholder="Enter dosage" required>
+                <input type="text" class="form-control" name="dosage[]" value="${dosage}" placeholder="Enter dosage">
             </div>
             <div class="col-md-2">
-                <input type="text" class="form-control" name="frequency[]" value="${freq}" placeholder="Enter frequency" required>
+                <input type="text" class="form-control" name="frequency[]" value="${freq}" placeholder="Enter frequency">
             </div>
             <div class="col-md-4">
-                <textarea class="form-control" name="administration_instructions[]" placeholder="Enter administration instructions" rows="1" required>${instructions}</textarea>
+                <textarea class="form-control" name="administration_instructions[]" placeholder="Enter administration instructions" rows="1">${instructions}</textarea>
             </div>
             <div class="col-md-1 d-flex text-start">
                 <button type="button" class="btn btn-danger" onclick="removeMedicationRow(this)">Delete</button>
@@ -900,11 +785,10 @@
 
     </script>
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            @if(session('success'))
-                const successModal = new bootstrap.Modal(document.getElementById('saveSuccessModal'));
-                successModal.show();
-            @endif
+        document.querySelector('form').addEventListener('submit', function (e) {
+            e.preventDefault();
+            const successModal = new bootstrap.Modal(document.getElementById('saveSuccessModal'));
+            successModal.show();
         });
     </script>
     <script>
@@ -947,7 +831,6 @@
                 });
             }
 
-            /*
             // For medication fields
             @if(old('medication_name'))
                 // Remove the default row
@@ -975,7 +858,6 @@
                     addTask('{{ $task }}');
                 @endforeach
             @endif
-            */
 
             // Initialize filtering for each dropdown
             filterDropdown('civilStatusInput', 'civilStatusDropdown');
@@ -1071,73 +953,69 @@
     </script>
     <script>
         // for connecting the municipality dropdown to the barangay dropdown
-        document.addEventListener('DOMContentLoaded', function() {
-        const municipalityDropdown = document.getElementById('municipality');
-        const barangayDropdown = document.getElementById('barangay');
+        document.addEventListener('DOMContentLoaded', function () {
+    const municipalityDropdown = document.getElementById('municipality');
+    const barangayDropdown = document.getElementById('barangay');
+
+    // Set saved values from old input if they exist
+    @if(old('municipality'))
+        municipalityDropdown.value = "{{ old('municipality') }}";
+        barangayDropdown.disabled = false;
+    @endif
+
+    // Function to filter barangays
+    function updateBarangays() {
+        const selectedMunicipalityId = municipalityDropdown.value;
+        console.log("Selected Municipality ID:", selectedMunicipalityId);
         
-        // Function to update barangays based on selected municipality
-        function updateBarangays() {
-            const selectedMunicipalityId = municipalityDropdown.value;
-            console.log("Selected Municipality ID:", selectedMunicipalityId);
-            
-            // Always reset the dropdown first
-            barangayDropdown.innerHTML = '';
-            
-            // Add default prompt option
-            const defaultOption = document.createElement('option');
-            defaultOption.value = "";
-            defaultOption.disabled = true;
-            defaultOption.textContent = "Select barangay";
-            barangayDropdown.appendChild(defaultOption);
-            
-            // If no municipality selected, disable barangay dropdown and return
-            if (!selectedMunicipalityId) {
-                barangayDropdown.disabled = true;
-                return;
-            }
-            
-            // Enable the barangay dropdown
-            barangayDropdown.disabled = false;
-            
-            // Get the old input value if it exists
-            const oldBarangayValue = "{{ old('barangay', $beneficiary->barangay_id) }}";
-            
-            // Find and append matching barangay options
-            let found = false;
-            @foreach ($barangays as $b)
-                if ({{ $b->municipality_id }} == selectedMunicipalityId) {
-                    const option = document.createElement('option');
-                    option.value = "{{ $b->barangay_id }}";
-                    option.textContent = "{{ $b->barangay_name }}";
-                    
-                    // Select this option if it matches the old input or the beneficiary's barangay
-                    if ("{{ $b->barangay_id }}" == oldBarangayValue) {
-                        option.selected = true;
-                    }
-                    
-                    barangayDropdown.appendChild(option);
-                    found = true;
-                }
-            @endforeach
-            
-            console.log("Found barangays for municipality:", found);
-            
-            if (!found) {
-                const option = document.createElement('option');
-                option.value = "";
-                option.textContent = "No barangays available for this municipality";
-                option.disabled = true;
-                option.selected = true;
-                barangayDropdown.appendChild(option);
-            }
+        // Always reset the dropdown first
+        barangayDropdown.innerHTML = '<option value="" disabled selected>Select barangay</option>';
+        
+        // If no municipality selected, disable barangay dropdown and return
+        if (!selectedMunicipalityId) {
+            barangayDropdown.disabled = true;
+            return;
         }
         
-        // Call the function on page load to set up initial state
-        updateBarangays();
+        // Enable the barangay dropdown
+        barangayDropdown.disabled = false;
         
-        // And add the change event listener
-        municipalityDropdown.addEventListener('change', updateBarangays);
-    });
+        // Find and append matching barangay options
+        let found = false;
+        @foreach ($barangays as $b)
+            if (String("{{ $b->municipality_id }}") === String(selectedMunicipalityId)) {
+                const option = document.createElement('option');
+                option.value = "{{ $b->barangay_id }}";
+                option.textContent = "{{ $b->barangay_name }}";
+                
+                // If this matches the old selected value, select it
+                @if(old('barangay'))
+                    if ("{{ old('barangay') }}" === "{{ $b->barangay_id }}") {
+                        option.selected = true;
+                    }
+                @endif
+                
+                barangayDropdown.appendChild(option);
+                found = true;
+            }
+        @endforeach
+        
+        console.log("Found barangays for municipality:", found);
+        
+        if (!found) {
+            const option = document.createElement('option');
+            option.value = "";
+            option.textContent = "No barangays available for this municipality";
+            option.disabled = true;
+            barangayDropdown.appendChild(option);
+        }
+    }
+                // Call the function on page load to set up initial state
+            updateBarangays();
+
+            // And add the change event listener
+            municipalityDropdown.addEventListener('change', updateBarangays);
+        });
 
         document.addEventListener("DOMContentLoaded", function () {
             const password = document.getElementById("password");
@@ -1151,6 +1029,28 @@
                 }
             });
         });
+    </script>
+
+    <script>
+    // This script specifically handles task restoration
+    document.addEventListener('DOMContentLoaded', function() {
+        // Important: This needs to run AFTER the tasksContainer might have been referenced elsewhere
+        setTimeout(function() {
+            // Get the tasks container element
+            const tasksContainer = document.getElementById('tasksContainer');
+            
+            // Check if we have old tasks data from validation errors
+            @if(old('care_worker.tasks'))
+                // Clear existing tasks first
+                tasksContainer.innerHTML = '';
+                
+                // Loop through all old task values and create inputs for them
+                @foreach(old('care_worker.tasks') as $task)
+                    addTask('{{ $task }}');
+                @endforeach
+            @endif
+        }, 100); // Small delay to ensure DOM is fully processed
+    });
     </script>
 
 </body>

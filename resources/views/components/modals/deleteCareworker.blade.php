@@ -98,7 +98,7 @@ function showDependencyError(message, errorType) {
                 <ol class="mt-2 mb-0">
                     <li>Instead of deleting, you can mark this care worker as <strong>inactive</strong> in their profile to disable their access to the system</li>
                     <li>This will prevent them from logging in while preserving the audit trail</li>
-                    <li>Go to <a href="{{ route('admin.careworkers.index') }}">Care Worker List</a>, find this care worker, and change their status</li>
+                    <li>Go to <a href="@if(Auth::user()->role_id == 2){{ route('care-manager.careworkers.index') }}@else{{ route('admin.careworkers.index') }}@endif">, find this care worker, and change their status</li>
                 </ol>
             </div>
         `;
@@ -110,7 +110,7 @@ function showDependencyError(message, errorType) {
                 <ol class="mt-2 mb-0">
                     <li>Instead of deleting, you can mark this care worker as <strong>inactive</strong> in their profile to disable their access to the system</li>
                     <li>This will prevent them from logging in while preserving the audit trail</li>
-                    <li>Go to <a href="{{ route('admin.careworkers.index') }}">Care Worker List</a>, find this care worker, and change their status</li>
+                    <li>Go to <a href="@if(Auth::user()->role_id == 2){{ route('care-manager.careworkers.index') }}@else{{ route('admin.careworkers.index') }}@endif">, find this care worker, and change their status</li>
                 </ol>
             </div>
         `;
@@ -122,7 +122,7 @@ function showDependencyError(message, errorType) {
                 <ol class="mt-2 mb-0">
                     <li>Instead of deleting, you can mark this care worker as <strong>inactive</strong> in their profile to disable their access to the system</li>
                     <li>This will prevent them from logging in while preserving the audit trail</li>
-                    <li><a href="{{ route('admin.careworkers.index') }}">Care Worker List</a>, find this care worker, and change their status</li>
+                    <li><a href="@if(Auth::user()->role_id == 2){{ route('care-manager.careworkers.index') }}@else{{ route('admin.careworkers.index') }}@endif">, find this care worker, and change their status</li>
                 </ol>
             </div>
         `;
@@ -134,7 +134,7 @@ function showDependencyError(message, errorType) {
                 <ol class="mt-2 mb-0">
                     <li>Instead of deleting, you can mark this care worker as <strong>inactive</strong> in their profile to disable their access to the system</li>
                     <li>This will prevent them from logging in while preserving the audit trail</li>
-                    <li>Go to <a href="{{ route('admin.careworkers.index') }}">Care Worker List</a>, find this care worker, and change their status</li>
+                    <li>Go to<a href="@if(Auth::user()->role_id == 2){{ route('care-manager.careworkers.index') }}@else{{ route('admin.careworkers.index') }}@endif">, find this care worker, and change their status</li>
                 </ol>
             </div>
         `;
@@ -161,16 +161,20 @@ function showDependencyError(message, errorType) {
     document.getElementById('confirmCareworkerDeleteButton').classList.add('d-none');
 }
 
-// Function to show success message
-function showSuccess() {
-    document.getElementById('deleteConfirmation').classList.add('d-none');
-    document.getElementById('deleteSuccess').classList.remove('d-none');
-    document.getElementById('confirmCareworkerDeleteButton').classList.add('d-none');
-    document.getElementById('cancelDeleteButton').textContent = 'Close';
-    
-    setTimeout(function() {
-        window.location.href = "{{ route('admin.careworkers.index') }}";
-    }, 2000);
+    // Function to show success message
+    function showSuccess() {
+        document.getElementById('deleteConfirmation').classList.add('d-none');
+        document.getElementById('deleteSuccess').classList.remove('d-none');
+        document.getElementById('confirmCareworkerDeleteButton').classList.add('d-none');
+        document.getElementById('cancelDeleteButton').textContent = 'Close';
+        
+        setTimeout(function() {
+        let redirectRoute = "{{ route('admin.careworkers.index') }}";
+        @if(Auth::user()->role_id == 2)
+            redirectRoute = "{{ route('care-manager.careworkers.index') }}";
+        @endif
+        window.location.href = redirectRoute;
+    }, 2000); // Redirect after 2 seconds
 }
 
 // Setup event handlers when page loads
@@ -200,7 +204,11 @@ document.addEventListener('DOMContentLoaded', function() {
         formData.append('_token', '{{ csrf_token() }}');
         
         const xhr1 = new XMLHttpRequest();
-        xhr1.open('POST', "{{ route('admin.validate-password') }}", true);
+        let validatePasswordEndpoint = "{{ route('admin.validate-password') }}";
+        @if(Auth::user()->role_id == 2)
+            validatePasswordEndpoint = "{{ route('care-manager.validate-password') }}";
+        @endif
+        xhr1.open('POST', validatePasswordEndpoint, true);
         xhr1.onload = function() {
             if (xhr1.status === 200) {
                 try {
@@ -216,7 +224,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
                         // Use care manager endpoint if the current user is a care manager
                         @if(Auth::user()->role_id == 2)
-                            endpoint = "{{ route('manager.careworkers.delete') }}";
+                            endpoint = "{{ route('care-manager.careworkers.delete') }}";
                         @endif
 
                         const xhr2 = new XMLHttpRequest();

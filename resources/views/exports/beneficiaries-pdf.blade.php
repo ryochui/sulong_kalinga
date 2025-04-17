@@ -313,18 +313,28 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @forelse ($beneficiary->generalCarePlan->medications as $medication)
-                    <tr>
-                        <td>{{ $medication->medication }}</td>
-                        <td>{{ $medication->dosage }}</td>
-                        <td>{{ $medication->frequency }}</td>
-                        <td>{{ $medication->administration_instructions }}</td>
-                    </tr>
-                    @empty
-                    <tr>
-                        <td colspan="4">No medications recorded</td>
-                    </tr>
-                    @endforelse
+                    {{-- Check if generalCarePlan exists --}}
+                    @if ($beneficiary->generalCarePlan)
+                        {{-- Check if medications exist and iterate --}}
+                        @forelse ($beneficiary->generalCarePlan->medications as $medication)
+                            <tr>
+                                <td>{{ $medication->medication }}</td>
+                                <td>{{ $medication->dosage }}</td>
+                                <td>{{ $medication->frequency }}</td>
+                                <td>{{ $medication->administration_instructions }}</td>
+                            </tr>
+                        @empty
+                            {{-- No medications recorded --}}
+                            <tr>
+                                <td colspan="4">No medications recorded.</td>
+                            </tr>
+                        @endforelse
+                    @else
+                        {{-- General Care Plan not available --}}
+                        <tr>
+                            <td colspan="4">No medications recorded.</td>
+                        </tr>
+                    @endif
                 </tbody>
             </table>
 
@@ -526,20 +536,32 @@
                     </thead>
                     <tbody>
                         <tr>
-                            <td colspan="2"><strong>Name:</strong> {{ $beneficiary->careWorker->first_name ?? 'N/A' }} {{ $beneficiary->careWorker->last_name ?? '' }}</td>
+                            <td colspan="2"><strong>Name:</strong> {{ $careWorker->first_name ?? 'N/A' }} {{ $careWorker->last_name ?? '' }}</td>
                         </tr>
                         <tr>
-                            <td colspan="2" style="text-align: center;"><strong>Tasks and Responsibilities</strong></td>
+                            <td colspan="2" style="text-align: center;">
+                                <strong>Tasks and Responsibilities</strong>
+                            </td>
                         </tr>
-                        @forelse ($beneficiary->generalCarePlan->careWorkerResponsibility as $responsibility)
-                        <tr>
-                            <td colspan="2">{{ $responsibility->task_description }}</td>
-                        </tr>
-                        @empty
-                        <tr>
-                            <td colspan="2">No tasks assigned</td>
-                        </tr>
-                        @endforelse
+                        {{-- Check if generalCarePlan exists --}}
+                        @if ($beneficiary->generalCarePlan)
+                            {{-- Iterate over careWorkerResponsibility if it exists --}}
+                            @forelse ($beneficiary->generalCarePlan->careWorkerResponsibility as $responsibility)
+                                <tr>
+                                    <td colspan="2">{{ $responsibility->task_description }}</td>
+                                </tr>
+                            @empty
+                                {{-- No tasks assigned --}}
+                                <tr>
+                                    <td colspan="2">No tasks assigned.</td>
+                                </tr>
+                            @endforelse
+                        @else
+                            {{-- General Care Plan not available --}}
+                            <tr>
+                                <td colspan="2">No tasks assigned.</td>
+                            </tr>
+                        @endif
                     </tbody>
                 </table>
             </div>

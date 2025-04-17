@@ -12,12 +12,12 @@
 <body>
 
     @include('components.userNavbar')
-    @include('components.adminSidebar')
+    @include('components.careManagerSidebar')
     
     <div class="home-section">
         <div class="container-fluid">
             <div class="d-flex justify-content-between align-items-center mb-3">
-                <a href="{{ route('admin.beneficiaries.index') }}" class="btn btn-secondary">
+                <a href="{{ route('care-manager.beneficiaries.index') }}" class="btn btn-secondary">
                     <i class="bx bx-arrow-back"></i> Back
                 </a>
                 <div class="mx-auto text-center" style="flex-grow: 1; font-weight: bold; font-size: 20px;">EDIT BENEFICIARY</div>
@@ -40,7 +40,7 @@
                         </div>
                     @endif
 
-                    <form action="{{ route('admin.beneficiaries.update', $beneficiary->beneficiary_id) }}" method="POST" enctype="multipart/form-data" id="beneficiaryForm">
+                    <form action="{{ route('care-manager.beneficiaries.update', $beneficiary->beneficiary_id) }}" method="POST" enctype="multipart/form-data" id="beneficiaryForm">
                         @csrf
                         @method('PUT')
                         <!-- Row 1: Personal Details -->

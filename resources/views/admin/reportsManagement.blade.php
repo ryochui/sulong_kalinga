@@ -17,8 +17,14 @@
 @include('components.modals.editGcpRedirect')
     
     <div class="home-section">
+    @if(session('success'))
+        <div id="success-message" class="alert alert-success alert-dismissible fade show mx-3" 
+            style="display: block !important; visibility: visible !important; opacity: 1 !important; margin-top: 15px !important; margin-bottom: 15px !important;">
+            <strong>Success!</strong> {{ session('success') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    @endif
         <div class="text-left">REPORTS MANAGEMENT</div>
-        
         <div class="container-fluid text-center">
         <form action="{{ route('admin.reports') }}" method="GET" id="searchFilterForm">
                 <div class="row mb-3 align-items-center">

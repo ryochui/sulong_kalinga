@@ -12,7 +12,7 @@
 <body>
 
     @include('components.userNavbar')
-    @include('components.adminSidebar')
+    @include('components.careManagerSidebar')
     @include('components.modals.statusChangeCareworker')
     @include('components.modals.deleteCareworker')
 
@@ -20,7 +20,7 @@
         <div class="container-fluid">
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <!-- Original Back Button -->
-                <a href="{{ route('admin.careworkers.index') }}" class="btn btn-secondary original-back-btn">
+                <a href="{{ route('care-manager.careworkers.index') }}" class="btn btn-secondary original-back-btn">
                     <i class="bx bx-arrow-back"></i> Back
                 </a>
                 <div class="mx-auto text-center" style="flex-grow: 1; font-weight: bold; font-size: 20px;">VIEW CARE WORKER PROFILE DETAILS</div>
@@ -30,7 +30,7 @@
                         <i class="bx bx-arrow-back"></i> Back
                     </a>
                     <!-- Edit Button with Routing -->
-                    <a href="{{ route('admin.careworkers.edit', $careworker->id) }}" class="btn btn-primary">
+                    <a href="{{ route('care-manager.careworkers.edit', $careworker->id) }}" class="btn btn-primary">
                         <i class="bx bxs-edit"></i> Edit
                     </a>
                     <button class="btn btn-danger" onclick="openDeleteCareworkerModal('{{ $careworker->id }}', '{{ $careworker->first_name }} {{ $careworker->last_name }}')">
