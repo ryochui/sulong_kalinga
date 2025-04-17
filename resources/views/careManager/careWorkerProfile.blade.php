@@ -16,12 +16,18 @@
     @include('components.modals.statusChangeCareworker')
     
     <div class="home-section">
-        <div class="text-left">CARE WORKER PROFILES CM</div>
+        <div class="text-left">CARE WORKER PROFILES</div>
         <div class="container-fluid text-center">
+            @if(session('success'))
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                {{ session('success') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            @endif
             <div class="row mb-3 align-items-center">
                 <!-- Search Bar -->
                 <div class="col-12 col-md-6 col-lg-6 mb-2">
-                    <form action="{{ route('admin.careWorkerProfile') }}" method="GET">
+                    <form action="{{ route('care-manager.careworkers.index') }}" method="GET">
                         <div class="input-group">
                             <span class="input-group-text">
                                 <i class="bx bx-search-alt"></i>
@@ -34,7 +40,7 @@
 
                 <!-- Filter Dropdown -->
                 <div class="col-12 col-sm-6 col-md-6 col-lg-2 mb-2">
-                    <form action="{{ route('admin.careWorkerProfile') }}" method="GET" id="filterForm">
+                    <form action="{{ route('care-manager.careworkers.index') }}" method="GET" id="filterForm">
                         <div class="input-group">
                             <span class="input-group-text">
                                 <i class="bx bx-filter-alt"></i>
@@ -61,16 +67,16 @@
                 </div>
 
                 <!-- Hidden form for exporting -->
-                <form id="exportForm" action="{{ route('export.careworkers.pdf') }}" method="POST" style="display: none;"
-                    data-pdf-route="{{ route('export.careworkers.pdf') }}"
-                    data-excel-route="{{ route('export.careworkers.excel') }}">
+                <form id="exportForm" action="{{ route('care-manager.exports.careworkers-pdf') }}" method="POST" style="display: none;"
+                    data-pdf-route="{{ route('care-manager.exports.careworkers-pdf') }}"
+                    data-excel-route="{{ route('care-manager.exports.careworkers-excel') }}">
                     @csrf
                     <input type="hidden" name="selected_careworkers" id="selectedCareworkers">
                 </form>
 
                 <!-- Add Report Button -->
                 <div class="col-6 col-md-3 col-lg-2 mb-2">
-                    <a href="{{ route('admin.addCareworker') }}">
+                    <a href="{{ route('care-manager.careworkers.create') }}">
                     <button class="btn btn-primary w-100" id="addButton" style="padding:6px;">
                         <i class="bx bx-plus"></i> Add Careworker
                     </button>
@@ -104,27 +110,23 @@
                                         <td>{{ $careworker->municipality->municipality_name ?? 'N/A' }}</td>
                                         <td>{{ $careworker->mobile }}</td>
                                         <td>
-                                            <select class="form-select" name="status" id="statusSelect{{ $careworker->id }}" onchange="openStatusChangeCareworkerModal(this, 'Care Worker', {{ $careworker->id }}, '{{ $careworker->volunteer_status }}')">
-                                                <option value="Active" {{ $careworker->volunteer_status == 'Active' ? 'selected' : '' }}>Active</option>
-                                                <option value="Inactive" {{ $careworker->volunteer_status == 'Inactive' ? 'selected' : '' }}>Inactive</option>
+                                            <select class="form-select" name="status" id="statusSelect{{ $careworker->id }}" select onchange="window.openStatusChangeCareworkerModal(this, 'Care Worker', {{ $careworker->id }}, '{{ $careworker->is_active ? 'active' : 'inactive' }}')">
+                                                <option value="Active" {{ $careworker->status == 'Active' ? 'selected' : '' }}>Active</option>
+                                                <option value="Inactive" {{ $careworker->status == 'Inactive' ? 'selected' : '' }}>Inactive</option>
                                             </select>
                                         </td>
                                         <td>
                                             <div class="action-icons">
-                                            <form action="{{ route('viewCareworkerDetails') }}" method="POST" style="display:inline;">
+                                            <form action="{{ route('care-manager.careworkers.view') }}" method="POST" style="display:inline;">
                                                 @csrf
                                                 <input type="hidden" name="careworker_id" value="{{ $careworker->id }}">
                                                 <button type="submit" class="btn btn-link text-decoration-none" style="color:black;">
                                                     <i class="fa fa-eye"></i>
                                                 </button>
                                             </form>
-                                            <form action="{{ route('editCareworkerProfile') }}" method="POST" style="display:inline;">
-                                                @csrf
-                                                <input type="hidden" name="careworker_id" value="{{ $careworker->id }}">
-                                                <button type="submit" class="btn btn-link text-decoration-none" style="color:black;">
-                                                    <i class='bx bxs-edit'></i>
-                                                </button>
-                                            </form>
+                                            <a href="{{ route('care-manager.careworkers.edit', ['id' => $careworker->id]) }}" class="btn btn-link text-decoration-none" style="color:black;">
+                                                <i class="bx bx-edit"></i>
+                                            </a>
                                             </div>
                                         </td>
                                     </tr>

@@ -974,16 +974,6 @@ class AdminController extends Controller
             ]);
         }
     }
-
-    public function deleteCareworker(Request $request)
-    {
-        $result = $this->userManagementService->deleteCareworker(
-            $request->input('careworker_id'),
-            Auth::user()
-        );
-        
-        return response()->json($result);
-    }
     
     public function municipality()
     {

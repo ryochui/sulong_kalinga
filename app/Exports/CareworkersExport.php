@@ -105,8 +105,8 @@ class CareworkersExport implements FromCollection, WithHeadings, WithMapping, Sh
                 ]
             ],
             
-            // Style for all cells - updated to include all columns A through P
-            'A1:P'.$highestRow => [
+            // Style for all cells - updated to include all columns A through O
+            'A1:O'.$highestRow => [
                 'alignment' => [
                     'vertical' => Alignment::VERTICAL_CENTER,
                     'horizontal' => Alignment::HORIZONTAL_LEFT,
@@ -143,7 +143,7 @@ class CareworkersExport implements FromCollection, WithHeadings, WithMapping, Sh
                 // Apply striped rows for better readability - updated to include all columns
                 for ($row = 2; $row <= $highestRow; $row++) {
                     if ($row % 2 == 0) {
-                        $sheet->getStyle('A'.$row.':P'.$row)->applyFromArray([
+                        $sheet->getStyle('A'.$row.':O'.$row)->applyFromArray([
                             'fill' => [
                                 'fillType' => Fill::FILL_SOLID,
                                 'startColor' => ['rgb' => 'F5F5F5'] // Light grey for even rows
@@ -174,7 +174,7 @@ class CareworkersExport implements FromCollection, WithHeadings, WithMapping, Sh
                 $event->sheet->getColumnDimension('O')->setWidth(15); // Pag-Ibig Number
                 
                 // Add auto-filter - updated to include all columns
-                $sheet->setAutoFilter('A1:P' . $highestRow);
+                $sheet->setAutoFilter('A1:O' . $highestRow);
                 
                 // Freeze the header row
                 $sheet->freezePane('A2');

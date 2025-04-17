@@ -20,14 +20,15 @@ Route::middleware(['auth', '\App\Http\Middleware\CheckRole:care_manager'])->pref
     })->name('dashboard');
     
     // Care Worker Management
-    Route::prefix('care-workers')->name('care-workers.')->group(function () {
+    Route::prefix('care-workers')->name('careworkers.')->group(function () {
         Route::get('/', [CareWorkerController::class, 'index'])->name('index');
-        Route::get('/add', [CareWorkerController::class, 'create'])->name('add');
-        Route::post('/store', [CareWorkerController::class, 'store'])->name('store');
-        Route::get('/{id}', [CareWorkerController::class, 'show'])->name('show');
-        Route::get('/{id}/edit', [CareWorkerController::class, 'edit'])->name('edit');
-        Route::put('/{id}', [CareWorkerController::class, 'update'])->name('update');
-        Route::put('/{id}/status', [CareWorkerController::class, 'updateStatus'])->name('updateStatus');
+        Route::get('/add', [CareWorkerController::class, 'create'])->name('create');
+        Route::post('/store', [CareWorkerController::class, 'storeCareWorker'])->name('store');
+        Route::get('/{id}/edit', [CareWorkerController::class, 'editCareworkerProfile'])->name('edit');
+        Route::put('/{id}', [CareWorkerController::class, 'updateCareWorker'])->name('update');
+        Route::post('/{id}/update-status-ajax', [CareWorkerController::class, 'updateStatusAjax'])->name('updateStatusAjax');
+        Route::post('/delete', [CareWorkerController::class, 'deleteCareworker'])->name('delete');
+        Route::post('/view-details', [CareWorkerController::class, 'viewCareworkerDetails'])->name('view');
     });
     
     // Beneficiary Management

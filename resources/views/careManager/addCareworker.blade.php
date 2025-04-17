@@ -12,12 +12,12 @@
 <body>
 
     @include('components.userNavbar')
-    @include('components.adminSidebar')
+    @include('components.careManagerSidebar')
     
     <div class="home-section">
         <div class="container-fluid">
             <div class="d-flex justify-content-between align-items-center mb-3">
-                <a href="{{ route('admin.careworkers.index') }}" class="btn btn-secondary">
+                <a href="{{ route('care-manager.careworkers.index') }}" class="btn btn-secondary">
                     <i class="bx bx-arrow-back"></i> Back
                 </a>
                 <div class="mx-auto text-center" style="flex-grow: 1; font-weight: bold; font-size: 20px;">ADD CARE WORKER</div>
@@ -39,7 +39,7 @@
             @endif
             <div class="row" id="addUserForm">
                 <div class="col-12">
-                    <form action="{{ route('admin.careworkers.store') }}" method="POST" enctype="multipart/form-data">
+                    <form action="{{ route('care-manager.careworkers.store') }}" method="POST" enctype="multipart/form-data">
                         @csrf <!-- Include CSRF token for security -->
                         <!-- Row 1: Personal Details -->
                         <div class="row mb-1 mt-3">
@@ -154,7 +154,7 @@
                                 <label for="mobileNumber" class="form-label">Mobile Number<label style="color:red;"> * </label></label>
                                 <div class="input-group">
                                     <span class="input-group-text">+63</span>
-                                    <input type="text" class="form-control" id="mobileNumber" name="mobile_number" value="{{ old('mobile_number') }}" placeholder="Enter mobile number" maxlength="11" required oninput="restrictToNumbers(this)" title="Must be 10 or 11digits.">
+                                    <input type="text" class="form-control" id="mobileNumber" name="mobile_number" value="{{ old('mobile_number') }}" placeholder="Enter mobile number" maxlength="11" oninput="restrictToNumbers(this)" title="Must be 10 or 11digits.">
                                 </div>
                             </div>
                             <div class="col-md-4">

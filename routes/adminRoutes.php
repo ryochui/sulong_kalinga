@@ -60,7 +60,7 @@ Route::middleware(['auth', '\App\Http\Middleware\CheckRole:administrator'])->pre
         Route::get('/{id}/edit', [CareWorkerController::class, 'editCareworkerProfile'])->name('edit');
         Route::put('/{id}', [CareWorkerController::class, 'updateCareWorker'])->name('update');
         Route::post('/{id}/update-status-ajax', [CareWorkerController::class, 'updateStatusAjax'])->name('updateStatusAjax');        
-        Route::post('/delete', [AdminController::class, 'deleteCareworker'])->name('delete');
+        Route::post('/delete', [CareWorkerController::class, 'deleteCareworker'])->name('delete');
         Route::post('/view-details', [CareWorkerController::class, 'viewCareworkerDetails'])->name('view');
     });
 
