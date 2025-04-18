@@ -11,7 +11,7 @@
                 
                 <div id="deleteConfirmation">
                     <p class="text-danger">
-                        <i class="bx bx-error-circle"></i> 
+                        <i class="bi bi-exclamation-circle"></i> 
                         <strong>Warning!</strong> You are about to delete this barangay.
                     </p>
                     <p>Are you sure you want to permanently delete <span id="barangayNameToDelete" style="font-weight: bold;"></span>?</p>
@@ -25,7 +25,7 @@
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="cancelDeleteButton">Cancel</button>
                 <button type="button" class="btn btn-danger" id="confirmBarangayDeleteButton">
-                    <i class="bx bxs-trash"></i> Delete Barangay
+                    <i class="bi bi-trash-fill"></i> Delete Barangay
                 </button>
             </div>
         </div>
@@ -44,7 +44,7 @@ window.openDeleteBarangayModal = function(id, name) {
         
         <div id="deleteConfirmation">
             <p class="text-danger">
-                <i class="bx bx-error-circle"></i> 
+                <i class="bi bi-exclamation-circle"></i> 
                 <strong>Warning!</strong> You are about to delete this barangay.
             </p>
             <p>Are you sure you want to permanently delete <span id="barangayNameToDelete" style="font-weight: bold;"></span>?</p>
@@ -63,7 +63,7 @@ window.openDeleteBarangayModal = function(id, name) {
     // Reset buttons
     const confirmButton = document.getElementById('confirmBarangayDeleteButton');
     confirmButton.disabled = false;
-    confirmButton.innerHTML = '<i class="bx bxs-trash"></i> Delete Barangay';
+    confirmButton.innerHTML = '<i class="bi bi-trash-fill"></i> Delete Barangay';
     confirmButton.style.display = 'inline-block';
     
     document.getElementById('cancelDeleteButton').textContent = 'Cancel';
@@ -100,7 +100,7 @@ function showDependencyError(message, errorType) {
     let errorContent = `
         <div class="alert alert-danger">
             <div class="d-flex align-items-center mb-2">
-                <i class="bx bx-error-circle me-2" style="font-size: 1.5rem;"></i>
+                <i class="bi bi-exclamation-circle me-2" style="font-size: 1.5rem;"></i>
                 <strong>Unable to Delete</strong>
             </div>
             <p>${message}</p>
@@ -161,7 +161,7 @@ function showSuccess() {
     // Replace content with success message
     modalBody.innerHTML = `
         <div class="text-center mb-2">
-            <i class="bx bx-check-circle text-success" style="font-size: 2rem;"></i>
+            <i class="bi bi-check-circle text-success" style="font-size: 2rem;"></i>
         </div>
         <p class="text-success text-center">
             <strong>Success!</strong> The barangay has been deleted successfully.
@@ -226,7 +226,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 } else {
                     showError(data.message || 'Failed to delete barangay.');
                     this.disabled = false;
-                    this.innerHTML = '<i class="bx bxs-trash"></i> Delete Barangay';
+                    this.innerHTML = '<i class="bi bi-trash-fill"></i> Delete Barangay';
                 }
             }
         })
@@ -234,7 +234,7 @@ document.addEventListener('DOMContentLoaded', function() {
             console.error('Error:', error);
             showError('An unexpected error occurred. Please try again.');
             this.disabled = false;
-            this.innerHTML = '<i class="bx bxs-trash"></i> Delete Barangay';
+            this.innerHTML = '<i class="bi bi-trash-fill"></i> Delete Barangay';
         });
     });
 });

@@ -9,7 +9,7 @@
 </head>
 <body>
 
-    @include('components.userNavbar')
+    @include('components.adminNavbar')
     @include('components.adminSidebar')
     @include('components.modals.statusChangeCaremanager')
     

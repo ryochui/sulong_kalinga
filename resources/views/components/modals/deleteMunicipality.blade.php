@@ -11,7 +11,7 @@
                 
                 <div id="deleteConfirmation">
                     <p class="text-danger">
-                        <i class="bx bx-error-circle"></i> 
+                        <i class="bi bi-exclamation-circle"></i> 
                         <strong>Warning!</strong> You are about to delete this municipality.
                     </p>
                     <p>Are you sure you want to permanently delete <span id="municipalityNameToDelete" style="font-weight: bold;"></span>?</p>
@@ -25,7 +25,7 @@
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="cancelDeleteButton">Cancel</button>
                 <button type="button" class="btn btn-danger" id="confirmMunicipalityDeleteButton">
-                    <i class="bx bxs-trash"></i> Delete Municipality
+                    <i class="bi bi-trash-fill"></i> Delete Municipality
                 </button>
             </div>
         </div>
@@ -44,7 +44,7 @@ window.openDeleteMunicipalityModal = function(id, name) {
         
         <div id="deleteConfirmation">
             <p class="text-danger">
-                <i class="bx bx-error-circle"></i> 
+                <i class="bi bi-exclamation-circle"></i> 
                 <strong>Warning!</strong> You are about to delete this municipality.
             </p>
             <p>Are you sure you want to permanently delete <span id="municipalityNameToDelete" style="font-weight: bold;"></span>?</p>
@@ -63,7 +63,7 @@ window.openDeleteMunicipalityModal = function(id, name) {
     // Reset buttons
     const confirmButton = document.getElementById('confirmMunicipalityDeleteButton');
     confirmButton.disabled = false;
-    confirmButton.innerHTML = '<i class="bx bxs-trash"></i> Delete Municipality';
+    confirmButton.innerHTML = '<i class="bi bi-trash-fill"></i> Delete Municipality';
     confirmButton.style.display = 'inline-block';
     
     document.getElementById('cancelDeleteButton').textContent = 'Cancel';
@@ -100,7 +100,7 @@ function showDependencyError(message, errorType) {
     let errorContent = `
         <div class="alert alert-danger">
             <div class="d-flex align-items-center mb-2">
-                <i class="bx bx-error-circle me-2" style="font-size: 1.5rem;"></i>
+                <i class="bi bi-exclamation-circle me-2" style="font-size: 1.5rem;"></i>
                 <strong>Unable to Delete</strong>
             </div>
             <p>${message}</p>
@@ -173,7 +173,7 @@ function showSuccess() {
     // Replace content with success message
     modalBody.innerHTML = `
         <div class="text-center mb-2">
-            <i class="bx bx-check-circle text-success" style="font-size: 2rem;"></i>
+            <i class="bi bi-check-circle text-success" style="font-size: 2rem;"></i>
         </div>
         <p class="text-success text-center">
             <strong>Success!</strong> The municipality has been deleted successfully.
@@ -238,7 +238,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 } else {
                     showError(data.message || 'Failed to delete municipality.');
                     this.disabled = false;
-                    this.innerHTML = '<i class="bx bxs-trash"></i> Delete Municipality';
+                    this.innerHTML = '<i class="bi bi-trash-fill"></i> Delete Municipality';
                 }
             }
         })
@@ -246,7 +246,7 @@ document.addEventListener('DOMContentLoaded', function() {
             console.error('Error:', error);
             showError('An unexpected error occurred. Please try again.');
             this.disabled = false;
-            this.innerHTML = '<i class="bx bxs-trash"></i> Delete Municipality';
+            this.innerHTML = '<i class="bi bi-trash-fill"></i> Delete Municipality';
         });
     });
 });

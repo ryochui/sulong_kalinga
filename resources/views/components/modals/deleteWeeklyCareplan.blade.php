@@ -11,7 +11,7 @@
                 
                 <div id="deleteConfirmation">
                     <p class="text-danger">
-                        <i class="bx bx-error-circle"></i> 
+                        <i class="bi bi-exclamation-circle"></i> 
                         <strong>Final Warning!</strong> This action cannot be undone.
                     </p>
                     <p>You are about to permanently delete the weekly care plan for <span id="beneficiaryNameToDelete" style="font-weight: bold;"></span>.</p>
@@ -26,7 +26,7 @@
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="cancelDeleteButton">Cancel</button>
                 <button type="button" class="btn btn-danger" id="confirmWeeklyCarePlanDeleteButton">
-                    <i class="bx bxs-trash"></i> Delete Weekly Care Plan
+                    <i class="bi bi-trash-fill"></i> Delete Weekly Care Plan
                 </button>
             </div>
         </div>
@@ -45,7 +45,7 @@ window.openPasswordConfirmationModal = function(id, name) {
         
         <div id="deleteConfirmation">
             <p class="text-danger">
-                <i class="bx bx-error-circle"></i> 
+                <i class="bi bi-exclamation-circle"></i> 
                 <strong>Final Warning!</strong> This action cannot be undone.
             </p>
             <p>You are about to permanently delete the weekly care plan for <span id="beneficiaryNameToDelete" style="font-weight: bold;"></span>.</p>
@@ -65,7 +65,7 @@ window.openPasswordConfirmationModal = function(id, name) {
     // Reset buttons
     const confirmButton = document.getElementById('confirmWeeklyCarePlanDeleteButton');
     confirmButton.disabled = false;
-    confirmButton.innerHTML = '<i class="bx bxs-trash"></i> Delete Weekly Care Plan';
+    confirmButton.innerHTML = '<i class="bi bi-trash-fill"></i> Delete Weekly Care Plan';
     confirmButton.style.display = 'inline-block';
     
     document.getElementById('cancelDeleteButton').textContent = 'Cancel';
@@ -101,7 +101,7 @@ function showWeeklyCarePlanSuccess() {
     // Replace content with success message
     modalBody.innerHTML = `
         <div class="text-center mb-2">
-            <i class="bx bx-check-circle text-success" style="font-size: 2rem;"></i>
+            <i class="bi bi-check-circle text-success" style="font-size: 2rem;"></i>
         </div>
         <p class="text-success text-center">
             <strong>Success!</strong> The weekly care plan has been deleted successfully.
@@ -186,14 +186,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Show the specific error message from the server
                 showWeeklyCarePlanError(data.message || 'Failed to delete weekly care plan.');
                 this.disabled = false;
-                this.innerHTML = '<i class="bx bxs-trash"></i> Delete Weekly Care Plan';
+                this.innerHTML = '<i class="bi bi-trash-fill"></i> Delete Weekly Care Plan';
             }
         })
         .catch(error => {
             console.error('Error:', error);
             showWeeklyCarePlanError(error.message || 'An unexpected error occurred. Please try again.');
             this.disabled = false;
-            this.innerHTML = '<i class="bx bxs-trash"></i> Delete Weekly Care Plan';
+            this.innerHTML = '<i class="bi bi-trash-fill"></i> Delete Weekly Care Plan';
         });
     });
 });

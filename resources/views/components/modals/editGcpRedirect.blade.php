@@ -13,7 +13,7 @@
             </div>
             <div class="modal-body text-center">
                 <div class="mb-4">
-                    <i class="bx bx-edit-alt text-primary" style="font-size: 3rem;"></i>
+                    <i class="bi bi-pencil-square text-primary" style="font-size: 3rem;"></i>
                 </div>
                 <h5>General Care Plan Editing Information</h5>
                 <p>The General Care Plan is incorporated directly into the beneficiary profile.</p>

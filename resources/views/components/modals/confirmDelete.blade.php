@@ -20,7 +20,7 @@
                 </div>
                 
                 <div id="deleteSuccessContent" class="d-none text-center">
-                    <i class="bx bx-check-circle text-success" style="font-size: 3rem;"></i>
+                    <i class="bi bi-check-circle text-success" style="font-size: 3rem;"></i>
                     <p class="mt-3" id="successMessage">Item deleted successfully!</p>
                     <p>You will be redirected shortly.</p>
                 </div>

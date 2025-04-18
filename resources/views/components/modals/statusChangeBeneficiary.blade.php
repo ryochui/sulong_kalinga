@@ -11,7 +11,7 @@
                 <p>Are you sure you want to change the status of this <span id="entityType" style="font-weight: bold;"></span>?</p>
                 
                 <div class="alert alert-warning">
-                    <i class="bx bx-info-circle"></i> 
+                    <i class="bi bi-info-circle"></i> 
                     <strong>Note:</strong> Changing the status of this beneficiary will affect (allow or prevent) their access to the system, as well as their registered family members.
                 </div>
 

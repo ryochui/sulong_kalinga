@@ -57,7 +57,7 @@
 </head>
 <body>
 
-    @include('components.userNavbar')
+    @include('components.adminNavbar')
     @include('components.adminSidebar')
     
     <div class="home-section">

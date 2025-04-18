@@ -10,7 +10,7 @@
                 
                 <div id="deleteConfirmation">
                     <p class="text-danger">
-                        <i class="bx bx-error-circle"></i> 
+                        <i class="bi bi-exclamation-circle"></i> 
                         <strong>Warning!</strong> You are about to delete this administrator account.
                     </p>
                     <p>Are you sure you want to permanently delete <span id="adminNameToDelete" style="font-weight: bold;"></span>?</p>
@@ -23,7 +23,7 @@
                 
                 <div id="deleteSuccess" class="d-none">
                     <p class="text-success">
-                        <i class="bx bx-check-circle"></i>
+                        <i class="bi bi-check-circle"></i>
                         <strong>Success!</strong> The administrator has been deleted successfully.
                     </p>
                     <p>You will be redirected to the administrator list shortly.</p>
@@ -32,7 +32,7 @@
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="cancelDeleteButton">Cancel</button>
                 <button type="button" class="btn btn-danger" id="confirmAdminDeleteButton">
-                    <i class="bx bxs-trash"></i> Delete Administrator
+                    <i class="bi bi-trash-fill"></i> Delete Administrator
                 </button>
             </div>
         </div>
@@ -52,7 +52,7 @@ window.openDeleteAdminModal = function(id, name) {
     
     const confirmButton = document.getElementById('confirmAdminDeleteButton');
     confirmButton.disabled = false;
-    confirmButton.innerHTML = '<i class="bx bxs-trash"></i> Delete Administrator';
+    confirmButton.innerHTML = '<i class="bi bi-trash"></i> Delete Administrator';
     confirmButton.classList.remove('d-none');
     
     document.getElementById('cancelDeleteButton').textContent = 'Cancel';
@@ -83,7 +83,7 @@ function showDependencyError(message, errorType) {
     // Create structured error content with icon and guidance
     let errorContent = `
         <div class="d-flex align-items-center mb-2">
-            <i class="bx bx-error-circle me-2" style="font-size: 1.5rem;"></i>
+            <i class="bi bi-exclamation-circle me-2" style="font-size: 1.5rem;"></i>
             <strong>Unable to Delete</strong>
         </div>
         <p>${message}</p>
@@ -239,48 +239,48 @@ document.addEventListener('DOMContentLoaded', function() {
                                         } else {
                                             showError(response.message || 'Failed to delete administrator.');
                                             document.getElementById('confirmAdminDeleteButton').disabled = false;
-                                            document.getElementById('confirmAdminDeleteButton').innerHTML = '<i class="bx bxs-trash"></i> Delete Administrator';
+                                            document.getElementById('confirmAdminDeleteButton').innerHTML = '<i class="bi bi-trash-fill"></i> Delete Administrator';
                                         }
                                     }
                                 } catch (e) {
                                     console.error('Error parsing JSON response:', e);
                                     showError('An unexpected error occurred. Please try again.');
                                     document.getElementById('confirmAdminDeleteButton').disabled = false;
-                                    document.getElementById('confirmAdminDeleteButton').innerHTML = '<i class="bx bxs-trash"></i> Delete Administrator';
+                                    document.getElementById('confirmAdminDeleteButton').innerHTML = '<i class="bi bi-trash-fill"></i> Delete Administrator';
                                 }
                             } else {
                                 showError('Server error: ' + xhr2.status);
                                 document.getElementById('confirmAdminDeleteButton').disabled = false;
-                                document.getElementById('confirmAdminDeleteButton').innerHTML = '<i class="bx bxs-trash"></i> Delete Administrator';
+                                document.getElementById('confirmAdminDeleteButton').innerHTML = '<i class="bi bi-trash-fill"></i> Delete Administrator';
                             }
                         };
                         xhr2.onerror = function() {
                             showError('Network error. Please try again.');
                             document.getElementById('confirmAdminDeleteButton').disabled = false;
-                            document.getElementById('confirmAdminDeleteButton').innerHTML = '<i class="bx bxs-trash"></i> Delete Administrator';
+                            document.getElementById('confirmAdminDeleteButton').innerHTML = '<i class="bi bi-trash-fill"></i> Delete Administrator';
                         };
                         xhr2.send(deleteForm);
                     } else {
                         showError('Incorrect password. Please try again.');
                         document.getElementById('confirmAdminDeleteButton').disabled = false;
-                        document.getElementById('confirmAdminDeleteButton').innerHTML = '<i class="bx bxs-trash"></i> Delete Administrator';
+                        document.getElementById('confirmAdminDeleteButton').innerHTML = '<i class="bi bi-trash-fill"></i> Delete Administrator';
                     }
                 } catch (e) {
                     console.error('Error parsing JSON response:', e);
                     showError('An unexpected error occurred during password validation. Please try again.');
                     document.getElementById('confirmAdminDeleteButton').disabled = false;
-                    document.getElementById('confirmAdminDeleteButton').innerHTML = '<i class="bx bxs-trash"></i> Delete Administrator';
+                    document.getElementById('confirmAdminDeleteButton').innerHTML = '<i class="bi bi-trash-fill"></i> Delete Administrator';
                 }
             } else {
                 showError('Password validation failed. Please try again.');
                 document.getElementById('confirmAdminDeleteButton').disabled = false;
-                document.getElementById('confirmAdminDeleteButton').innerHTML = '<i class="bx bxs-trash"></i> Delete Administrator';
+                document.getElementById('confirmAdminDeleteButton').innerHTML = '<i class="bi bi-trash-fill"></i> Delete Administrator';
             }
         };
         xhr1.onerror = function() {
             showError('Network error during password validation. Please try again.');
             document.getElementById('confirmAdminDeleteButton').disabled = false;
-            document.getElementById('confirmAdminDeleteButton').innerHTML = '<i class="bx bxs-trash"></i> Delete Administrator';
+            document.getElementById('confirmAdminDeleteButton').innerHTML = '<i class="bi bi-trash-fill"></i> Delete Administrator';
         };
         xhr1.send(formData);
     });

@@ -10,14 +10,14 @@
                 <!-- For care workers: show no permission message -->
                 @if(Auth::user()->role_id == 3)
                 <div class="alert alert-danger">
-                    <i class="bx bx-error-circle"></i> 
+                    <i class="bi bi-exclamation-circle"></i> 
                     <strong>Permission Denied</strong>
                     <p>Care Workers are not allowed to delete weekly care plans. Please contact a Care Manager or Administrator if you believe this plan should be deleted.</p>
                 </div>
                 @else
                 <!-- For admins and care managers: show delete confirmation -->
                 <p class="text-danger">
-                    <i class="bx bx-error-circle"></i> 
+                    <i class="bi bi-exclamation-circle"></i> 
                     <strong>Warning!</strong> You are about to delete this weekly care plan.
                 </p>
                 <p>Are you sure you want to delete the weekly care plan for <span id="initialBeneficiaryNameToDelete" style="font-weight: bold;"></span>?</p>
@@ -31,7 +31,7 @@
                 <!-- Hide delete button for care workers -->
                 @if(Auth::user()->role_id != 3)
                 <button type="button" class="btn btn-danger" id="proceedToPasswordButton">
-                    <i class="bx bx-trash"></i> Proceed to Delete
+                    <i class="bi bi-trash"></i> Proceed to Delete
                 </button>
                 @endif
             </div>

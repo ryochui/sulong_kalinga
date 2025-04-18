@@ -10,7 +10,7 @@
                 
                 <div id="deleteConfirmation">
                     <p class="text-danger">
-                        <i class="bx bx-error-circle"></i> 
+                        <i class="bi bi-exclamation-circle"></i> 
                         <strong>Warning!</strong> You are about to delete this care manager account.
                     </p>
                     <p>Are you sure you want to permanently delete <span id="caremanagerNameToDelete" style="font-weight: bold;"></span>?</p>
@@ -23,7 +23,7 @@
                 
                 <div id="deleteSuccess" class="d-none">
                     <p class="text-success">
-                        <i class="bx bx-check-circle"></i>
+                        <i class="bi bi-check-circle"></i>
                         <strong>Success!</strong> The care manager has been deleted successfully.
                     </p>
                     <p>You will be redirected to the care manager list shortly.</p>
@@ -32,7 +32,7 @@
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="cancelDeleteButton">Cancel</button>
                 <button type="button" class="btn btn-danger" id="confirmCaremanagerDeleteButton">
-                    <i class="bx bxs-trash"></i> Delete Care Manager
+                    <i class="bi bi-trash-fill"></i> Delete Care Manager
                 </button>
             </div>
         </div>
@@ -52,7 +52,7 @@ window.openDeleteCaremanagerModal = function(id, name) {
     
     const confirmButton = document.getElementById('confirmCaremanagerDeleteButton');
     confirmButton.disabled = false;
-    confirmButton.innerHTML = '<i class="bx bxs-trash"></i> Delete Care Manager';
+    confirmButton.innerHTML = '<i class="bi bi-trash-fill"></i> Delete Care Manager';
     confirmButton.classList.remove('d-none');
     
     document.getElementById('cancelDeleteButton').textContent = 'Cancel';
@@ -83,7 +83,7 @@ function showDependencyError(message, errorType) {
     // Create structured error content with icon and guidance
     let errorContent = `
         <div class="d-flex align-items-center mb-2">
-            <i class="bx bx-error-circle me-2" style="font-size: 1.5rem;"></i>
+            <i class="bi bi-exclamation-circle me-2" style="font-size: 1.5rem;"></i>
             <strong>Unable to Delete</strong>
         </div>
         <p>${message}</p>
@@ -231,25 +231,25 @@ document.addEventListener('DOMContentLoaded', function() {
                                         } else {
                                             showError(response.message || 'Failed to delete care manager.');
                                             document.getElementById('confirmCaremanagerDeleteButton').disabled = false;
-                                            document.getElementById('confirmCaremanagerDeleteButton').innerHTML = '<i class="bx bxs-trash"></i> Delete Care Manager';
+                                            document.getElementById('confirmCaremanagerDeleteButton').innerHTML = '<i class="bi bi-trash-fill"></i> Delete Care Manager';
                                         }
                                     }
                                 } catch (e) {
                                     console.error('Error parsing JSON response:', e);
                                     showError('An unexpected error occurred. Please try again.');
                                     document.getElementById('confirmCaremanagerDeleteButton').disabled = false;
-                                    document.getElementById('confirmCaremanagerDeleteButton').innerHTML = '<i class="bx bxs-trash"></i> Delete Care Manager';
+                                    document.getElementById('confirmCaremanagerDeleteButton').innerHTML = '<i class="bi bi-trash-fill"></i> Delete Care Manager';
                                 }
                             } else {
                                 showError('Server error: ' + xhr2.status);
                                 document.getElementById('confirmCaremanagerDeleteButton').disabled = false;
-                                document.getElementById('confirmCaremanagerDeleteButton').innerHTML = '<i class="bx bxs-trash"></i> Delete Care Manager';
+                                document.getElementById('confirmCaremanagerDeleteButton').innerHTML = '<i class="bi bi-trash-fill"></i> Delete Care Manager';
                             }
                         };
                         xhr2.onerror = function() {
                             showError('Network error. Please try again.');
                             document.getElementById('confirmCaremanagerDeleteButton').disabled = false;
-                            document.getElementById('confirmCaremanagerDeleteButton').innerHTML = '<i class="bx bxs-trash"></i> Delete Care Manager';
+                            document.getElementById('confirmCaremanagerDeleteButton').innerHTML = '<i class="bi bi-trash-fill"></i> Delete Care Manager';
                         };
                         // Create the request body
                         const params = 'caremanager_id=' + encodeURIComponent(caremanagerId) + '&_token={{ csrf_token() }}';
@@ -258,24 +258,24 @@ document.addEventListener('DOMContentLoaded', function() {
                     } else {
                         showError('Incorrect password. Please try again.');
                         document.getElementById('confirmCaremanagerDeleteButton').disabled = false;
-                        document.getElementById('confirmCaremanagerDeleteButton').innerHTML = '<i class="bx bxs-trash"></i> Delete Care Manager';
+                        document.getElementById('confirmCaremanagerDeleteButton').innerHTML = '<i class="bi bi-trash-fill"></i> Delete Care Manager';
                     }
                 } catch (e) {
                     console.error('Error parsing JSON response:', e);
                     showError('An unexpected error occurred during password validation. Please try again.');
                     document.getElementById('confirmCaremanagerDeleteButton').disabled = false;
-                    document.getElementById('confirmCaremanagerDeleteButton').innerHTML = '<i class="bx bxs-trash"></i> Delete Care Manager';
+                    document.getElementById('confirmCaremanagerDeleteButton').innerHTML = '<i class="bi bi-trash-fill"></i> Delete Care Manager';
                 }
             } else {
                 showError('Password validation failed. Please try again.');
                 document.getElementById('confirmCaremanagerDeleteButton').disabled = false;
-                document.getElementById('confirmCaremanagerDeleteButton').innerHTML = '<i class="bx bxs-trash"></i> Delete Care Manager';
+                document.getElementById('confirmCaremanagerDeleteButton').innerHTML = '<i class="bi bi-trash-fill"></i> Delete Care Manager';
             }
         };
         xhr1.onerror = function() {
             showError('Network error during password validation. Please try again.');
             document.getElementById('confirmCaremanagerDeleteButton').disabled = false;
-            document.getElementById('confirmCaremanagerDeleteButton').innerHTML = '<i class="bx bxs-trash"></i> Delete Care Manager';
+            document.getElementById('confirmCaremanagerDeleteButton').innerHTML = '<i class="bi bi-trash-fill"></i> Delete Care Manager';
         };
         xhr1.send(formData);
     });

@@ -10,13 +10,13 @@
                 
                 <div id="deleteConfirmation">
                     <p class="text-danger">
-                        <i class="bx bx-error-circle"></i> 
+                        <i class="bi bi-exclamation-circle"></i> 
                         <strong>Warning!</strong> You are about to delete this beneficiary profile.
                     </p>
                     <p>Are you sure you want to permanently delete <span id="beneficiaryNameToDelete" style="font-weight: bold;"></span>?</p>
                     
                     <div class="alert alert-warning">
-                        <i class="bx bx-info-circle"></i> 
+                        <i class="bi bi-info-circle"></i> 
                         <strong>Note:</strong> If this beneficiary profile is deleted, the general care plan associated to this beneficiary will also be deleted.
                     </div>
                     
@@ -29,7 +29,7 @@
                 
                 <div id="deleteSuccess" class="d-none">
                     <p class="text-success">
-                        <i class="bx bx-check-circle"></i>
+                        <i class="bi bi-check-circle"></i>
                         <strong>Success!</strong> The beneficiary has been deleted successfully.
                     </p>
                     <p>You will be redirected to the beneficiary list shortly.</p>
@@ -38,7 +38,7 @@
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="cancelDeleteButton">Cancel</button>
                 <button type="button" class="btn btn-danger" id="confirmBeneficiaryDeleteButton">
-                    <i class="bx bxs-trash"></i> Delete Beneficiary
+                    <i class="bi bi-trash-fill"></i> Delete Beneficiary
                 </button>
             </div>
         </div>
@@ -58,7 +58,7 @@ window.openDeleteBeneficiaryModal = function(id, name) {
     
     const confirmButton = document.getElementById('confirmBeneficiaryDeleteButton');
     confirmButton.disabled = false;
-    confirmButton.innerHTML = '<i class="bx bxs-trash"></i> Delete Beneficiary';
+    confirmButton.innerHTML = '<i class="bi bi-trash-fill"></i> Delete Beneficiary';
     confirmButton.classList.remove('d-none');
     
     document.getElementById('cancelDeleteButton').textContent = 'Cancel';
@@ -89,7 +89,7 @@ function showDependencyError(message, errorType) {
     // Create structured error content with icon and guidance
     let errorContent = `
         <div class="d-flex align-items-center mb-2">
-            <i class="bx bx-error-circle me-2" style="font-size: 1.5rem;"></i>
+            <i class="bi bi-exclamation-circle me-2" style="font-size: 1.5rem;"></i>
             <strong>Unable to Delete</strong>
         </div>
         <p>${message}</p>
@@ -154,19 +154,19 @@ function showSuccess(deletedCarePlan) {
     successElement.innerHTML = `
         <div class="text-center mb-3">
             <div class="mb-3">
-                <i class="bx bx-check-circle text-success" style="font-size: 3rem;"></i>
+                <i class="bi bi-check-circle text-success" style="font-size: 3rem;"></i>
             </div>
             <h4 class="text-success mb-3">Successfully Deleted</h4>
             <div class="alert alert-light border py-3">
                 <p class="mb-1">The beneficiary profile has been permanently removed from the system.</p>
                 <div class="mt-2 pt-2 border-top">
                     <p class="mb-0 text-muted">
-                        <i class="bx bx-info-circle"></i> The associated general care plan and related records have also been deleted.
+                        <i class="bi bi-info-circle"></i> The associated general care plan and related records have also been deleted.
                     </p>
                 </div>
             </div>
             <p class="text-muted mt-3">
-                <i class="bx bx-time-five"></i> You will be redirected to the beneficiary list in a few seconds...
+                <i class="bi bi-clock"></i> You will be redirected to the beneficiary list in a few seconds...
             </p>
         </div>
     `;
@@ -263,48 +263,48 @@ document.addEventListener('DOMContentLoaded', function() {
                                         } else {
                                             showError(response.message || 'Failed to delete beneficiary.');
                                             document.getElementById('confirmBeneficiaryDeleteButton').disabled = false;
-                                            document.getElementById('confirmBeneficiaryDeleteButton').innerHTML = '<i class="bx bxs-trash"></i> Delete Beneficiary';
+                                            document.getElementById('confirmBeneficiaryDeleteButton').innerHTML = '<i class="bi bi-trash-fill"></i> Delete Beneficiary';
                                         }
                                     }
                                 } catch (e) {
                                     console.error('Error parsing JSON response:', e);
                                     showError('An unexpected error occurred. Please try again.');
                                     document.getElementById('confirmBeneficiaryDeleteButton').disabled = false;
-                                    document.getElementById('confirmBeneficiaryDeleteButton').innerHTML = '<i class="bx bxs-trash"></i> Delete Beneficiary';
+                                    document.getElementById('confirmBeneficiaryDeleteButton').innerHTML = '<i class="bi bi-trash-fill"></i> Delete Beneficiary';
                                 }
                             } else {
                                 showError('Server error: ' + xhr2.status);
                                 document.getElementById('confirmBeneficiaryDeleteButton').disabled = false;
-                                document.getElementById('confirmBeneficiaryDeleteButton').innerHTML = '<i class="bx bxs-trash"></i> Delete Beneficiary';
+                                document.getElementById('confirmBeneficiaryDeleteButton').innerHTML = '<i class="bi bi-trash-fill"></i> Delete Beneficiary';
                             }
                         };
                         xhr2.onerror = function() {
                             showError('Network error. Please try again.');
                             document.getElementById('confirmBeneficiaryDeleteButton').disabled = false;
-                            document.getElementById('confirmBeneficiaryDeleteButton').innerHTML = '<i class="bx bxs-trash"></i> Delete Beneficiary';
+                            document.getElementById('confirmBeneficiaryDeleteButton').innerHTML = '<i class="bi bi-trash-fill"></i> Delete Beneficiary';
                         };
                         xhr2.send(deleteForm);
                     } else {
                         showError('Incorrect password. Please try again.');
                         document.getElementById('confirmBeneficiaryDeleteButton').disabled = false;
-                        document.getElementById('confirmBeneficiaryDeleteButton').innerHTML = '<i class="bx bxs-trash"></i> Delete Beneficiary';
+                        document.getElementById('confirmBeneficiaryDeleteButton').innerHTML = '<i class="bi bi-trash-fill"></i> Delete Beneficiary';
                     }
                 } catch (e) {
                     console.error('Error parsing JSON response:', e);
                     showError('An unexpected error occurred during password validation. Please try again.');
                     document.getElementById('confirmBeneficiaryDeleteButton').disabled = false;
-                    document.getElementById('confirmBeneficiaryDeleteButton').innerHTML = '<i class="bx bxs-trash"></i> Delete Beneficiary';
+                    document.getElementById('confirmBeneficiaryDeleteButton').innerHTML = '<i class="bi bi-trash-fill"></i> Delete Beneficiary';
                 }
             } else {
                 showError('Password validation failed. Please try again.');
                 document.getElementById('confirmBeneficiaryDeleteButton').disabled = false;
-                document.getElementById('confirmBeneficiaryDeleteButton').innerHTML = '<i class="bx bxs-trash"></i> Delete Beneficiary';
+                document.getElementById('confirmBeneficiaryDeleteButton').innerHTML = '<i class="bi bi-trash-fill"></i> Delete Beneficiary';
             }
         };
         xhr1.onerror = function() {
             showError('Network error during password validation. Please try again.');
             document.getElementById('confirmBeneficiaryDeleteButton').disabled = false;
-            document.getElementById('confirmBeneficiaryDeleteButton').innerHTML = '<i class="bx bxs-trash"></i> Delete Beneficiary';
+            document.getElementById('confirmBeneficiaryDeleteButton').innerHTML = '<i class="bi bi-trash-fill"></i> Delete Beneficiary';
         };
         xhr1.send(formData);
     });

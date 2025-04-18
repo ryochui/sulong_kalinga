@@ -16,6 +16,7 @@ use App\Http\Controllers\SchedulesAndAppointmentsController;
 use App\Http\Controllers\BeneficiaryMapController;
 use App\Http\Controllers\DonorAcknowledgementController;
 use App\Http\Controllers\HighlightsAndEventsController;
+use App\Http\Controllers\ViewAccountProfileController;
 
 
 // All routes with administrator role check
@@ -165,6 +166,11 @@ Route::middleware(['auth', '\App\Http\Middleware\CheckRole:administrator'])->pre
         Route::get('/', [HighlightsAndEventsController::class, 'index'])->name('index');
     });
 
+    //View Account Profile
+    Route::prefix('account-profile')->name('admin.account.profile.')->group(function () {
+        Route::get('/', [ViewAccountProfileController::class, 'index'])->name('index');
+    });
+
 });
 
 // Special Executive Director only routes
@@ -176,6 +182,6 @@ Route::middleware(['auth', '\App\Http\Middleware\CheckRole:executive_director'])
     });
 });
 
-Route::get('/admin/viewProfile', function () {
-    return view('components.viewProfile');
-})->name('viewProfile');
+// Route::get('/admin/viewProfile', function () {
+//     return view('components.viewProfile');
+// })->name('viewProfile');
