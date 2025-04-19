@@ -28,10 +28,6 @@
 
                 <!-- Edit and Delete Buttons -->
                 <div>
-                    <!-- Hidden Back Button 
-                    <a href="{{ route('reports') }}" class="btn btn-secondary original-back-btn">
-                        <i class="bx bx-arrow-back"></i> Back
-                    </a>-->
                     <!-- Edit Button with Routing -->
                     <a href="{{ route('admin.weeklycareplans.edit', $weeklyCareplan->weekly_care_plan_id) }}" title="Edit Weekly Care Plan" class="btn btn-primary">
                         <i class="bx bx-edit"></i> Edit

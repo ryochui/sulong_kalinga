@@ -51,7 +51,7 @@
     <li>
       <a href="{{ route('care-manager.weeklycareplans.create') }}" class="{{ Request::routeIs('care-manager.weeklyCarePlans*') ? 'active' : '' }}">
         <i class='bx bx-task'></i>
-        <span class="link_name">Weekly Care Plans</span>
+        <span class="link_name">Weekly Care Plan</span>
       </a>
       <ul class="sub-menu blank">
         <li><a class="link_name" href="{{ route('care-manager.weeklycareplans.create') }}">Weekly Care Plans</a></li>

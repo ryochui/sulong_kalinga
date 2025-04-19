@@ -7,21 +7,21 @@
   </div>
   <ul class="nav-links">
     <li>
-      <a href="/admin/dashboard" class="{{ Request::routeIs('admin/dashboard') ? 'active' : '' }}">
+      <a href="{{ route('care-worker.dashboard') }}" class="{{ Request::routeIs('care-worker.dashboard') ? 'active' : '' }}">
         <i class='bx bx-grid-alt'></i>
         <span class="link_name">Dashboard</span>
       </a>
       <ul class="sub-menu blank">
-        <li><a class="link_name" href="/admin/dashboard" >Dashboard</a></li>
+      <li><a class="link_name" href="{{ route('care-worker.dashboard') }}" >Dashboard</a></li>
       </ul>
     </li>
     <li>
-      <a href="{{ route('admin.reports') }}" class="{{ Request::routeIs('admin.reports') ? 'active' : '' }}">
+      <a href="{{ route('care-worker.reports') }}" class="{{ Request::routeIs('admin.reports') ? 'active' : '' }}">
         <i class='bx bx-file'></i>
         <span class="link_name">Reports Management</span>
       </a>
       <ul class="sub-menu blank">
-        <li><a class="link_name" href="{{ route('admin.reports') }}">Reports Management</a></li>
+        <li><a class="link_name" href="{{ route('care-worker.reports') }}">Reports Management</a></li>
       </ul>
     </li>
     <li>
@@ -43,15 +43,6 @@
             Administrator Profiles
           </a>
         </li>
-      </ul>
-    </li>
-    <li>
-      <a href="{{ route('admin.locations.index') }}" class="{{ Request::routeIs('admin.locations.*') ? 'active' : '' }}">
-        <i class='bx bx-map-alt'></i>
-        <span class="link_name">Municipality</span>
-      </a>
-      <ul class="sub-menu blank">
-        <li><a class="link_name" href="{{ route('admin.locations.index') }}">Municipality</a></li>
       </ul>
     </li>
     <li>

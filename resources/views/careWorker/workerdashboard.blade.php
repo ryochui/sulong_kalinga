@@ -23,7 +23,7 @@
                 </div>
                 <div class="modal-body text-center">
                     <i class='bx bxs-party display-4 text-primary mb-3'></i>
-                    <h4>Hello, {{ auth()->user()->name }}!</h4>
+                    <h4>Hello, {{ auth()->user()->first_name }} {{ auth()->user()->last_name }}!</h4>
                     <p>Welcome back to your Care Worker Dashboard.</p>
                 </div>
                 <div class="modal-footer justify-content-center">
@@ -34,7 +34,7 @@
     </div>
 
     <div class="home-section">
-      <div class="text-left">DASHBOARD CARE WORKER</div>
+      <div class="text-left">CARE WORKER DASHBOARD</div>
         <div class="container-fluid">
             <div class="row boxbox">
               <!-- Statistics Row -->

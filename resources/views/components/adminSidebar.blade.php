@@ -81,7 +81,7 @@
     <li>
       <a href="{{ route('admin.weeklycareplans.create') }}" class="{{ Request::routeIs('admin.weeklycareplans.*') ? 'active' : '' }}">
         <i class="bi bi-clipboard-check"></i>
-        <span class="link_name">Weekly CarePlan</span>
+        <span class="link_name">Weekly Care Plan</span>
       </a>
       <ul class="sub-menu blank">
         <li><a class="link_name" href="{{ route('admin.weeklycareplans.create') }}">Weekly CarePlan</a></li>

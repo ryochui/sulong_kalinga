@@ -116,4 +116,16 @@ class User extends Authenticatable
      {
          return $this->hasManyThrough(GeneralCarePlan::class, CareWorkerResponsibility::class, 'care_worker_id', 'id', 'id', 'general_care_plan_id');
      }
+
+     public function assignedBeneficiaries()
+    {
+        return $this->hasManyThrough(
+            Beneficiary::class,          // The model we want to access (Beneficiary)
+            GeneralCarePlan::class,      // The intermediate model (GeneralCarePlan)
+            'care_worker_id',            // Foreign key on GeneralCarePlan
+            'general_care_plan_id',      // Foreign key on Beneficiary
+            'general_care_plan_id',                        // Local key on User
+            'general_care_plan_id'                         // Local key on GeneralCarePlan
+        );
+    }
 }

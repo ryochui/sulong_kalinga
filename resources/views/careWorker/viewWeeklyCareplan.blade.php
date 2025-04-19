@@ -12,14 +12,15 @@
 <body>
 
     @include('components.userNavbar')
-    @include('components.sidebar')
-
+    @include('components.careManagerSidebar')
+    @include('components.modals.confirmDeleteWeeklyCareplan')
+    @include('components.modals.deleteWeeklyCareplan')
     
     <div class="home-section">
         <div class="container-fluid">
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <!-- Original Back Button -->
-                <a href="{{ route('reports') }}" class="btn btn-secondary original-back-btn">
+                <a href="{{ route('care-worker.reports') }}" class="btn btn-secondary original-back-btn">
                     <i class="bx bx-arrow-back"></i> Back
                 </a>
 
@@ -27,23 +28,21 @@
 
                 <!-- Edit and Delete Buttons -->
                 <div>
-                    <!-- Hidden Back Button 
-                    <a href="{{ route('reports') }}" class="btn btn-secondary original-back-btn">
-                        <i class="bx bx-arrow-back"></i> Back
-                    </a>-->
                     <!-- Edit Button with Routing -->
-                    <form action="" method="POST" style="display:inline;">
-                        @csrf
-                        <input type="hidden" name="family_member_id" value="">
-                        <button type="submit" class="btn btn-primary">
-                        <i class="bx bxs-edit"></i> Edit
-                        </button>
-                    </form>
-                    <button class="btn btn-danger">
-                        <i class="bx bxs-trash"></i> Delete
+                    <a href="{{ route('care-worker.weeklycareplans.edit', $weeklyCareplan->weekly_care_plan_id) }}" title="Edit Weekly Care Plan" class="btn btn-primary">
+                        <i class="bx bx-edit"></i> Edit
+                    </a>
+                    <button type="button" class="btn btn-danger" onclick="openInitialDeleteModal('{{ $weeklyCareplan->weekly_care_plan_id }}', '{{ $weeklyCareplan->beneficiary->first_name }} {{ $weeklyCareplan->beneficiary->last_name }}')">
+                        <i class="bx bx-trash"></i> Delete
                     </button>
                 </div>
             </div>
+            @if(session('success'))
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    <strong><i class="bx bx-check-circle me-1"></i> Success!</strong> {{ session('success') }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            @endif
             <div class="row mb-3" id="weeklyCareplanDetails">
                 <div class="col-12">
                     <div class="row personal-details">
@@ -236,6 +235,19 @@
 
     <script src=" {{ asset('js/toggleSideBar.js') }}"></script>
     <script src="{{ asset('js/bootstrap.bundle.min.js') }}"></script>
+
+    <script>
+    // Function to open the initial confirmation modal
+    function openInitialDeleteModal(id, name) {
+        // Set values for the initial modal
+        document.getElementById('initialWeeklyCarePlanIdToDelete').value = id;
+        document.getElementById('initialBeneficiaryNameToDelete').textContent = name;
+        
+        // Show the initial confirmation modal
+        const initialModal = new bootstrap.Modal(document.getElementById('confirmDeleteWeeklyCarePlanModal'));
+        initialModal.show();
+    }
+</script>
    
 </body>
 </html>
