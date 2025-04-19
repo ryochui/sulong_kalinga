@@ -11,7 +11,7 @@
 <body>
 
     @include('components.userNavbar')
-    @include('components.careManagerSidebar')
+    @include('components.careWorkerSidebar')
     @include('components.modals.confirmDelete')
     
     <div class="home-section">

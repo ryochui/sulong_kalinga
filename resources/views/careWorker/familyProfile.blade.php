@@ -12,7 +12,7 @@
 <body>
 
     @include('components.userNavbar')
-    @include('components.careManagerSidebar')
+    @include('components.careWorkerSidebar')
 
     <div class="home-section">
         <div class="text-left">FAMILY OR RELATIVE PROFILES CM</div>

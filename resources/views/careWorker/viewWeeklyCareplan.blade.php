@@ -12,7 +12,7 @@
 <body>
 
     @include('components.userNavbar')
-    @include('components.careManagerSidebar')
+    @include('components.careWorkerSidebar')
     @include('components.modals.confirmDeleteWeeklyCareplan')
     @include('components.modals.deleteWeeklyCareplan')
     

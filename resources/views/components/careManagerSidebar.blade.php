@@ -25,7 +25,7 @@
       </ul>
     </li>
     <li>
-      <div class="iocn-link">
+      <div class="icon-link">
         <a class="{{ Request::is('care-manager/beneficiaries*') || Request::is('care-manager/family-members*') || Request::is('care-manager/care-workers*') ? 'active' : '' }}">
           <i class='bx bxs-user-account'></i>
           <span class="link_name" onclick="toggleDropdown(this)">User Management</span>

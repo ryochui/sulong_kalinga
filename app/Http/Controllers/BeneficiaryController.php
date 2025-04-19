@@ -58,7 +58,7 @@ class BeneficiaryController extends Controller
         $statuses = BeneficiaryStatus::all();
 
         // Fetch beneficiaries based on the search query and filters
-        $query = Beneficiary::with('category', 'status', 'municipality')
+        $query = Beneficiary::with('category', 'status', 'municipality', 'generalCarePlan')
             ->when($search, function ($query, $search) {
                 return $query->whereRaw('LOWER(first_name) LIKE ?', ['%' . strtolower($search) . '%'])
                             ->orWhereRaw('LOWER(last_name) LIKE ?', ['%' . strtolower($search) . '%']);
@@ -76,7 +76,9 @@ class BeneficiaryController extends Controller
         
         // Care Workers can only see assigned beneficiaries
         if (Auth::user()->role_id == 3) {
-            $query->where('assigned_care_worker_id', Auth::id());
+            $query->whereHas('generalCarePlan', function($q) {
+                $q->where('care_worker_id', Auth::id());
+            });
         }
         
         $beneficiaries = $query->get();
@@ -185,8 +187,11 @@ class BeneficiaryController extends Controller
         }
 
         // For care workers, check if they're assigned to this beneficiary
-        if (Auth::user()->role_id == 3 && $beneficiary->assigned_care_worker_id != Auth::id()) {
-            abort(403, 'Unauthorized. You can only view details of beneficiaries assigned to you.');
+        if (Auth::user()->role_id == 3) {
+            $isAssigned = $beneficiary->generalCarePlan && $beneficiary->generalCarePlan->care_worker_id == Auth::id();
+            if (!$isAssigned) {
+                abort(403, 'Unauthorized. You can only view details of beneficiaries assigned to you.');
+            }
         }
 
         $careNeeds1 = $beneficiary->generalCarePlan->careNeeds->where('care_category_id', 1);
@@ -899,8 +904,11 @@ class BeneficiaryController extends Controller
         ])->findOrFail($id);
 
         // For care workers, check if they're assigned to this beneficiary
-        if (Auth::user()->role_id == 3 && $beneficiary->assigned_care_worker_id != Auth::id()) {
-            abort(403, 'Unauthorized. You can only edit beneficiaries assigned to you.');
+        if (Auth::user()->role_id == 3) {
+            $isAssigned = $beneficiary->generalCarePlan && $beneficiary->generalCarePlan->care_worker_id == Auth::id();
+            if (!$isAssigned) {
+                abort(403, 'Unauthorized. You can only edit beneficiaries assigned to you.');
+            }
         }
 
         // Format the date for the form

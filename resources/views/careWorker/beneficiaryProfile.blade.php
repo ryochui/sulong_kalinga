@@ -3,25 +3,32 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Dashboard</title>
     <link rel="stylesheet" href="{{ asset('css/bootstrap.min.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <link href='https://unpkg.com/boxicons@2.0.7/css/boxicons.min.css' rel='stylesheet'>
     <link rel="stylesheet" href="{{ asset('css/reportsManagement.css') }}">
+    
 </head>
 <body>
 
     @include('components.userNavbar')
-    @include('components.careManagerSidebar')
-    @include('components.modals.statusChangeBeneficiary')
+    @include('components.careWorkerSidebar')
     
     <div class="home-section">
-        <div class="text-left">BENEFICIARY PROFILES CM</div>
+        <div class="text-left">BENEFICIARY PROFILES</div>
         <div class="container-fluid text-center">
+            @if(session('success'))
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                {{ session('success') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            @endif
             <div class="row mb-3 align-items-center">
                 <!-- Search Bar -->
                 <div class="col-12 col-md-6 col-lg-6 mb-2">
-                    <form action="{{ route('admin.beneficiaryProfile') }}" method="GET">
+                    <form action="{{ route('care-worker.beneficiaries.index') }}" method="GET">
                         <div class="input-group">
                             <span class="input-group-text">
                                 <i class="bx bx-search-alt"></i>
@@ -61,16 +68,16 @@
                 </div>
 
                 <!-- Hidden form for exporting -->
-                <form id="exportForm" action="{{ route('export.beneficiaries.pdf') }}" method="POST" style="display: none;"
-                    data-pdf-route="{{ route('export.beneficiaries.pdf') }}" 
-                    data-excel-route="{{ route('export.beneficiaries.excel') }}">
+                <form id="exportForm" action="{{ route('care-worker.exports.beneficiaries-pdf') }}" method="POST" style="display: none;"
+                    data-pdf-route="{{ route('care-worker.exports.beneficiaries-pdf') }}" 
+                    data-excel-route="{{ route('care-worker.exports.beneficiaries-excel') }}">
                     @csrf
                     <input type="hidden" name="selected_beneficiaries" id="selectedBeneficiaries">
                 </form>
 
                 <!-- Add Beneficiary Button -->
                 <div class="col-6 col-md-3 col-lg-2 mb-2">
-                    <a href="{{ route('admin.addBeneficiary') }}">
+                    <a href="{{ route('care-worker.beneficiaries.create') }}">
                     <button class="btn btn-primary w-100" id="addButton">
                         <i class="bx bx-plus"></i> Add Beneficiary
                     </button>
@@ -80,6 +87,15 @@
 
             <div class="row" id="recentReports">
                 <div class="col-12">
+                <div class="row mb-3">
+                    <div class="col-12">
+                        <div class="alert alert-info alert-dismissible fade show">
+                            <i class="bx bx-info-circle me-2"></i>
+                            You can view and edit beneficiary details, but only administrators and care managers can change a beneficiary's status.
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    </div>
+                </div>
                     <div class="table-responsive">
                         <table class="table table-striped w-100 align-middle">
                             <thead>
@@ -108,28 +124,23 @@
                                         <td>{{ $beneficiary->barangay->barangay_name }}</td>
                                         <td>{{ $beneficiary->municipality->municipality_name }}</td>
                                         <td>
-                                        <select class="form-select" name="status" id="statusSelect{{ $beneficiary->beneficiary_id }}" onchange="openStatusChangeModal(this, 'Beneficiary', {{ $beneficiary->beneficiary_id }}, '{{ $beneficiary->status->status_name }}')">
-                                            <option value="Active" {{ $beneficiary->status->status_name == 'Active' ? 'selected' : '' }}>Active</option>
-                                            <option value="Inactive" {{ $beneficiary->status->status_name == 'Inactive' ? 'selected' : '' }}>Inactive</option>
-                                        </select>
+                                            <span class="badge {{ $beneficiary->status->status_name == 'Active' ? 'bg-success' : 'bg-secondary' }}">
+                                                {{ $beneficiary->status->status_name }}
+                                            </span>
                                         </td>
                                         <td>
                                             <div class="action-icons" style="gap: 0px !important;">
                                                 <!-- Form to VIEW PROFILE DETAILS -->
-                                                <form action="{{ route('viewProfileDetails') }}" method="POST" style="display:inline;">
+                                                <form action="{{ route('care-worker.beneficiaries.view-details') }}" method="POST" style="display:inline;">
                                                     @csrf
                                                     <input type="hidden" name="beneficiary_id" value="{{ $beneficiary->beneficiary_id }}">
                                                     <button type="submit" class="btn btn-link text-decoration-none" style="color:black;">
                                                         <i class="fa fa-eye"></i>
                                                     </button>
                                                 </form>
-                                                <form action="{{ route('editProfile') }}" method="POST" style="display:inline;">
-                                                    @csrf
-                                                    <input type="hidden" name="beneficiary_id" value="{{ $beneficiary->beneficiary_id }}">
-                                                    <button type="submit" class="btn btn-link text-decoration-none" style="color:black;">
-                                                        <i class="bx bxs-edit"></i>
-                                                    </button>
-                                                </form>
+                                                <a href="{{ route('care-worker.beneficiaries.edit', $beneficiary->beneficiary_id) }}" class="btn btn-link text-decoration-none" style="color:black;">
+                                                    <i class="bx bxs-edit"></i>
+                                                </a>
                                             </div>
                                         </td>
                                     </tr>
@@ -146,5 +157,24 @@
     <script src="{{ asset('js/bootstrap.bundle.min.js') }}"></script>
     <script src="{{ asset('js/forCheckbox.js') }}"></script>
     <script src="{{ asset('js/forBeneficiaryExport.js') }}"></script>
+
+    <script>
+    // Show info alert only once per session
+    document.addEventListener('DOMContentLoaded', function() {
+        // Check if we've already shown the alert this session
+        const alertShown = sessionStorage.getItem('beneficiaryAlertShown');
+        
+        if (alertShown) {
+            // If already shown in this session, hide it
+            const alertElement = document.querySelector('.alert-info.alert-dismissible');
+            if (alertElement) {
+                alertElement.style.display = 'none';
+            }
+        } else {
+            // Mark as shown for this session
+            sessionStorage.setItem('beneficiaryAlertShown', 'true');
+        }
+    });
+    </script>
 </body>
 </html>

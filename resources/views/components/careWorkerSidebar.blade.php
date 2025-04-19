@@ -25,8 +25,8 @@
       </ul>
     </li>
     <li>
-      <div class="iocn-link">
-        <a class="{{ Request::is('admin/beneficiaries*') || Request::is('admin/families*') || Request::is('admin/care-workers*') || Request::is('admin/care-managers*') || Request::is('admin/administrators*') ? 'active' : '' }}">
+      <div class="icon-link">
+        <a class="{{ Request::is('care-worker/beneficiaries*') || Request::is('care-worker/family-members*') ? 'active' : '' }}">
           <i class='bx bxs-user-account'></i>
           <span class="link_name" onclick="toggleDropdown(this)">User Management</span>
           <i class='bx bxs-chevron-down arrow' onclick="toggleDropdown(this)"></i>
@@ -34,24 +34,17 @@
       </div>
       <ul class="sub-menu">
         <li><a class="link_name">User Management</a></li>
-        <li><a href="{{ route('admin.beneficiaries.index') }}" class="{{ Request::routeIs('admin.beneficiaryProfile') || Request::routeIs('admin.addBeneficiary') ? 'active' : '' }}">Beneficiary Profiles</a></li>
-        <li><a href="{{ route('admin.families.index') }}" class="{{ Request::routeIs('admin.familyProfile') || Request::routeIs('admin.addFamily') ? 'active' : '' }}">Family or Relative Profiles</a></li>
-        <li><a href="{{ route('admin.careworkers.index') }}" class="{{ Request::routeIs('admin.careWorkerProfile') || Request::routeIs('admin.addCareWorker*') ? 'active' : '' }}">Care Worker Profiles</a></li>
-        <li><a href="{{ route('admin.caremanagers.index') }}" class="{{ Request::routeIs('admin.careManagerProfile') || Request::routeIs('admin.addCareManager') ? 'active' : '' }}">Care Manager Profiles</a></li>
-        <li>
-          <a href="{{ route('admin.administrators.index') }}" class="{{ Request::routeIs('administratorProfile') || Request::routeIs('admin.addAdministrator') ? 'active' : '' }}">
-            Administrator Profiles
-          </a>
-        </li>
+        <li><a href="{{ route('care-worker.beneficiaries.index') }}" class="{{ Request::routeIs('care-worker.showBeneficiary') || Request::routeIs('care-worker.addBeneficiary') ? 'active' : '' }}">Beneficiary Profiles</a></li>
+        <li><a href="{{ route('care-worker.families.index') }}" class="{{ Request::routeIs('care-worker.showFamilyMember') || Request::routeIs('care-worker.addFamilyMember') ? 'active' : '' }}">Family or Relative Profiles</a></li>
       </ul>
     </li>
     <li>
-      <a href="{{ route('admin.weeklycareplans.create') }}" class="{{ Request::routeIs('admin.weeklycareplans.*') ? 'active' : '' }}">
+      <a href="{{ route('care-worker.weeklycareplans.create') }}" class="{{ Request::routeIs('admin.weeklycareplans.*') ? 'active' : '' }}">
         <i class='bx bx-task'></i>
         <span class="link_name">Weekly Care Plan</span>
       </a>
       <ul class="sub-menu blank">
-        <li><a class="link_name" href="{{ route('admin.weeklycareplans.create') }}">Weekly Care Plan</a></li>
+        <li><a class="link_name" href="{{ route('care-worker.weeklycareplans.create') }}">Weekly Care Plan</a></li>
       </ul>
     </li>
   </ul>
