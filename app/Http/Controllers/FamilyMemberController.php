@@ -12,11 +12,13 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
 use App\Models\User;
 use App\Models\Municipality;
 use App\Models\FamilyMember;
 use App\Models\Beneficiary;
+use App\Models\GeneralCarePlan;
 use App\Services\UserManagementService;
 
 class FamilyMemberController extends Controller
@@ -52,13 +54,22 @@ class FamilyMemberController extends Controller
 
         // For care workers, only show family members related to their assigned beneficiaries
         if (Auth::user()->role_id == 3) {
-            $assignedBeneficiaryIds = Auth::user()->assignedBeneficiaries()->pluck('beneficiary_id');
+            // First retrieve beneficiaries assigned to this care worker directly
+            $assignedBeneficiaryIds = Beneficiary::whereHas('generalCarePlan', function($query) {
+                $query->where('care_worker_id', Auth::id());
+            })->pluck('beneficiary_id')->toArray();
             
+            // Debug log to check if we're getting any beneficiaries
+            \Log::debug('Care worker assigned beneficiaries: ' . json_encode($assignedBeneficiaryIds));
+            
+            // Then find family members related to those beneficiaries
             $family_members = FamilyMember::with(['beneficiary.municipality'])
                 ->whereIn('related_beneficiary_id', $assignedBeneficiaryIds)
                 ->when($search, function ($query, $search) {
-                    return $query->whereRaw('LOWER(first_name) LIKE ?', ['%' . strtolower($search) . '%'])
-                                ->orWhereRaw('LOWER(last_name) LIKE ?', ['%' . strtolower($search) . '%']);
+                    return $query->where(function($q) use ($search) {
+                        $q->whereRaw('LOWER(first_name) LIKE ?', ['%' . strtolower($search) . '%'])
+                        ->orWhereRaw('LOWER(last_name) LIKE ?', ['%' . strtolower($search) . '%']);
+                    });
                 })
                 ->when($filter, function ($query, $filter) {
                     if ($filter == 'access') {
@@ -67,21 +78,21 @@ class FamilyMemberController extends Controller
                 })
                 ->orderBy('first_name')
                 ->get();
-        } else {
-            // For admin and care manager, show all family members
-            $family_members = FamilyMember::with(['beneficiary.municipality'])
-                ->when($search, function ($query, $search) {
-                    return $query->whereRaw('LOWER(first_name) LIKE ?', ['%' . strtolower($search) . '%'])
+            } else {
+                // Admin and care manager code remains unchanged
+                $family_members = FamilyMember::with(['beneficiary.municipality'])
+                    ->when($search, function ($query, $search) {
+                        return $query->whereRaw('LOWER(first_name) LIKE ?', ['%' . strtolower($search) . '%'])
                                 ->orWhereRaw('LOWER(last_name) LIKE ?', ['%' . strtolower($search) . '%']);
-                })
-                ->when($filter, function ($query, $filter) {
-                    if ($filter == 'access') {
-                        return $query->orderBy('access');
-                    }
-                })
-                ->orderBy('first_name')
-                ->get();
-        }
+                    })
+                    ->when($filter, function ($query, $filter) {
+                        if ($filter == 'access') {
+                            return $query->orderBy('access');
+                        }
+                    })
+                    ->orderBy('first_name')
+                    ->get();
+            }
         
         $family_members->map(function ($family_member) {
             $family_member->status = $family_member->access ? 'Approved' : 'Denied';
@@ -117,10 +128,13 @@ class FamilyMemberController extends Controller
 
         // For care workers, check if they are assigned to this beneficiary
         if (Auth::user()->role_id == 3) {
-            $assignedBeneficiaryIds = Auth::user()->assignedBeneficiaries()->pluck('beneficiary_id');
+            // Remove toArray() - keep it as a collection so contains() works
+            $assignedBeneficiaryIds = Beneficiary::whereHas('generalCarePlan', function($query) {
+                $query->where('care_worker_id', Auth::id());
+            })->pluck('beneficiary_id'); // Removed toArray() here
             
             if (!$assignedBeneficiaryIds->contains($family_member->related_beneficiary_id)) {
-                return redirect()->route($rolePrefix . '.families.index')
+                return redirect()->route($rolePrefixRoute . '.families.index')
                     ->with('error', 'You do not have permission to view this family member.');
             }
         }
@@ -138,9 +152,11 @@ class FamilyMemberController extends Controller
         
         // For care workers, only show their assigned beneficiaries
         if (Auth::user()->role_id == 3) {
-            $beneficiaries = Auth::user()->assignedBeneficiaries()
-                ->select('beneficiary_id', 'first_name', 'last_name')
-                ->get();
+            $beneficiaries = Beneficiary::whereHas('generalCarePlan', function($query) {
+                $query->where('care_worker_id', Auth::id());
+            })
+            ->select('beneficiary_id', 'first_name', 'last_name')
+            ->get();
         } else {
             // For admin and care manager, show all beneficiaries
             $beneficiaries = Beneficiary::select('beneficiary_id', 'first_name', 'last_name')->get();
@@ -352,16 +368,22 @@ class FamilyMemberController extends Controller
         
         // For care workers, check if they are assigned to this beneficiary
         if (Auth::user()->role_id == 3) {
-            $assignedBeneficiaryIds = Auth::user()->assignedBeneficiaries()->pluck('beneficiary_id');
+            // Replace the assignedBeneficiaries() call with direct query
+            $assignedBeneficiaryIds = Beneficiary::whereHas('generalCarePlan', function($query) {
+                $query->where('care_worker_id', Auth::id());
+            })->pluck('beneficiary_id');
             
             if (!$assignedBeneficiaryIds->contains($familyMember->related_beneficiary_id)) {
                 return redirect()->route($rolePrefix . '.families.index')
                     ->with('error', 'You do not have permission to edit this family member.');
             }
             
-            $beneficiaries = Auth::user()->assignedBeneficiaries()
-                ->select('beneficiary_id', 'first_name', 'last_name')
-                ->get();
+            // Also fix the beneficiaries query
+            $beneficiaries = Beneficiary::whereHas('generalCarePlan', function($query) {
+                $query->where('care_worker_id', Auth::id());
+            })
+            ->select('beneficiary_id', 'first_name', 'last_name')
+            ->get();
         } else {
             // For admin and care manager, show all beneficiaries
             $beneficiaries = Beneficiary::select('beneficiary_id', 'first_name', 'last_name')->get();
@@ -445,7 +467,10 @@ class FamilyMemberController extends Controller
             // For care workers, check if they are assigned to this beneficiary
             
             if (Auth::user()->role_id == 3) {
-                $assignedBeneficiaryIds = Auth::user()->assignedBeneficiaries()->pluck('beneficiary_id');
+                // Replace the assignedBeneficiaries() call with direct query
+                $assignedBeneficiaryIds = Beneficiary::whereHas('generalCarePlan', function($query) {
+                    $query->where('care_worker_id', Auth::id());
+                })->pluck('beneficiary_id');
                 
                 if (!$assignedBeneficiaryIds->contains($familyMember->related_beneficiary_id)) {
                     return redirect()->route($rolePrefix . '.families.index')
