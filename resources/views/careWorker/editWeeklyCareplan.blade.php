@@ -58,16 +58,18 @@
 <body>
 
     @include('components.userNavbar')
-    @include('components.careWorkerSidebar')
+    @include('components.careManagerSidebar')
     
     <div class="home-section">
-        <h4 class="text-center mt-2">WEEKLY CARE PLAN FORM</h4>
-        
+    @if(session('success'))
+        <div id="success-message" class="alert alert-success alert-dismissible fade show mx-3" 
+            style="display: block !important; visibility: visible !important; opacity: 1 !important; margin-top: 15px !important; margin-bottom: 15px !important;">
+            <strong>Success!</strong> {{ session('success') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    @endif
+        <h4 class="text-center mt-2">EDIT WEEKLY CARE PLAN FORM</h4>
             <div class="container-fluid">
-            <div id="success-message" class="alert alert-success alert-dismissible fade show mx-3" style="display:none;">
-                <strong>Success!</strong> Weekly care plan has been successfully created.
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
                 <div class="row mb-1" id="weeklyCareplanForm">
                     <div class="col-12">
                         <div class="row">
@@ -91,8 +93,9 @@
                             </div>
                         </div>
                         
-                        <form id="weeklyCarePlanForm" action="{{ route('care-worker.weeklycareplans.store') }}" method="POST">
+                        <form id="weeklyCarePlanForm" action="{{ route('care-worker.weeklycareplans.update', $weeklyCarePlan->weekly_care_plan_id) }}" method="POST" novalidate>
                             @csrf
+                            @method('PUT')
                             <div class="row">
                                 <div class="col-12">
                                     <!-- Multi-Paged Form -->
@@ -109,12 +112,13 @@
                                                 <div class="col-md-4 col-sm-9 position-relative">
                                                     <label for="beneficiary_id" class="form-label">Select Beneficiary</label>
                                                     <select class="form-select" id="beneficiary_id" name="beneficiary_id">
-                                                            <option value="">-- Select Beneficiary --</option>
-                                                            @foreach($beneficiaries as $beneficiary)
-                                                                <option value="{{ $beneficiary->beneficiary_id }}">
-                                                                    {{ $beneficiary->last_name }}, {{ $beneficiary->first_name }} {{ $beneficiary->middle_name }}
-                                                                </option>
-                                                            @endforeach
+                                                        <option value="">-- Select Beneficiary --</option>
+                                                        @foreach($beneficiaries as $beneficiary)
+                                                            <option value="{{ $beneficiary->beneficiary_id }}" 
+                                                                {{ old('beneficiary_id', $weeklyCarePlan->beneficiary_id) == $beneficiary->beneficiary_id ? 'selected' : '' }}>
+                                                                {{ $beneficiary->last_name }}, {{ $beneficiary->first_name }} {{ $beneficiary->middle_name }}
+                                                            </option>
+                                                        @endforeach
                                                     </select>
                                                 </div>
                                                 <div class="col-md-2 col-sm-3">
@@ -150,7 +154,7 @@
                                                 <div class="col-lg-6 col-md-6 col-sm-12 text-center">
                                                     <label for="assessment" class="form-label"><h5>Assessment</h5></label>
                                                     <textarea class="form-control @error('assessment') is-invalid @enderror" 
-                                                            id="assessment" name="assessment" rows="5">{{ old('assessment') }}</textarea>
+                                                        id="assessment" name="assessment" rows="5">{{ old('assessment', $weeklyCarePlan->assessment) }}</textarea>
                                                     @error('assessment')
                                                         <div class="invalid-feedback">{{ $message }}</div>
                                                     @enderror
@@ -162,7 +166,7 @@
                                                             <label for="blood_pressure" class="form-label">Blood Pressure (mmHg)</label>
                                                             <input type="text" class="form-control @error('blood_pressure') is-invalid @enderror" 
                                                                 id="blood_pressure" name="blood_pressure"
-                                                                placeholder="e.g. 120/80" value="{{ old('blood_pressure') }}"
+                                                                placeholder="e.g. 120/80" value="{{ old('blood_pressure', $weeklyCarePlan->vitalSigns->blood_pressure) }}"
                                                                 pattern="^\d{2,3}\/\d{2,3}$"
                                                                 title="Format: systolic/diastolic (e.g. 120/80)">
                                                             <small class="form-text text-muted">Format: systolic/diastolic (e.g. 120/80)</small>
@@ -174,7 +178,7 @@
                                                             <label for="body_temperature" class="form-label">Body Temperature (°C)</label>
                                                             <input type="number" class="form-control @error('body_temperature') is-invalid @enderror" 
                                                                 id="body_temperature" name="body_temperature" 
-                                                                placeholder="e.g. 36.5" value="{{ old('body_temperature') }}"
+                                                                placeholder="e.g. 36.5" value="{{ old('body_temperature', $weeklyCarePlan->vitalSigns->body_temperature) }}"
                                                                 min="35" max="42" step="0.1">
                                                             <small class="form-text text-muted">Enter a number between 35-42°C</small>
                                                             @error('body_temperature')
@@ -187,7 +191,7 @@
                                                             <label for="pulse_rate" class="form-label">Pulse Rate (bpm)</label>
                                                             <input type="number" class="form-control @error('pulse_rate') is-invalid @enderror" 
                                                                 id="pulse_rate" name="pulse_rate"
-                                                                placeholder="e.g. 72" value="{{ old('pulse_rate') }}"
+                                                                placeholder="e.g. 72" value="{{ old('pulse_rate', $weeklyCarePlan->vitalSigns->pulse_rate) }}"
                                                                 min="40" max="200" step="1">
                                                             <small class="form-text text-muted">Enter a whole number (beats per minute)</small>
                                                             @error('pulse_rate')
@@ -198,7 +202,7 @@
                                                             <label for="respiratory_rate" class="form-label">Respiratory Rate (bpm)</label>
                                                             <input type="number" class="form-control @error('respiratory_rate') is-invalid @enderror" 
                                                                 id="respiratory_rate" name="respiratory_rate"
-                                                                placeholder="e.g. 16" value="{{ old('respiratory_rate') }}"
+                                                                placeholder="e.g. 16" value="{{ old('respiratory_rate', $weeklyCarePlan->vitalSigns->respiratory_rate) }}"
                                                                 min="8" max="40" step="1">
                                                             <small class="form-text text-muted">Enter a whole number (breaths per minute)</small>
                                                             @error('respiratory_rate')
@@ -229,11 +233,13 @@
                                                         <div class="row intervention-row">
                                                             <div class="col-md-8">
                                                                 <div class="form-check">
-                                                                    <input class="form-check-input intervention-checkbox" 
-                                                                        type="checkbox" 
-                                                                        name="selected_interventions[]" 
-                                                                        id="intervention_{{ $intervention->intervention_id }}"
-                                                                        value="{{ $intervention->intervention_id }}">
+                                                                <input class="form-check-input intervention-checkbox" 
+                                                                    type="checkbox" 
+                                                                    name="selected_interventions[]" 
+                                                                    id="intervention_{{ $intervention->intervention_id }}"
+                                                                    value="{{ $intervention->intervention_id }}"
+                                                                    {{ in_array($intervention->intervention_id, old('selected_interventions', $selectedInterventions ?? [])) ? 'checked' : '' }}
+                                                                    onchange="toggleDurationInput(this)">
                                                                     <label class="form-check-label" for="intervention_{{ $intervention->intervention_id }}">
                                                                         {{ $intervention->intervention_description }}
                                                                     </label>
@@ -241,14 +247,15 @@
                                                             </div>
                                                             <div class="col-md-4">
                                                                 <div class="input-group duration-input">
-                                                                    <input type="number" 
+                                                                <input type="number" 
                                                                         class="form-control intervention-duration" 
                                                                         name="duration_minutes[{{ $intervention->intervention_id }}]" 
                                                                         placeholder="Minutes" 
                                                                         min="0.01" 
                                                                         max="999.99" 
                                                                         step="0.1"
-                                                                        disabled>
+                                                                        value="{{ old('duration_minutes.' . $intervention->intervention_id, $interventionDurations[$intervention->intervention_id] ?? '') }}"
+                                                                        {{ in_array($intervention->intervention_id, old('selected_interventions', $selectedInterventions ?? [])) ? '' : 'disabled' }}>
                                                                     <span class="input-group-text">min</span>
                                                                 </div>
                                                             </div>
@@ -259,7 +266,30 @@
                                                     <div class="mt-4">
                                                         <h6>Add Custom {{ $category->care_category_name }} Intervention</h6>
                                                         <div class="custom-intervention-container" data-category="{{ $category->care_category_id }}">
-                                                            <!-- Custom interventions will be added here -->
+                                                            @if(isset($customInterventionsByCategory[$category->care_category_id]))
+                                                                @foreach($customInterventionsByCategory[$category->care_category_id] as $customIntervention)
+                                                                    <div class="row custom-intervention-row mb-2">
+                                                                        <div class="col-md-8">
+                                                                            <input type="text" class="form-control" name="custom_description[]" 
+                                                                                placeholder="Describe intervention" value="{{ $customIntervention->intervention_description }}">
+                                                                            <input type="hidden" name="custom_category[]" value="{{ $category->care_category_id }}">
+                                                                        </div>
+                                                                        <div class="col-md-3">
+                                                                            <div class="input-group">
+                                                                                <input type="number" class="form-control" name="custom_duration[]" 
+                                                                                    placeholder="Minutes" min="0.01" max="999.99" step="0.01" 
+                                                                                    value="{{ $customIntervention->duration_minutes }}">
+                                                                                <span class="input-group-text">min</span>
+                                                                            </div>
+                                                                        </div>
+                                                                        <div class="col-md-1">
+                                                                            <button type="button" class="btn btn-sm btn-danger remove-custom-row">
+                                                                                <i class="fa fa-times"></i>
+                                                                            </button>
+                                                                        </div>
+                                                                    </div>
+                                                                @endforeach
+                                                            @endif
                                                         </div>
                                                         <button type="button" class="btn btn-sm btn-outline-primary add-custom-intervention"
                                                                 data-category="{{ $category->care_category_id }}">
@@ -287,8 +317,8 @@
                                                 <div class="col-lg-8 col-md-12 col-sm-12 text-center">
                                                     <label for="evaluation_recommendations" class="form-label"><h5>Recommendations and Evaluations</h5></label>
                                                     <textarea class="form-control @error('evaluation_recommendations') is-invalid @enderror" 
-                                                            id="evaluation_recommendations" name="evaluation_recommendations" 
-                                                            rows="6" >{{ old('evaluation_recommendations') }}</textarea>
+                                                        id="evaluation_recommendations" name="evaluation_recommendations" 
+                                                        rows="6">{{ old('evaluation_recommendations', $weeklyCarePlan->evaluation_recommendations) }}</textarea>
                                                     @error('evaluation_recommendations')
                                                         <div class="invalid-feedback">{{ $message }}</div>
                                                     @enderror
@@ -884,220 +914,6 @@
 </script>
 
 <script>
-// **** ABSOLUTE FINAL FIX - ONE SCRIPT TO RULE THEM ALL ****
-(function() {
-    // Wait for page load
-    window.addEventListener('load', function() {
-        console.log('Applying absolute final form fix');
-        
-        // Get the form
-        const form = document.getElementById('weeklyCarePlanForm');
-        if (!form) return;
-        
-        // CRITICAL: Disable browser validation
-        form.setAttribute('novalidate', 'novalidate');
-        
-        // CRITICAL: Intercept before any other handlers
-        form.addEventListener('submit', function(event) {
-            // Always stop default first
-            event.preventDefault();
-            event.stopPropagation();
-            console.log('Form submission intercepted by absolute final fix');
-            
-            // 1. TEMPORARILY DISABLE HIDDEN FIELDS (for form data collection only)
-            const disabledFields = [];
-
-            document.querySelectorAll('.form-page:not(.active) input, .form-page:not(.active) select, .form-page:not(.active) textarea').forEach(field => {
-                if (!field.disabled) {
-                    disabledFields.push(field); // Track only fields we're disabling
-                    field.disabled = true;
-                }
-                
-                // Remove validation constraints
-                ['required', 'min', 'max', 'pattern', 'step', 'minlength', 'maxlength'].forEach(attr => {
-                    if (field.hasAttribute(attr)) {
-                        field.removeAttribute(attr);
-                    }
-                });
-            });
-
-            // IMPORTANT: Function to re-enable all temporarily disabled fields
-            const reEnableFields = () => {
-                disabledFields.forEach(field => {
-                    field.disabled = false;
-                });
-                disabledFields.length = 0; // Clear the array
-            };
-            
-            // 2. BYPASS BROWSER VALIDATION BY USING AJAX SUBMISSION
-            const formData = new FormData(form);
-            
-            // Re-enable fields that were disabled but needed for submission
-            document.querySelectorAll('.intervention-checkbox:checked').forEach(checkbox => {
-                const durationInput = checkbox.closest('.row').querySelector('.intervention-duration');
-                if (durationInput) {
-                    durationInput.disabled = false;
-                    // Add it back to formData if it was disabled
-                    formData.append(durationInput.name, durationInput.value);
-                }
-            });
-            
-            // Re-enable fields that were temporarily disabled
-            document.querySelectorAll('.form-page:not(.active) input:disabled, .form-page:not(.active) select:disabled, .form-page:not(.active) textarea:disabled').forEach(field => {
-                if (field.name && field.value) {
-                    formData.append(field.name, field.value);
-                }
-            });
-            
-            // 3. HANDLE VALIDATION MANUALLY
-            let isValid = true;
-            let errors = [];
-            let pageToShow = 1;
-            
-            // All validation logic (your existing validation code)
-            // 1. Check if beneficiary is selected
-            if (!document.getElementById('beneficiary_id').value) {
-                errors.push('Please select a beneficiary');
-                isValid = false;
-                pageToShow = 1;
-            }
-            
-            // 2. Check assessment - minimum 20 characters with meaningful content
-            const assessment = document.getElementById('assessment').value.trim();
-            if (!assessment) {
-                errors.push('Please provide an assessment');
-                isValid = false;
-                pageToShow = 1;
-            } else if (assessment.length < 20) {
-                errors.push('Assessment must be at least 20 characters');
-                isValid = false;
-                pageToShow = 1;
-            } else if (!/[a-zA-Z]/.test(assessment)) {
-                errors.push('Assessment must contain text and cannot consist of only numbers or symbols');
-                isValid = false;
-                pageToShow = 1;
-            }
-            
-            // Add all your other validations here
-            
-            // 4. SHOW ERRORS OR SUBMIT
-            if (!isValid && errors.length > 0) {
-                showValidationError(pageToShow, errors);
-                console.log('Validation failed - form not submitted');
-                return false;
-            }
-            
-            // 5. IF ALL VALID, SUBMIT THE FORM USING FETCH API
-            fetch(form.action, {
-                method: form.method,
-                body: formData,
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'Accept': 'application/json',
-                },
-                redirect: 'manual'
-            })
-            .then(response => {
-                // First check if this is a redirect (success)
-                if (response.type === 'opaqueredirect' || response.redirected) {
-                    // Show success message without page refresh
-                    const successMsg = document.getElementById('success-message');
-                    if (successMsg) {
-                        successMsg.style.display = 'block';
-                        window.scrollTo({top: 0, behavior: 'smooth'});
-                    }
-                    
-                    // Reset form and return to first page
-                    setTimeout(() => {
-                        form.reset();
-                        goToPage(1);
-                        document.querySelectorAll('.validation-error-container').forEach(el => {
-                            el.style.display = 'none';
-                        });
-                    }, 500);
-                    
-                    // Return mock response to prevent redirect
-                    return {
-                        text: () => Promise.resolve('{"success":true}'),
-                        json: () => Promise.resolve({"success":true}),
-                        redirected: true,
-                        status: 200,
-                        type: 'basic',
-                        ok: true,
-                        clone: () => ({ json: () => Promise.resolve({"success":true}) })
-                    };
-                }
-                // Try parsing as JSON first (Laravel typically returns JSON for validation errors)
-                return response.text().then(text => {
-                    try {
-                        return { isJson: true, data: JSON.parse(text) };
-                    } catch (e) {
-                        return { isJson: false, data: text };
-                    }
-                });
-            })
-            .then(result => {
-            // Always re-enable fields regardless of success/failure
-            reEnableFields();
-            
-            if (!result) return; // Skip if redirecting
-            
-            if (result.isJson && result.data.errors) {
-                // Handle Laravel validation errors (JSON format)
-                const errorMessages = [];
-                
-                // Extract error messages from the Laravel JSON response
-                for (const field in result.data.errors) {
-                    result.data.errors[field].forEach(message => {
-                        errorMessages.push(message);
-                    });
-                }
-                
-                console.log('Server validation errors:', errorMessages);
-                showValidationError(1, errorMessages);
-                } else if (!result.isJson) {
-                    // Not JSON, try to extract errors from HTML
-                    const parser = new DOMParser();
-                    const doc = parser.parseFromString(result.data, 'text/html');
-                    
-                    // Look for validation errors in the HTML
-                    const errorElements = doc.querySelectorAll('.invalid-feedback, .alert-danger');
-                    const errorMessages = [];
-                    
-                    errorElements.forEach(el => {
-                        if (el.textContent.trim()) {
-                            errorMessages.push(el.textContent.trim());
-                        }
-                    });
-                    
-                    if (errorMessages.length > 0) {
-                        console.log('HTML validation errors:', errorMessages);
-                        showValidationError(1, errorMessages);
-                    } else {
-                        // No specific errors found
-                        showValidationError(1, 'Form submission failed. Please check your input.');
-                    }
-                } else {
-                    // Unexpected response format
-                    showValidationError(1, 'An unexpected error occurred during submission.');
-                }
-            })
-            .catch(error => {
-                // Re-enable fields on error
-                reEnableFields();
-                
-                console.error('Submission error:', error);
-                showValidationError(1, 'Connection error during form submission. Please try again.');
-            });
-            
-        }, true); // true = capture phase, ensures this runs first
-        
-        console.log('Absolute final form fix applied successfully');
-    });
-})();
-</script>
-
-<script>
 document.addEventListener('DOMContentLoaded', function() {
     // Get your form
     const form = document.getElementById('weeklyCarePlanForm');
@@ -1167,184 +983,234 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 
 <script>
-// FINAL FIX FOR SUCCESS MESSAGE AND ERROR HANDLING
+// CLEAN CONSOLIDATED FIX - REPLACES ALL PREVIOUS SCRIPTS
 document.addEventListener('DOMContentLoaded', function() {
-    // Improve the error display function to properly show all errors
-    const originalShowError = window.showValidationError;
-    if (originalShowError) {
-        window.showValidationError = function(pageNumber, errorMessages) {
-            // First re-enable any disabled fields
-            document.querySelectorAll('input:disabled:not([readonly]), select:disabled:not([readonly]), textarea:disabled:not([readonly])')
-                .forEach(field => {
-                    field.disabled = false;
-                });
-            
-            // Special handling for intervention durations
-            document.querySelectorAll('.intervention-checkbox:checked').forEach(checkbox => {
-                const durationInput = checkbox.closest('.row').querySelector('.intervention-duration');
-                if (durationInput) {
-                    durationInput.disabled = false;
-                }
-            });
-            
-            // Don't show errors if success is visible
-            if (document.getElementById('success-message') && 
-                document.getElementById('success-message').style.display === 'block') {
-                return;
-            }
-            
-            // Call original function to show errors
-            originalShowError(pageNumber, errorMessages);
-        };
+    console.log('Installing consolidated script');
+    
+    // 1. Initialize beneficiary data on page load
+    const beneficiarySelect = document.getElementById('beneficiary_id');
+    if (beneficiarySelect && beneficiarySelect.value) {
+        console.log('Loading beneficiary details');
+        beneficiarySelect.dispatchEvent(new Event('change'));
     }
     
-    // Override the original fetch hook to properly handle form responses
-    const originalFetch = window.fetch;
-    window.fetch = function(url, options) {
-        if (options && options.body instanceof FormData && 
-            options.body.has('beneficiary_id') && 
-            url.includes('weeklycareplans')) {
-            
-            // This is our weekly care plan form submission
-            return originalFetch(url, options)
-                .then(response => {
-                    // Success case
-                    if (response.type === 'opaqueredirect' || response.redirected || response.status === 200 || response.status === 302) {
-                        // Hide any validation errors first
-                        document.querySelectorAll('.validation-error-container').forEach(el => {
-                            el.style.display = 'none';
-                        });
-                        
-                        // Show success message
-                        const successMsg = document.getElementById('success-message');
-                        if (successMsg) {
-                            successMsg.style.display = 'block';
-                            window.scrollTo({top: 0, behavior: 'smooth'});
-                        }
-                        
-                        // Reset form after short delay
-                        setTimeout(() => {
-                            const form = document.getElementById('weeklyCarePlanForm');
-                            if (form) {
-                                form.reset();
-                                if (typeof goToPage === 'function') {
-                                    goToPage(1);
-                                }
-                            }
-                        }, 500);
-                        
-                        // Return a complete mock response object
-                        return {
-                            text: () => Promise.resolve('{"success":true}'),
-                            json: () => Promise.resolve({"success":true}),
-                            clone: () => ({ json: () => Promise.resolve({"success":true}) }),
-                            redirected: true,
-                            url: url,
-                            status: 200,
-                            ok: true,
-                            type: 'basic'
-                        };
-                    }
-                    return response;
-                })
-                .catch(error => {
-                    // Re-enable any disabled fields on error
-                    document.querySelectorAll('input:disabled:not([readonly]), select:disabled:not([readonly]), textarea:disabled:not([readonly])')
-                        .forEach(field => {
-                            field.disabled = false;
-                        });
-                    
-                    // Re-throw the error to maintain the error chain
-                    throw error;
-                });
+    // 2. Setup validation error display
+    window.showValidationError = function(pageNumber, errorMessages) {
+        console.log('Showing validation errors on page', pageNumber);
+        
+        // Go to the specified page
+        goToPage(pageNumber);
+        
+        // Get the error container
+        const container = document.querySelector('#page' + pageNumber + ' .validation-error-container');
+        if (!container) {
+            console.error('Error container not found!');
+            alert('Validation error: ' + (Array.isArray(errorMessages) ? errorMessages.join(', ') : errorMessages));
+            return;
         }
         
-        // For all other fetch calls, use the original fetch
-        return originalFetch(url, options);
+        // Clear previous content
+        container.innerHTML = '';
+        
+        // Add header
+        const header = document.createElement('h5');
+        header.textContent = 'Please fix the following errors:';
+        container.appendChild(header);
+        
+        // Create list of errors
+        const list = document.createElement('ul');
+        
+        // Convert errors to array if needed
+        const errors = Array.isArray(errorMessages) ? errorMessages : [errorMessages];
+        
+        // Add each error as a list item
+        errors.forEach(error => {
+            if (error && error.trim()) {
+                const item = document.createElement('li');
+                item.textContent = error;
+                list.appendChild(item);
+            }
+        });
+        
+        container.appendChild(list);
+        
+        // Add close button
+        const closeButton = document.createElement('button');
+        closeButton.type = 'button';
+        closeButton.className = 'btn-close';
+        closeButton.setAttribute('aria-label', 'Close');
+        closeButton.style = 'position: absolute; right: 10px; top: 10px;';
+        closeButton.onclick = function() {
+            container.style.display = 'none';
+        };
+        
+        container.style.position = 'relative';
+        container.appendChild(closeButton);
+        
+        // FORCE DISPLAY
+        container.style.display = 'block';
+        container.style.visibility = 'visible';
+        
+        // Focus container
+        container.scrollIntoView({ behavior: 'smooth' });
     };
+    
+    // 3. Handle form submission
+    const form = document.querySelector('form[action*="weeklycareplans"]');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            // Prevent default to run validation
+            e.preventDefault();
+            
+            // Run validation
+            const errors = [];
+            
+            // Basic validation checks
+            if (!document.getElementById('beneficiary_id').value) {
+                errors.push('Please select a beneficiary');
+            }
+            
+            const assessment = document.getElementById('assessment').value.trim();
+            if (!assessment) {
+                errors.push('Please provide an assessment');
+            } else if (assessment.length < 20) {
+                errors.push('Assessment must be at least 20 characters');
+            }
+            
+            // If errors, show them and stop submission
+            if (errors.length > 0) {
+                showValidationError(1, errors);
+                return false;
+            }
+            
+            // Enable all disabled fields before submission
+            document.querySelectorAll('input:disabled, select:disabled, textarea:disabled').forEach(field => {
+                field.disabled = false;
+            });
+            
+            // Enable vital signs specifically
+            document.querySelectorAll('#respiratory_rate, #pulse_rate, #blood_pressure, #body_temperature').forEach(field => {
+                field.disabled = false;
+            });
+            
+            // Enable duration inputs for checked interventions
+            document.querySelectorAll('.intervention-checkbox:checked').forEach(checkbox => {
+                const durationInput = checkbox.closest('.row').querySelector('.intervention-duration');
+                if (durationInput) durationInput.disabled = false;
+            });
+            
+            // Submit the form
+            console.log('Form passed validation, submitting...');
+            this.submit();
+        });
+    }
+    
+    console.log('Consolidated script installed');
 });
 </script>
 
 <script>
-// Fix for beneficiary data loading
+// Fix for remove buttons on existing custom interventions
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('DOM content loaded, checking for beneficiary data');
-    
-    // Get the beneficiary select dropdown
-    const beneficiarySelect = document.getElementById('beneficiary_id');
-    
-    // Update the fetch URL to use the proper Laravel route
-    const fetchBeneficiaryData = function(beneficiaryId) {
-        console.log('Fetching data for beneficiary ID:', beneficiaryId);
-        
-        // Use the proper route with care-worker prefix
-        fetch(`{{ route('care-worker.weeklycareplans.beneficiaryDetails', ['id' => ':id']) }}`.replace(':id', beneficiaryId))
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Network response was not ok: ' + response.status);
-                }
-                return response.json();
-            })
-            .then(data => {
-                console.log('Beneficiary data received:', data);
-                if (data.success) {
-                    const beneficiary = data.data;
-                    
-                    // Calculate age
-                    const birthDate = new Date(beneficiary.birthday);
-                    const today = new Date();
-                    let age = today.getFullYear() - birthDate.getFullYear();
-                    const monthDiff = today.getMonth() - birthDate.getMonth();
-                    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
-                        age--;
-                    }
-                    
-                    // Populate form fields
-                    document.getElementById('age').value = age;
-                    document.getElementById('birthDate').value = beneficiary.birthday;
-                    document.getElementById('gender').value = beneficiary.gender;
-                    document.getElementById('civilStatus').value = beneficiary.civil_status;
-                    document.getElementById('address').value = beneficiary.street_address;
-                    
-                    // Set medical conditions
-                    let medicalConditions = 'No medical conditions recorded';
-                    if (beneficiary.general_care_plan && beneficiary.general_care_plan.health_history) {
-                        medicalConditions = beneficiary.general_care_plan.health_history.medical_conditions || 'None';
-                    }
-                    document.getElementById('medicalConditions').value = medicalConditions;
-                } else {
-                    console.error('Failed to load beneficiary details:', data.message || 'Unknown error');
-                }
-            })
-            .catch(error => {
-                console.error('Error loading beneficiary data:', error);
+    // Add event listeners to ALL remove buttons (both existing and new ones)
+    function setupAllRemoveButtons() {
+        document.querySelectorAll('.remove-custom-row').forEach(button => {
+            // Remove any existing event listeners to avoid duplicates
+            const newButton = button.cloneNode(true);
+            button.parentNode.replaceChild(newButton, button);
+            
+            // Add the click event listener
+            newButton.addEventListener('click', function() {
+                this.closest('.custom-intervention-row').remove();
             });
-    };
-    
-    // If a beneficiary is already selected (edit mode), load its data immediately
-    if (beneficiarySelect && beneficiarySelect.value) {
-        console.log('Preloading data for selected beneficiary:', beneficiarySelect.value);
-        fetchBeneficiaryData(beneficiarySelect.value);
+        });
+        console.log('All remove buttons initialized');
     }
     
-    // Also update the change event handler to use the same fetch function
-    beneficiarySelect.addEventListener('change', function() {
-        const beneficiaryId = this.value;
-        
-        if (!beneficiaryId) {
-            // Clear fields if no beneficiary selected
-            document.getElementById('age').value = '';
-            document.getElementById('birthDate').value = '';
-            document.getElementById('gender').value = '';
-            document.getElementById('civilStatus').value = '';
-            document.getElementById('address').value = '';
-            document.getElementById('medicalConditions').value = '';
-            return;
-        }
-        
-        fetchBeneficiaryData(beneficiaryId);
+    // Run on page load
+    setupAllRemoveButtons();
+    
+    // Also run when new buttons are added
+    document.querySelectorAll('.add-custom-intervention').forEach(button => {
+        const originalClick = button.onclick;
+        button.onclick = function(e) {
+            // Call original handler if it exists
+            if (originalClick) {
+                originalClick.call(this, e);
+            }
+            
+            // Then reinitialize all buttons
+            setTimeout(setupAllRemoveButtons, 50);
+        };
     });
 });
+</script>
+<script>
+// Immediate self-executing function to load beneficiary data on page load
+(function() {
+    // Wait for DOM to be fully loaded
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('DOM loaded, checking for beneficiary data');
+        
+        // Get the beneficiary select dropdown
+        const beneficiarySelect = document.getElementById('beneficiary_id');
+        
+        // If it exists and has a value selected (which it should in edit mode)
+        if (beneficiarySelect && beneficiarySelect.value) {
+            console.log('Beneficiary already selected:', beneficiarySelect.value);
+            
+            // Get the selected beneficiary ID
+            const beneficiaryId = beneficiarySelect.value;
+            
+            // Manually fetch the beneficiary details
+            fetch(`{{ route('care-worker.weeklycareplans.beneficiaryDetails', ['id' => ':id']) }}`.replace(':id', beneficiaryId))
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.success) {
+                        console.log('Successfully loaded beneficiary data:', data);
+                        const beneficiary = data.data;
+                        
+                        // Calculate age
+                        const birthDate = new Date(beneficiary.birthday);
+                        const today = new Date();
+                        let age = today.getFullYear() - birthDate.getFullYear();
+                        const monthDiff = today.getMonth() - birthDate.getMonth();
+                        if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+                            age--;
+                        }
+                        
+                        // Populate form fields
+                        document.getElementById('age').value = age;
+                        document.getElementById('birthDate').value = beneficiary.birthday;
+                        document.getElementById('gender').value = beneficiary.gender;
+                        document.getElementById('civilStatus').value = beneficiary.civil_status;
+                        document.getElementById('address').value = beneficiary.street_address;
+                        
+                        // Set medical conditions if available
+                        let medicalConditions = 'No medical conditions recorded';
+                        
+                        if (beneficiary.general_care_plan && beneficiary.general_care_plan.health_history) {
+                            medicalConditions = beneficiary.general_care_plan.health_history.medical_conditions || 'None';
+                        }
+                        
+                        document.getElementById('medicalConditions').value = medicalConditions;
+                    } else {
+                        console.error('Failed to load beneficiary details');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading beneficiary data:', error);
+                });
+        } else {
+            console.log('No beneficiary selected yet');
+        }
+    });
+})();
 </script>
 
 </body>

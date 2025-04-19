@@ -32,9 +32,26 @@
                     <a href="{{ route('care-worker.weeklycareplans.edit', $weeklyCareplan->weekly_care_plan_id) }}" title="Edit Weekly Care Plan" class="btn btn-primary">
                         <i class="bx bx-edit"></i> Edit
                     </a>
-                    <button type="button" class="btn btn-danger" onclick="openInitialDeleteModal('{{ $weeklyCareplan->weekly_care_plan_id }}', '{{ $weeklyCareplan->beneficiary->first_name }} {{ $weeklyCareplan->beneficiary->last_name }}')">
-                        <i class="bx bx-trash"></i> Delete
+                    <button type="button" class="btn btn-danger" onclick="openDeleteModal('{{ $weeklyCareplan->weekly_care_plan_id }}')">
+                        <i class="bi bi-trash"></i> Delete
                     </button>
+
+                    <script>
+                        // Function to open the modal for all roles
+                        function openDeleteModal(id, name) {
+                            // Set the values in the modal
+                            const idField = document.getElementById('initialWeeklyCarePlanIdToDelete');
+                            const nameField = document.getElementById('initialBeneficiaryNameToDelete');
+                            
+                            if (idField) idField.value = id;
+                            if (nameField) nameField.textContent = name;
+                            
+                            // Show the modal
+                            const modal = new bootstrap.Modal(document.getElementById('confirmDeleteWeeklyCarePlanModal'));
+                            modal.show();
+                        }
+                    </script>
+
                 </div>
             </div>
             @if(session('success'))

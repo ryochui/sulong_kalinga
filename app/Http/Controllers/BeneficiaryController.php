@@ -1418,4 +1418,17 @@ class BeneficiaryController extends Controller
         return response()->json($result);
     }
 
+    public function checkBeneficiaryPermission($id)
+    {
+        // Check if the care worker is assigned to this beneficiary
+        $hasPermission = false;
+        $beneficiary = Beneficiary::find($id);
+        
+        if ($beneficiary && $beneficiary->generalCarePlan) {
+            $hasPermission = $beneficiary->generalCarePlan->care_worker_id == Auth::id();
+        }
+        
+        return response()->json(['hasPermission' => $hasPermission]);
+    }
+
 }

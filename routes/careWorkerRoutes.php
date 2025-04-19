@@ -45,7 +45,7 @@ Route::middleware(['auth', '\App\Http\Middleware\CheckRole:care_worker'])->prefi
         Route::get('/{id}', [WeeklyCareController::class, 'show'])->name('show');
         Route::get('/{id}/edit', [WeeklyCareController::class, 'edit'])->name('edit');
         Route::put('/{id}', [WeeklyCareController::class, 'update'])->name('update');
-        Route::get('/beneficiary/{id}', [WeeklyCareController::class, 'getBeneficiaryDetails'])->name('beneficiary-details');
+        Route::get('/beneficiary/{id}', [WeeklyCareController::class, 'getBeneficiaryDetails'])->name('beneficiaryDetails');
     });
 
     // Reports Management (only authored reports)
@@ -53,6 +53,10 @@ Route::middleware(['auth', '\App\Http\Middleware\CheckRole:care_worker'])->prefi
     
     // Password validation route
     Route::post('/validate-password', [UserController::class, 'validatePassword'])->name('validate-password');
+
+    // Check beneficiary permission for editing GCP
+    Route::get('/check-beneficiary-permission/{id}', [BeneficiaryController::class, 'checkBeneficiaryPermission'])
+    ->name('check-beneficiary-permission');
 
     // Exports (only for beneficiaries and families)
     Route::prefix('exports')->name('exports.')->group(function () {

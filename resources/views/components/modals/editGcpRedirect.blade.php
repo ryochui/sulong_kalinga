@@ -19,7 +19,8 @@
                 <p>The General Care Plan is incorporated directly into the beneficiary profile.</p>
                 
                 @if(Auth::user()->role_id == 3)
-                <p>As a Care Worker, you can update certain elements of the General Care Plan for your assigned beneficiaries.</p>
+                <p>As a Care Worker, you can update certain details about your assigned beneficiaries, including some elements of their General Care Plan.</p>
+                <p class="text-info"><small>Note: You cannot change beneficiary status or delete beneficiaries.</small></p>
                 @elseif(Auth::user()->role_id == 2)
                 <p>As a Care Manager, you have full editing capabilities for the General Care Plans of all beneficiaries.</p>
                 @else
@@ -49,9 +50,22 @@ let editGcpCountdownInterval;
 // Helper function to check if care worker can edit this beneficiary
 function canEditBeneficiary(beneficiaryId) {
     @if(Auth::user()->role_id == 3)
-        // For care workers, check if they are assigned to this beneficiary
-        const assignedBeneficiaries = @json(Auth::user()->assignedBeneficiaries()->pluck('beneficiary_id')->toArray());
-        return assignedBeneficiaries.includes(parseInt(beneficiaryId));
+        // For Care Workers, we'll use a synchronous check for the modal
+        let hasPermission = false;
+        
+        // Make a synchronous check
+        const xhr = new XMLHttpRequest();
+        xhr.open('GET', `{{ route('care-worker.check-beneficiary-permission', ['id' => ':id']) }}`.replace(':id', beneficiaryId), false);
+        xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+        xhr.setRequestHeader('Accept', 'application/json');
+        xhr.send();
+        
+        if (xhr.status === 200) {
+            const response = JSON.parse(xhr.responseText);
+            hasPermission = response.hasPermission;
+        }
+        
+        return hasPermission;
     @else
         // Admins and Care Managers can edit all beneficiaries
         return true;

@@ -59,10 +59,12 @@ class WeeklyCareController extends Controller
         // Fetch all beneficiaries for admins and care managers
         // For care workers, only fetch their assigned beneficiaries
         if (Auth::user()->role_id == 3) {
-            $beneficiaries = Auth::user()->assignedBeneficiaries()
-                ->orderBy('last_name')
-                ->orderBy('first_name')
-                ->get();
+            $beneficiaries = Beneficiary::whereHas('generalCarePlan', function($query) {
+                $query->where('care_worker_id', Auth::id());
+            })
+            ->orderBy('last_name')
+            ->orderBy('first_name')
+            ->get();
         } else {
             $beneficiaries = Beneficiary::orderBy('last_name')
                 ->orderBy('first_name')
@@ -172,7 +174,10 @@ class WeeklyCareController extends Controller
 
         try {
             if ($user->role_id == 3) {
-                $assignedBeneficiaryIds = $user->assignedBeneficiaries()->pluck('beneficiary_id');
+                $assignedBeneficiaryIds = Beneficiary::whereHas('generalCarePlan', function($query) use ($user) {
+                    $query->where('care_worker_id', $user->id);
+                })->pluck('beneficiary_id');
+                
                 if (!$assignedBeneficiaryIds->contains($request->beneficiary_id)) {
                     return redirect()->route($rolePrefix . '.weeklycareplans.create')
                         ->with('error', 'You can only create plans for your assigned beneficiaries.');
@@ -376,17 +381,26 @@ class WeeklyCareController extends Controller
         // - Admins and care managers can edit all plans
         // - Care workers can only edit their own plans
         if ($user->role_id == 3 && $weeklyCarePlan->care_worker_id != $user->id) {
-            return redirect()->route('care-worker.reports')
+            return redirect()->route($this->getRolePrefixRoute() . '.weeklycareplans.index')
                 ->with('error', 'You do not have permission to edit this care plan.');
         }
         
         // Get all relevant data for the form
         if ($user->role_id == 3) {
-            $beneficiaries = $user->assignedBeneficiaries()
-                ->orderBy('last_name')->orderBy('first_name')->get();
+            $beneficiaries = Beneficiary::whereHas('generalCarePlan', function($query) use ($user) {
+                $query->where('care_worker_id', $user->id);
+            })
+            ->orderBy('last_name')
+            ->orderBy('first_name')
+            ->get();
         } else {
-            $beneficiaries = Beneficiary::orderBy('last_name')->orderBy('first_name')->get();
+            $beneficiaries = Beneficiary::orderBy('last_name')
+                ->orderBy('first_name')
+                ->get();
         }
+
+        // Set the selected beneficiary explicitly
+        $selectedBeneficiary = $weeklyCarePlan->beneficiary;
         
         $careCategories = CareCategory::with('interventions')->get();
         
@@ -438,7 +452,7 @@ class WeeklyCareController extends Controller
         // - Admins and care managers can update all plans
         // - Care workers can only update their own plans
         if ($user->role_id == 3 && $weeklyCarePlan->care_worker_id != $user->id) {
-            return redirect()->route('care-worker.weekly-care-plans.index')
+            return redirect()->route('care-worker.weeklycareplans.index')
                 ->with('error', 'You do not have permission to update this care plan.');
         }
 

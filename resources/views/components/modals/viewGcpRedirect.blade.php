@@ -14,6 +14,7 @@
                 
                 @if(Auth::user()->role_id == 3)
                 <p>You will be redirected to the beneficiary profile where you can view General Care Plan information for your assigned beneficiary.</p>
+                <p class="text-info"><small>Note: You can view and edit beneficiary details, but only administrators and care managers can change a beneficiary's status.</small></p>
                 @else
                 <p>You will be redirected to the beneficiary profile where you can view all General Care Plan information.</p>
                 @endif
@@ -28,7 +29,7 @@
                 <form id="viewBeneficiaryForm" action="{{ 
                     Auth::user()->role_id == 1 ? route('admin.beneficiaries.view') : 
                     (Auth::user()->role_id == 2 ? route('care-manager.beneficiaries.view-details') : 
-                    route('care-worker.beneficiaries.view'))
+                    route('care-worker.beneficiaries.view-details'))
                 }}" method="POST" style="display: none;">
                     @csrf
                     <input type="hidden" name="beneficiary_id" id="beneficiaryIdInput">
@@ -85,7 +86,17 @@ function openViewGcpRedirectModal(beneficiaryId) {
 
 function submitViewForm() {
     // Submit the form to use the POST route
-    document.getElementById('viewBeneficiaryForm').submit();
+    const form = document.getElementById('viewBeneficiaryForm');
+    
+    // For care workers, add error handling for access restrictions
+    @if(Auth::user()->role_id == 3)
+    form.addEventListener('submit', function() {
+        // Show loading indicator
+        document.getElementById('viewGcpNowButton').innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Loading...';
+    });
+    @endif
+    
+    form.submit();
 }
 
 // When document is ready
