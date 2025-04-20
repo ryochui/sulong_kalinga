@@ -17,6 +17,7 @@ use App\Http\Controllers\BeneficiaryMapController;
 use App\Http\Controllers\DonorAcknowledgementController;
 use App\Http\Controllers\HighlightsAndEventsController;
 use App\Http\Controllers\ViewAccountProfileController;
+use App\Http\Controllers\NotificationsController;
 
 
 // All routes with administrator role check
@@ -26,7 +27,7 @@ use App\Http\Controllers\ViewAccountProfileController;
 // The routes are grouped under the 'admin' prefix and will have the 'auth' middleware applied to them
 // CheckRole's full namespace is used to ensure that the correct middleware is applied, do not remove this to prevent errors
 
-Route::middleware(['auth', '\App\Http\Middleware\CheckRole:administrator'])->name('admin.')->group(function () {
+Route::middleware(['auth', '\App\Http\Middleware\CheckRole:administrator'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/admin/dashboard', function () {
         $showWelcome = session()->pull('show_welcome', false);
         return view('admin.admindashboard', ['showWelcome' => $showWelcome]);
@@ -170,15 +171,11 @@ Route::middleware(['auth', '\App\Http\Middleware\CheckRole:administrator'])->nam
         Route::get('/', [ViewAccountProfileController::class, 'index'])->name('index');
     });
 
-});
+    // Notification routes
+    Route::get('/notifications', [NotificationsController::class, 'getUserNotifications'])->name('notifications.get');
+    Route::post('/notifications/{id}/read', [NotificationsController::class, 'markAsRead'])->name('notifications.read');
+    Route::post('/notifications/read-all', [NotificationsController::class, 'markAllAsRead'])->name('notifications.read-all');
 
-// Special Executive Director only routes
-Route::middleware(['auth', '\App\Http\Middleware\CheckRole:executive_director'])->prefix('admin')->group(function () {
-    // Routes that only Executive Director can access
-    Route::prefix('system')->name('system.')->group(function () {
-        Route::get('/settings', [AdminController::class, 'systemSettings'])->name('settings');
-        // Add other executive director only functionalities here
-    });
 });
 
 // Route::get('/admin/viewProfile', function () {

@@ -22,7 +22,7 @@
                     <a class="nav-link nav-notification-link position-relative" href="#" id="notificationsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                         <i class="bi bi-bell-fill"></i>
                         <span>Notifications</span>
-                        <span class="badge bg-danger rounded-pill notification-count">3</span>
+                        <span class="badge bg-danger rounded-pill notification-count" style="display: none;"></span>
                     </a>
                     <div class="dropdown-menu dropdown-notifications dropdown-menu-end p-0" aria-labelledby="notificationsDropdown">
                         <div class="dropdown-header d-flex justify-content-between align-items-center">
@@ -31,72 +31,6 @@
                         </div>
                         <div class="notification-list">
                             <!-- Admin Notifications -->
-                            <div class="notification-item unread" data-id="1">
-                                <div class="d-flex align-items-start">
-                                    <div class="notification-icon info">
-                                        <i class="bi bi-info-circle"></i>
-                                    </div>
-                                    <div class="notification-content">
-                                        <strong>System Update Available</strong>
-                                        <p class="mb-1 text-truncate">A new system version (2.3.1) is now available with improved security features and performance enhancements.</p>
-                                        <span class="notification-time">2 mins ago</span>
-                                    </div>
-                                </div>
-                                <div class="notification-actions">
-                                    <button class="btn btn-sm btn-link mark-as-read" data-id="1">Mark as read</button>
-                                </div>
-                            </div>
-                            
-                            <!-- Case Worker Notifications -->
-                            <div class="notification-item unread" data-id="2">
-                                <div class="d-flex align-items-start">
-                                    <div class="notification-icon warning">
-                                        <i class="bi bi-exclamation-triangle"></i>
-                                    </div>
-                                    <div class="notification-content">
-                                        <strong>New Case Assignment</strong>
-                                        <p class="mb-1 text-truncate">You've been assigned to case #CW-2023-045 (Family Support Request) with high priority.</p>
-                                        <span class="notification-time">1 hour ago</span>
-                                    </div>
-                                </div>
-                                <div class="notification-actions">
-                                    <button class="btn btn-sm btn-link mark-as-read" data-id="2">Mark as read</button>
-                                </div>
-                            </div>
-                            
-                            <!-- Beneficiary Notifications -->
-                            <div class="notification-item" data-id="3">
-                                <div class="d-flex align-items-start">
-                                    <div class="notification-icon success">
-                                        <i class="bi bi-check-circle"></i>
-                                    </div>
-                                    <div class="notification-content">
-                                        <strong>Application Approved</strong>
-                                        <p class="mb-1 text-truncate">Your assistance application (Ref #APP-2023-789) has been approved. Please check your email for details.</p>
-                                        <span class="notification-time">5 hours ago</span>
-                                    </div>
-                                </div>
-                                <div class="notification-actions">
-                                    <button class="btn btn-sm btn-link mark-as-read" data-id="3">Mark as read</button>
-                                </div>
-                            </div>
-                            
-                            <!-- Volunteer Notifications -->
-                            <div class="notification-item unread" data-id="4">
-                                <div class="d-flex align-items-start">
-                                    <div class="notification-icon danger">
-                                        <i class="bi bi-calendar-x"></i>
-                                    </div>
-                                    <div class="notification-content">
-                                        <strong>Event Cancellation Notice</strong>
-                                        <p class="mb-1 text-truncate">The community outreach event scheduled for Friday, November 10th has been cancelled due to weather conditions.</p>
-                                        <span class="notification-time">Yesterday</span>
-                                    </div>
-                                </div>
-                                <div class="notification-actions">
-                                    <button class="btn btn-sm btn-link mark-as-read" data-id="4">Mark as read</button>
-                                </div>
-                            </div>
                         </div>
                         <div class="dropdown-footer text-center py-2">
                             <a href="#" class="text-primary view-all-notifications" data-bs-toggle="modal" data-bs-target="#notificationsModal">View all notifications</a>
@@ -152,88 +86,9 @@
                 </div>
                 
                 <div class="notification-list">
-                    <!-- Sample notifications - in a real app these would be dynamically generated -->
-                    <div class="notification-item unread" data-id="1">
-                        <div class="d-flex align-items-start">
-                            <div class="notification-icon info">
-                                <i class="bi bi-info-circle"></i>
-                            </div>
-                            <div class="notification-content">
-                                <strong>System Update Available</strong>
-                                <p class="mb-1">A new system version (2.3.1) is now available with improved security features and performance enhancements. Please update at your earliest convenience.</p>
-                                <span class="notification-time">2 mins ago</span>
-                            </div>
-                        </div>
-                        <div class="notification-actions">
-                            <button class="btn btn-sm btn-link mark-as-read" data-id="1">Mark as read</button>
-                        </div>
-                    </div>
-                    
-                    <div class="notification-item unread" data-id="2">
-                        <div class="d-flex align-items-start">
-                            <div class="notification-icon warning">
-                                <i class="bi bi-exclamation-triangle"></i>
-                            </div>
-                            <div class="notification-content">
-                                <strong>New Case Assignment</strong>
-                                <p class="mb-1">You've been assigned to case #CW-2023-045 (Family Support Request) with high priority. Client is expecting your contact within 24 hours.</p>
-                                <span class="notification-time">1 hour ago</span>
-                            </div>
-                        </div>
-                        <div class="notification-actions">
-                            <button class="btn btn-sm btn-link mark-as-read" data-id="2">Mark as read</button>
-                        </div>
-                    </div>
-                    
-                    <div class="notification-item" data-id="3">
-                        <div class="d-flex align-items-start">
-                            <div class="notification-icon success">
-                                <i class="bi bi-check-circle"></i>
-                            </div>
-                            <div class="notification-content">
-                                <strong>Application Approved</strong>
-                                <p class="mb-1">Your assistance application (Ref #APP-2023-789) has been approved. Please check your email for details about the next steps and required documentation.</p>
-                                <span class="notification-time">5 hours ago</span>
-                            </div>
-                        </div>
-                        <div class="notification-actions">
-                            <button class="btn btn-sm btn-link mark-as-read" data-id="3">Mark as read</button>
-                        </div>
-                    </div>
-                    
-                    <div class="notification-item unread" data-id="4">
-                        <div class="d-flex align-items-start">
-                            <div class="notification-icon danger">
-                                <i class="bi bi-calendar-x"></i>
-                            </div>
-                            <div class="notification-content">
-                                <strong>Event Cancellation Notice</strong>
-                                <p class="mb-1">The community outreach event scheduled for Friday, November 10th has been cancelled due to incoming severe weather conditions. A reschedule date will be announced next week.</p>
-                                <span class="notification-time">Yesterday</span>
-                            </div>
-                        </div>
-                        <div class="notification-actions">
-                            <button class="btn btn-sm btn-link mark-as-read" data-id="4">Mark as read</button>
-                        </div>
-                    </div>
-                    
-                    <!-- Older notifications -->
-                    <div class="notification-item" data-id="5">
-                        <div class="d-flex align-items-start">
-                            <div class="notification-icon info">
-                                <i class="bi bi-people"></i>
-                            </div>
-                            <div class="notification-content">
-                                <strong>New Volunteer Orientation</strong>
-                                <p class="mb-1">The next volunteer orientation session is scheduled for November 15th at 2:00 PM in the community center.</p>
-                                <span class="notification-time">3 days ago</span>
-                            </div>
-                        </div>
-                        <div class="notification-actions">
-                            <button class="btn btn-sm btn-link mark-as-read" data-id="5">Mark as read</button>
-                        </div>
-                    </div>
+                    <!-- Notifications loaded dynamically -->
                 </div>
+                
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
@@ -244,94 +99,310 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Mark single notification as read
-    document.querySelectorAll('.mark-as-read').forEach(button => {
-        button.addEventListener('click', function(e) {
-            e.stopPropagation();
-            const notificationId = this.getAttribute('data-id');
-            const notificationItem = document.querySelector(`.notification-item[data-id="${notificationId}"]`);
-            
-            if (notificationItem.classList.contains('unread')) {
-                notificationItem.classList.remove('unread');
-                updateUnreadCount();
-            }
-        });
-    });
+    // DOM elements we need to reference frequently
+    const dropdownList = document.querySelector('.dropdown-notifications .notification-list');
+    const modalList = document.querySelector('#notificationsModal .notification-list');
+    const countBadge = document.querySelector('.notification-count');
     
-    // Mark all notifications as read (dropdown)
-    document.querySelector('.mark-all-read').addEventListener('click', function(e) {
+    // Dropdown configuration to prevent closing when clicking inside
+    const dropdown = document.querySelector('.dropdown-menu.dropdown-notifications');
+    dropdown.addEventListener('click', function(e) {
         e.stopPropagation();
-        document.querySelectorAll('.notification-item.unread').forEach(item => {
-            item.classList.remove('unread');
-        });
-        updateUnreadCount();
     });
     
-    // Mark all notifications as read (modal)
-    document.querySelector('.mark-all-read-modal')?.addEventListener('click', function() {
-        document.querySelectorAll('.notification-item.unread').forEach(item => {
-            item.classList.remove('unread');
-        });
-        updateUnreadCount();
-    });
+    // Add fetch notifications functionality
+    loadNotifications();
     
-    // Notification click handler
-    document.querySelectorAll('.notification-item').forEach(item => {
-        item.addEventListener('click', function() {
-            const notificationId = this.getAttribute('data-id');
-            console.log(`Notification ${notificationId} clicked`);
-            
-            if (this.classList.contains('unread')) {
-                this.classList.remove('unread');
-                updateUnreadCount();
-            }
-        });
-    });
+    // Set up periodic refresh every 60 seconds
+    setInterval(loadNotifications, 60000);
     
-    // Update the unread count badge
-    function updateUnreadCount() {
-        const unreadCount = document.querySelectorAll('.notification-item.unread').length;
-        const countBadge = document.querySelector('.notification-count');
-        
-        countBadge.textContent = unreadCount;
-        if (unreadCount === 0) {
-            countBadge.style.display = 'none';
-        } else {
-            countBadge.style.display = 'inline-block';
-        }
+    // Load notifications from the server
+    function loadNotifications() {
+        console.log('Fetching notifications from server...');
+        fetch('{{ url("admin/notifications") }}')            .then(response => {
+                console.log('Response status:', response.status);
+                return response.json();
+            })
+            .then(data => {
+                console.log('Data received:', data);
+                if (data.success) {
+                    renderNotifications(data.notifications);
+                    updateUnreadCount(data.unread_count);
+                } else {
+                    console.error('API returned error:', data.message || 'Unknown error');
+                }
+            })
+            .catch(error => console.error('Error loading notifications:', error));
     }
     
-    // Initialize count
-    updateUnreadCount();
+    // Render all notifications to both dropdown and modal
+    function renderNotifications(notifications) {
+        // Clear existing notifications
+        dropdownList.innerHTML = '';
+        modalList.innerHTML = '';
+        
+        if (!notifications || notifications.length === 0) {
+            const emptyMessage = '<div class="p-3 text-center text-muted">No notifications</div>';
+            dropdownList.innerHTML = emptyMessage;
+            modalList.innerHTML = emptyMessage;
+            return;
+        }
+        
+        console.log('Rendering notifications:', notifications.length);
+        
+        // Add notifications to both dropdown and modal
+        notifications.forEach(notification => {
+            const iconInfo = getNotificationIcon(notification);
+            const timeAgo = formatTimeAgo(new Date(notification.date_created));
+            
+            // Create and append dropdown item (truncated)
+            dropdownList.innerHTML += createNotificationHTML(
+                notification, 
+                iconInfo.icon, 
+                iconInfo.type, 
+                timeAgo, 
+                true // truncate for dropdown
+            );
+            
+            // Create and append modal item (full text)
+            modalList.innerHTML += createNotificationHTML(
+                notification, 
+                iconInfo.icon, 
+                iconInfo.type, 
+                timeAgo, 
+                false // don't truncate for modal
+            );
+        });
+        
+        // Attach click handlers to buttons after rendering
+        addButtonClickHandlers();
+    }
     
-    // When modal is shown, update the notifications in it (in a real app, this would fetch from server)
+    // Create HTML string for a notification item
+    function createNotificationHTML(notification, iconClass, iconType, timeAgo, truncate) {
+        return `
+            <div class="notification-item ${notification.is_read ? '' : 'unread'}" data-id="${notification.notification_id}">
+                <div class="d-flex align-items-start">
+                    <div class="notification-icon ${iconType}">
+                        <i class="bi ${iconClass}"></i>
+                    </div>
+                    <div class="notification-content">
+                        <strong>${notification.message_title || 'Notification'}</strong>
+                        <p class="mb-1 ${truncate ? 'text-truncate' : ''}">${notification.message}</p>
+                        <span class="notification-time">${timeAgo}</span>
+                    </div>
+                </div>
+                ${!notification.is_read ? 
+                    `<div class="notification-actions">
+                        <button class="btn btn-sm btn-link mark-as-read" data-id="${notification.notification_id}">Mark as read</button>
+                    </div>` 
+                    : ''}
+            </div>
+        `;
+    }
+    
+    // Add click handlers to all mark-as-read buttons
+    function addButtonClickHandlers() {
+        // Individual mark as read buttons
+        document.querySelectorAll('.mark-as-read').forEach(button => {
+            button.onclick = function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                const notificationId = this.getAttribute('data-id');
+                markAsRead(notificationId);
+            };
+        });
+        
+        // Mark all as read buttons
+        document.querySelector('.mark-all-read').onclick = function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            markAllAsRead();
+        };
+        
+        const markAllReadModalBtn = document.querySelector('.mark-all-read-modal');
+        if (markAllReadModalBtn) {
+            markAllReadModalBtn.onclick = function(e) {
+                e.preventDefault();
+                markAllAsRead();
+            };
+        }
+        
+        // Make notification items clickable to mark as read
+        document.querySelectorAll('.notification-item.unread').forEach(item => {
+            item.onclick = function(e) {
+                if (!e.target.closest('.mark-as-read')) {
+                    const notificationId = this.getAttribute('data-id');
+                    markAsRead(notificationId);
+                }
+            };
+        });
+    }
+    
+    // Get appropriate icon for notification type
+    function getNotificationIcon(notification) {
+        let icon = 'bi-info-circle';
+        let type = 'info';
+        
+        if (notification.message_title) {
+            const title = notification.message_title.toLowerCase();
+            if (title.includes('warning') || title.includes('assign')) {
+                icon = 'bi-exclamation-triangle';
+                type = 'warning';
+            } else if (title.includes('success') || title.includes('approved')) {
+                icon = 'bi-check-circle';
+                type = 'success';
+            } else if (title.includes('error') || title.includes('cancel') || title.includes('denied')) {
+                icon = 'bi-x-circle';
+                type = 'danger';
+            }
+        }
+        
+        return { icon, type };
+    }
+    
+    // Format time ago from date
+    function formatTimeAgo(date) {
+        const seconds = Math.floor((new Date() - date) / 1000);
+        
+        let interval = Math.floor(seconds / 31536000);
+        if (interval > 1) return interval + ' years ago';
+        if (interval === 1) return '1 year ago';
+        
+        interval = Math.floor(seconds / 2592000);
+        if (interval > 1) return interval + ' months ago';
+        if (interval === 1) return '1 month ago';
+        
+        interval = Math.floor(seconds / 86400);
+        if (interval > 1) return interval + ' days ago';
+        if (interval === 1) return '1 day ago';
+        
+        interval = Math.floor(seconds / 3600);
+        if (interval > 1) return interval + ' hours ago';
+        if (interval === 1) return '1 hour ago';
+        
+        interval = Math.floor(seconds / 60);
+        if (interval > 1) return interval + ' minutes ago';
+        if (interval === 1) return '1 minute ago';
+        
+        return 'just now';
+    }
+    
+    // Mark a single notification as read
+    function markAsRead(notificationId) {
+        if (!notificationId) return;
+        
+        console.log('Marking notification as read:', notificationId);
+        
+        // First update the UI
+        const items = document.querySelectorAll(`.notification-item[data-id="${notificationId}"]`);
+        
+        items.forEach(item => {
+            // Only process if it's unread
+            if (item.classList.contains('unread')) {
+                // Remove unread class
+                item.classList.remove('unread');
+                
+                // Remove the mark-as-read button
+                const actionDiv = item.querySelector('.notification-actions');
+                if (actionDiv) {
+                    actionDiv.remove();
+                }
+            }
+        });
+        
+        // Update count immediately and accurately
+        updateUnreadCount();
+        
+        // Then update on server
+        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        
+        fetch(`{{ url('admin/notifications') }}/${notificationId}/read`, {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': csrfToken,
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log('Server response:', data);
+            if (!data.success) {
+                console.error('Failed to mark notification as read');
+                loadNotifications(); // Reload if there was an error
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            loadNotifications(); // Reload if there was an error
+        });
+    }
+    
+    // Mark all notifications as read
+    function markAllAsRead() {
+        console.log('Marking all notifications as read');
+        
+        // First update UI
+        document.querySelectorAll('.notification-item.unread').forEach(item => {
+            item.classList.remove('unread');
+            
+            // Remove mark as read buttons
+            const actionDiv = item.querySelector('.notification-actions');
+            if (actionDiv) {
+                actionDiv.remove();
+            }
+        });
+        
+        // Update count to zero
+        updateUnreadCount(0);
+        
+        // Then update on server
+        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        
+        fetch('{{ route("admin.notifications.read-all") }}', {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': csrfToken,
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log('Server response:', data);
+            if (!data.success) {
+                console.error('Failed to mark all notifications as read');
+                loadNotifications(); // Reload if there was an error
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            loadNotifications(); // Reload if there was an error
+        });
+    }
+    
+    // Update the notification count badge
+    function updateUnreadCount(count) {
+        // Calculate from DOM if not provided
+        if (count === undefined) {
+            count = document.querySelectorAll('.notification-item.unread').length;
+        }
+        
+        // Update badge
+        countBadge.textContent = count;
+        countBadge.style.display = count > 0 ? 'inline-block' : 'none';
+        
+        console.log('Updated unread count:', count);
+    }
+    
+    // Initialize event handlers for static elements
+    addButtonClickHandlers();
+    
+    // Reload notifications when modal is opened
     const notificationsModal = document.getElementById('notificationsModal');
     if (notificationsModal) {
-        notificationsModal.addEventListener('show.bs.modal', function() {
-            // In a real app, you would fetch all notifications here
-            console.log('Loading all notifications...');
-        });
+        notificationsModal.addEventListener('show.bs.modal', loadNotifications);
     }
 });
-</script>
-
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        const languageToggle = document.getElementById('languageToggle');
-
-        // Initialize the toggle state (optional, for demo purposes)
-        let isTagalog = false;
-
-        // Add event listener for the toggle
-        languageToggle.addEventListener('change', function () {
-            isTagalog = this.checked;
-            if (isTagalog) {
-                console.log('Tagalog selected');
-                // Add any additional frontend behavior here
-            } else {
-                console.log('English selected');
-                // Add any additional frontend behavior here
-            }
-        });
-    });
 </script>

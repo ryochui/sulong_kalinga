@@ -20,6 +20,7 @@ use App\Models\WeeklyCarePlanInterventions;
 use App\Models\Intervention;
 use App\Models\CareCategory;
 use App\Models\CareWorkerResponsibility;
+use App\Models\Notification;
 use Carbon\Carbon;
 
 class DatabaseSeeder extends Seeder
@@ -154,6 +155,39 @@ class DatabaseSeeder extends Seeder
                     'intervention_id' => $careCategoryId,
                 ]);
             }
+        }
+
+        // 7. Generate notifications
+        $this->generateNotifications();
+    }
+
+    private function generateNotifications()
+    {
+        // Generate notifications for beneficiaries
+        $beneficiaries = Beneficiary::take(5)->get();
+        foreach ($beneficiaries as $beneficiary) {
+            Notification::factory()
+                ->count(rand(2, 5))
+                ->forBeneficiary($beneficiary->beneficiary_id)
+                ->create();
+        }
+        
+        // Generate notifications for family members
+        $familyMembers = FamilyMember::take(5)->get();
+        foreach ($familyMembers as $familyMember) {
+            Notification::factory()
+                ->count(rand(2, 4))
+                ->forFamilyMember($familyMember->family_member_id)
+                ->create();
+        }
+        
+        // Generate notifications for cose staff
+        $staffMembers = User::where('role_id', '<=', 3)->take(5)->get();
+        foreach ($staffMembers as $staff) {
+            Notification::factory()
+                ->count(rand(3, 7))
+                ->forCoseStaff($staff->id)
+                ->create();
         }
     }
 }
