@@ -20,12 +20,17 @@ Route::get('/forgot-password', function () {
 
 // Dashboard routes by role
 Route::get('/admin/dashboard', function () {
-    if (auth()->user()?->isExecutiveDirector()) {
+    if (auth()->user()?->role_id == 1) {  // Allow ALL users with role_id=1
         $showWelcome = session()->pull('show_welcome', false);
+        \Log::debug('Admin dashboard accessed by user', [
+            'user_id' => auth()->id(),
+            'role_id' => auth()->user()->role_id,
+            'org_role_id' => auth()->user()->organization_role_id
+        ]);
         return view('admin.admindashboard', ['showWelcome' => $showWelcome]);
     }
-    abort(403);
-})->middleware('auth')->name('admindashboard');
+    abort(403, 'Only administrators can access this page');
+})->middleware('auth')->name('admin.dashboard');  // Also fixed the route name
 
 Route::get('/manager/dashboard', function () {
     if (auth()->user()?->isCareManager()) {

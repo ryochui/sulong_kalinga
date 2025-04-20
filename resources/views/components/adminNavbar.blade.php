@@ -109,7 +109,7 @@
                     </a>
                     <ul class="dropdown-menu dropdown-menu-end">
                         <li>
-                            <a class="dropdown-item {{ Request::routeIs('account') ? 'active' : '' }}" href="{{ route('admin.account.profile.index') }}">Account Profile</a>
+                            <a class="dropdown-item {{ Request::routeIs('account') ? 'active' : '' }}" href="#">Account Profile</a>
                         </li>
                         <li>
                             <form action="{{ route('logout') }}" method="POST">

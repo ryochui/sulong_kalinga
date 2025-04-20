@@ -26,15 +26,14 @@ use App\Http\Controllers\ViewAccountProfileController;
 // The routes are grouped under the 'admin' prefix and will have the 'auth' middleware applied to them
 // CheckRole's full namespace is used to ensure that the correct middleware is applied, do not remove this to prevent errors
 
-Route::middleware(['auth', '\App\Http\Middleware\CheckRole:administrator'])->prefix('admin')->group(function () {
-    // Dashboard
-    Route::get('admin/dashboard', function () {
+Route::middleware(['auth', '\App\Http\Middleware\CheckRole:administrator'])->name('admin.')->group(function () {
+    Route::get('/admin/dashboard', function () {
         $showWelcome = session()->pull('show_welcome', false);
         return view('admin.admindashboard', ['showWelcome' => $showWelcome]);
-    })->name('admin.dashboard');
+    })->name('dashboard');
 
     // Administrator Management
-    Route::prefix('administrators')->name('admin.administrators.')->group(function () {
+    Route::prefix('administrators')->name('administrators.')->group(function () {
         Route::get('/', [AdminController::class, 'index'])->name('index');
         Route::get('/add', function () {
             return view('admin.addAdministrator');
@@ -48,7 +47,7 @@ Route::middleware(['auth', '\App\Http\Middleware\CheckRole:administrator'])->pre
     });
 
     // Care Manager Management
-    Route::prefix('care-managers')->name('admin.caremanagers.')->group(function () {
+    Route::prefix('care-managers')->name('caremanagers.')->group(function () {
         Route::get('/', [CareManagerController::class, 'index'])->name('index');
         Route::get('/add', [CareManagerController::class, 'create'])->name('create');
         Route::post('/store', [CareManagerController::class, 'storeCareManager'])->name('store');
@@ -60,7 +59,7 @@ Route::middleware(['auth', '\App\Http\Middleware\CheckRole:administrator'])->pre
     });
 
     // Care Worker Management
-    Route::prefix('care-workers')->name('admin.careworkers.')->group(function () {
+    Route::prefix('care-workers')->name('careworkers.')->group(function () {
         Route::get('/', [CareWorkerController::class, 'index'])->name('index');
         Route::get('/add', [CareWorkerController::class, 'create'])->name('create');
         Route::post('/store', [CareWorkerController::class, 'storeCareWorker'])->name('store');
@@ -72,7 +71,7 @@ Route::middleware(['auth', '\App\Http\Middleware\CheckRole:administrator'])->pre
     });
 
     // Beneficiary Management
-    Route::prefix('beneficiaries')->name('admin.beneficiaries.')->group(function () {
+    Route::prefix('beneficiaries')->name('beneficiaries.')->group(function () {
         Route::get('/', [BeneficiaryController::class, 'index'])->name('index');
         Route::get('/add', [BeneficiaryController::class, 'create'])->name('create');
         Route::post('/store', [BeneficiaryController::class, 'storeBeneficiary'])->name('store');
@@ -84,7 +83,7 @@ Route::middleware(['auth', '\App\Http\Middleware\CheckRole:administrator'])->pre
     });
 
     // Family Member Management
-    Route::prefix('families')->name('admin.families.')->group(function () {
+    Route::prefix('families')->name('families.')->group(function () {
         Route::get('/', [FamilyMemberController::class, 'index'])->name('index');
         Route::get('/add', [FamilyMemberController::class, 'create'])->name('create');
         Route::post('/store', [FamilyMemberController::class, 'storeFamily'])->name('store');
@@ -96,7 +95,7 @@ Route::middleware(['auth', '\App\Http\Middleware\CheckRole:administrator'])->pre
     });
 
     // Weekly Care Plans
-    Route::prefix('weekly-care-plans')->name('admin.weeklycareplans.')->group(function () {
+    Route::prefix('weekly-care-plans')->name('weeklycareplans.')->group(function () {
         Route::get('/', [WeeklyCareController::class, 'index'])->name('index');
         Route::get('/create', [WeeklyCareController::class, 'create'])->name('create');
         Route::post('/store', [WeeklyCareController::class, 'store'])->name('store');
@@ -108,10 +107,10 @@ Route::middleware(['auth', '\App\Http\Middleware\CheckRole:administrator'])->pre
     });
 
     // Reports Management
-    Route::get('/reports', [ReportsController::class, 'index'])->name('admin.reports');
+    Route::get('/reports', [ReportsController::class, 'index'])->name('reports');
 
     // Municipality and Barangay Management
-    Route::prefix('locations')->name('admin.locations.')->group(function () {
+    Route::prefix('locations')->name('locations.')->group(function () {
         Route::get('/', [AdminController::class, 'municipality'])->name('index');
         Route::post('/municipalities/add', [AdminController::class, 'addMunicipality'])->name('municipalities.store');
         Route::post('/municipalities/update', [AdminController::class, 'updateMunicipality'])->name('municipalities.update');
@@ -122,7 +121,7 @@ Route::middleware(['auth', '\App\Http\Middleware\CheckRole:administrator'])->pre
     });
 
     // Export functionality
-    Route::prefix('export')->name('admin.export.')->group(function () {
+    Route::prefix('export')->name('export.')->group(function () {
         // PDF Exports
         Route::post('/beneficiaries-pdf', [ExportController::class, 'exportBeneficiariesToPdf'])->name('beneficiaries.pdf');
         Route::post('/family-pdf', [ExportController::class, 'exportFamilyToPdf'])->name('family.pdf');
@@ -139,35 +138,35 @@ Route::middleware(['auth', '\App\Http\Middleware\CheckRole:administrator'])->pre
     });
     
     // Password validation route
-    Route::post('/validate-password', [UserController::class, 'validatePassword'])->name('admin.validate-password');
+    Route::post('/validate-password', [UserController::class, 'validatePassword'])->name('validate-password');
 
     // Care Worker Performance
-    Route::prefix('care-worker-performance')->name('admin.careworker.performance.')->group(function () {
+    Route::prefix('care-worker-performance')->name('careworker.performance.')->group(function () {
         Route::get('/', [CareWorkerPerformanceController::class, 'index'])->name('index');
     });
 
     //Schedules and Appointments
-    Route::prefix('schedules-appointments')->name('admin.schedules.appointments.')->group(function () {
+    Route::prefix('schedules-appointments')->name('schedules.appointments.')->group(function () {
         Route::get('/', [SchedulesAndAppointmentsController::class, 'index'])->name('index');
     });
 
     //Beneficiary Map
-    Route::prefix('beneficiary-map')->name('admin.beneficiary.map.')->group(function () {
+    Route::prefix('beneficiary-map')->name('beneficiary.map.')->group(function () {
         Route::get('/', [BeneficiaryMapController::class, 'index'])->name('index');
     });
 
     //Donor Acknowledgement
-    Route::prefix('donor-acknowledgement')->name('admin.donor.acknowledgement.')->group(function () {
+    Route::prefix('donor-acknowledgement')->name('donor.acknowledgement.')->group(function () {
         Route::get('/', [DonorAcknowledgementController::class, 'index'])->name('index');
     });
 
     //Highlights and Events
-    Route::prefix('highlights-events')->name('admin.highlights.events.')->group(function () {
+    Route::prefix('highlights-events')->name('highlights.events.')->group(function () {
         Route::get('/', [HighlightsAndEventsController::class, 'index'])->name('index');
     });
 
     //View Account Profile
-    Route::prefix('account-profile')->name('admin.account.profile.')->group(function () {
+    Route::prefix('account-profile')->name('account.profile.')->group(function () {
         Route::get('/', [ViewAccountProfileController::class, 'index'])->name('index');
     });
 
@@ -176,7 +175,7 @@ Route::middleware(['auth', '\App\Http\Middleware\CheckRole:administrator'])->pre
 // Special Executive Director only routes
 Route::middleware(['auth', '\App\Http\Middleware\CheckRole:executive_director'])->prefix('admin')->group(function () {
     // Routes that only Executive Director can access
-    Route::prefix('system')->name('admin.system.')->group(function () {
+    Route::prefix('system')->name('system.')->group(function () {
         Route::get('/settings', [AdminController::class, 'systemSettings'])->name('settings');
         // Add other executive director only functionalities here
     });
