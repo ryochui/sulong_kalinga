@@ -11,7 +11,8 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
 </head>
 <body>
-    @include('components.userNavbar')
+    
+    @include('components.careManagerNavbar')
     @include('components.careManagerSidebar')
 
     <div class="home-section">

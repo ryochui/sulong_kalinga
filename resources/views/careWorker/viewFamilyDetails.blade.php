@@ -12,7 +12,7 @@
 </head>
 <body>
 
-    @include('components.userNavbar')
+    @include('components.careWorkerNavbar')
     @include('components.careWorkerSidebar')
 
     

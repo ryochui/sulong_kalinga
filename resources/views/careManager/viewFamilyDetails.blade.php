@@ -12,7 +12,7 @@
 </head>
 <body>
 
-    @include('components.userNavbar')
+    @include('components.careManagerNavbar')
     @include('components.careManagerSidebar')
     @include('components.modals.deleteFamilyMember')
 

@@ -11,7 +11,7 @@
 </head>
 <body>
 
-    @include('components.userNavbar')
+    @include('components.careManagerNavbar')
     @include('components.careManagerSidebar')
     @include('components.modals.statusChangeCareworker')
     @include('components.modals.deleteCareworker')
