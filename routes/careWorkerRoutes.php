@@ -7,6 +7,8 @@ use App\Http\Controllers\WeeklyCareController;
 use App\Http\Controllers\ReportsController;
 use App\Http\Controllers\ExportController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\NotificationsController;
+
 
 // All routes with care_worker role check
 Route::middleware(['auth', '\App\Http\Middleware\CheckRole:care_worker'])->prefix('care-worker')->name('care-worker.')->group(function () {

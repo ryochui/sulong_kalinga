@@ -10,6 +10,8 @@ use App\Http\Controllers\ReportsController;
 use App\Http\Controllers\ExportController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\MunicipalityController;
+use App\Http\Controllers\NotificationsController;
+
 
 // All routes with care_manager role check
 Route::middleware(['auth', '\App\Http\Middleware\CheckRole:care_manager'])->prefix('care-manager')->name('care-manager.')->group(function () {
@@ -84,4 +86,9 @@ Route::middleware(['auth', '\App\Http\Middleware\CheckRole:care_manager'])->pref
 
     //Municipalities (Read-Only)
     Route::get('/municipalities', [CareManagerController::class, 'municipality'])->name('municipalities.index');
+
+    //Notification routes
+    Route::get('/notifications', [NotificationsController::class, 'getUserNotifications'])->name('notifications.get');
+    Route::post('/notifications/{id}/read', [NotificationsController::class, 'markAsRead'])->name('notifications.read');
+    Route::post('/notifications/read-all', [NotificationsController::class, 'markAllAsRead'])->name('notifications.read-all');
 });

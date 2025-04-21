@@ -122,7 +122,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Load notifications from the server
     function loadNotifications() {
         console.log('Fetching notifications from server...');
-        fetch('{{ url("admin/notifications") }}')
+        fetch('{{ url("care-worker/notifications") }}')
             .then(response => {
                 console.log('Response status:', response.status);
                 return response.json();
@@ -262,7 +262,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Then update on server first
         const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
         
-        fetch(`{{ url('admin/notifications') }}/${notificationId}/read`, {
+        fetch(`{{ url('care-worker/notifications') }}/${notificationId}/read`, {
             method: 'POST',
             headers: {
                 'X-CSRF-TOKEN': csrfToken,
@@ -331,7 +331,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Then update on server first
         const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
         
-        fetch('{{ route("admin.notifications.read-all") }}', {
+        fetch('{{ route("care-worker.notifications.read-all") }}', {
             method: 'POST',
             headers: {
                 'X-CSRF-TOKEN': csrfToken,

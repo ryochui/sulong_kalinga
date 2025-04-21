@@ -16,42 +16,61 @@ class NotificationsController extends Controller
     /**
      * Get notifications for the authenticated user
      */
-    public function getUserNotifications(Request $request)
+    public function getUserNotifications(Request $request, $userType = null)
     {
         // Get the authenticated user
         $user = Auth::user();
         
         \Log::info('User requesting notifications', [
             'user_id' => $user ? $user->id : 'null',
-            'role_id' => $user ? $user->role_id : 'null'
+            'role_id' => $user ? $user->role_id : 'null',
+            'user_type' => $userType
         ]);
         
         if (!$user) {
-            return response()->json(['error' => 'Unauthenticated'], 401);
+            return response()->json(['success' => false, 'message' => 'Unauthenticated'], 401);
         }
         
-        // Get notifications
-        $query = Notification::where('user_type', 'cose_staff')
-                            ->where('user_id', $user->id)
-                            ->orderBy('date_created', 'desc');
-                            
-        \Log::info('Running notification query', [
-            'sql' => $query->toSql(),
-            'bindings' => $query->getBindings()
-        ]);
-        
-        $notifications = $query->take(10)->get();
-        
-        \Log::info('Fetched notifications', [
-            'count' => $notifications->count(),
-            'first_few' => $notifications->take(3)->toArray()
-        ]);
-        
-        return response()->json([
-            'success' => true,
-            'notifications' => $notifications,
-            'unread_count' => $notifications->where('is_read', false)->count()
-        ]);
+        try {
+            // Determine notification user type based on URL or role
+            $notificationType = 'cose_staff'; // Default to cose_staff
+            
+            // If URL contains care-manager, use that as a hint
+            if ($request->is('care-manager/*') || $request->is('care-manager')) {
+                $notificationType = 'cose_staff'; // Care managers still use cose_staff
+            }
+            
+            // Get notifications for current user
+            $notifications = Notification::where('user_id', $user->id)
+                ->where('user_type', $notificationType)
+                ->orderBy('date_created', 'desc')
+                ->get();
+            
+            \Log::info('Fetched notifications', [
+                'count' => $notifications->count(),
+                'query' => [
+                    'user_id' => $user->id,
+                    'user_type' => $notificationType
+                ]
+            ]);
+            
+            $unreadCount = $notifications->where('is_read', false)->count();
+            
+            return response()->json([
+                'success' => true,
+                'notifications' => $notifications,
+                'unread_count' => $unreadCount
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Error fetching notifications: ' . $e->getMessage(), [
+                'exception' => $e->getTraceAsString()
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Error fetching notifications: ' . $e->getMessage()
+            ], 500);
+        }
     }
     
     /**
@@ -61,12 +80,11 @@ class NotificationsController extends Controller
     {
         // Check if user is admin
         if (Auth::user()->role_id != 1) {
-            return response()->json(['error' => 'Unauthorized'], 403);
+            return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
         }
         
         // Get all notifications, newest first
-        $notifications = Notification::with('notifiable')
-            ->orderBy('date_created', 'desc')
+        $notifications = Notification::orderBy('date_created', 'desc')
             ->paginate(20);
             
         return response()->json([
@@ -77,20 +95,36 @@ class NotificationsController extends Controller
     
     /**
      * Mark a notification as read
+     * 
+     * @param Request $request
+     * @param int $id
+     * @param string $userType (optional) Override for user type
+     * @return \Illuminate\Http\JsonResponse
      */
-    public function markAsRead(Request $request, $id)
+    public function markAsRead(Request $request, $id, $userType = null)
     {
-        $notification = Notification::find($id);
+        $user = Auth::user();
+        
+        if (!$user) {
+            return response()->json(['success' => false, 'message' => 'Unauthenticated'], 401);
+        }
+        
+        $notificationUserType = $this->determineUserType($user, $userType);
+        
+        // Find the notification and ensure it belongs to current user
+        $notification = Notification::where('notification_id', $id)
+            ->where('user_id', $user->id)
+            ->where('user_type', $notificationUserType)
+            ->first();
         
         if (!$notification) {
-            return response()->json(['error' => 'Notification not found'], 404);
+            return response()->json([
+                'success' => false,
+                'message' => 'Notification not found'
+            ], 404);
         }
         
-        // Check if user has permission to mark this notification
-        if (!$this->canAccessNotification($notification)) {
-            return response()->json(['error' => 'Unauthorized'], 403);
-        }
-        
+        // Mark as read
         $notification->is_read = true;
         $notification->save();
         
@@ -103,26 +137,26 @@ class NotificationsController extends Controller
     /**
      * Mark all notifications as read
      */
-    public function markAllAsRead(Request $request)
+    public function markAllAsRead(Request $request, $userType = null)
     {
         $user = Auth::user();
         
         if (!$user) {
-            return response()->json(['error' => 'Unauthenticated'], 401);
+            return response()->json(['success' => false, 'message' => 'Unauthenticated'], 401);
         }
         
-        // Get all unread notifications for this user
-        $notifications = $this->getNotificationsByUserRole($user, true);
+        $notificationUserType = $this->determineUserType($user, $userType);
         
-        // Mark all as read
-        foreach ($notifications as $notification) {
-            $notification->markAsRead();
-        }
+        // Update all unread notifications for this user
+        $updated = Notification::where('user_id', $user->id)
+            ->where('user_type', $notificationUserType)
+            ->where('is_read', false)
+            ->update(['is_read' => true]);
         
         return response()->json([
             'success' => true,
             'message' => 'All notifications marked as read',
-            'count' => $notifications->count()
+            'count' => $updated
         ]);
     }
     
@@ -134,7 +168,7 @@ class NotificationsController extends Controller
         // Validate request data
         $validated = $request->validate([
             'user_id' => 'required|integer',
-            'user_type' => 'required|string|in:beneficiary,family_member,cose_staff',
+            'user_type' => 'required|string|in:beneficiary,family_member,cose_staff,care_manager',
             'message_title' => 'nullable|string|max:255',
             'message' => 'required|string',
         ]);
@@ -180,24 +214,33 @@ class NotificationsController extends Controller
     }
     
     /**
-     * Check if the authenticated user can access this notification
+     * Determine the correct user type for notifications based on user role
+     * 
+     * @param User $user
+     * @param string|null $routeUserType
+     * @return string
      */
-    private function canAccessNotification($notification)
+    private function determineUserType($user, $routeUserType = null)
     {
-        $user = Auth::user();
-        
-        // Admins can access all notifications
-        if ($user->role_id == 1) {
-            return true;
+        // If route specifies user type, use that (for API flexibility)
+        if ($routeUserType) {
+            return $routeUserType;
         }
         
-        // Staff can only access their own notifications
-        if ($notification->user_type == 'cose_staff' && $notification->user_id == $user->id) {
-            return true;
+        // For staff users (roles 1-3), they all use 'cose_staff' user_type in notifications
+        // This includes admin (1), care_manager (2), and care_worker (3)
+        if ($user->role_id >= 1 && $user->role_id <= 3) {
+            return 'cose_staff';
         }
         
-        // For future implementation: check beneficiary and family member access
+        // For portal users, we would need to determine if they're a beneficiary or family member
+        // This typically requires checking which portal they logged in through
+        // or examining session data to know their user type
         
-        return false;
+        // Default fallback - this should generally not be reached
+        // since users should always have a valid type
+        return 'cose_staff';
     }
+
+    
 }

@@ -163,7 +163,7 @@ class DatabaseSeeder extends Seeder
 
     private function generateNotifications()
     {
-        // Generate notifications for beneficiaries
+        // Generate notifications for beneficiaries - keeping this part
         $beneficiaries = Beneficiary::take(5)->get();
         foreach ($beneficiaries as $beneficiary) {
             Notification::factory()
@@ -172,7 +172,7 @@ class DatabaseSeeder extends Seeder
                 ->create();
         }
         
-        // Generate notifications for family members
+        // Generate notifications for family members - keeping this part
         $familyMembers = FamilyMember::take(5)->get();
         foreach ($familyMembers as $familyMember) {
             Notification::factory()
@@ -181,13 +181,57 @@ class DatabaseSeeder extends Seeder
                 ->create();
         }
         
-        // Generate notifications for cose staff
-        $staffMembers = User::where('role_id', '<=', 3)->take(5)->get();
+        // UPDATED: Generate notifications for ALL COSE staff instead of just taking 5
+        $staffMembers = User::where('role_id', '<=', 3)->get(); // Get ALL COSE staff
+        
+        $notificationTypes = [
+            // Admin notifications (role_id = 1)
+            1 => [
+                'System Update' => 'The system has been updated with new features.',
+                'Security Alert' => 'A new security patch has been applied.',
+                'New User Registration' => 'A new user has registered in the system.',
+                'Data Backup Complete' => 'Automatic data backup has completed successfully.',
+                'Performance Report' => 'Monthly performance report is now available.'
+            ],
+            // Care Manager notifications (role_id = 2)
+            2 => [
+                'New Case Assigned' => 'You have been assigned a new case to manage.',
+                'Care Plan Review' => 'A care plan is due for review this week.',
+                'Staff Schedule Update' => 'There are changes to the staff schedule.',
+                'Patient Status Alert' => 'A patient status has been updated.',
+                'Weekly Report Due' => 'Your weekly report is due in 2 days.'
+            ],
+            // Care Worker notifications (role_id = 3)
+            3 => [
+                'Visit Reminder' => 'You have a scheduled visit tomorrow.',
+                'Medication Update' => 'Medication schedule has been updated for a patient.',
+                'Training Available' => 'New training modules are available for you.',
+                'Shift Change Request' => 'A shift change has been requested.',
+                'Documentation Reminder' => 'Please complete your visit documentation.'
+            ]
+        ];
+        
+        // For each staff member, create role-specific notifications
         foreach ($staffMembers as $staff) {
-            Notification::factory()
-                ->count(rand(3, 7))
-                ->forCoseStaff($staff->id)
-                ->create();
+            $roleSpecificMessages = $notificationTypes[$staff->role_id] ?? $notificationTypes[1];
+            $count = rand(3, 7); // Create 3-7 notifications per user
+            
+            // Create some read and some unread notifications
+            for ($i = 0; $i < $count; $i++) {
+                $title = array_rand($roleSpecificMessages);
+                $message = $roleSpecificMessages[$title];
+                
+                Notification::create([
+                    'user_id' => $staff->id,
+                    'user_type' => 'cose_staff',
+                    'message_title' => $title,
+                    'message' => $message,
+                    'date_created' => now()->subHours(rand(1, 72)), // Random time within last 3 days
+                    'is_read' => rand(0, 100) < 30, // 30% chance of being read
+                    'created_at' => now(),
+                    'updated_at' => now()
+                ]);
+            }
         }
     }
 }
