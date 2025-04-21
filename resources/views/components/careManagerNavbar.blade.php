@@ -103,6 +103,10 @@ document.addEventListener('DOMContentLoaded', function() {
     const dropdownList = document.querySelector('.dropdown-notifications .notification-list');
     const modalList = document.querySelector('#notificationsModal .notification-list');
     const countBadge = document.querySelector('.notification-count');
+    const notificationsModal = document.getElementById('notificationsModal');
+    
+    // Track selected notification ID for modal focusing
+    let selectedNotificationId = null;
     
     // Keep track of unread count in a variable instead of counting DOM elements
     let currentUnreadCount = 0;
@@ -135,6 +139,11 @@ document.addEventListener('DOMContentLoaded', function() {
                     // Set the unread count from server response
                     currentUnreadCount = data.unread_count;
                     updateUnreadCount(currentUnreadCount);
+                    
+                    // After rendering, check if we need to focus a notification
+                    if (selectedNotificationId && notificationsModal.classList.contains('show')) {
+                        focusNotificationInModal(selectedNotificationId);
+                    }
                 } else {
                     console.error('API returned error:', data.message || 'Unknown error');
                 }
@@ -188,7 +197,9 @@ document.addEventListener('DOMContentLoaded', function() {
     // Create HTML string for a notification item
     function createNotificationHTML(notification, iconClass, iconType, timeAgo, truncate) {
         return `
-            <div class="notification-item ${notification.is_read ? '' : 'unread'}" data-id="${notification.notification_id}">
+            <div class="notification-item ${notification.is_read ? '' : 'unread'}" 
+                 data-id="${notification.notification_id}"
+                 id="notification-${notification.notification_id}">
                 <div class="d-flex align-items-start">
                     <div class="notification-icon ${iconType}">
                         <i class="bi ${iconClass}"></i>
@@ -235,12 +246,24 @@ document.addEventListener('DOMContentLoaded', function() {
             };
         }
         
-        // Make notification items clickable to mark as read
-        document.querySelectorAll('.notification-item.unread').forEach(item => {
+        // Make notification items in dropdown clickable to open modal and focus on that notification
+        document.querySelectorAll('.dropdown-notifications .notification-item').forEach(item => {
             item.onclick = function(e) {
+                // Only handle if they didn't click the mark-as-read button
                 if (!e.target.closest('.mark-as-read')) {
                     const notificationId = this.getAttribute('data-id');
-                    markAsRead(notificationId);
+                    
+                    // If it's unread, mark it as read
+                    if (this.classList.contains('unread')) {
+                        markAsRead(notificationId);
+                    }
+                    
+                    // Store the ID to focus on when modal opens
+                    selectedNotificationId = notificationId;
+                    
+                    // Open the modal programmatically
+                    const bsModal = new bootstrap.Modal(notificationsModal);
+                    bsModal.show();
                 }
             };
         });
@@ -411,6 +434,48 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log('Updated unread count:', count);
     }
     
+    // Focus and highlight a specific notification in the modal
+    function focusNotificationInModal(notificationId) {
+        // First, remove highlight from any previously highlighted items
+        document.querySelectorAll('.notification-item.highlight').forEach(item => {
+            item.classList.remove('highlight');
+        });
+        
+        // Find the notification in the modal
+        const notificationItem = modalList.querySelector(`#notification-${notificationId}`);
+        
+        if (notificationItem) {
+            // Add highlight class
+            notificationItem.classList.add('highlight');
+            
+            // Scroll the item into view with smooth animation
+            notificationItem.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            
+            // Optional: Flash effect to draw attention
+            setTimeout(() => {
+                notificationItem.style.transition = 'background-color 0.5s';
+                notificationItem.style.backgroundColor = '#f8f9fa';
+                
+                setTimeout(() => {
+                    notificationItem.style.backgroundColor = '';
+                    
+                    // Reset selected ID after focusing
+                    setTimeout(() => {
+                        selectedNotificationId = null;
+                        
+                        // Automatically remove highlight after 3 seconds
+                        setTimeout(() => {
+                            notificationItem.classList.remove('highlight');
+                        }, 1500);
+                        
+                    }, 300);
+                }, 300);
+            }, 100);
+        } else {
+            console.log('Notification not found in modal:', notificationId);
+        }
+    }
+    
     // Get appropriate icon for notification type
     function getNotificationIcon(notification) {
         let icon = 'bi-info-circle';
@@ -467,9 +532,16 @@ document.addEventListener('DOMContentLoaded', function() {
         return 'just now';
     }
     
-    // Reload notifications when modal is opened
-    const notificationsModal = document.getElementById('notificationsModal');
+    // Configure modal events
     if (notificationsModal) {
+        // When the modal is shown, focus on the selected notification if any
+        notificationsModal.addEventListener('shown.bs.modal', function() {
+            if (selectedNotificationId) {
+                focusNotificationInModal(selectedNotificationId);
+            }
+        });
+        
+        // Reload notifications when modal is opened
         notificationsModal.addEventListener('show.bs.modal', loadNotifications);
     }
 });
