@@ -1024,7 +1024,9 @@ class AdminController extends Controller
         try {
             // Find the barangay
             $barangay = Barangay::findOrFail($id);
-            
+            $barangayName = $barangay->barangay_name;
+            $municipalityName = Municipality::find($barangay->municipality_id)->municipality_name;
+
             // Check if this barangay has beneficiaries
             $beneficiaryCount = Beneficiary::where('barangay_id', $id)->count();
             if ($beneficiaryCount > 0) {
@@ -1037,7 +1039,13 @@ class AdminController extends Controller
             
             // All checks passed, delete the barangay
             $barangay->delete();
-            
+
+            // Send notification about deleted barangay
+            $actor = Auth::user()->first_name . ' ' . Auth::user()->last_name;
+            $title = 'Barangay Deleted';
+            $message = $actor . ' deleted barangay ' . $barangayName . ' from ' . $municipalityName . ' municipality';
+            $this->sendLocationNotification($title, $message);
+                
             return response()->json([
                 'success' => true,
                 'message' => 'Barangay deleted successfully.'
@@ -1081,6 +1089,7 @@ class AdminController extends Controller
         try {
             // Find the municipality
             $municipality = Municipality::findOrFail($id);
+            $municipalityName = $municipality->municipality_name;
             
             // Check if this municipality has barangays
             $barangayCount = Barangay::where('municipality_id', $id)->count();
@@ -1118,6 +1127,12 @@ class AdminController extends Controller
             
             // All checks passed, delete the municipality
             $municipality->delete();
+
+             // Send notification about deleted municipality
+            $actor = Auth::user()->first_name . ' ' . Auth::user()->last_name;
+            $title = 'Municipality Deleted';
+            $message = $actor . ' deleted municipality ' . $municipalityName;
+            $this->sendLocationNotification($title, $message);
             
             return response()->json([
                 'success' => true,
@@ -1171,7 +1186,13 @@ class AdminController extends Controller
             $municipality->municipality_name = $request->municipality_name;
             $municipality->province_id = 1; // Default to Northern Samar
             $municipality->save();
-            
+
+            // Send notification about new municipality
+            $actor = Auth::user()->first_name . ' ' . Auth::user()->last_name;
+            $title = 'New Municipality Added';
+            $message = $actor . ' added a new municipality ' . $request->municipality_name;
+            $this->sendLocationNotification($title, $message);
+                
             $message = 'Municipality "' . $request->municipality_name . '" has been added successfully.';
             
             if ($request->ajax() || $request->wantsJson()) {
@@ -1259,6 +1280,12 @@ class AdminController extends Controller
             $municipalityName = Municipality::find($request->municipality_id)->municipality_name;
             $message = 'Barangay "' . $request->barangay_name . '" has been added successfully to ' . $municipalityName . ' municipality.';
             
+            // Send notification about new barangay
+            $actor = Auth::user()->first_name . ' ' . Auth::user()->last_name;
+            $title = 'New Barangay Added';
+            $message = $actor . ' added a new barangay ' . $request->barangay_name . ' in ' . $municipalityName . ' municipality';
+            $this->sendLocationNotification($title, $message);
+           
             if ($request->ajax() || $request->wantsJson()) {
                 return response()->json([
                     'success' => true,
@@ -1288,6 +1315,7 @@ class AdminController extends Controller
     {
         // Validate the request
         $municipality = Municipality::findOrFail($request->municipality_id);
+        $oldName = $municipality->municipality_name;
         
         $validator = Validator::make($request->all(), [
             'municipality_id' => 'required|exists:municipalities,municipality_id',
@@ -1316,6 +1344,12 @@ class AdminController extends Controller
             // Update the municipality
             $municipality->municipality_name = $request->municipality_name;
             $municipality->save();
+
+            // Send notification about updated municipality
+            $actor = Auth::user()->first_name . ' ' . Auth::user()->last_name;
+            $title = 'Municipality Updated';
+            $message = $actor . ' updated municipality from "' . $oldName . '" to "' . $request->municipality_name . '"';
+            $this->sendLocationNotification($title, $message);
             
             $message = 'Municipality has been updated successfully to "' . $request->municipality_name . '".';
             
@@ -1352,7 +1386,8 @@ class AdminController extends Controller
         // Store original values for comparison
         $originalName = $barangay->barangay_name;
         $originalMunicipalityId = $barangay->municipality_id;
-        
+        $originalMunicipality = Municipality::find($originalMunicipalityId)->municipality_name;
+
         // Check if anything changed
         if ($request->barangay_name === $originalName && $request->municipality_id == $originalMunicipalityId) {
             if ($request->ajax() || $request->wantsJson()) {
@@ -1405,6 +1440,24 @@ class AdminController extends Controller
             $barangay->barangay_name = $request->barangay_name;
             $barangay->municipality_id = $request->municipality_id;
             $barangay->save();
+
+            // Send notification about updated barangay
+            $actor = Auth::user()->first_name . ' ' . Auth::user()->last_name;
+            $title = 'Barangay Updated';
+            $message = $actor . ' updated barangay';
+            
+            if ($originalName != $request->barangay_name) {
+                $message .= ' from "' . $originalName . '" to "' . $request->barangay_name . '"';
+            } else {
+                $message .= ' "' . $originalName . '"';
+            }
+            
+            if ($originalMunicipalityId != $request->municipality_id) {
+                $message .= ' and moved it from ' . $originalMunicipality . ' to ' . $newMunicipality->municipality_name;
+            }
+            
+            $this->sendLocationNotification($title, $message);
+        
             
             // Prepare success message
             if ($request->municipality_id != $originalMunicipalityId) {
@@ -1433,6 +1486,45 @@ class AdminController extends Controller
             }
             
             return redirect()->route('municipality')->with('error', $message);
+        }
+    }
+
+    /**
+     * Send location change notification to all admins and care managers (except the current user)
+     *
+     * @param string $title Notification title
+     * @param string $message Notification message
+     * @return void
+     */
+    private function sendLocationNotification($title, $message)
+    {
+        try {
+            // Get the current user's ID
+            $currentUserId = Auth::id();
+            
+            // Get all admins and care managers (roles 1 and 2) EXCEPT the current user
+            $staffUsers = User::whereIn('role_id', [1, 2])
+                ->where('status', 'Active')
+                ->where('id', '!=', $currentUserId) // Exclude the current user
+                ->get();
+                
+            \Log::info('Sending location notification to ' . $staffUsers->count() . ' staff members (excluding author)');
+                
+            foreach ($staffUsers as $user) {
+                // Create notification for each user
+                $notification = new \App\Models\Notification();
+                $notification->user_id = $user->id;
+                $notification->user_type = 'cose_staff'; // All staff users
+                $notification->message_title = $title;
+                $notification->message = $message;
+                $notification->date_created = now();
+                $notification->is_read = false;
+                $notification->save();
+                
+                \Log::info('Created notification for user ' . $user->id);
+            }
+        } catch (\Exception $e) {
+            \Log::error('Failed to send location notification: ' . $e->getMessage());
         }
     }
 

@@ -418,7 +418,14 @@ document.addEventListener('DOMContentLoaded', function() {
         
         if (notification.message_title) {
             const title = notification.message_title.toLowerCase();
-            if (title.includes('warning') || title.includes('assign')) {
+            
+            // Location-specific icons
+            if (title.includes('municipality') || title.includes('barangay')) {
+                icon = 'bi-geo-alt-fill';
+                type = 'primary';
+            }
+            // Other existing conditions
+            else if (title.includes('warning') || title.includes('assign')) {
                 icon = 'bi-exclamation-triangle';
                 type = 'warning';
             } else if (title.includes('success') || title.includes('approved')) {
