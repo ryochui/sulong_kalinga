@@ -67,4 +67,9 @@ Route::middleware(['auth', '\App\Http\Middleware\CheckRole:care_worker'])->prefi
         Route::post('/beneficiaries-excel', [ExportController::class, 'exportBeneficiariesToExcel'])->name('beneficiaries-excel');
         Route::post('/family-excel', [ExportController::class, 'exportFamilyMembersToExcel'])->name('family-excel');
     });
+
+    // Notification routes
+    Route::get('/notifications', [App\Http\Controllers\NotificationsController::class, 'getUserNotifications'])->name('notifications.get');
+    Route::post('/notifications/{id}/read', [App\Http\Controllers\NotificationsController::class, 'markAsRead'])->name('notifications.read');
+    Route::post('/notifications/read-all', [App\Http\Controllers\NotificationsController::class, 'markAllAsRead'])->name('notifications.read-all');
 });
