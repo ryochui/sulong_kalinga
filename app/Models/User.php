@@ -55,6 +55,7 @@ class User extends Authenticatable
         'mobile', 'landline', 'personal_email', 'email', 'password', 'address', 'barangay_id',
         'gender', 'religion', 'nationality', 'volunteer_status', 'status_start_date',
         'status_end_date', 'role_id', 'status', 'organization_role_id', 'assigned_municipality_id',
+        'assigned_care_manager_id',
         'photo', 'government_issued_id', 'sss_id_number', 'philhealth_id_number',
         'pagibig_id_number', 'cv_resume', 'updated_by'
     ];
@@ -127,5 +128,21 @@ class User extends Authenticatable
             'general_care_plan_id',                        // Local key on User
             'general_care_plan_id'                         // Local key on GeneralCarePlan
         );
+    }
+
+    /**
+     * Get the care manager assigned to this care worker
+     */
+    public function assignedCareManager()
+    {
+        return $this->belongsTo(User::class, 'assigned_care_manager_id', 'id');
+    }
+
+    /**
+     * Get the care workers assigned to this care manager
+     */
+    public function assignedCareWorkers()
+    {
+        return $this->hasMany(User::class, 'assigned_care_manager_id', 'id');
     }
 }

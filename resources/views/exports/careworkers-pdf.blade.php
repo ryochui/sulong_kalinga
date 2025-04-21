@@ -192,10 +192,11 @@
         <thead>
             <tr>
                 <th width="5%">No.</th>
-                <th width="25%">Full Name</th>
-                <th width="15%">Municipality</th>
+                <th width="20%">Full Name</th>
+                <th width="10%">Municipality</th>
+                <th width="15%">Care Manager</th>
                 <th width="20%">Contact</th>
-                <th width="20%">Education</th>
+                <th width="15%">Education</th>
                 <th width="15%">Status</th>
             </tr>
         </thead>
@@ -205,6 +206,13 @@
                 <td>{{ $index + 1 }}</td>
                 <td>{{ $cw->first_name }} {{ $cw->last_name }}</td>
                 <td>{{ $cw->municipality->municipality_name }}</td>
+                <td>
+                    @if($cw->assignedCareManager)
+                        {{ $cw->assignedCareManager->first_name }} {{ $cw->assignedCareManager->last_name }}
+                    @else
+                        <span class="text-muted">Unassigned</span>
+                    @endif
+                </td>
                 <td>{{ $cw->mobile }}</td>
                 <td>{{ $cw->educational_background }}</td>
                 <td>
@@ -279,6 +287,16 @@
                         <tr>
                             <td width="40%"><strong>Assigned Municipality:</strong></td>
                             <td>{{ $careworker->municipality->municipality_name }}</td>
+                        </tr>
+                        <tr>
+                            <td width="40%"><strong>Assigned Care Manager:</strong></td>
+                            <td>
+                                @if($careworker->assignedCareManager)
+                                    {{ $careworker->assignedCareManager->first_name }} {{ $careworker->assignedCareManager->last_name }}
+                                @else
+                                    <span style="color: #777; font-style: italic;">Unassigned</span>
+                                @endif
+                            </td>
                         </tr>
                         <tr>
                             <td><strong>Email Address:</strong></td>

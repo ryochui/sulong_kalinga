@@ -160,10 +160,11 @@ class ExportController extends Controller
             return redirect()->back()->with('error', 'No care workers selected for export.');
         }
         
-        // Fetch the careworkers with their relationships
+        // Fetch the careworkers with their relationships - add assignedCareManager
         $careworkers = User::with([
             'municipality',
-            'barangay'
+            'barangay',
+            'assignedCareManager' // Added the care manager relationship
         ])->whereIn('id', $careworkerIds)
         ->where('role_id', '3') // Only care workers
         ->get();

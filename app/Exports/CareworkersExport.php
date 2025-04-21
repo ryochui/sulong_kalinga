@@ -39,6 +39,7 @@ class CareworkersExport implements FromCollection, WithHeadings, WithMapping, Sh
             'Full Name',
             'Status',
             'Assigned Municipality',
+            'Assigned Care Manager',
             'Age',
             'Birthday',
             'Gender',
@@ -60,6 +61,7 @@ class CareworkersExport implements FromCollection, WithHeadings, WithMapping, Sh
             $careworker->first_name . ' ' . $careworker->last_name,
             $careworker->volunteer_status ?? 'N/A',
             $careworker->municipality->municipality_name ?? 'N/A',
+            $careworker->assignedCareManager ? $careworker->assignedCareManager->first_name . ' ' . $careworker->assignedCareManager->last_name : 'Unassigned',
             \Carbon\Carbon::parse($careworker->birthday)->age . ' years old',
             \Carbon\Carbon::parse($careworker->birthday)->format('F j, Y') ?? 'N/A',
             $careworker->gender ?? 'N/A',
@@ -106,7 +108,7 @@ class CareworkersExport implements FromCollection, WithHeadings, WithMapping, Sh
             ],
             
             // Style for all cells - updated to include all columns A through O
-            'A1:O'.$highestRow => [
+            'A1:P'.$highestRow => [
                 'alignment' => [
                     'vertical' => Alignment::VERTICAL_CENTER,
                     'horizontal' => Alignment::HORIZONTAL_LEFT,
@@ -138,12 +140,12 @@ class CareworkersExport implements FromCollection, WithHeadings, WithMapping, Sh
                 // Mobile numbers
                 $sheet->getStyle('H2:H'.$highestRow)->getNumberFormat()->setFormatCode('@');
                 // ID numbers (SSS, PhilHealth, Pag-IBIG)
-                $sheet->getStyle('M2:O'.$highestRow)->getNumberFormat()->setFormatCode('@');
+                $sheet->getStyle('M2:P'.$highestRow)->getNumberFormat()->setFormatCode('@');
                 
                 // Apply striped rows for better readability - updated to include all columns
                 for ($row = 2; $row <= $highestRow; $row++) {
                     if ($row % 2 == 0) {
-                        $sheet->getStyle('A'.$row.':O'.$row)->applyFromArray([
+                        $sheet->getStyle('A'.$row.':P'.$row)->applyFromArray([
                             'fill' => [
                                 'fillType' => Fill::FILL_SOLID,
                                 'startColor' => ['rgb' => 'F5F5F5'] // Light grey for even rows
@@ -174,7 +176,7 @@ class CareworkersExport implements FromCollection, WithHeadings, WithMapping, Sh
                 $event->sheet->getColumnDimension('O')->setWidth(15); // Pag-Ibig Number
                 
                 // Add auto-filter - updated to include all columns
-                $sheet->setAutoFilter('A1:O' . $highestRow);
+                $sheet->setAutoFilter('A1:P' . $highestRow);
                 
                 // Freeze the header row
                 $sheet->freezePane('A2');

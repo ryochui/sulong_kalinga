@@ -236,14 +236,28 @@
                                 <input type="password" class="form-control" id="confirmPassword" name="account[password_confirmation]" placeholder="Confirm password" required>
                             </div>
                         </div>
-                        <div class="col-md-4">
-                            <label for="municipality" class="form-label">Municipality<label style="color:red;"> * </label></label>
-                            <select class="form-select" id="municipality" name="municipality" required>
-                                <option value="" disabled {{ old('municipality') ? '' : 'selected' }}>Select municipality</option>
-                                @foreach ($municipalities as $municipality)
-                                    <option value="{{ $municipality->municipality_id }}" {{ old('municipality') == $municipality->municipality_id ? 'selected' : '' }}>{{ $municipality->municipality_name }}</option>
-                                @endforeach
-                            </select>
+                        <div class="row mt-4">
+                            <div class="col-md-4">
+                                <label for="municipality" class="form-label">Municipality<label style="color:red;"> * </label></label>
+                                <select class="form-select" id="municipality" name="municipality" required>
+                                    <option value="" disabled {{ old('municipality') ? '' : 'selected' }}>Select municipality</option>
+                                    @foreach ($municipalities as $municipality)
+                                        <option value="{{ $municipality->municipality_id }}" {{ old('municipality') == $municipality->municipality_id ? 'selected' : '' }}>{{ $municipality->municipality_name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="assigned_care_manager" class="form-label">Assigned Care Manager<label style="color:red;"> * </label></label>
+                                <select class="form-select" id="assigned_care_manager" name="assigned_care_manager" required>
+                                    <option value="" selected>None (Unassigned)</option>
+                                    @foreach ($careManagers as $careManager)
+                                        <option value="{{ $careManager->id }}" {{ old('assigned_care_manager') == $careManager->id ? 'selected' : '' }}>
+                                            {{ $careManager->first_name }} {{ $careManager->last_name }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                                <small class="text-muted">Select the care manager responsible for this care worker</small>
+                            </div>
                         </div>                      
                         <div class="row mt-4">
                             <div class="col-12 d-flex justify-content-center align-items-center">

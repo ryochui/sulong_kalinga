@@ -95,6 +95,17 @@
                                 <label for="nationality" class="form-label">Nationality</label>
                                 <input type="text" class="form-control" id="nationality" name="nationality" placeholder="Enter nationality" value="{{ old('nationality', $careworker->nationality) }}"></div>
                             <div class="col-md-3 position-relative">
+                                <label for="educationalBackground" class="form-label">Educational Background</label>
+                                <select class="form-select" id="educationalBackground" name="educational_background">
+                                    <option value="" disabled>Select Educational Background</option>
+                                    <option value="College" {{ old('educational_background', $careworker->educational_background) == 'College' ? 'selected' : '' }}>College</option>
+                                    <option value="Highschool" {{ old('educational_background', $careworker->educational_background) == 'Highschool' ? 'selected' : '' }}>High School</option>
+                                    <option value="Doctorate" {{ old('educational_background', $careworker->educational_background) == 'Doctorate' ? 'selected' : '' }}>Doctorate</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-3 position-relative">
                                 <label for="municipality" class="form-label">Municipality</label>
                                 <select class="form-select" id="municipality" name="municipality">
                                     <option value="" disabled>Select municipality</option>
@@ -106,15 +117,16 @@
                                     @endforeach
                                 </select>
                             </div>
-                        </div>
-                        <div class="row mb-3">
                             <div class="col-md-3 position-relative">
-                                <label for="educationalBackground" class="form-label">Educational Background</label>
-                                <select class="form-select" id="educationalBackground" name="educational_background">
-                                    <option value="" disabled>Select Educational Background</option>
-                                    <option value="College" {{ old('educational_background', $careworker->educational_background) == 'College' ? 'selected' : '' }}>College</option>
-                                    <option value="Highschool" {{ old('educational_background', $careworker->educational_background) == 'Highschool' ? 'selected' : '' }}>High School</option>
-                                    <option value="Doctorate" {{ old('educational_background', $careworker->educational_background) == 'Doctorate' ? 'selected' : '' }}>Doctorate</option>
+                                <label for="assigned_care_manager" class="form-label">Assigned Care Manager</label>
+                                <select class="form-select" id="assigned_care_manager" name="assigned_care_manager">
+                                    <option value="">None (Unassigned)</option>
+                                    @foreach($careManagers as $careManager)
+                                        <option value="{{ $careManager->id }}" 
+                                            {{ old('assigned_care_manager', $careworker->assigned_care_manager_id) == $careManager->id ? 'selected' : '' }}>
+                                            {{ $careManager->first_name }} {{ $careManager->last_name }}
+                                        </option>
+                                    @endforeach
                                 </select>
                             </div>
                         </div>

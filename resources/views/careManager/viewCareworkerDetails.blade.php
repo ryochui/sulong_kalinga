@@ -104,6 +104,16 @@
                                     <td>{{$careworker->municipality->municipality_name}}</td>
                                 </tr>
                                 <tr>
+                                    <td style="width:30%;"><strong>Assigned Care Manager:</strong></td>
+                                    <td>
+                                        @if($careworker->assignedCareManager)
+                                            {{ $careworker->assignedCareManager->first_name }} {{ $careworker->assignedCareManager->last_name }}
+                                        @else
+                                            <span class="text-muted">Unassigned</span>
+                                        @endif
+                                    </td>
+                                </tr>
+                                <tr>
                                     <td style="width:30%;"><strong>Email Address:</strong></td>
                                     <td>{{$careworker->email}}</td>
                                 </tr>

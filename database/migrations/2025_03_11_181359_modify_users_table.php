@@ -36,6 +36,7 @@ return new class extends Migration
             $table->string('status', 20);
             $table->integer('organization_role_id')->nullable();
             $table->integer('assigned_municipality_id')->nullable();
+            $table->integer('assigned_care_manager_id')->nullable()->after('assigned_municipality_id');
             $table->text('photo')->nullable();
             $table->text('government_issued_id')->nullable();
             $table->string('sss_id_number', 20)->nullable();
@@ -46,6 +47,7 @@ return new class extends Migration
 
             // Foreign Key Constraints
             $table->foreign('role_id')->references('role_id')->on('roles')->onDelete('no action');
+            $table->foreign('assigned_care_manager_id')->references('id')->on('cose_users')->onDelete('set null');
 
             // Keep timestamps (created_at, updated_at)
             //$table->timestamps(); // Automatically adds created_at and updated_at
@@ -62,12 +64,13 @@ return new class extends Migration
     {
         Schema::table('cose_users', function (Blueprint $table) {
             $table->dropForeign(['role_id']);
+            $table->dropForeign(['assigned_care_manager_id']);
             $table->dropColumn([
                 'first_name', 'last_name', 'birthday', 'civil_status', 'educational_background', 
                 'mobile', 'landline', 'email_address', 'password_hash', 'address', 
                 'gender', 'religion', 'nationality', 'volunteer_status', 'status_start_date', 
-                'status_end_date', 'role_id', 'status', 'organization_role_id', 'assigned_municipality_id', 
-                'photo', 'government_issued_id', 'sss_id_number', 'philhealth_id_number', 
+                'status_end_date', 'role_id', 'status', 'organization_role_id', 'assigned_municipality_id',
+                'assigned_care_manager_id', 'photo', 'government_issued_id', 'sss_id_number', 'philhealth_id_number', 
                 'pagibig_id_number', 'cv_resume', 'updated_by'
             ]);
         });

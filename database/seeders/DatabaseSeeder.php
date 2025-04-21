@@ -35,14 +35,30 @@ class DatabaseSeeder extends Seeder
 
         // 2. Generate users with different roles
         User::factory()->count(5)->create(['role_id' => 1]); // Admins
-        User::factory()->count(5)->create(['role_id' => 2]); // Care Managers  
-        User::factory()->count(5)->create(['role_id' => 3]); // Care Workers
+        
+        // Generate care managers first so we can assign care workers to them
+        $careManagers = [];
+        for ($i = 0; $i < 5; $i++) {
+            $careManagers[] = User::factory()->create(['role_id' => 2]);
+        }
+        
+        // Create care workers with assigned care managers
+        $careWorkers = [];
+        for ($i = 0; $i < 5; $i++) {
+            // Assign each care worker to a random care manager
+            $randomCareManager = $careManagers[array_rand($careManagers)];
+            
+            $careWorkers[] = User::factory()->create([
+                'role_id' => 3,
+                'assigned_care_manager_id' => $randomCareManager->id
+            ]);
+        }
 
-        // 3. IMPORTANT: Create general care plans FIRST with all related data
+        // 3. Create general care plans with all related data
         $generalCarePlans = [];
         for ($i = 1; $i <= 15; $i++) {
             // Get a random care worker
-            $careWorkerId = User::where('role_id', 3)->inRandomOrder()->first()->id;
+            $careWorkerId = $careWorkers[array_rand($careWorkers)]->id;
             
             // Create the general care plan with a specific ID
             $generalCarePlan = GeneralCarePlan::create([
@@ -100,6 +116,7 @@ class DatabaseSeeder extends Seeder
             $generalCarePlans[] = $generalCarePlan;
         }
 
+        // Rest of your seeder remains the same...
         // 4. Now create beneficiaries with references to existing general care plans
         $beneficiaries = [];
         for ($i = 0; $i < 10; $i++) {
@@ -134,7 +151,7 @@ class DatabaseSeeder extends Seeder
         // 6. Generate vital signs and weekly care plans
         foreach (range(1, 10) as $index) {
             // Get a random care worker to be the creator of both records
-            $careWorkerId = User::where('role_id', 3)->inRandomOrder()->first()->id;
+            $careWorkerId = $careWorkers[array_rand($careWorkers)]->id;
             
             // Create vital signs with the care worker as creator
             $vitalSigns = VitalSigns::factory()->create([

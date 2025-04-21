@@ -69,25 +69,31 @@ class CareWorkerController extends Controller
 
         // Fetch careworkers based on the search query and filters
         $careworkers = User::where('role_id', 3)
-        ->with('municipality')
-        ->when($search, function ($query, $search) {
-            return $query->where(function ($query) use ($search) {
-                $query->whereRaw('LOWER(first_name) LIKE ?', ['%' . strtolower($search) . '%'])
-                    ->orWhereRaw('LOWER(last_name) LIKE ?', ['%' . strtolower($search) . '%']);
-            });
-        })
-        ->when($filter, function ($query, $filter) {
-            if ($filter == 'status') {
-                return $query->orderBy('volunteer_status');
-            } elseif ($filter == 'municipality') {
-                return $query->orderBy('assigned_municipality_id');
-            }
-        })
-        ->orderBy('first_name') // Order by first name alphabetically by default
-        ->get();
+            ->with(['municipality', 'assignedCareManager']) // Add the relationship
+            ->when($search, function ($query, $search) {
+                return $query->where(function ($query) use ($search) {
+                    $query->whereRaw('LOWER(first_name) LIKE ?', ['%' . strtolower($search) . '%'])
+                        ->orWhereRaw('LOWER(last_name) LIKE ?', ['%' . strtolower($search) . '%']);
+                });
+            })
+            ->when($filter, function ($query, $filter) {
+                if ($filter == 'status') {
+                    return $query->orderBy('volunteer_status');
+                } elseif ($filter == 'municipality') {
+                    return $query->orderBy('assigned_municipality_id');
+                }
+            })
+            ->orderBy('first_name')
+            ->get();
 
-        // Pass the data to the Blade template using role-specific view
-        return view($rolePrefix . '.careWorkerProfile', compact('careworkers'));
+        // Get all care managers for filtering/assignment dropdowns
+        $careManagers = User::where('role_id', 2)
+                            ->where('status', 'Active')
+                            ->orderBy('first_name')
+                            ->get();
+
+        // Pass the data to the Blade template
+        return view($rolePrefix . '.careWorkerProfile', compact('careworkers', 'careManagers'));
     }
 
     public function viewCareworkerDetails(Request $request)
@@ -118,6 +124,12 @@ class CareWorkerController extends Controller
         // Fetch all municipalities for the dropdown
         $municipalities = Municipality::all();
 
+        // Fetch all active care managers (role_id = 2)
+        $careManagers = User::where('role_id', 2)
+        ->where('status', 'Active')
+        ->orderBy('first_name')
+        ->get();
+
         // Format date for the form
         $birth_date = null;
         if ($careworker->birthday) {
@@ -125,7 +137,7 @@ class CareWorkerController extends Controller
         }
 
         // Pass data to the view using role-specific path
-        return view($rolePrefix . '.editCareworkerProfile', compact('careworker', 'municipalities', 'birth_date'));
+        return view($rolePrefix . '.editCareworkerProfile', compact('careworker', 'municipalities', 'careManagers', 'birth_date'));
     }
 
     public function updateCareWorker(Request $request, $id)
@@ -228,6 +240,8 @@ class CareWorkerController extends Controller
                 'string',
                 'regex:/^[0-9]{12}$/',
             ],
+
+            'assigned_care_manager' => 'nullable|exists:cose_users,id,role_id,2',
         ]);
 
         if ($validator->fails()) {
@@ -298,6 +312,7 @@ class CareWorkerController extends Controller
             }
             
             $careworker->assigned_municipality_id = $request->input('municipality');
+            $careworker->assigned_care_manager_id = $request->input('assigned_care_manager');
             $careworker->sss_id_number = $request->input('sss_ID') === '' ? null : $request->input('sss_ID');
             $careworker->philhealth_id_number = $request->input('philhealth_ID') === '' ? null : $request->input('philhealth_ID');
             $careworker->pagibig_id_number = $request->input('pagibig_ID') === '' ? null : $request->input('pagibig_ID');
@@ -349,9 +364,15 @@ class CareWorkerController extends Controller
         
         // Fetch all municipalities from the database
         $municipalities = Municipality::all();
+        
+        // Fetch all active care managers (role_id = 2)
+        $careManagers = User::where('role_id', 2)
+                            ->where('status', 'Active')
+                            ->orderBy('first_name')
+                            ->get();
 
-        // Pass the municipalities to the view using role-specific path
-        return view($rolePrefix . '.addCareWorker', compact('municipalities'));
+        // Pass the data to the view
+        return view($rolePrefix . '.addCareWorker', compact('municipalities', 'careManagers'));
     }
 
     public function storeCareWorker(Request $request)
@@ -454,6 +475,9 @@ class CareWorkerController extends Controller
                 'string',
                 'regex:/^[0-9]{12}$/', // 12 digits
             ],
+
+            'assigned_care_manager' => 'nullable|exists:cose_users,id,role_id,2',
+
         ]);
 
         if ($validator->fails()) {
@@ -515,6 +539,7 @@ class CareWorkerController extends Controller
         $careworker->status = 'Active'; // Status for access to the system
         $careworker->status_start_date = now();
         $careworker->assigned_municipality_id = $request->input('municipality');
+        $careworker->assigned_care_manager_id = $request->input('assigned_care_manager');
 
         // Save file paths and IDs
         $careworker->photo = $careworkerPhotoPath ?? null;

@@ -21,6 +21,9 @@ class UserFactory extends Factory
         $role_id = $this->faker->randomElement([1, 2, 3]);
         $organization_role_id = $role_id == 1 ? $this->faker->randomElement([2, 3]) : null;
         $municipalityId = $this->faker->randomElement([1, 2]);
+        
+        // Care manager ID will be set later for care workers in the DatabaseSeeder
+        $assigned_care_manager_id = null;
 
         return [
             'first_name' => $this->faker->firstName,
@@ -44,6 +47,7 @@ class UserFactory extends Factory
             'status' => 'Active',
             'organization_role_id' => $organization_role_id,
             'assigned_municipality_id' => $municipalityId,
+            'assigned_care_manager_id' => $assigned_care_manager_id, // Added this field
             'photo' => null,
             'government_issued_id' => null,
             'sss_id_number' => $this->faker->numerify('##########'),

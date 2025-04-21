@@ -93,6 +93,7 @@
                                     </th>
                                     <th scope="col">Fullname</th>
                                     <th scope="col">Municipality</th>
+                                    <th scope="col">Care Manager</th>
                                     <th scope="col">Mobile Number</th>
                                     <th scope="col">Status</th>
                                     <th scope="col">Actions</th>
@@ -106,6 +107,13 @@
                                         </td>
                                         <td>{{ $careworker->first_name }} {{ $careworker->last_name }}</td>
                                         <td>{{ $careworker->municipality->municipality_name ?? 'N/A' }}</td>
+                                        <td>
+                                            @if($careworker->assignedCareManager)
+                                                {{ $careworker->assignedCareManager->first_name }} {{ $careworker->assignedCareManager->last_name }}
+                                            @else
+                                                <span class="text-muted">Unassigned</span>
+                                            @endif
+                                        </td>
                                         <td>{{ $careworker->mobile }}</td>
                                         <td>
                                             <select class="form-select" name="status" id="statusSelect{{ $careworker->id }}" select onchange="window.openStatusChangeCareworkerModal(this, 'Care Worker', {{ $careworker->id }}, '{{ $careworker->is_active ? 'active' : 'inactive' }}')">
