@@ -172,6 +172,22 @@
     <script src="{{ asset('js/bootstrap.bundle.min.js') }}"></script>
     <script src="{{ asset('js/forCheckbox.js') }}"></script>
     <script src="{{ asset('js/forAdministratorExport.js') }}"></script>
-
+    
+    <script>
+        // Prevent double submission of status change forms
+        document.addEventListener('DOMContentLoaded', function() {
+            const statusForm = document.getElementById('statusChangeForm');
+            if (statusForm) {
+                statusForm.addEventListener('submit', function() {
+                    const submitBtn = this.querySelector('button[type="submit"]');
+                    if (submitBtn) {
+                        submitBtn.disabled = true;
+                        submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Updating...';
+                    }
+                });
+            }
+        });
+    </script>
+    
 </body>
 </html>

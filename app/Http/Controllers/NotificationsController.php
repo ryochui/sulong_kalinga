@@ -21,11 +21,11 @@ class NotificationsController extends Controller
         // Get the authenticated user
         $user = Auth::user();
         
-        \Log::info('User requesting notifications', [
+        /*\Log::info('User requesting notifications', [
             'user_id' => $user ? $user->id : 'null',
             'role_id' => $user ? $user->role_id : 'null',
             'user_type' => $userType
-        ]);
+        ]);*/
         
         if (!$user) {
             return response()->json(['success' => false, 'message' => 'Unauthenticated'], 401);
@@ -46,13 +46,13 @@ class NotificationsController extends Controller
                 ->orderBy('date_created', 'desc')
                 ->get();
             
-            \Log::info('Fetched notifications', [
+            /*\Log::info('Fetched notifications', [
                 'count' => $notifications->count(),
                 'query' => [
                     'user_id' => $user->id,
                     'user_type' => $notificationType
                 ]
-            ]);
+            ]);*/
             
             $unreadCount = $notifications->where('is_read', false)->count();
             

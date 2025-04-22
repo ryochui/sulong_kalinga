@@ -18,6 +18,7 @@ use App\Models\Beneficiary;
 use App\Models\WeeklyCarePlan;
 use App\Models\FamilyMember;
 use App\Models\OrganizationRole;
+use App\Models\Notification;
 use Carbon\Carbon;
 
 use App\Services\UserManagementService;
@@ -215,6 +216,20 @@ class AdminController extends Controller
 
         $administrator->save();
 
+        // Send welcome notification to the new administrator
+        $welcomeTitle = 'Welcome to SULONG KALINGA';
+        $welcomeMessage = 'Welcome ' . $administrator->first_name . ' ' . $administrator->last_name . 
+                         '! Your administrator account has been created. You can now access the system with your credentials.';
+        $this->sendNotificationToAdmin($administrator->id, $welcomeTitle, $welcomeMessage);
+        
+        // Send notification to other admins about the new admin (excluding the creator and the new admin)
+        $actor = Auth::user()->first_name . ' ' . Auth::user()->last_name;
+        $title = 'New Administrator Added';
+        $message = $actor . ' added a new administrator ' . $administrator->first_name . ' ' . 
+                  $administrator->last_name . ' as ' . 
+                  ($administrator->organization_role_id == 2 ? 'Project Coordinator' : 'MEAL Coordinator');
+        $this->sendAdminNotification($title, $message, $administrator->id);
+
         // Redirect with success message
         return redirect()->route('admin.administrators.create')->with('success', 'Administrator has been successfully added!');
         
@@ -260,6 +275,10 @@ class AdminController extends Controller
     {
         // Find the administrator by ID
         $administrator = User::findOrFail($id);
+
+        // Store original name for notification message
+        $originalFirstName = $administrator->first_name;
+        $originalLastName = $administrator->last_name;
 
         // dd([
         //     'method' => $request->method(),
@@ -477,6 +496,15 @@ class AdminController extends Controller
         // Save the updated administrator
         $administrator->save();
 
+        // Only notify if the user is not updating their own profile
+        if (Auth::id() != $administrator->id) {
+            // Send notification to the administrator whose details were updated
+            $title = 'Your Profile Was Updated';
+            $actor = Auth::user()->first_name . ' ' . Auth::user()->last_name;
+            $message = 'Your administrator profile was updated by ' . $actor . '.';
+            $this->sendNotificationToAdmin($administrator->id, $title, $message);
+        }
+
         // Redirect with success message
         return redirect()->route('admin.administrators.index')->with('success', 
         'Administrator ' . $administrator->first_name . ' ' . $administrator->last_name . 
@@ -570,11 +598,74 @@ class AdminController extends Controller
             
             // Get the status directly
             $status = $request->input('status');
+            $oldStatus = $admin->status;
             
             // Update ONLY the status column
             $admin->status = $status;
             $admin->updated_at = now();
             $admin->save();
+            
+            // Only send notifications if admin is active (to avoid sending to inactive users)
+            if ($status === 'Active') {
+                // Try-catch inside to prevent notification errors from breaking status update
+                try {
+                    // Send notification to the administrator whose status was changed
+                    $actor = Auth::user()->first_name . ' ' . Auth::user()->last_name;
+                    
+                    // Customize message based on whether it's a reactivation
+                    if ($oldStatus === 'Inactive') {
+                        // Welcome back message for reactivated admins
+                        $title = 'Welcome Back to SULONG KALINGA';
+                        $message = 'Welcome back, ' . $admin->first_name . '! Your administrator account has been reactivated by ' . $actor . '. You now have full access to the system again.';
+                    } else {
+                        // Regular status change message
+                        $title = 'Your Account Status Changed';
+                        $message = 'Your administrator account status was changed from ' . $oldStatus . ' to ' . $status . ' by ' . $actor . '.';
+                    }
+                    
+                    $notification = new Notification();
+                    $notification->user_id = $admin->id;
+                    $notification->user_type = 'cose_staff';
+                    $notification->message_title = $title;
+                    $notification->message = $message;
+                    $notification->date_created = now();
+                    $notification->is_read = false;
+                    $notification->save();
+                } catch (\Exception $notifyEx) {
+                    \Log::warning('Failed to send admin status notification: ' . $notifyEx->getMessage());
+                    // Continue execution - don't let notification failure prevent status update
+                }
+            }
+            
+            // If status changed to "Inactive", also notify other admins (it's important)
+            if ($status == 'Inactive') {
+                try {
+                    // Get all active admins except the current user and the target admin
+                    $admins = User::where('role_id', 1)
+                        ->where('status', 'Active')
+                        ->where('id', '!=', Auth::id())
+                        ->where('id', '!=', $admin->id)
+                        ->get();
+                    
+                    $actor = Auth::user()->first_name . ' ' . Auth::user()->last_name;
+                    $adminTitle = 'Administrator Account Deactivated';
+                    $adminMessage = $actor . ' changed the status of administrator ' . $admin->first_name . ' ' . $admin->last_name . ' to Inactive.';
+                    
+                    foreach ($admins as $otherAdmin) {
+                        $notification = new Notification();
+                        $notification->user_id = $otherAdmin->id;
+                        $notification->user_type = 'cose_staff';
+                        $notification->message_title = $adminTitle;
+                        $notification->message = $adminMessage;
+                        $notification->date_created = now();
+                        $notification->is_read = false;
+                        $notification->save();
+                    }
+                } catch (\Exception $notifyEx) {
+                    \Log::warning('Failed to send admin deactivation notifications: ' . $notifyEx->getMessage());
+                    // Continue execution - don't let notification failure prevent status update
+                }
+            }
             
             \Log::info('Admin status updated successfully', [
                 'admin_id' => $id,
@@ -584,7 +675,7 @@ class AdminController extends Controller
             return response()->json(['success' => true, 'message' => 'Administrator status updated successfully.']);
         } catch (\Exception $e) {
             \Log::error('Admin status update failed: ' . $e->getMessage());
-            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+            return response()->json(['success' => false, 'message' => 'An error occurred: ' . $e->getMessage()], 500);
         }
     }
 
@@ -1525,6 +1616,90 @@ class AdminController extends Controller
             }
         } catch (\Exception $e) {
             \Log::error('Failed to send location notification: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Send admin-related notification to all admins (except the current user and optionally the target user)
+     *
+     * @param string $title Notification title
+     * @param string $message Notification message
+     * @param int|null $targetAdminId ID of the admin being acted upon (to exclude from recipients)
+     * @return void
+     */
+    private function sendAdminNotification($title, $message, $targetAdminId = null)
+    {
+        try {
+            // Get the current user's ID
+            $currentUserId = Auth::id();
+            
+            // Get all admins (role_id = 1) EXCEPT the current user and the target user
+            $adminQuery = User::where('role_id', 1)
+                ->where('status', 'Active')
+                ->where('id', '!=', $currentUserId);
+                
+            // Also exclude the target admin if specified
+            if ($targetAdminId !== null) {
+                $adminQuery->where('id', '!=', $targetAdminId);
+            }
+            
+            $admins = $adminQuery->get();
+                
+            \Log::info('Sending admin notification to ' . $admins->count() . ' admins (excluding author and target)');
+                
+            foreach ($admins as $admin) {
+                // Create notification for each admin
+                $notification = new \App\Models\Notification();
+                $notification->user_id = $admin->id;
+                $notification->user_type = 'cose_staff';
+                $notification->message_title = $title;
+                $notification->message = $message;
+                $notification->date_created = now();
+                $notification->is_read = false;
+                $notification->save();
+                
+                \Log::info('Created admin notification for user ' . $admin->id);
+            }
+        } catch (\Exception $e) {
+            \Log::error('Failed to send admin notification: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Send a notification specifically to a target admin
+     *
+     * @param int $adminId ID of the admin to notify
+     * @param string $title Notification title  
+     * @param string $message Notification message
+     * @return void
+     */
+    private function sendNotificationToAdmin($adminId, $title, $message)
+    {
+        try {
+            // Ensure admin exists and is active
+            $admin = User::where('id', $adminId)
+                ->where('role_id', 1)
+                ->where('status', 'Active')
+                ->first();
+                
+            if (!$admin) {
+                \Log::warning('Attempted to send notification to non-existent or inactive admin: ' . $adminId);
+                return;
+            }
+            
+            // Create notification
+            $notification = new \App\Models\Notification();
+            $notification->user_id = $adminId;
+            $notification->user_type = 'cose_staff';
+            $notification->message_title = $title;
+            $notification->message = $message;
+            $notification->date_created = now();
+            $notification->is_read = false;
+            $notification->save();
+            
+            \Log::info('Created personal notification for admin ' . $adminId);
+        } catch (\Exception $e) {
+            \Log::error('Failed to send notification to admin ' . $adminId . ': ' . $e->getMessage());
         }
     }
 
