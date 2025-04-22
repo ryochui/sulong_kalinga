@@ -455,6 +455,9 @@ document.addEventListener('DOMContentLoaded', function() {
             } else if (title.includes('error') || title.includes('cancel') || title.includes('denied') || title.includes('deactivated')) {
                 icon = 'bi-x-circle';
                 type = 'danger';
+            } else if (title.includes('care worker')) {
+                icon = 'bi-person-lines-fill';
+                type = 'info';
             }
         }
         

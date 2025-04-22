@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\DB;
 use App\Models\User;
 use App\Models\Municipality;
 use App\Models\GeneralCarePlan;
+use App\Models\Notification;
 use App\Models\Beneficiary;
 
 use Carbon\Carbon;
@@ -146,6 +147,9 @@ class CareWorkerController extends Controller
 
         // Find the care worker by ID
         $careworker = User::where('role_id', 3)->findOrFail($id);
+
+        // Store original care manager ID to detect changes
+        $originalCareManagerId = $careworker->assigned_care_manager_id;
 
         // Validate the request data
         $validator = Validator::make($request->all(), [
@@ -318,6 +322,51 @@ class CareWorkerController extends Controller
             $careworker->pagibig_id_number = $request->input('pagibig_ID') === '' ? null : $request->input('pagibig_ID');
             
             $careworker->save();
+
+            // Only notify if the user is not updating their own profile
+            if (Auth::id() != $careworker->id) {
+                try {
+                    // Send notification to the care worker whose details were updated
+                    $title = 'Your Profile Was Updated';
+                    $actor = Auth::user()->first_name . ' ' . Auth::user()->last_name;
+                    $message = 'Your profile was updated by ' . $actor . '.';
+                    $this->sendNotificationToCareWorker($careworker->id, $title, $message);
+                    
+                    // Check if care manager assignment changed
+                    if ($originalCareManagerId != $careworker->assigned_care_manager_id) {
+                        // Notify the old care manager (if there was one and it's not the current user)
+                        if ($originalCareManagerId && $originalCareManagerId != Auth::id()) {
+                            $oldManagerTitle = 'Care Worker Reassigned';
+                            $oldManagerMessage = 'Care worker ' . $careworker->first_name . ' ' . $careworker->last_name . 
+                                            ' has been reassigned from you by ' . $actor . '.';
+                            $this->sendNotificationToCareManager($originalCareManagerId, $oldManagerTitle, $oldManagerMessage);
+                        }
+                        
+                        // Notify the new care manager (if there is one and it's not the current user)
+                        if ($careworker->assigned_care_manager_id && $careworker->assigned_care_manager_id != Auth::id()) {
+                            $newManagerTitle = 'New Care Worker Assigned';
+                            $newManagerMessage = 'Care worker ' . $careworker->first_name . ' ' . $careworker->last_name . 
+                                            ' has been assigned to you by ' . $actor . '.';
+                            $this->sendNotificationToCareManager($careworker->assigned_care_manager_id, $newManagerTitle, $newManagerMessage);
+                        }
+                        
+                        // Also notify the care worker about the care manager change
+                        $workerTitle = 'Care Manager Assignment Changed';
+                        if ($careworker->assigned_care_manager_id) {
+                            // Get the new care manager's name
+                            $newCareManager = User::find($careworker->assigned_care_manager_id);
+                            $workerMessage = 'You have been assigned to a new care manager: ' . 
+                                        $newCareManager->first_name . ' ' . $newCareManager->last_name . '.';
+                        } else {
+                            $workerMessage = 'You are no longer assigned to a care manager.';
+                        }
+                        $this->sendNotificationToCareWorker($careworker->id, $workerTitle, $workerMessage);
+                    }
+                } catch (\Exception $notifyEx) {
+                    // Log but continue - don't let notification failure prevent update
+                    \Log::warning('Failed to send profile update notification to care worker: ' . $notifyEx->getMessage());
+                }
+            }
 
             // Redirect with success message
             return redirect()->route($rolePrefix . '.careworkers.index')
@@ -555,6 +604,29 @@ class CareWorkerController extends Controller
 
         $careworker->save();
 
+         // Send welcome notification to the new care worker
+         try {
+            $welcomeTitle = 'Welcome to SULONG KALINGA';
+            $welcomeMessage = 'Welcome ' . $careworker->first_name . ' ' . $careworker->last_name . 
+                             '! Your care worker account has been created. You can now access the system with your credentials.';
+            $this->sendNotificationToCareWorker($careworker->id, $welcomeTitle, $welcomeMessage);
+            
+            // If assigned to a care manager, notify them about the new care worker
+            if ($careworker->assigned_care_manager_id) {
+                // Only notify if the care manager isn't the one who created the care worker
+                if ($careworker->assigned_care_manager_id != Auth::id()) {
+                    $actor = Auth::user()->first_name . ' ' . Auth::user()->last_name;
+                    $title = 'New Care Worker Assigned';
+                    $message = $actor . ' has assigned a new care worker, ' . $careworker->first_name . ' ' . 
+                              $careworker->last_name . ', to you.';
+                    $this->sendNotificationToCareManager($careworker->assigned_care_manager_id, $title, $message);
+                }
+            }
+        } catch (\Exception $notifyEx) {
+            // Log but continue - don't let notification failure prevent account creation
+            \Log::warning('Failed to send welcome notification to new care worker: ' . $notifyEx->getMessage());
+        }
+
         // Redirect with success message
         return redirect()->route($rolePrefix . '.careworkers.create')
             ->with('success', 'Care worker added successfully.');
@@ -599,60 +671,248 @@ class CareWorkerController extends Controller
 
     public function updateStatusAjax($id, Request $request)
     {
+        \Log::info('Update care worker status AJAX request', [
+            'care_worker_id' => $id,
+            'status' => $request->input('status')
+        ]);
+        
         try {
-            \Log::info('Update careworker status AJAX request', [
-                'careworker_id' => $id,
-                'status' => $request->input('status')
-            ]);
+            // Find care worker (role_id = 3)
+            $careWorker = User::where('role_id', 3)->find($id);
             
-            // Find careworker and ensure it's actually a care worker (role_id = 3)
-            $careworker = User::where('role_id', 3)->find($id);
-            
-            if (!$careworker) {
+            if (!$careWorker) {
                 return response()->json(['success' => false, 'message' => 'Care worker not found.'], 404);
             }
             
-            // Get the status directly (Active or Inactive)
+            // Don't allow updating your own status
+            if ($careWorker->id == Auth::id()) {
+                return response()->json(['success' => false, 'message' => 'You cannot change your own status.'], 400);
+            }
+            
+            // Get the status directly
             $status = $request->input('status');
+            $oldStatus = $careWorker->status;
             
             // Update ONLY the status column
-            $careworker->status = $status;
-            $careworker->updated_at = now();
-            $careworker->save();
+            $careWorker->status = $status;
+            $careWorker->updated_at = now();
+            $careWorker->save();
             
-            \Log::info('Careworker status updated successfully', [
-                'careworker_id' => $id,
+            // Attempt to send notifications, but don't let failures break the main functionality
+            try {
+                $actor = Auth::user()->first_name . ' ' . Auth::user()->last_name;
+                
+                // Only send notifications if care worker is active (to avoid sending to inactive users)
+                if ($status === 'Active') {
+                    // Send notification to the care worker whose status was changed
+                    $title = ($oldStatus === 'Inactive') 
+                        ? 'Welcome Back to SULONG KALINGA' 
+                        : 'Your Account Status Changed';
+                        
+                    $message = ($oldStatus === 'Inactive')
+                        ? 'Welcome back, ' . $careWorker->first_name . '! Your account has been reactivated by ' . $actor . '.'
+                        : 'Your account status was changed from ' . $oldStatus . ' to ' . $status . ' by ' . $actor . '.';
+                    
+                    $notification = new Notification();
+                    $notification->user_id = $careWorker->id;
+                    $notification->user_type = 'cose_staff';
+                    $notification->message_title = $title;
+                    $notification->message = $message;
+                    $notification->date_created = now();
+                    $notification->is_read = false;
+                    $notification->save();
+                }
+                
+                // Notify care manager if they exist and are not the one making the change
+                if ($careWorker->assigned_care_manager_id && $careWorker->assigned_care_manager_id != Auth::id()) {
+                    // Check if care manager exists and is active before creating notification
+                    $careManager = User::where('id', $careWorker->assigned_care_manager_id)
+                        ->where('role_id', 2)
+                        ->where('status', 'Active')
+                        ->first();
+                        
+                    if ($careManager) {
+                        $title = ($status == 'Active') ? 'Care Worker Activated' : 'Care Worker Deactivated';
+                        $message = 'Care worker ' . $careWorker->first_name . ' ' . $careWorker->last_name . 
+                                ' status has been changed to ' . $status . ' by ' . $actor . '.';
+                        
+                        $notification = new Notification();
+                        $notification->user_id = $careManager->id;
+                        $notification->user_type = 'cose_staff';
+                        $notification->message_title = $title;
+                        $notification->message = $message;
+                        $notification->date_created = now();
+                        $notification->is_read = false;
+                        $notification->save();
+                    }
+                }
+            } catch (\Exception $notifyEx) {
+                // Log notification error but don't fail the status update
+                \Log::warning('Notification error during status update: ' . $notifyEx->getMessage(), [
+                    'exception' => $notifyEx,
+                    'care_worker_id' => $id
+                ]);
+            }
+            
+            \Log::info('Care worker status updated successfully', [
+                'care_worker_id' => $id,
                 'new_status' => $status
             ]);
             
             return response()->json(['success' => true, 'message' => 'Care worker status updated successfully.']);
         } catch (\Exception $e) {
-            \Log::error('Careworker status update failed: ' . $e->getMessage());
-            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+            \Log::error('Care worker status update failed: ' . $e->getMessage(), [
+                'exception' => $e,
+                'trace' => $e->getTraceAsString()
+            ]);
+            return response()->json(['success' => false, 'message' => 'An error occurred: ' . $e->getMessage()], 500);
         }
     }
 
     public function deleteCareworker(Request $request)
     {
-        // Check for dependencies before deleting
-        $careworker_id = $request->input('careworker_id');
-        
-        // Check if the care worker has assigned beneficiaries
-        $hasAssignedBeneficiaries = GeneralCarePlan::where('care_worker_id', $careworker_id)->exists();
-        
-        if ($hasAssignedBeneficiaries) {
-            return response()->json([
-                'success' => false,
-                'message' => 'This care worker has assigned beneficiaries and cannot be deleted. Please reassign the beneficiaries first.',
-                'error_type' => 'has_beneficiaries'
+        try {
+            // Use consistent variable naming - using camelCase throughout
+            $careWorkerId = $request->input('careworker_id');
+            
+            // Find the care worker before deletion to get their details
+            $careWorker = User::find($careWorkerId);
+            
+            if (!$careWorker) {
+                return response()->json(['success' => false, 'message' => 'Care worker not found.']);
+            }
+            
+            // Store care worker details for notification
+            $careWorkerName = $careWorker->first_name . ' ' . $careWorker->last_name;
+            $careManagerId = $careWorker->assigned_care_manager_id;
+            
+            // Check if the care worker has assigned beneficiaries
+            $hasAssignedBeneficiaries = GeneralCarePlan::where('care_worker_id', $careWorkerId)->exists();
+            
+            if ($hasAssignedBeneficiaries) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'This care worker has assigned beneficiaries and cannot be deleted. Please reassign the beneficiaries first.',
+                    'error_type' => 'has_beneficiaries'
+                ]);
+            }
+            
+            // Create notification for the assigned care manager (if not the one deleting)
+            if ($careManagerId && $careManagerId != Auth::id()) {
+                try {
+                    $actor = Auth::user()->first_name . ' ' . Auth::user()->last_name;
+                    $title = 'Care Worker Deleted';
+                    $message = 'Care worker ' . $careWorkerName . ', who was assigned to you, has been deleted by ' . $actor . '.';
+                    
+                    $notification = new Notification();
+                    $notification->user_id = $careManagerId;
+                    $notification->user_type = 'cose_staff';
+                    $notification->message_title = $title;
+                    $notification->message = $message;
+                    $notification->date_created = now();
+                    $notification->is_read = false;
+                    $notification->save();
+                } catch (\Exception $notifyEx) {
+                    \Log::warning('Failed to send care worker deletion notification: ' . $notifyEx->getMessage());
+                    // Continue with deletion anyway - don't let notification failure prevent deletion
+                }
+            }
+            
+            // Use the service for deletion
+            $result = $this->userManagementService->deleteCareworker(
+                $careWorkerId,
+                Auth::user()
+            );
+            
+            return response()->json($result);
+            
+        } catch (\Exception $e) {
+            \Log::error('Error during care worker deletion: ' . $e->getMessage(), [
+                'exception' => $e,
+                'trace' => $e->getTraceAsString(),
+                'care_worker_id' => $request->input('careworker_id')
             ]);
+            
+            return response()->json([
+                'success' => false, 
+                'message' => 'An error occurred while deleting the care worker: ' . $e->getMessage()
+            ], 500);
         }
-        
-        $result = $this->userManagementService->deleteCareworker(
-            $careworker_id,
-            Auth::user()
-        );
-        
-        return response()->json($result);
+    }
+
+    /**
+     * Send a notification to a care worker
+     *
+     * @param int $careWorkerId ID of the care worker to notify
+     * @param string $title Notification title  
+     * @param string $message Notification message
+     * @return void
+     */
+    private function sendNotificationToCareWorker($careWorkerId, $title, $message)
+    {
+        try {
+            // Ensure care worker exists and is active
+            $careWorker = User::where('id', $careWorkerId)
+                ->where('role_id', 3)
+                ->where('status', 'Active')
+                ->first();
+                
+            if (!$careWorker) {
+                \Log::warning('Attempted to send notification to non-existent or inactive care worker: ' . $careWorkerId);
+                return;
+            }
+            
+            // Create notification
+            $notification = new Notification();
+            $notification->user_id = $careWorkerId;
+            $notification->user_type = 'cose_staff';
+            $notification->message_title = $title;
+            $notification->message = $message;
+            $notification->date_created = now();
+            $notification->is_read = false;
+            $notification->save();
+            
+            \Log::info('Created notification for care worker ' . $careWorkerId);
+        } catch (\Exception $e) {
+            \Log::error('Failed to send notification to care worker ' . $careWorkerId . ': ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Send a notification to a care manager about a care worker
+     *
+     * @param int $careManagerId ID of the care manager to notify
+     * @param string $title Notification title  
+     * @param string $message Notification message
+     * @return void
+     */
+    private function sendNotificationToCareManager($careManagerId, $title, $message)
+    {
+        try {
+            // Ensure care manager exists and is active
+            $careManager = User::where('id', $careManagerId)
+                ->where('role_id', 2)
+                ->where('status', 'Active')
+                ->first();
+                
+            if (!$careManager) {
+                \Log::warning('Attempted to send notification to non-existent or inactive care manager: ' . $careManagerId);
+                return;
+            }
+            
+            // Create notification
+            $notification = new Notification();
+            $notification->user_id = $careManagerId;
+            $notification->user_type = 'cose_staff';
+            $notification->message_title = $title;
+            $notification->message = $message;
+            $notification->date_created = now();
+            $notification->is_read = false;
+            $notification->save();
+            
+            \Log::info('Created notification for care manager ' . $careManagerId);
+        } catch (\Exception $e) {
+            \Log::error('Failed to send notification to care manager ' . $careManagerId . ': ' . $e->getMessage());
+        }
     }
 }
