@@ -476,6 +476,9 @@ document.addEventListener('DOMContentLoaded', function() {
             } else if (title.includes('update') || title.includes('new version')) {
                 icon = 'bi-arrow-repeat';
                 type = 'info';
+            } else if (title.includes('weekly care plan')) {
+                icon = 'bi-calendar-week';
+                type = 'info';
             }
         }
         
