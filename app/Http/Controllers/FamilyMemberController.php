@@ -19,6 +19,7 @@ use App\Models\Municipality;
 use App\Models\FamilyMember;
 use App\Models\Beneficiary;
 use App\Models\GeneralCarePlan;
+use App\Models\Notification;
 use App\Services\UserManagementService;
 
 class FamilyMemberController extends Controller
@@ -312,6 +313,63 @@ class FamilyMemberController extends Controller
 
         $familymember->save();
 
+        try {
+            // Get the role-specific name
+            $actorRole = Auth::user()->role_id == 1 ? 'Administrator' : (Auth::user()->role_id == 2 ? 'Care Manager' : 'Care Worker');
+            $actor = Auth::user()->first_name . ' ' . Auth::user()->last_name;
+            
+            // 1. Send welcome notification to the family member (if they have a portal account)
+            if ($familymember->portal_account_id) {
+                $welcomeTitle = 'Welcome to SULONG KALINGA';
+                $welcomeMessage = 'Welcome ' . $familymember->first_name . ' ' . $familymember->last_name . 
+                                '! Your family member account has been added to SULONG KALINGA system.';
+                $this->sendNotificationToFamilyMember($familymember->family_member_id, $welcomeTitle, $welcomeMessage);
+            }
+            
+            // 2. Notify the connected beneficiary
+            $beneficiary = Beneficiary::find($familymember->related_beneficiary_id);
+            if ($beneficiary) {
+                $beneficiaryTitle = 'New Family Member Connected';
+                $beneficiaryMessage = $familymember->first_name . ' ' . $familymember->last_name . 
+                                    ' has been added as your ' . strtolower($familymember->relation_to_beneficiary) . 
+                                    ' in the system by ' . $actor . ' (' . $actorRole . ').';
+                $this->sendNotificationToBeneficiary($beneficiary->beneficiary_id, $beneficiaryTitle, $beneficiaryMessage);
+                
+                // 3. Get care worker assigned to the beneficiary (if any)
+                $careWorker = null;
+                $careWorkerId = null;
+                
+                if ($beneficiary->generalCarePlan && $beneficiary->generalCarePlan->care_worker_id) {
+                    $careWorkerId = $beneficiary->generalCarePlan->care_worker_id;
+                    
+                    // Only notify if care worker is not the one who added the family member
+                    if ($careWorkerId && $careWorkerId != Auth::id()) {
+                        $careWorkerTitle = 'New Family Member for Your Beneficiary';
+                        $careWorkerMessage = $familymember->first_name . ' ' . $familymember->last_name . 
+                                          ' has been added as a ' . strtolower($familymember->relation_to_beneficiary) . 
+                                          ' for your beneficiary ' . $beneficiary->first_name . ' ' . $beneficiary->last_name . 
+                                          ' by ' . $actor . ' (' . $actorRole . ').';
+                        $this->sendNotificationToCareWorker($careWorkerId, $careWorkerTitle, $careWorkerMessage);
+                        
+                        // 4. Get care manager assigned to the care worker (if any)
+                        $careWorker = User::find($careWorkerId);
+                        if ($careWorker && $careWorker->assigned_care_manager_id && $careWorker->assigned_care_manager_id != Auth::id()) {
+                            $careManagerTitle = 'New Family Member for Beneficiary';
+                            $careManagerMessage = $familymember->first_name . ' ' . $familymember->last_name . 
+                                               ' has been added as a ' . strtolower($familymember->relation_to_beneficiary) . 
+                                               ' for beneficiary ' . $beneficiary->first_name . ' ' . $beneficiary->last_name . 
+                                               ', who is assigned to your care worker ' . $careWorker->first_name . ' ' . $careWorker->last_name . 
+                                               ' by ' . $actor . ' (' . $actorRole . ').';
+                            $this->sendNotificationToCareManager($careWorker->assigned_care_manager_id, $careManagerTitle, $careManagerMessage);
+                        }
+                    }
+                }
+            }
+        } catch (\Exception $notifyEx) {
+            // Log notification errors but don't interrupt the main process
+            \Log::warning('Error sending notifications for new family member: ' . $notifyEx->getMessage());
+        }
+
         // Get role-specific redirect
         if (Auth::user()->role_id == 1) { // Admin
             $redirectRoute = 'admin.families.create';
@@ -466,6 +524,9 @@ class FamilyMemberController extends Controller
             $familyMember = FamilyMember::findOrFail($id);
             // For care workers, check if they are assigned to this beneficiary
             
+            // Store original details for comparison
+            $originalBeneficiaryId = $familyMember->related_beneficiary_id;
+
             if (Auth::user()->role_id == 3) {
                 // Replace the assignedBeneficiaries() call with direct query
                 $assignedBeneficiaryIds = Beneficiary::whereHas('generalCarePlan', function($query) {
@@ -545,6 +606,54 @@ class FamilyMemberController extends Controller
 
             $familyMember->save();
 
+            try {
+                // Get the role-specific name
+                $actorRole = Auth::user()->role_id == 1 ? 'Administrator' : (Auth::user()->role_id == 2 ? 'Care Manager' : 'Care Worker');
+                $actor = Auth::user()->first_name . ' ' . Auth::user()->last_name;
+                
+                // 1. Notify the family member about the update
+                if ($familyMember->portal_account_id) {
+                    $updateTitle = 'Your Profile Was Updated';
+                    $updateMessage = 'Your family member profile information has been updated by ' . $actor . ' (' . $actorRole . ').';
+                    $this->sendNotificationToFamilyMember($familyMember->family_member_id, $updateTitle, $updateMessage);
+                }
+                
+                // 2. Check if related beneficiary changed
+                if ($originalBeneficiaryId != $familyMember->related_beneficiary_id) {
+                    // Notify old beneficiary if applicable
+                    $oldBeneficiary = Beneficiary::find($originalBeneficiaryId);
+                    if ($oldBeneficiary && $oldBeneficiary->portal_account_id) {
+                        $oldBeneficiaryTitle = 'Family Member Unlinked';
+                        $oldBeneficiaryMessage = $familyMember->first_name . ' ' . $familyMember->last_name . 
+                                              ' is no longer linked to your profile by ' . $actor . ' (' . $actorRole . ').';
+                        $this->sendNotificationToBeneficiary($oldBeneficiary->beneficiary_id, $oldBeneficiaryTitle, $oldBeneficiaryMessage);
+                    }
+                    
+                    // Notify new beneficiary
+                    $newBeneficiary = Beneficiary::find($familyMember->related_beneficiary_id);
+                    if ($newBeneficiary && $newBeneficiary->portal_account_id) {
+                        $newBeneficiaryTitle = 'New Family Member Linked';
+                        $newBeneficiaryMessage = $familyMember->first_name . ' ' . $familyMember->last_name . 
+                                              ' has been linked to your profile as your ' . strtolower($familyMember->relation_to_beneficiary) . 
+                                              ' by ' . $actor . ' (' . $actorRole . ').';
+                        $this->sendNotificationToBeneficiary($newBeneficiary->beneficiary_id, $newBeneficiaryTitle, $newBeneficiaryMessage);
+                    }
+                } else {
+                    // Notify current beneficiary about the family member update
+                    $beneficiary = Beneficiary::find($familyMember->related_beneficiary_id);
+                    if ($beneficiary && $beneficiary->portal_account_id) {
+                        $beneficiaryTitle = 'Family Member Profile Updated';
+                        $beneficiaryMessage = 'Your ' . strtolower($familyMember->relation_to_beneficiary) . ', ' . 
+                                             $familyMember->first_name . ' ' . $familyMember->last_name . 
+                                             ', has had their profile information updated by ' . $actor . ' (' . $actorRole . ').';
+                        $this->sendNotificationToBeneficiary($beneficiary->beneficiary_id, $beneficiaryTitle, $beneficiaryMessage);
+                    }
+                }
+            } catch (\Exception $notifyEx) {
+                // Log notification errors but don't interrupt the main process
+                \Log::warning('Error sending notifications for family member update: ' . $notifyEx->getMessage());
+            }
+
             // Redirect with success message
             if (Auth::user()->role_id == 1) { // Admin
                 return redirect()->route('admin.families.index')
@@ -575,27 +684,246 @@ class FamilyMemberController extends Controller
             ]);
         }
         
-        $family_member_id = $request->input('family_member_id');
-        
-        // Check if the family member has acknowledged any weekly care plans
-        $hasAcknowledgedPlans = \DB::table('weekly_care_plans')
-            ->where('acknowledged_by_family', $family_member_id)
-            ->exists();
-        
-        if ($hasAcknowledgedPlans) {
-            return response()->json([
-                'success' => false,
-                'message' => 'This family member cannot be deleted because they have acknowledged weekly care plans. For data integrity, please retain this record.'
+        try {
+            $family_member_id = $request->input('family_member_id');
+            
+            // Retrieve the family member and associated beneficiary before deletion
+            $familyMember = FamilyMember::with('beneficiary')->find($family_member_id);
+            
+            if (!$familyMember) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Family member not found.'
+                ]);
+            }
+            
+            // Store details for notifications
+            $familyMemberName = $familyMember->first_name . ' ' . $familyMember->last_name;
+            $relationshipType = $familyMember->relation_to_beneficiary;
+            $beneficiaryId = $familyMember->related_beneficiary_id;
+            $beneficiary = $familyMember->beneficiary;
+            
+            // Check if the family member has acknowledged any weekly care plans
+            $hasAcknowledgedPlans = \DB::table('weekly_care_plans')
+                ->where('acknowledged_by_family', $family_member_id)
+                ->exists();
+            
+            if ($hasAcknowledgedPlans) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'This family member cannot be deleted because they have acknowledged weekly care plans. For data integrity, please retain this record.',
+                    'error_type' => 'dependency_care_plans'
+                ]);
+            }
+            
+            try {
+                // Get role and name for notification messages
+                $actorRole = Auth::user()->role_id == 1 ? 'Administrator' : 'Care Manager';
+                $actor = Auth::user()->first_name . ' ' . Auth::user()->last_name;
+                
+                // 1. Notify the connected beneficiary about the deletion
+                if ($beneficiary && $beneficiary->portal_account_id) {
+                    $beneficiaryTitle = 'Family Member Removed';
+                    $beneficiaryMessage = 'Your ' . strtolower($relationshipType) . ', ' . $familyMemberName . 
+                                    ', has been removed from the system by ' . $actor . ' (' . $actorRole . ').';
+                    $this->sendNotificationToBeneficiary($beneficiaryId, $beneficiaryTitle, $beneficiaryMessage);
+                }
+                
+                // 2. Check if there's a care worker assigned to the beneficiary
+                $careWorkerId = null;
+                $careWorker = null;
+                
+                if ($beneficiary && $beneficiary->generalCarePlan && $beneficiary->generalCarePlan->care_worker_id) {
+                    $careWorkerId = $beneficiary->generalCarePlan->care_worker_id;
+                    $careWorker = User::find($careWorkerId);
+                    
+                    // Only notify care worker if they aren't the one deleting
+                    if ($careWorkerId && $careWorkerId != Auth::id()) {
+                        $careWorkerTitle = 'Family Member Deleted for Your Beneficiary';
+                        $careWorkerMessage = $familyMemberName . ', the ' . strtolower($relationshipType) . 
+                                        ' of your beneficiary ' . $beneficiary->first_name . ' ' . $beneficiary->last_name . 
+                                        ', has been removed from the system by ' . $actor . ' (' . $actorRole . ').';
+                        $this->sendNotificationToCareWorker($careWorkerId, $careWorkerTitle, $careWorkerMessage);
+                        
+                        // 3. Notify care manager if there is one assigned to the care worker
+                        if ($careWorker && $careWorker->assigned_care_manager_id && $careWorker->assigned_care_manager_id != Auth::id()) {
+                            $careManagerTitle = 'Family Member Deleted';
+                            $careManagerMessage = $familyMemberName . ', the ' . strtolower($relationshipType) . 
+                                            ' of beneficiary ' . $beneficiary->first_name . ' ' . $beneficiary->last_name . 
+                                            ' (assigned to your care worker ' . $careWorker->first_name . ' ' . $careWorker->last_name . 
+                                            '), has been removed from the system by ' . $actor . ' (' . $actorRole . ').';
+                            $this->sendNotificationToCareManager($careWorker->assigned_care_manager_id, $careManagerTitle, $careManagerMessage);
+                        }
+                    }
+                }
+            } catch (\Exception $notifyEx) {
+                // Log notification errors but continue with deletion
+                \Log::warning('Failed to send family member deletion notifications: ' . $notifyEx->getMessage());
+            }
+            
+            // If no acknowledgments found, proceed with deletion
+            $result = $this->userManagementService->deleteFamilyMember(
+                $family_member_id,
+                Auth::user()
+            );
+            
+            return response()->json($result);
+        } catch (\Exception $e) {
+            \Log::error('Error during family member deletion: ' . $e->getMessage(), [
+                'exception' => $e,
+                'trace' => $e->getTraceAsString(),
+                'family_member_id' => $request->input('family_member_id')
             ]);
+            
+            return response()->json([
+                'success' => false, 
+                'message' => 'An error occurred while deleting the family member: ' . $e->getMessage()
+            ], 500);
         }
-        
-        // If no acknowledgments found, proceed with deletion
-        $result = $this->userManagementService->deleteFamilyMember(
-            $family_member_id,
-            Auth::user()
-        );
-        
-        return response()->json($result);
+    }
+
+    /**
+     * Send notification to a family member
+     *
+     * @param int $familyMemberId ID of the family member to notify
+     * @param string $title Notification title  
+     * @param string $message Notification message
+     * @return void
+     */
+    private function sendNotificationToFamilyMember($familyMemberId, $title, $message)
+    {
+        try {
+            // Get family member to retrieve their portal account ID
+            $familyMember = FamilyMember::find($familyMemberId);
+            if (!$familyMember || !$familyMember->portal_account_id) {
+                \Log::warning('Cannot send notification to family member: No portal account found for ID ' . $familyMemberId);
+                return;
+            }
+            
+            // Create notification
+            $notification = new Notification();
+            $notification->user_id = $familyMember->portal_account_id;
+            $notification->user_type = 'family_member';
+            $notification->message_title = $title;
+            $notification->message = $message;
+            $notification->date_created = now();
+            $notification->is_read = false;
+            $notification->save();
+            
+            \Log::info('Created notification for family member ' . $familyMemberId);
+        } catch (\Exception $e) {
+            \Log::error('Failed to send notification to family member ' . $familyMemberId . ': ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Send notification to a beneficiary
+     *
+     * @param int $beneficiaryId ID of the beneficiary to notify
+     * @param string $title Notification title  
+     * @param string $message Notification message
+     * @return void
+     */
+    private function sendNotificationToBeneficiary($beneficiaryId, $title, $message)
+    {
+        try {
+            // Get beneficiary to retrieve their portal account ID
+            $beneficiary = Beneficiary::find($beneficiaryId);
+            if (!$beneficiary || !$beneficiary->portal_account_id) {
+                \Log::warning('Cannot send notification to beneficiary: No portal account found for ID ' . $beneficiaryId);
+                return;
+            }
+            
+            // Create notification
+            $notification = new Notification();
+            $notification->user_id = $beneficiary->portal_account_id;
+            $notification->user_type = 'beneficiary';
+            $notification->message_title = $title;
+            $notification->message = $message;
+            $notification->date_created = now();
+            $notification->is_read = false;
+            $notification->save();
+            
+            \Log::info('Created notification for beneficiary ' . $beneficiaryId);
+        } catch (\Exception $e) {
+            \Log::error('Failed to send notification to beneficiary ' . $beneficiaryId . ': ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Send notification to a care worker
+     *
+     * @param int $careWorkerId ID of the care worker to notify
+     * @param string $title Notification title  
+     * @param string $message Notification message
+     * @return void
+     */
+    private function sendNotificationToCareWorker($careWorkerId, $title, $message)
+    {
+        try {
+            // Ensure care worker exists and is active
+            $careWorker = User::where('id', $careWorkerId)
+                ->where('role_id', 3)
+                ->where('status', 'Active')
+                ->first();
+                
+            if (!$careWorker) {
+                \Log::warning('Cannot send notification: No active care worker found with ID ' . $careWorkerId);
+                return;
+            }
+            
+            // Create notification
+            $notification = new Notification();
+            $notification->user_id = $careWorkerId;
+            $notification->user_type = 'cose_staff';
+            $notification->message_title = $title;
+            $notification->message = $message;
+            $notification->date_created = now();
+            $notification->is_read = false;
+            $notification->save();
+            
+            \Log::info('Created notification for care worker ' . $careWorkerId);
+        } catch (\Exception $e) {
+            \Log::error('Failed to send notification to care worker ' . $careWorkerId . ': ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Send notification to a care manager
+     *
+     * @param int $careManagerId ID of the care manager to notify
+     * @param string $title Notification title  
+     * @param string $message Notification message
+     * @return void
+     */
+    private function sendNotificationToCareManager($careManagerId, $title, $message)
+    {
+        try {
+            // Ensure care manager exists and is active
+            $careManager = User::where('id', $careManagerId)
+                ->where('role_id', 2)
+                ->where('status', 'Active')
+                ->first();
+                
+            if (!$careManager) {
+                \Log::warning('Cannot send notification: No active care manager found with ID ' . $careManagerId);
+                return;
+            }
+            
+            // Create notification
+            $notification = new Notification();
+            $notification->user_id = $careManagerId;
+            $notification->user_type = 'cose_staff';
+            $notification->message_title = $title;
+            $notification->message = $message;
+            $notification->date_created = now();
+            $notification->is_read = false;
+            $notification->save();
+            
+            \Log::info('Created notification for care manager ' . $careManagerId);
+        } catch (\Exception $e) {
+            \Log::error('Failed to send notification to care manager ' . $careManagerId . ': ' . $e->getMessage());
+        }
     }
 
 }

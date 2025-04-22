@@ -461,6 +461,9 @@ document.addEventListener('DOMContentLoaded', function() {
             } else if (title.includes('beneficiary') || title.includes('welcome to sulong kalinga')) {
                 icon = 'bi-person-heart';
                 type = 'success';
+            } else if (title.includes('family member')) {
+                icon = 'bi-people-fill';
+                type = 'primary';
             } else if (title.includes('report') || title.includes('new report')) {
                 icon = 'bi-file-earmark-text';
                 type = 'info';
