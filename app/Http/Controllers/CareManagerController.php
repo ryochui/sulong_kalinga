@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\DB;
 use App\Models\User;
 use App\Models\Municipality;
 use App\Models\Barangay;
+use App\Models\Notification;
 use Carbon\Carbon;
 use Illuminate\Validation\Rule;
 
@@ -252,6 +253,25 @@ class CareManagerController extends Controller
 
         $caremanager->save();
 
+        // Send welcome notification to the new care manager
+        try {
+            $welcomeTitle = 'Welcome to SULONG KALINGA';
+            $welcomeMessage = 'Welcome ' . $caremanager->first_name . ' ' . $caremanager->last_name . 
+                             '! Your care manager account has been created. You can now access the system with your credentials.';
+            $this->sendNotificationToCareManager($caremanager->id, $welcomeTitle, $welcomeMessage);
+            
+            // Send notification to admins about the new care manager (excluding the creator)
+            $actor = Auth::user()->first_name . ' ' . Auth::user()->last_name;
+            $title = 'New Care Manager Added';
+            $message = $actor . ' added a new care manager: ' . $caremanager->first_name . ' ' . 
+                      $caremanager->last_name . ' assigned to ' . 
+                      Municipality::find($caremanager->assigned_municipality_id)->municipality_name . ' municipality';
+            $this->sendCareManagerNotification($title, $message);
+        } catch (\Exception $notifyEx) {
+            // Log but continue - don't let notification failure prevent account creation
+            \Log::warning('Failed to send welcome notification to new care manager: ' . $notifyEx->getMessage());
+        }
+
         // Redirect with success message
         return redirect()->route('admin.caremanagers.create')
             ->with('success', 'Care Manager has been successfully added!');
@@ -299,6 +319,11 @@ class CareManagerController extends Controller
     {
         // Find the care manager
         $caremanager = User::findOrFail($id);
+
+        // Store original details for comparison/notification message
+        $originalFirstName = $caremanager->first_name;
+        $originalLastName = $caremanager->last_name;
+        $originalMunicipality = $caremanager->assigned_municipality_id;
         
         // Validate input
         $validator = Validator::make($request->all(), [
@@ -421,6 +446,27 @@ class CareManagerController extends Controller
         
         // Save the changes
         $caremanager->save();
+
+        // Only notify if the user is not updating their own profile
+        if (Auth::id() != $caremanager->id) {
+            try {
+                // Send notification to the care manager whose details were updated
+                $title = 'Your Profile Was Updated';
+                $actor = Auth::user()->first_name . ' ' . Auth::user()->last_name;
+                $message = 'Your care manager profile was updated by ' . $actor . '.';
+                
+                // If municipality was changed, include that in the message
+                if ($originalMunicipality != $caremanager->assigned_municipality_id) {
+                    $newMunicipality = Municipality::find($caremanager->assigned_municipality_id);
+                    $message .= ' Your assigned municipality has been changed to ' . $newMunicipality->municipality_name . '.';
+                }
+                
+                $this->sendNotificationToCareManager($caremanager->id, $title, $message);
+            } catch (\Exception $notifyEx) {
+                // Log but continue - don't let notification failure prevent update
+                \Log::warning('Failed to send profile update notification to care manager: ' . $notifyEx->getMessage());
+            }
+        }
         
         return redirect()->route('admin.caremanagers.index')->with('success', 
         'Care Manager ' . $caremanager->first_name . ' ' . $caremanager->last_name . 
@@ -465,13 +511,79 @@ class CareManagerController extends Controller
                 return response()->json(['success' => false, 'message' => 'Care manager not found.'], 404);
             }
             
+            // Don't allow updating your own status
+            if ($caremanager->id == Auth::id()) {
+                return response()->json(['success' => false, 'message' => 'You cannot change your own status.'], 400);
+            }
+            
             // Get the status directly
             $status = $request->input('status');
+            $oldStatus = $caremanager->status;
             
             // Update ONLY the status column
             $caremanager->status = $status;
             $caremanager->updated_at = now();
             $caremanager->save();
+            
+            // Only send notifications if care manager is active or being reactivated
+            if ($status === 'Active') {
+                try {
+                    // Send notification to the care manager whose status was changed
+                    $actor = Auth::user()->first_name . ' ' . Auth::user()->last_name;
+                    
+                    // Customize message based on whether it's a reactivation
+                    if ($oldStatus === 'Inactive') {
+                        // Welcome back message for reactivated care managers
+                        $title = 'Welcome Back to SULONG KALINGA';
+                        $message = 'Welcome back, ' . $caremanager->first_name . '! Your care manager account has been reactivated by ' . $actor . '. You now have full access to the system again.';
+                    } else {
+                        // Regular status change message
+                        $title = 'Your Account Status Changed';
+                        $message = 'Your care manager account status was changed from ' . $oldStatus . ' to ' . $status . ' by ' . $actor . '.';
+                    }
+                    
+                    $notification = new Notification();
+                    $notification->user_id = $caremanager->id;
+                    $notification->user_type = 'cose_staff';
+                    $notification->message_title = $title;
+                    $notification->message = $message;
+                    $notification->date_created = now();
+                    $notification->is_read = false;
+                    $notification->save();
+                } catch (\Exception $notifyEx) {
+                    \Log::warning('Failed to send care manager status notification: ' . $notifyEx->getMessage());
+                    // Continue execution - don't let notification failure prevent status update
+                }
+            }
+            
+            // If status changed to "Inactive", notify other admins (it's important)
+            if ($status == 'Inactive') {
+                try {
+                    // Get all active admins except the current user
+                    $admins = User::where('role_id', 1)
+                        ->where('status', 'Active')
+                        ->where('id', '!=', Auth::id())
+                        ->get();
+                    
+                    $actor = Auth::user()->first_name . ' ' . Auth::user()->last_name;
+                    $adminTitle = 'Care Manager Account Deactivated';
+                    $adminMessage = $actor . ' changed the status of care manager ' . $caremanager->first_name . ' ' . $caremanager->last_name . ' to Inactive.';
+                    
+                    foreach ($admins as $admin) {
+                        $notification = new Notification();
+                        $notification->user_id = $admin->id;
+                        $notification->user_type = 'cose_staff';
+                        $notification->message_title = $adminTitle;
+                        $notification->message = $adminMessage;
+                        $notification->date_created = now();
+                        $notification->is_read = false;
+                        $notification->save();
+                    }
+                } catch (\Exception $notifyEx) {
+                    \Log::warning('Failed to send care manager deactivation notifications: ' . $notifyEx->getMessage());
+                    // Continue execution - don't let notification failure prevent status update
+                }
+            }
             
             \Log::info('Caremanager status updated successfully', [
                 'caremanager_id' => $id,
@@ -481,7 +593,7 @@ class CareManagerController extends Controller
             return response()->json(['success' => true, 'message' => 'Care manager status updated successfully.']);
         } catch (\Exception $e) {
             \Log::error('Caremanager status update failed: ' . $e->getMessage());
-            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+            return response()->json(['success' => false, 'message' => 'An error occurred: ' . $e->getMessage()], 500);
         }
     }
 
@@ -536,6 +648,82 @@ class CareManagerController extends Controller
             // Redirect with a user-friendly message
             return redirect()->route('care-manager.dashboard')->with('error', 
                 'Unable to load municipality information. Please try again later or contact an administrator.');
+        }
+    }
+
+    /**
+     * Send notification to admins about care manager-related actions (except the current user)
+     *
+     * @param string $title Notification title
+     * @param string $message Notification message
+     * @param int|null $targetCareManagerId ID of the care manager to exclude from recipients (if any)
+     * @return void
+     */
+    private function sendCareManagerNotification($title, $message, $targetCareManagerId = null)
+    {
+        try {
+            // Get the current user's ID
+            $currentUserId = Auth::id();
+            
+            // Get all active admins EXCEPT the current user
+            $admins = User::where('role_id', 1)
+                ->where('status', 'Active')
+                ->where('id', '!=', $currentUserId)
+                ->get();
+                
+            \Log::info('Sending care manager notification to ' . $admins->count() . ' admins');
+                
+            foreach ($admins as $admin) {
+                // Create notification for each admin
+                $notification = new Notification();
+                $notification->user_id = $admin->id;
+                $notification->user_type = 'cose_staff';
+                $notification->message_title = $title;
+                $notification->message = $message;
+                $notification->date_created = now();
+                $notification->is_read = false;
+                $notification->save();
+            }
+        } catch (\Exception $e) {
+            \Log::error('Failed to send care manager notification to admins: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Send a notification specifically to a target care manager
+     *
+     * @param int $careManagerId ID of the care manager to notify
+     * @param string $title Notification title  
+     * @param string $message Notification message
+     * @return void
+     */
+    private function sendNotificationToCareManager($careManagerId, $title, $message)
+    {
+        try {
+            // Ensure care manager exists and is active
+            $careManager = User::where('id', $careManagerId)
+                ->where('role_id', 2)
+                ->where('status', 'Active')
+                ->first();
+                
+            if (!$careManager) {
+                \Log::warning('Attempted to send notification to non-existent or inactive care manager: ' . $careManagerId);
+                return;
+            }
+            
+            // Create notification
+            $notification = new Notification();
+            $notification->user_id = $careManagerId;
+            $notification->user_type = 'cose_staff';
+            $notification->message_title = $title;
+            $notification->message = $message;
+            $notification->date_created = now();
+            $notification->is_read = false;
+            $notification->save();
+            
+            \Log::info('Created personal notification for care manager ' . $careManagerId);
+        } catch (\Exception $e) {
+            \Log::error('Failed to send notification to care manager ' . $careManagerId . ': ' . $e->getMessage());
         }
     }
 }

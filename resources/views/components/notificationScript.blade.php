@@ -1,3 +1,25 @@
+@php
+    // Determine endpoints based on user role
+    $userRole = Auth::user()->role_id;
+    
+    if ($userRole == 1) {
+        // Admin
+        $notificationsUrl = url('admin/notifications');
+        $markAllReadUrl = route('admin.notifications.read-all');
+        $roleName = 'admin';
+    } elseif ($userRole == 2) {
+        // Care Manager
+        $notificationsUrl = url('care-manager/notifications');
+        $markAllReadUrl = route('care-manager.notifications.read-all');
+        $roleName = 'care-manager';
+    } elseif ($userRole == 3) {
+        // Care Worker
+        $notificationsUrl = url('care-worker/notifications');
+        $markAllReadUrl = route('care-worker.notifications.read-all');
+        $roleName = 'care-worker';
+    }
+@endphp
+
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     // DOM elements we need to reference frequently
@@ -12,11 +34,18 @@ document.addEventListener('DOMContentLoaded', function() {
     // Keep track of unread count in a variable instead of counting DOM elements
     let currentUnreadCount = 0;
     
+    // Use the dynamic endpoints determined by the server
+    const notificationsEndpoint = "{{ $notificationsUrl }}";
+    const markAllReadEndpoint = "{{ $markAllReadUrl }}";
+    console.log(`Using notifications endpoint for {{ $roleName }}: ${notificationsEndpoint}`);
+    
     // Dropdown configuration to prevent closing when clicking inside
     const dropdown = document.querySelector('.dropdown-menu.dropdown-notifications');
-    dropdown.addEventListener('click', function(e) {
-        e.stopPropagation();
-    });
+    if (dropdown) {
+        dropdown.addEventListener('click', function(e) {
+            e.stopPropagation();
+        });
+    }
     
     // Add fetch notifications functionality
     loadNotifications();
@@ -27,7 +56,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Load notifications from the server
     function loadNotifications() {
         console.log('Fetching notifications from server...');
-        fetch('{{ url("admin/notifications") }}')
+        fetch(notificationsEndpoint)
             .then(response => {
                 console.log('Response status:', response.status);
                 return response.json();
@@ -186,7 +215,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Then update on server first
         const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
         
-        fetch(`{{ url('admin/notifications') }}/${notificationId}/read`, {
+        fetch(`${notificationsEndpoint}/${notificationId}/read`, {
             method: 'POST',
             headers: {
                 'X-CSRF-TOKEN': csrfToken,
@@ -255,7 +284,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Then update on server first
         const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
         
-        fetch('{{ route("admin.notifications.read-all") }}', {
+        fetch(markAllReadEndpoint, {
             method: 'POST',
             headers: {
                 'X-CSRF-TOKEN': csrfToken,
@@ -391,9 +420,20 @@ document.addEventListener('DOMContentLoaded', function() {
                 type = 'primary';
             }
             // Admin notification icons
-            else if (title.includes('administrator') || title.includes('welcome to sulong')) {
+            else if (title.includes('administrator') || 
+                    (title.includes('welcome') && !title.includes('care manager'))) {
                 icon = 'bi-person-badge';
                 type = 'info';
+            }
+            // Care Manager notification icons
+            else if (title.includes('care manager')) {
+                icon = 'bi-people';
+                type = 'info';
+            }
+            // Welcome back notifications
+            else if (title.includes('welcome back')) {
+                icon = 'bi-door-open';
+                type = 'success';
             }
             // Status change notification
             else if (title.includes('status')) {
@@ -409,10 +449,10 @@ document.addEventListener('DOMContentLoaded', function() {
             else if (title.includes('warning') || title.includes('assign')) {
                 icon = 'bi-exclamation-triangle';
                 type = 'warning';
-            } else if (title.includes('success') || title.includes('approved')) {
+            } else if (title.includes('success') || title.includes('approved') || title.includes('welcome')) {
                 icon = 'bi-check-circle';
                 type = 'success';
-            } else if (title.includes('error') || title.includes('cancel') || title.includes('denied')) {
+            } else if (title.includes('error') || title.includes('cancel') || title.includes('denied') || title.includes('deactivated')) {
                 icon = 'bi-x-circle';
                 type = 'danger';
             }

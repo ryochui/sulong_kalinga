@@ -56,7 +56,7 @@
                         </div>
                         <div class="row mb-1">
                             <div class="col-md-3">
-                                <label for="firstName" class="form-label">First Name</label>
+                                <label for="firstName" class="form-label">First Name<label style="color:red;"> * </label></label>
                                 <input type="text" class="form-control" id="firstName" name="first_name" 
                                        value="{{ old('first_name', $caremanager->first_name) }}" 
                                        placeholder="Enter first name" required 
@@ -64,7 +64,7 @@
                                        title="First letter must be capital">
                             </div>
                             <div class="col-md-3">
-                                <label for="lastName" class="form-label">Last Name</label>
+                                <label for="lastName" class="form-label">Last Name<label style="color:red;"> * </label></label>
                                 <input type="text" class="form-control" id="lastName" name="last_name" 
                                        value="{{ old('last_name', $caremanager->last_name) }}" 
                                        placeholder="Enter last name" required
@@ -72,13 +72,13 @@
                                        title="First letter must be capital">
                             </div>
                             <div class="col-md-3">
-                                <label for="birthDate" class="form-label">Birthday</label>
+                                <label for="birthDate" class="form-label">Birthday<label style="color:red;"> * </label></label>
                                 <input type="date" class="form-control" id="birthDate" name="birth_date" 
                                        value="{{ old('birth_date', $birth_date) }}" required>
                             </div>
                             <div class="col-md-3">
                                 <label for="gender" class="form-label">Gender</label>
-                                <select class="form-select" id="gender" name="gender" required>
+                                <select class="form-select" id="gender" name="gender">
                                     <option value="" disabled>Select gender</option>
                                     <option value="Male" {{ old('gender', $caremanager->gender) == 'Male' ? 'selected' : '' }}>Male</option>
                                     <option value="Female" {{ old('gender', $caremanager->gender) == 'Female' ? 'selected' : '' }}>Female</option>
@@ -89,7 +89,7 @@
                         <div class="row mb-1">
                             <div class="col-md-3">
                                 <label for="civilStatus" class="form-label">Civil Status</label>
-                                <select class="form-select" id="civilStatus" name="civil_status" required>
+                                <select class="form-select" id="civilStatus" name="civil_status">
                                     <option value="" disabled>Select civil status</option>
                                     <option value="Single" {{ old('civil_status', $caremanager->civil_status) == 'Single' ? 'selected' : '' }}>Single</option>
                                     <option value="Married" {{ old('civil_status', $caremanager->civil_status) == 'Married' ? 'selected' : '' }}>Married</option>
@@ -105,10 +105,10 @@
                             <div class="col-md-3">
                                 <label for="nationality" class="form-label">Nationality</label>
                                 <input type="text" class="form-control" id="nationality" name="nationality" 
-                                       value="{{ old('nationality', $caremanager->nationality) }}" placeholder="Enter nationality" required>
+                                       value="{{ old('nationality', $caremanager->nationality) }}" placeholder="Enter nationality">
                             </div>
                             <div class="col-md-3">
-                                <label for="municipality" class="form-label">Municipality</label>
+                                <label for="municipality" class="form-label">Municipality<label style="color:red;"> * </label></label>
                                 <select class="form-select" id="municipality" name="municipality" required>
                                     <option value="" disabled>Select municipality</option>
                                     @foreach ($municipalities as $municipality)
@@ -140,7 +140,7 @@
                         </div>
                         <div class="row mb-3">
                             <div class="col-md-12">
-                                <label for="addressDetails" class="form-label">House No., Street, Subdivision, Barangay, City, Province</label>
+                                <label for="addressDetails" class="form-label">House No., Street, Subdivision, Barangay, City, Province<label style="color:red;"> * </label></label>
                                 <textarea class="form-control" id="addressDetails" name="address_details" 
                                     placeholder="Enter complete current address" rows="2" required>{{ old('address_details', $caremanager->address) }}</textarea>
                             </div>
@@ -155,18 +155,18 @@
                         </div> 
                         <div class="row mb-3">
                             <div class="col-md-4">
-                                <label for="personalEmail" class="form-label">Personal Email Address</label>
+                                <label for="personalEmail" class="form-label">Personal Email Address<label style="color:red;"> * </label></label>
                                 <input type="email" class="form-control" id="personalEmail" name="personal_email" 
                                     value="{{ old('personal_email', $caremanager->personal_email) }}" placeholder="Enter personal email" required>
                             </div>
                             <div class="col-md-4">
-                                <label for="mobileNumber" class="form-label">Mobile Number</label>
+                                <label for="mobileNumber" class="form-label">Mobile Number<label style="color:red;"> * </label></label>
                                 <div class="input-group">
                                     <span class="input-group-text">+63</span>
                                     <input type="text" class="form-control" id="mobileNumber" name="mobile_number" 
                                         value="{{ old('mobile_number', substr($caremanager->mobile, 0, 3) === '+63' ? substr($caremanager->mobile, 3) : $caremanager->mobile) }}" 
                                         placeholder="9XXXXXXXXX" required
-                                        pattern="[0-9]{10}"
+                                        pattern="[0-9]{10-11}"
                                         title="Please enter a valid 10-digit mobile number">
                                 </div>  
                             </div>
