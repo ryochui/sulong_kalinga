@@ -108,7 +108,7 @@
                             </div>
                             <div class="col-md-3">
                                 <label for="landlineNumber" class="form-label">Landline Number</label>
-                                <input type="text" class="form-control" id="landlineNumber" name="landline_number" value="{{ old('landline_number', $beneficiary->landline) }}" placeholder="Enter Landline number" maxlength="10" required oninput="restrictToNumbers(this)" title="Must be between 7 and 10 digits.">
+                                <input type="text" class="form-control" id="landlineNumber" name="landline_number" value="{{ old('landline_number', $beneficiary->landline) }}" placeholder="Enter Landline number" maxlength="10" oninput="restrictToNumbers(this)" title="Must be between 7 and 10 digits.">
                             </div>
                         </div>
 

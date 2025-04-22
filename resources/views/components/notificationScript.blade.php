@@ -458,6 +458,21 @@ document.addEventListener('DOMContentLoaded', function() {
             } else if (title.includes('care worker')) {
                 icon = 'bi-person-lines-fill';
                 type = 'info';
+            } else if (title.includes('beneficiary') || title.includes('welcome to sulong kalinga')) {
+                icon = 'bi-person-heart';
+                type = 'success';
+            } else if (title.includes('report') || title.includes('new report')) {
+                icon = 'bi-file-earmark-text';
+                type = 'info';
+            } else if (title.includes('reminder') || title.includes('alert')) {
+                icon = 'bi-alarm';
+                type = 'warning';
+            } else if (title.includes('message') || title.includes('chat')) {
+                icon = 'bi-chat-left-text';
+                type = 'info';
+            } else if (title.includes('update') || title.includes('new version')) {
+                icon = 'bi-arrow-repeat';
+                type = 'info';
             }
         }
         
