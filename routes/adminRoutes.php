@@ -166,10 +166,15 @@ Route::middleware(['auth', '\App\Http\Middleware\CheckRole:administrator'])->pre
         Route::get('/', [HighlightsAndEventsController::class, 'index'])->name('index');
     });
 
-    //View Account Profile
+    // View Account Profile
     Route::prefix('account-profile')->name('account.profile.')->group(function () {
         Route::get('/', [ViewAccountProfileController::class, 'index'])->name('index');
+        Route::get('/settings', [ViewAccountProfileController::class, 'settings'])->name('settings');
     });
+
+    // Update email and password
+    Route::post('/update-email', [AdminController::class, 'updateAdminEmail'])->name('update.email');
+    Route::post('/update-password', [AdminController::class, 'updateAdminPassword'])->name('update.password');
 
     // Notification routes
     Route::get('/notifications', [NotificationsController::class, 'getUserNotifications'])->name('notifications.get');

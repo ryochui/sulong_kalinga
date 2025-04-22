@@ -1703,4 +1703,134 @@ class AdminController extends Controller
         }
     }
 
+    /**
+     * Update the administrator's email
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function updateAdminEmail(Request $request)
+    {
+        // Validate the request
+        $validator = Validator::make($request->all(), [
+            'account_email' => [
+                'required',
+                'string',
+                'email',
+                'regex:/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/',
+                Rule::unique('cose_users', 'email')->ignore(Auth::id()),
+            ],
+            'current_password' => 'required|string',
+        ]);
+
+        if ($validator->fails()) {
+            return redirect()->back()
+                ->withErrors($validator)
+                ->with('activeTab', 'settings')
+                ->withInput();
+        }
+
+        // Get the current user
+        $user = Auth::user();
+        
+        // Check if the new email is the same as the current email
+        if ($user->email === $request->input('account_email')) {
+            return redirect()->back()
+                ->withErrors(['account_email' => 'The new email is the same as your current email.'])
+                ->with('activeTab', 'settings');
+        }
+
+        // Verify current password
+        if (!Hash::check($request->input('current_password'), $user->password)) {
+            return redirect()->back()
+                ->withErrors(['current_password' => 'The provided password does not match your current password.'])
+                ->with('activeTab', 'settings');
+        }
+
+        try {
+            // Update email
+            $user->email = $request->input('account_email');
+            $user->updated_at = now();
+            $user->save();
+
+            // Log the email change
+            \Log::info('Administrator email updated', [
+                'admin_id' => $user->id,
+                'old_email' => $user->getOriginal('email'),
+                'new_email' => $user->email
+            ]);
+
+            return redirect()->route('admin.account.profile.index')
+                ->with('success', 'Your email has been updated successfully.')
+                ->with('activeTab', 'settings');
+        } catch (\Exception $e) {
+            \Log::error('Failed to update administrator email: ' . $e->getMessage());
+            
+            return redirect()->back()
+                ->withErrors(['error' => 'An error occurred while updating your email. Please try again.'])
+                ->with('activeTab', 'settings');
+        }
+    }
+
+    /**
+     * Update the administrator's password
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function updateAdminPassword(Request $request)
+    {
+        // Validate the request
+        $validator = Validator::make($request->all(), [
+            'current_password' => 'required|string',
+            'account_password' => 'required|string|min:8',
+            'account_password_confirmation' => 'required|same:account_password',
+        ], [
+            'account_password.required' => 'The new password field is required.',
+            'account_password.min' => 'The new password must be at least 8 characters.',
+            'account_password_confirmation.required' => 'Please confirm your new password.',
+            'account_password_confirmation.same' => 'The password confirmation does not match.',
+        ]);
+
+        if ($validator->fails()) {
+            return redirect()->back()
+                ->withErrors($validator)
+                ->with('activeTab', 'settings')
+                ->withInput();
+        }
+
+        // Get the current user
+        $user = Auth::user();
+
+        // Verify current password
+        if (!Hash::check($request->input('current_password'), $user->password)) {
+            return redirect()->back()
+                ->withErrors(['current_password' => 'The provided password does not match your current password.'])
+                ->with('activeTab', 'settings');
+        }
+
+        try {
+            // Update password
+            $user->password = bcrypt($request->input('account_password'));
+            $user->updated_at = now();
+            $user->save();
+
+            // Log the password change (without revealing the actual password)
+            \Log::info('Administrator password updated', [
+                'admin_id' => $user->id,
+                'timestamp' => now()
+            ]);
+
+            return redirect()->route('admin.account.profile.index')
+                ->with('success', 'Your password has been updated successfully.')
+                ->with('activeTab', 'settings');
+        } catch (\Exception $e) {
+            \Log::error('Failed to update administrator password: ' . $e->getMessage());
+            
+            return redirect()->back()
+                ->withErrors(['error' => 'An error occurred while updating your password. Please try again.'])
+                ->with('activeTab', 'settings');
+        }
+    }
+
 }

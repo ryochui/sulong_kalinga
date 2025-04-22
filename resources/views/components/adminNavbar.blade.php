@@ -40,19 +40,14 @@
                     </div>
                 </li>
                 <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle {{ Request::routeIs('account') ? 'active' : '' }}" href="#" id="highlightsDropdown" role="button" data-bs-toggle="dropdown">
+                    <a class="nav-link dropdown-toggle {{ Request::routeIs('admin.account.profile.*') ? 'active' : '' }}" href="#" id="highlightsDropdown" role="button" data-bs-toggle="dropdown">
                         Account
                     </a>
                     <ul class="dropdown-menu dropdown-menu-end">
                         <li>
-                            <a class="dropdown-item {{ Request::routeIs('account') ? 'active' : '' }}" href="#">Account Profile</a>
+                            <a class="dropdown-item {{ Request::routeIs('admin.account.profile.index') ? 'active' : '' }}" href="{{ route('admin.account.profile.index') }}">Account Profile</a>
                         </li>
-                        <li>
-                            <form action="{{ route('logout') }}" method="POST">
-                                @csrf
-                                <button type="submit" class="dropdown-item">Logout</button>
-                            </form>
-                        </li>
+                        <!-- Keep the existing language toggle -->
                         <li>
                             <div class="dropdown-item d-flex align-items-center justify-content-between">
                                 <div class="d-flex align-items-center">
@@ -65,6 +60,15 @@
                                     <input class="form-check-input" type="checkbox" id="languageToggle" style="cursor: pointer;">
                                 </div>
                             </div>
+                        </li>
+                        <li>
+                            <a class="dropdown-item {{ Request::routeIs('admin.account.profile.settings') ? 'active' : '' }}" href="{{ route('admin.account.profile.settings') }}">Settings</a>
+                        </li>
+                        <li>
+                            <form action="{{ route('logout') }}" method="POST">
+                                @csrf
+                                <button type="submit" class="dropdown-item">Logout</button>
+                            </form>
                         </li>
                     </ul>
                 </li>

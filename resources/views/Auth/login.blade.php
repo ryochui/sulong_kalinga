@@ -6,7 +6,33 @@
     <title>Login</title>
     <!-- <link rel="stylesheet" href="{{ asset('css/login.css') }}"> -->
     <link rel="stylesheet" href="{{ asset('css/bootstrap.min.css') }}">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    
     <style>
+        .password-input-group {
+            position: relative;
+        }
+        
+        .password-toggle {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            z-index: 10;
+            color: #6c757d;
+        }
+        
+        .password-toggle:hover {
+            color: #2c7873;
+        }
+        
+        /* Adjust padding for password input to prevent text from going under the icon */
+        .password-input-group input[type="password"],
+        .password-input-group input[type="text"] {
+            padding-right: 40px;
+        }
+        
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(261deg,#2d7bfa,#88f1fb,#3ae07d,#3bd09c);
@@ -124,6 +150,8 @@
             border-top: 1px solid #eee;
             padding-top: 20px;
         }
+        
+        
     </style>
 </head>
 <body>
@@ -148,12 +176,17 @@
                 @csrf
                 <div class="form-group">
                     <label for="email">Email</label>
-                    <input type="text" id="email" name="email" placeholder="user@example.com" required>
+                    <input type="text" id="email" name="email" placeholder="user@example.com" value = "{{ old('email') }}" required>
                 </div>
 
                 <div class="form-group">
                     <label for="password">Password</label>
-                    <input type="password" id="password" name="password" placeholder="Enter your password" required>
+                    <div class="password-input-group">
+                        <input type="password" id="password" name="password" placeholder="Enter your password" required>
+                        <span class="password-toggle" data-target="password">
+                            <i class="bi bi-eye-slash"></i>
+                        </span>
+                    </div>
                 </div>
 
                 <button type="submit" class="btn">Login</button>
@@ -170,5 +203,28 @@
     </div>
 
     <script src="{{ asset('js/bootstrap.bundle.min.js') }}"></script>
+
+    <script>
+        // Password visibility toggle
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add click event to password toggle icon
+            document.querySelector('.password-toggle').addEventListener('click', function() {
+                const targetId = this.getAttribute('data-target');
+                const passwordInput = document.getElementById(targetId);
+                const icon = this.querySelector('i');
+                
+                // Toggle password visibility
+                if (passwordInput.type === 'password') {
+                    passwordInput.type = 'text';
+                    icon.classList.remove('bi-eye-slash');
+                    icon.classList.add('bi-eye');
+                } else {
+                    passwordInput.type = 'password';
+                    icon.classList.remove('bi-eye');
+                    icon.classList.add('bi-eye-slash');
+                }
+            });
+        });
+    </script>
 </body>
 </html>
