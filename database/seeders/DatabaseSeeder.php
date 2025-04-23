@@ -21,6 +21,11 @@ use App\Models\Intervention;
 use App\Models\CareCategory;
 use App\Models\CareWorkerResponsibility;
 use App\Models\Notification;
+use App\Models\Conversation;
+use App\Models\ConversationParticipant;
+use App\Models\Message;
+use App\Models\MessageAttachment;
+use App\Models\MessageReadStatus;
 use Carbon\Carbon;
 
 class DatabaseSeeder extends Seeder
@@ -176,6 +181,9 @@ class DatabaseSeeder extends Seeder
 
         // 7. Generate notifications
         $this->generateNotifications();
+
+        // 8. Generate conversations and messages
+        $this->generateConversations();
     }
 
     private function generateNotifications()
@@ -250,5 +258,244 @@ class DatabaseSeeder extends Seeder
                 ]);
             }
         }
+    }
+
+    /**
+     * Generate conversations and messages between users
+     */
+    private function generateConversations()
+    {
+        // Get all COSE staff users
+        $staffUsers = User::where('role_id', '<=', 3)->get(); // Admins, Care Managers, Care Workers
+        
+        // Get some beneficiaries and family members for conversations
+        $beneficiaries = Beneficiary::take(5)->get();
+        $familyMembers = FamilyMember::take(5)->get();
+        
+        // Create 2 private conversations and 1 group chat for each staff member
+        foreach ($staffUsers as $staffUser) {
+            // For each staff member, create 2 private conversations
+            for ($i = 0; $i < 2; $i++) {
+                // Create a private conversation
+                $conversation = Conversation::factory()->privateChat()->create();
+                
+                // Add the current staff user as a participant
+                ConversationParticipant::create([
+                    'conversation_id' => $conversation->conversation_id,
+                    'participant_id' => $staffUser->id,
+                    'participant_type' => 'cose_staff',
+                    'joined_at' => now()->subDays(rand(1, 30)),
+                ]);
+                
+                // Add another random staff user as participant
+                $otherStaffUser = $staffUsers->where('id', '!=', $staffUser->id)->random();
+                ConversationParticipant::create([
+                    'conversation_id' => $conversation->conversation_id,
+                    'participant_id' => $otherStaffUser->id,
+                    'participant_type' => 'cose_staff',
+                    'joined_at' => now()->subDays(rand(1, 30)),
+                ]);
+                
+                // Create messages in this conversation from both participants
+                $messageCount = rand(3, 10);
+                
+                $lastMessage = null;
+                for ($j = 0; $j < $messageCount; $j++) {
+                    // Alternate between the two participants
+                    $senderId = ($j % 2 == 0) ? $staffUser->id : $otherStaffUser->id;
+                    
+                    $message = Message::create([
+                        'conversation_id' => $conversation->conversation_id,
+                        'sender_id' => $senderId,
+                        'sender_type' => 'cose_staff',
+                        'content' => \Faker\Factory::create()->sentence(rand(3, 15)),
+                        'message_timestamp' => now()->subDays(5)->addMinutes($j * 30),
+                    ]);
+                    
+                    $lastMessage = $message;
+                    
+                    // Randomly add attachments to some messages
+                    if (rand(1, 5) == 1) { // 20% chance
+                        $isImage = rand(0, 1) == 1;
+                        
+                        if ($isImage) {
+                            $fileName = \Faker\Factory::create()->word . '.jpg';
+                            $filePath = 'message_attachments/images/' . $fileName;
+                            $fileType = 'image/jpeg';
+                        } else {
+                            $fileExtension = ['pdf', 'doc', 'docx'][rand(0, 2)];
+                            $fileName = \Faker\Factory::create()->word . '.' . $fileExtension;
+                            $filePath = 'message_attachments/documents/' . $fileName;
+                            
+                            if ($fileExtension === 'pdf') {
+                                $fileType = 'application/pdf';
+                            } elseif ($fileExtension === 'doc') {
+                                $fileType = 'application/msword';
+                            } else {
+                                $fileType = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+                            }
+                        }
+                        
+                        MessageAttachment::create([
+                            'message_id' => $message->message_id,
+                            'file_name' => $fileName,
+                            'file_path' => $filePath,
+                            'file_type' => $fileType,
+                            'file_size' => rand(10000, 5000000), // 10KB to 5MB
+                            'is_image' => $isImage,
+                        ]);
+                    }
+                    
+                    // Mark some messages as read
+                    if (rand(0, 1) == 1) { // 50% chance for each message
+                        // Message is marked as read by the receiver
+                        $readerId = ($j % 2 == 0) ? $otherStaffUser->id : $staffUser->id;
+                        
+                        MessageReadStatus::create([
+                            'message_id' => $message->message_id,
+                            'reader_id' => $readerId,
+                            'reader_type' => 'cose_staff',
+                            'read_at' => now()->subMinutes(rand(1, 60)),
+                        ]);
+                    }
+                }
+                
+                // Update the conversation with the last message ID
+                if ($lastMessage) {
+                    $conversation->last_message_id = $lastMessage->message_id;
+                    $conversation->save();
+                }
+            }
+            
+            // Create 1 group chat for each staff member with other staff and beneficiaries/family members
+            $groupChat = Conversation::factory()->groupChat()->create([
+                'name' => 'Team ' . \Faker\Factory::create()->word . ' Chat',
+            ]);
+            
+            // Add the current staff user as a participant
+            ConversationParticipant::create([
+                'conversation_id' => $groupChat->conversation_id,
+                'participant_id' => $staffUser->id,
+                'participant_type' => 'cose_staff',
+                'joined_at' => now()->subDays(rand(1, 30)),
+            ]);
+            
+            // Add 2-4 other staff users as participants
+            $otherStaffParticipants = $staffUsers->where('id', '!=', $staffUser->id)->random(rand(2, 4));
+            foreach ($otherStaffParticipants as $participant) {
+                ConversationParticipant::create([
+                    'conversation_id' => $groupChat->conversation_id,
+                    'participant_id' => $participant->id,
+                    'participant_type' => 'cose_staff',
+                    'joined_at' => now()->subDays(rand(1, 30)),
+                ]);
+            }
+            
+            // Randomly add 1-2 beneficiaries or family members
+            if (rand(0, 1) == 1 && $beneficiaries->count() > 0) {
+                $beneficiary = $beneficiaries->random();
+                ConversationParticipant::create([
+                    'conversation_id' => $groupChat->conversation_id,
+                    'participant_id' => $beneficiary->beneficiary_id,
+                    'participant_type' => 'beneficiary',
+                    'joined_at' => now()->subDays(rand(1, 30)),
+                ]);
+            }
+            
+            if (rand(0, 1) == 1 && $familyMembers->count() > 0) {
+                $familyMember = $familyMembers->random();
+                ConversationParticipant::create([
+                    'conversation_id' => $groupChat->conversation_id,
+                    'participant_id' => $familyMember->family_member_id,
+                    'participant_type' => 'family_member',
+                    'joined_at' => now()->subDays(rand(1, 30)),
+                ]);
+            }
+            
+            // Generate 5-15 messages in the group chat from various participants
+            $messageCount = rand(5, 15);
+            $groupParticipants = ConversationParticipant::where('conversation_id', $groupChat->conversation_id)->get();
+            
+            $lastMessage = null;
+            for ($j = 0; $j < $messageCount; $j++) {
+                // Choose a random participant to send the message
+                $randomParticipant = $groupParticipants->random();
+                
+                $message = Message::create([
+                    'conversation_id' => $groupChat->conversation_id,
+                    'sender_id' => $randomParticipant->participant_id,
+                    'sender_type' => $randomParticipant->participant_type,
+                    'content' => \Faker\Factory::create()->sentence(rand(3, 15)),
+                    'message_timestamp' => now()->subDays(5)->addMinutes($j * 30),
+                ]);
+                
+                $lastMessage = $message;
+                
+                // Randomly add attachments to some messages
+                if (rand(1, 5) == 1) { // 20% chance
+                    $isImage = rand(0, 1) == 1;
+                    
+                    if ($isImage) {
+                        $fileName = \Faker\Factory::create()->word . '.jpg';
+                        $filePath = 'message_attachments/images/' . $fileName;
+                        $fileType = 'image/jpeg';
+                    } else {
+                        $fileExtension = ['pdf', 'doc', 'docx'][rand(0, 2)];
+                        $fileName = \Faker\Factory::create()->word . '.' . $fileExtension;
+                        $filePath = 'message_attachments/documents/' . $fileName;
+                        
+                        if ($fileExtension === 'pdf') {
+                            $fileType = 'application/pdf';
+                        } elseif ($fileExtension === 'doc') {
+                            $fileType = 'application/msword';
+                        } else {
+                            $fileType = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+                        }
+                    }
+                    
+                    MessageAttachment::create([
+                        'message_id' => $message->message_id,
+                        'file_name' => $fileName,
+                        'file_path' => $filePath,
+                        'file_type' => $fileType,
+                        'file_size' => rand(10000, 5000000), // 10KB to 5MB
+                        'is_image' => $isImage,
+                    ]);
+                }
+                
+                // For each message, randomly mark it as read by some participants 
+                // (except the sender who sent it)
+                foreach ($groupParticipants as $participant) {
+                    // Skip the sender (they've already seen their own message)
+                    if ($participant->participant_id == $randomParticipant->participant_id && 
+                        $participant->participant_type == $randomParticipant->participant_type) {
+                        continue;
+                    }
+                    
+                    // 70% chance this participant has read the message
+                    if (rand(1, 10) <= 7) {
+                        MessageReadStatus::create([
+                            'message_id' => $message->message_id,
+                            'reader_id' => $participant->participant_id,
+                            'reader_type' => $participant->participant_type,
+                            'read_at' => now()->subMinutes(rand(1, 60)),
+                        ]);
+                    }
+                }
+            }
+            
+            // Update the conversation with the last message ID
+            if ($lastMessage) {
+                $groupChat->last_message_id = $lastMessage->message_id;
+                $groupChat->save();
+            }
+        }
+        
+        // Log how many conversations were created
+        $totalConversations = Conversation::count();
+        $totalMessages = Message::count();
+        $totalAttachments = MessageAttachment::count();
+        
+        \Log::info("Generated {$totalConversations} conversations with {$totalMessages} messages and {$totalAttachments} attachments.");
     }
 }
