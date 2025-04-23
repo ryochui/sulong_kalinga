@@ -8,6 +8,8 @@ use App\Http\Controllers\ReportsController;
 use App\Http\Controllers\ExportController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\NotificationsController;
+use App\Http\Controllers\ViewAccountProfileController;
+use App\Http\Controllers\CareWorkerController;
 
 
 // All routes with care_worker role check
@@ -72,4 +74,15 @@ Route::middleware(['auth', '\App\Http\Middleware\CheckRole:care_worker'])->prefi
     Route::get('/notifications', [App\Http\Controllers\NotificationsController::class, 'getUserNotifications'])->name('notifications.get');
     Route::post('/notifications/{id}/read', [App\Http\Controllers\NotificationsController::class, 'markAsRead'])->name('notifications.read');
     Route::post('/notifications/read-all', [App\Http\Controllers\NotificationsController::class, 'markAllAsRead'])->name('notifications.read-all');
+
+    // View Account Profile
+    Route::prefix('account-profile')->name('account.profile.')->group(function () {
+        Route::get('/', [ViewAccountProfileController::class, 'careWorkerIndex'])->name('index');
+        Route::get('/settings', [ViewAccountProfileController::class, 'careWorkerSettings'])->name('settings');
+    });
+
+    // Update email and password
+    Route::post('/update-email', [CareWorkerController::class, 'updateCareWorkerEmail'])->name('update.email');
+    Route::post('/update-password', [CareWorkerController::class, 'updateCareWorkerPassword'])->name('update.password');
+
 });
