@@ -10,56 +10,56 @@
     <link rel="stylesheet" href="{{ asset('css/weeklyCareplan.css') }}">
 
     <style>
-    .breadcrumb-container {
-        overflow-x: auto;
-        white-space: nowrap;
-        scrollbar-width: thin;
-        -ms-overflow-style: none;
-        margin-bottom: 20px;
-        padding-bottom: 5px;
-    }
-    
-    .breadcrumb-container::-webkit-scrollbar {
-        height: 5px;
-    }
-    
-    .breadcrumb-container::-webkit-scrollbar-thumb {
-        background-color: rgba(0,0,0,0.2);
-        border-radius: 5px;
-    }
-    
-    .breadcrumb {
-        flex-wrap: nowrap;
-        margin-bottom: 0;
-    }
-    
-    .breadcrumb-item {
-        float: none;
-        display: inline-block;
-    }
-    
-    .breadcrumb-item.active a {
-        font-weight: bold;
-        color: #0d6efd;
-        padding: 5px 10px;
-        background-color: rgba(13, 110, 253, 0.1);
-        border-radius: 5px;
-    }
-    
-    .form-page {
-        display: none;
-    }
-    
-    .form-page.active {
-        display: block;
-    }
-</style>
+        .breadcrumb-container {
+            overflow-x: auto;
+            white-space: nowrap;
+            scrollbar-width: thin;
+            -ms-overflow-style: none;
+            margin-bottom: 20px;
+            padding-bottom: 5px;
+        }
+        
+        .breadcrumb-container::-webkit-scrollbar {
+            height: 5px;
+        }
+        
+        .breadcrumb-container::-webkit-scrollbar-thumb {
+            background-color: rgba(0,0,0,0.2);
+            border-radius: 5px;
+        }
+        
+        .breadcrumb {
+            flex-wrap: nowrap;
+            margin-bottom: 0;
+        }
+        
+        .breadcrumb-item {
+            float: none;
+            display: inline-block;
+        }
+        
+        .breadcrumb-item.active a {
+            font-weight: bold;
+            color: #0d6efd;
+            padding: 5px 10px;
+            background-color: rgba(13, 110, 253, 0.1);
+            border-radius: 5px;
+        }
+        
+        .form-page {
+            display: none;
+        }
+        
+        .form-page.active {
+            display: block;
+        }
+    </style>
 </head>
 <body>
 
     @include('components.adminNavbar')
     @include('components.adminSidebar')
-    
+
     <div class="home-section">
         <h4 class="text-center mt-2">WEEKLY CARE PLAN FORM</h4>
         
@@ -284,7 +284,27 @@
                                         <div class="form-page" id="page9">
                                         <div class="validation-error-container alert alert-danger mb-3" style="display: none;"></div>
                                             <div class="row mb-3 mt-2 justify-content-center">
-                                                <div class="col-lg-8 col-md-12 col-sm-12 text-center">
+                                                <div class="col-lg-6 col-md-6 col-sm-12 text-center">
+                                                    <div class="row mb-3">
+                                                        <div class="col-md-12 col-sm-12">
+                                                            <label for="upload_picture" class="form-label">Upload Picture</label>
+                                                            <input type="file" class="form-control @error('upload_picture') is-invalid @enderror" 
+                                                                id="upload_picture" name="upload_picture" 
+                                                                accept="image/*" onchange="previewImage(event)">
+                                                            <small class="form-text text-muted">Use your camera or upload an image for validation purposes.</small>
+                                                            @error('upload_picture')
+                                                                <div class="invalid-feedback">{{ $message }}</div>
+                                                            @enderror
+                                                        </div>
+                                                        <div class="col-md-12 col-sm-12 text-center">
+                                                            <label class="form-label">Picture Preview</label>
+                                                            <div class="border p-2 d-flex justify-content-center align-items-center" style="height: 200px;">
+                                                                <img id="picture_preview" src="#" alt="Preview" class="img-fluid" style="max-height: 100%; display: none;">
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-lg-6 col-md-6 col-sm-12 text-center">
                                                     <label for="evaluation_recommendations" class="form-label"><h5>Recommendations and Evaluations</h5></label>
                                                     <textarea class="form-control @error('evaluation_recommendations') is-invalid @enderror" 
                                                             id="evaluation_recommendations" name="evaluation_recommendations" 
@@ -409,6 +429,26 @@
     <script src="{{ asset('js/bootstrap.bundle.min.js') }}"></script>
     <script src="{{ asset('js/toggleSideBar.js') }}"></script>
     
+    <script>
+        function previewImage(event) {
+            const input = event.target;
+            const preview = document.getElementById('picture_preview');
+
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+
+                reader.onload = function (e) {
+                    preview.src = e.target.result;
+                    preview.style.display = 'block'; // Show the preview
+                };
+
+                reader.readAsDataURL(input.files[0]); // Read the file as a data URL
+            } else {
+                preview.src = '#';
+                preview.style.display = 'none'; // Hide the preview if no file is selected
+            }
+        }
+    </script>
     <script>
         // Initialize tooltips
         var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));

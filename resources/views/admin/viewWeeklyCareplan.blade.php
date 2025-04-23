@@ -21,7 +21,7 @@
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <!-- Original Back Button -->
                 <a href="{{ route('admin.reports') }}" class="btn btn-secondary original-back-btn">
-                    <i class="bx bx-arrow-back"></i> Back
+                    <i class="bi bi-arrow-bar-left"></i> Back
                 </a>
 
                 <div class="mx-auto text-center" style="flex-grow: 1; font-weight: bold; font-size: 20px;">VIEW WEEKLY CAREPLAN DETAILS</div>
@@ -30,16 +30,16 @@
                 <div>
                     <!-- Edit Button with Routing -->
                     <a href="{{ route('admin.weeklycareplans.edit', $weeklyCareplan->weekly_care_plan_id) }}" title="Edit Weekly Care Plan" class="btn btn-primary">
-                        <i class="bx bx-edit"></i> Edit
+                        <i class="bi bi-pencil-square"></i> Edit
                     </a>
                     <button type="button" class="btn btn-danger" onclick="openInitialDeleteModal('{{ $weeklyCareplan->weekly_care_plan_id }}', '{{ $weeklyCareplan->beneficiary->first_name }} {{ $weeklyCareplan->beneficiary->last_name }}')">
-                        <i class="bx bx-trash"></i> Delete
+                        <i class="bi bi-trash"></i> Delete
                     </button>
                 </div>
             </div>
             @if(session('success'))
                 <div class="alert alert-success alert-dismissible fade show" role="alert">
-                    <strong><i class="bx bx-check-circle me-1"></i> Success!</strong> {{ session('success') }}
+                    <strong><i class="bi bi-check-circle me-1"></i> Success!</strong> {{ session('success') }}
                     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                 </div>
             @endif
@@ -92,7 +92,7 @@
                     <hr class="my-4">
                     <!-- ASSESSMENT AND EVALIATIONS ROW -->
                     <div class="row">
-                        <div class="col-md-7 col-sm-12">
+                        <div class="col-md-6 col-sm-12">
                             <div class="table-responsive">
                                 <table class="table table-bordered">
                                     <thead>
@@ -127,19 +127,30 @@
                                 </table>
                             </div>
                         </div>
-                        <div class="col-md-5 col-sm-12">
-                            <div class="table-responsive">
-                                <table class="table table-bordered">
-                                    <thead><th>Evaluation and Recommendation</th></thead>
-                                    <tbody>
-                                        <tr>
-                                            <td>
-                                                {{ $weeklyCareplan->evaluation_recommendations ?? 'N/A' }}
-                                            </td>
-                                        </tr>
-                                    </tbody>
-                                </table>
+                        <div class="col-md-6 col-sm-12">
+                            <div class="row">
+                                <div class="col-lg-12 col-md-12 col-sm-12">
+                                    <div class="table-responsive">
+                                        <table class="table table-bordered">
+                                            <thead><th>Evaluation and Recommendation</th></thead>
+                                            <tbody>
+                                                <tr>
+                                                    <td>
+                                                        {{ $weeklyCareplan->evaluation_recommendations ?? 'N/A' }}
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                                <div class="col-lg-12 col-md-12 col-sm-12">
+                                    <label class="form-label">Picture Preview</label>
+                                    <div class="border p-2 d-flex justify-content-center align-items-center" style="height: 200px;">
+                                        <img id="picture_preview" src="#" alt="Preview" class="img-fluid" style="max-height: 100%; display: none;">
+                                    </div>
+                                </div>
                             </div>
+                            
                         </div>
                     </div>
 
