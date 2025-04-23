@@ -11,6 +11,7 @@ use App\Http\Controllers\NotificationsController;
 use App\Http\Controllers\ViewAccountProfileController;
 use App\Http\Controllers\CareWorkerController;
 
+require_once __DIR__.'/routeHelpers.php';
 
 // All routes with care_worker role check
 Route::middleware(['auth', '\App\Http\Middleware\CheckRole:care_worker'])->prefix('care-worker')->name('care-worker.')->group(function () {
@@ -84,5 +85,18 @@ Route::middleware(['auth', '\App\Http\Middleware\CheckRole:care_worker'])->prefi
     // Update email and password
     Route::post('/update-email', [CareWorkerController::class, 'updateCareWorkerEmail'])->name('update.email');
     Route::post('/update-password', [CareWorkerController::class, 'updateCareWorkerPassword'])->name('update.password');
+
+    // Messaging System
+    Route::prefix('messaging')->name('messaging.')->group(function () {
+        Route::get('/', [MessageController::class, 'index'])->name('index');
+        Route::get('/conversation/{id}', [MessageController::class, 'viewConversation'])->name('conversation');
+        Route::post('/send-message', [MessageController::class, 'sendMessage'])->name('send');
+        Route::post('/create-conversation', [MessageController::class, 'createConversation'])->name('create');
+        Route::post('/create-group', [MessageController::class, 'createGroupConversation'])->name('create-group');
+        Route::post('/mark-as-read', [MessageController::class, 'markAsRead'])->name('read');
+        Route::get('/unread-count', [MessageController::class, 'getUnreadCount'])->name('unread-count');
+        Route::get('/recent-messages', [MessageController::class, 'getRecentMessages'])->name('recent');
+        Route::post('/leave-group', [MessageController::class, 'leaveGroupConversation'])->name('leave-group');
+    });
 
 });

@@ -18,7 +18,7 @@ use App\Http\Controllers\DonorAcknowledgementController;
 use App\Http\Controllers\HighlightsAndEventsController;
 use App\Http\Controllers\ViewAccountProfileController;
 use App\Http\Controllers\NotificationsController;
-
+use App\Http\Controllers\MessageController;
 
 // All routes with administrator role check
 
@@ -26,6 +26,8 @@ use App\Http\Controllers\NotificationsController;
 // It will also use the CheckRole middleware to ensure that only users with the administrator role can access these routes
 // The routes are grouped under the 'admin' prefix and will have the 'auth' middleware applied to them
 // CheckRole's full namespace is used to ensure that the correct middleware is applied, do not remove this to prevent errors
+
+require_once __DIR__.'/routeHelpers.php';
 
 Route::middleware(['auth', '\App\Http\Middleware\CheckRole:administrator'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/admin/dashboard', function () {
@@ -181,6 +183,21 @@ Route::middleware(['auth', '\App\Http\Middleware\CheckRole:administrator'])->pre
     Route::post('/notifications/{id}/read', [NotificationsController::class, 'markAsRead'])->name('notifications.read');
     Route::post('/notifications/read-all', [NotificationsController::class, 'markAllAsRead'])->name('notifications.read-all');
 
+    // Messaging system
+    Route::prefix('messaging')->name('messaging.')->group(function () {
+        Route::get('/', [MessageController::class, 'index'])->name('index');
+        Route::get('/conversation/{id}', [MessageController::class, 'viewConversation'])->name('conversation');
+        Route::post('/send-message', [MessageController::class, 'sendMessage'])->name('send');
+        Route::post('/create-conversation', [MessageController::class, 'createConversation'])->name('create');
+        Route::post('/create-group', [MessageController::class, 'createGroupConversation'])->name('create-group');
+        Route::get('/unread-count', [MessageController::class, 'getUnreadCount'])->name('unread-count');
+        Route::get('/recent-messages', [MessageController::class, 'getRecentMessages'])->name('recent');
+        Route::post('/read-all', [MessageController::class, 'markAllAsRead'])->name('read-all');
+        Route::get('/get-users', [MessageController::class, 'getUsers'])->name('get-users');
+        Route::get('/get-conversation', [MessageController::class, 'getConversation'])->name('get-conversation');
+        Route::post('/mark-as-read', [MessageController::class, 'markConversationAsRead'])->name('mark-as-read');
+        Route::post('/leave-group', [MessageController::class, 'leaveGroupConversation'])->name('leave-group');
+    });
 });
 
 // Route::get('/admin/viewProfile', function () {

@@ -8,117 +8,95 @@ use Illuminate\Database\Eloquent\Model;
 class Message extends Model
 {
     use HasFactory;
-    
-    /**
-     * The primary key associated with the table.
-     */
+
+    protected $table = 'messages';
     protected $primaryKey = 'message_id';
-    
-    /**
-     * The attributes that are mass assignable.
-     */
+    public $timestamps = false;
+
     protected $fillable = [
         'conversation_id',
         'sender_id',
         'sender_type',
         'content',
-        'message_timestamp'
+        'message_timestamp',
     ];
-    
-    /**
-     * The attributes that should be cast.
-     */
+
     protected $casts = [
         'message_timestamp' => 'datetime',
     ];
-    
+
     /**
-     * Get the conversation that this message belongs to.
+     * Get the conversation that owns the message.
      */
     public function conversation()
     {
-        return $this->belongsTo(Conversation::class, 'conversation_id');
+        return $this->belongsTo(Conversation::class, 'conversation_id', 'conversation_id');
     }
-    
+
     /**
-     * Get the sender entity (User, Beneficiary, or FamilyMember).
+     * Modified sender relationship - this is likely where the issue is
      */
     public function sender()
     {
         if ($this->sender_type === 'cose_staff') {
-            return $this->belongsTo(User::class, 'sender_id');
+            return $this->morphTo(User::class, 'sender_id');
         } elseif ($this->sender_type === 'beneficiary') {
-            return $this->belongsTo(Beneficiary::class, 'sender_id', 'beneficiary_id');
+            return $this->morphTo(Beneficiary::class, 'sender_id', 'beneficiary_id');
         } elseif ($this->sender_type === 'family_member') {
-            return $this->belongsTo(FamilyMember::class, 'sender_id', 'family_member_id');
+            return $this->morphTo(FamilyMember::class, 'sender_id', 'family_member_id');
         }
         
         return null;
     }
-    
+
     /**
-     * Get all attachments for this message.
+     * Get the attachments for the message.
      */
     public function attachments()
     {
-        return $this->hasMany(MessageAttachment::class, 'message_id');
+        return $this->hasMany(MessageAttachment::class, 'message_id', 'message_id');
     }
-    
+
     /**
-     * Get all read statuses for this message.
+     * Get read statuses for the message.
      */
     public function readStatuses()
     {
-        return $this->hasMany(MessageReadStatus::class, 'message_id');
+        return $this->hasMany(MessageReadStatus::class, 'message_id', 'message_id');
     }
-    
+
     /**
-     * Check if this message has been read by a specific user.
-     *
-     * @param int $readerId
-     * @param string $readerType
-     * @return bool
+     * Check if the message has been read by a specific user.
      */
     public function isReadBy($readerId, $readerType)
     {
         return $this->readStatuses()
-            ->where('reader_id', $readerId)
-            ->where('reader_type', $readerType)
-            ->exists();
+                    ->where('reader_id', $readerId)
+                    ->where('reader_type', $readerType)
+                    ->exists();
     }
-    
+
     /**
-     * Mark this message as read by a specific user.
-     *
-     * @param int $readerId
-     * @param string $readerType
-     * @return \App\Models\MessageReadStatus
+     * Mark the message as read by a user.
      */
     public function markAsReadBy($readerId, $readerType)
     {
-        // Don't create duplicate read statuses
-        $existingStatus = $this->readStatuses()
-            ->where('reader_id', $readerId)
-            ->where('reader_type', $readerType)
-            ->first();
-            
-        if ($existingStatus) {
-            return $existingStatus;
+        // Check if already read
+        if ($this->isReadBy($readerId, $readerType)) {
+            return;
         }
-        
-        return MessageReadStatus::create([
+
+        // Mark as read
+        MessageReadStatus::create([
             'message_id' => $this->message_id,
             'reader_id' => $readerId,
             'reader_type' => $readerType,
-            'read_at' => now()
+            'read_at' => now(),
         ]);
     }
-    
+
     /**
-     * Check if this message has attachments.
+     * Customize the JSON serialization 
      */
-    public function hasAttachments()
-    {
-        return $this->attachments()->exists();
-    }
+    protected $hidden = ['conversation.messages'];
 }

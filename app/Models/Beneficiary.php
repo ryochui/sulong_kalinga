@@ -56,4 +56,9 @@ class Beneficiary extends Model
     {
         return $this->belongsTo(PortalAccount::class, 'portal_account_id', 'id');
     }
+
+    public function sentMessages()
+    {
+        return $this->morphMany(Message::class, 'sender');
+    }
 }

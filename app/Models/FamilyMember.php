@@ -23,4 +23,9 @@ class FamilyMember extends Model
     {
         return $this->belongsTo(Beneficiary::class, 'related_beneficiary_id');
     }
+
+    public function sentMessages()
+    {
+        return $this->morphMany(Message::class, 'sender');
+    }
 }

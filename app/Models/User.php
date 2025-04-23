@@ -145,4 +145,10 @@ class User extends Authenticatable
     {
         return $this->hasMany(User::class, 'assigned_care_manager_id', 'id');
     }
+
+    public function sentMessages()
+    {
+        return $this->morphMany(Message::class, 'sender');
+    }
+    
 }

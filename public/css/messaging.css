@@ -1,0 +1,795 @@
+/* Messaging System Styles - Cleaned Version */
+
+/* ======== LAYOUT & STRUCTURE ======== */
+
+/* Main container layout */
+.messaging-container {
+    display: flex;
+    height: calc(100vh - 76px);
+    margin-right: 0;
+    margin-left: 0;
+    width: 100%;
+    position: relative;
+}
+
+/* Messaging page specific sidebar styles (only affect .messaging-page) */
+.messaging-page .sidebar {
+    width: 78px !important;
+    min-width: 78px !important;
+    max-width: 78px !important;
+    position: fixed !important;
+}
+
+/* Fix tooltip functionality - only for messaging page */
+.messaging-page .sidebar .nav-links li .sub-menu {
+    display: none;
+    position: absolute;
+    left: 100%;
+    top: 0;
+    margin-top: 0;
+    padding: 10px 20px;
+    border-radius: 0 6px 6px 0;
+    z-index: 1000;
+    background: #fff;
+    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Allow tooltips to show on hover - only for messaging page */
+.messaging-page .sidebar .nav-links li:hover .sub-menu {
+    display: block;
+}
+
+/* Hide link name in sidebar but show in tooltip - only for messaging page */
+.messaging-page .sidebar .nav-links li a .link_name {
+    opacity: 0;
+    pointer-events: none;
+}
+
+/* Fix tooltip link_name to be visible - only for messaging page */
+.messaging-page .sidebar .nav-links li .sub-menu .link_name {
+    opacity: 1;
+    pointer-events: auto;
+    display: block;
+}
+
+.messaging-page .sidebar.close {
+    width: 78px !important;
+}
+
+/* Never allow sidebar to open - only for messaging page */
+.messaging-page .sidebar:not(.close) {
+    width: 78px !important;
+}
+
+/* Adjust main-content to account for sidebar - only for messaging page */
+.messaging-page .main-content {
+    margin-left: 78px !important; /* For minimized sidebar */
+    transition: none !important; /* Prevent animation effects */
+    padding-top: 10px;
+    background-color: #E4E9F7;
+    width: calc(100% - 78px) !important;
+}
+
+/* ======== CONVERSATION LIST ======== */
+
+/* Make conversation list with responsive width */
+.conversation-list {
+    position: relative;
+    height: 100%;
+    overflow-y: auto;
+    border-right: 1px solid #ddd;
+    background-color: white;
+    box-shadow: 0px 0px 10px rgba(0,0,0,0.05);
+    width: 30% !important; /* Responsive width */
+    flex: 0 0 30%; /* Don't grow or shrink */
+    max-width: 550px; /* Maximum width for larger screens */
+    z-index: 20;
+}
+
+/* Conversation search styling */
+.conversation-search {
+    padding: 10px;
+    background-color: #f0f4f8;
+    border-bottom: 1px solid #e0e0e0;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.search-container {
+    display: flex;
+    align-items: center;
+}
+
+.search-input-group {
+    flex: 1;
+    margin-right: 8px;
+    display: flex;
+}
+
+.search-input-group .input-group-text {
+    background-color: transparent;
+    border-right: 0;
+}
+
+.search-input-group input {
+    border-left: 0;
+}
+
+/* Style conversation items */
+.conversation-item {
+    padding: 12px 15px;
+    border-bottom: 1px solid #f0f0f0;
+    transition: background-color 0.2s ease;
+    cursor: pointer;
+    width: 100%;
+    box-sizing: border-box;
+    height: auto; /* Allow height to adjust */
+    min-height: 70px; /* Provide a reasonable minimum height */
+}
+
+.conversation-item .d-flex {
+    width: 100%;
+    align-items: flex-start; /* Align to top to allow for expansion */
+}
+
+.conversation-item:hover {
+    background-color: #f5f5f5;
+}
+
+.conversation-item.active {
+    background-color: #e9f0ff;
+    border-left: 3px solid #007bff;
+}
+
+.conversation-item.unread {
+    background-color: #f0f7ff;
+}
+
+/* Profile images in messaging page */
+.profile-img-sm {
+    width: 40px;
+    height: 40px;
+    flex-shrink: 0;
+}
+
+/* Fix group chat avatar size */
+.rounded-circle.profile-img-sm {
+    width: 40px;
+    height: 40px;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+/* Ensure group chat avatar displays properly */
+.profile-img-sm.d-flex {
+    width: 40px;
+    height: 40px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    font-weight: 500;
+}
+
+/* Add this style for group chat placeholder */
+.conversation-item .rounded-circle.profile-img-sm.d-flex {
+    width: 40px;
+    height: 40px;
+    min-width: 40px;
+    min-height: 40px;
+}
+
+/* Adjust conversation title for uniform width */
+.conversation-title {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 5px;
+    width: 100%;
+}
+
+/* Make name wrap appropriately */
+.conversation-title span {
+    font-weight: 500;
+    color: #333;
+    max-width: 70%;
+    white-space: normal;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    line-height: 1.3;
+}
+
+/* Keep time aligned right */
+.conversation-time {
+    color: #6c757d;
+    font-size: 0.75rem;
+    white-space: nowrap;
+    flex-shrink: 0;
+    margin-left: 5px;
+}
+
+/* Allow preview text to wrap with auto height */
+.conversation-preview {
+    color: #6c757d;
+    font-size: 0.875rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    max-width: calc(100% - 30px);
+    white-space: normal;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    line-height: 1.3;
+    margin-bottom: 0; /* Remove bottom margin to prevent extra space */
+}
+
+.unread-badge {
+    font-size: 0.7rem;
+    padding: 0.25rem 0.5rem;
+}
+
+/* ======== MESSAGE AREA ======== */
+
+/* Message area styling - CRITICAL FIX */
+.message-area {
+    height: 100%;
+    background-color: white;
+    flex: 1; /* Take remaining space */
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    overflow: hidden !important;
+}
+
+/* Fixed header for conversation title */
+.conversation-title-area {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 20;
+    background: white;
+    border-bottom: 1px solid #e0e0e0;
+    padding: 15px;
+}
+
+/* Messages container - CRITICAL FIX FOR SCROLLING */
+.messages-container {
+    position: absolute;
+    top: 60px; /* Adjust based on title height */
+    bottom: 80px; /* Space for input container */
+    left: 0;
+    right: 0;
+    overflow-y: scroll !important;
+    padding: 15px;
+    background-color: #f8f9fa;
+}
+
+/* Message styling */
+.message {
+    margin-bottom: 15px;
+    max-width: 80%;
+    clear: both;
+    position: relative;
+    overflow: visible;
+}
+
+.message.incoming {
+    float: left;
+}
+
+.message.outgoing {
+    float: right;
+    margin-left: auto;
+    align-self: flex-end;
+}
+
+.message-content {
+    padding: 10px 15px;
+    border-radius: 18px;
+    word-wrap: break-word;
+}
+
+.message.incoming .message-content {
+    background-color: #f1f0f0;
+    color: #212529;
+    border-top-left-radius: 2px;
+}
+
+.message.outgoing .message-content {
+    background-color: #007bff;
+    color: white;
+    border-top-right-radius: 2px;
+}
+
+.message-time {
+    font-size: 0.75rem;
+    margin-top: 2px;
+    color: #6c757d;
+    clear: both;
+}
+
+.message.incoming .message-time {
+    float: left;
+}
+
+.message.outgoing .message-time {
+    float: right;
+    text-align: right;
+}
+
+/* Clear floats for messages to prevent scroll issues */
+.messages-container::after {
+    content: "";
+    display: table;
+    clear: both;
+}
+
+/* Date separator */
+.date-separator {
+    clear: both;
+    width: 100%;
+    display: block;
+    text-align: center;
+    margin: 20px 0;
+    position: relative;
+    overflow: visible;
+    font-size: 0.85rem;
+    padding: 5px 15px;
+}
+
+/* ======== MESSAGE INPUT AREA ======== */
+
+/* Message input container - CRITICAL FIX */
+.message-input-container {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 15px;
+    background-color: #fff;
+    border-top: 1px solid #e0e0e0;
+    z-index: 20;
+}
+
+.message-input-container .position-relative {
+    display: flex;
+    align-items: center;
+}
+
+textarea.message-input {
+    flex: 1;
+    resize: none;
+    padding-right: 80px;
+    overflow: hidden;
+    border-radius: 1.5rem;
+}
+
+.attachment-btn {
+    position: absolute;
+    right: 45px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: #6c757d;
+    cursor: pointer;
+    padding: 0;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.send-btn {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    padding: 0;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* ======== FILE UPLOADS ======== */
+
+/* File upload */
+.file-upload {
+    display: none;
+}
+
+.file-preview-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 0.5rem;
+}
+
+.file-preview {
+    position: relative;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    padding: 5px;
+    width: 120px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.file-preview img {
+    max-width: 100%;
+    max-height: 80px;
+    object-fit: contain;
+}
+
+.file-icon {
+    font-size: 2rem;
+    color: #6c757d;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 60px;
+}
+
+.file-name {
+    font-size: 0.8rem;
+    text-align: center;
+    word-break: break-word;
+    margin-top: 5px;
+    width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+}
+
+.remove-file {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background: #dc3545;
+    color: white;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 14px;
+}
+
+/* ======== EMPTY STATES ======== */
+
+.empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: #495057;
+    text-align: center;
+    padding: 2rem;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+}
+
+.empty-icon {
+    font-size: 3.5rem;
+    color: #adb5bd;
+    margin-bottom: 1.5rem;
+}
+
+/* ======== RESPONSIVE DESIGN ======== */
+
+/* Mobile responsive improvements */
+@media (max-width: 768px) {
+    /* Fixed mobile layout with toggleable conversation list */
+    .messaging-container {
+        position: relative;
+        flex-direction: column;
+        height: calc(100vh - 76px);
+    }
+    
+    .conversation-list {
+        position: absolute;
+        left: 0;
+        top: 0;
+        height: 100%;
+        width: 100% !important;
+        max-width: 100%;
+        z-index: 50;
+        transition: transform 0.3s ease;
+    }
+    
+    .conversation-list.hidden {
+        transform: translateX(-100%);
+    }
+    
+    .message-area {
+        flex: 1;
+        width: 100%;
+        height: 100%;
+    }
+    
+    /* Messages container adjustment */
+    .messages-container {
+        top: 60px;
+        bottom: 60px;
+    }
+    
+    /* Toggle button */
+    .toggle-conversation-list {
+        position: fixed;
+        bottom: 20px;
+        left: 20px;
+        z-index: 100;
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        background: #007bff;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        border: none;
+    }
+}
+
+@media (min-width: 769px) and (max-width: 1200px) {
+    .conversation-list {
+        width: 40% !important;
+        flex: 0 0 40%;
+    }
+    
+    .conversation-title span {
+        font-size: 0.9rem;
+    }
+    
+    .conversation-preview {
+        font-size: 0.8rem;
+    }
+}
+
+/* Attachment styling in messages */
+.message-attachments {
+    margin: 5px 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.attachment-container {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 5px 10px 5px 0;
+    max-width: 200px;
+}
+
+.attachment-link {
+    display: block;
+    text-decoration: none;
+}
+
+.attachment-img {
+    max-width: 200px;
+    max-height: 150px;
+    border-radius: 8px;
+    border: 1px solid #dee2e6;
+    display: block;
+}
+
+.attachment-file {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    padding: 10px;
+    width: 100px;
+    height: 100px;
+    justify-content: center;
+    text-decoration: none;
+    color: inherit;
+}
+
+.attachment-filename {
+    font-size: 0.75rem;
+    color: #6c757d;
+    margin-top: 5px;
+    text-align: center;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 200px;
+}
+
+.message-attachments .file-icon {
+    height: 40px;
+    font-size: 1.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #6c757d;
+}
+
+/* Adjust attachment styling based on message type */
+.message.outgoing .attachment-filename {
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.message.outgoing .attachment-file {
+    background-color: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.3);
+}
+
+.message.outgoing .file-icon {
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.message-image {
+    max-width: 100%;
+    border-radius: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+/* Search highlight styles */
+.search-highlight {
+    background-color: rgba(255, 255, 140, 0.4);
+    padding: 0 2px;
+    border-radius: 2px;
+}
+
+/* No results message */
+#noSearchResults {
+    padding: 20px;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    margin: 10px;
+    color: #6c757d;
+    font-size: 0.9rem;
+}
+
+/* Make name wrap appropriately - fix to exclude badges */
+.conversation-title span:not(.user-type-badge) {
+    font-weight: 500;
+    color: #333;
+    max-width: 70%;
+    white-space: normal;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    line-height: 1.3;
+}
+
+/* Container for name and badge */
+.conversation-title .name-container {
+    display: flex;
+    align-items: center;
+    flex-wrap: nowrap;
+    max-width: 85%;
+    overflow: hidden;
+}
+
+/* Participant name style */
+.conversation-title .participant-name {
+    font-weight: 500;
+    color: #333;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    margin-right: 4px;
+}
+
+/* User type badge with higher specificity */
+.conversation-title .user-type-badge {
+    font-size: 0.6rem;
+    padding: 0.15rem 0.4rem;
+    border-radius: 3px;
+    color: white !important; /* Force color override */
+    margin-left: 5px;
+    display: inline-block !important; /* Force display override */
+    vertical-align: middle;
+    font-weight: normal !important;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    max-width: none !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+    white-space: nowrap !important;
+    -webkit-line-clamp: none !important;
+    -webkit-box-orient: horizontal !important;
+}
+
+/* Sender role in group chats */
+.sender-role {
+    font-size: 0.75em;
+    opacity: 0.8;
+    font-weight: normal;
+    margin-left: 3px;
+    color: #6c757d;
+}
+
+/* Specific colors for different user types */
+.bg-administrator {
+    background-color: #dc3545;
+}
+
+.bg-care-manager {
+    background-color: #0d6efd;
+}
+
+.bg-care-worker {
+    background-color: #fa7822;
+}
+
+.bg-beneficiary {
+    background-color: #28a745;
+}
+
+.bg-family-member {
+    background-color: #ffc107;
+    color: #212529;
+}
+
+/* System messages styling */
+.message.system {
+    clear: both;
+    float: none;
+    margin: 15px auto;
+    max-width: 80%;
+    text-align: center;
+}
+
+.message.system .message-content {
+    display: inline-block;
+    background-color: #f0f0f0;
+    color: #666;
+    font-size: 0.85rem;
+    padding: 5px 15px;
+    border-radius: 15px;
+}
+
+/* Special system message types */
+.message.system .message-content.leave-message {
+    background-color: #fff3f3;
+    color: #d83b3b;
+    border: 1px solid #ffdddd;
+}
+
+.message.system .message-content.join-message {
+    background-color: #f0f8ff;
+    color: #0769c5;
+    border: 1px solid #d1e8ff;
+}
+
+.message.system .message-time {
+    float: none;
+    text-align: center;
+    margin-top: 3px;
+    font-size: 0.7rem;
+    opacity: 0.7;
+}
