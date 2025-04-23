@@ -284,7 +284,27 @@
                                         <div class="form-page" id="page9">
                                         <div class="validation-error-container alert alert-danger mb-3" style="display: none;"></div>
                                             <div class="row mb-3 mt-2 justify-content-center">
-                                                <div class="col-lg-8 col-md-12 col-sm-12 text-center">
+                                                <div class="col-lg-6 col-md-6 col-sm-12 text-center">
+                                                    <div class="row mb-3">
+                                                        <div class="col-md-12 col-sm-12">
+                                                            <label for="upload_picture" class="form-label">Upload Picture</label>
+                                                            <input type="file" class="form-control @error('upload_picture') is-invalid @enderror" 
+                                                                id="upload_picture" name="upload_picture" 
+                                                                accept="image/*" onchange="previewImage(event)">
+                                                            <small class="form-text text-muted">Use your camera or upload an image for validation purposes.</small>
+                                                            @error('upload_picture')
+                                                                <div class="invalid-feedback">{{ $message }}</div>
+                                                            @enderror
+                                                        </div>
+                                                        <div class="col-md-12 col-sm-12 text-center">
+                                                            <label class="form-label">Picture Preview</label>
+                                                            <div class="border p-2 d-flex justify-content-center align-items-center" style="height: 200px;">
+                                                                <img id="picture_preview" src="#" alt="Preview" class="img-fluid" style="max-height: 100%; display: none;">
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-lg-6 col-md-6 col-sm-12 text-center">
                                                     <label for="evaluation_recommendations" class="form-label"><h5>Recommendations and Evaluations</h5></label>
                                                     <textarea class="form-control @error('evaluation_recommendations') is-invalid @enderror" 
                                                             id="evaluation_recommendations" name="evaluation_recommendations" 

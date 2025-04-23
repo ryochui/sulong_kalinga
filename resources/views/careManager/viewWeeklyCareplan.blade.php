@@ -92,7 +92,7 @@
                     <hr class="my-4">
                     <!-- ASSESSMENT AND EVALIATIONS ROW -->
                     <div class="row">
-                        <div class="col-md-7 col-sm-12">
+                        <div class="col-md-6 col-sm-12">
                             <div class="table-responsive">
                                 <table class="table table-bordered">
                                     <thead>
@@ -127,18 +127,28 @@
                                 </table>
                             </div>
                         </div>
-                        <div class="col-md-5 col-sm-12">
-                            <div class="table-responsive">
-                                <table class="table table-bordered">
-                                    <thead><th>Evaluation and Recommendation</th></thead>
-                                    <tbody>
-                                        <tr>
-                                            <td>
-                                                {{ $weeklyCareplan->evaluation_recommendations ?? 'N/A' }}
-                                            </td>
-                                        </tr>
-                                    </tbody>
-                                </table>
+                        <div class="col-md-6 col-sm-12">
+                            <div class="row">
+                                <div class="col-lg-12 col-md-12 col-sm-12">
+                                    <div class="table-responsive">
+                                        <table class="table table-bordered">
+                                            <thead><th>Evaluation and Recommendation</th></thead>
+                                            <tbody>
+                                                <tr>
+                                                    <td>
+                                                        {{ $weeklyCareplan->evaluation_recommendations ?? 'N/A' }}
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                                <div class="col-lg-12 col-md-12 col-sm-12">
+                                    <label class="form-label">Picture Preview</label>
+                                    <div class="border p-2 d-flex justify-content-center align-items-center" style="height: 200px;">
+                                        <img id="picture_preview" src="#" alt="Preview" class="img-fluid" style="max-height: 100%; display: none;">
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
