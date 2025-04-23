@@ -11,6 +11,7 @@ use App\Http\Controllers\ExportController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\MunicipalityController;
 use App\Http\Controllers\NotificationsController;
+use App\Http\Controllers\ViewAccountProfileController;
 
 
 // All routes with care_manager role check
@@ -91,4 +92,15 @@ Route::middleware(['auth', '\App\Http\Middleware\CheckRole:care_manager'])->pref
     Route::get('/notifications', [NotificationsController::class, 'getUserNotifications'])->name('notifications.get');
     Route::post('/notifications/{id}/read', [NotificationsController::class, 'markAsRead'])->name('notifications.read');
     Route::post('/notifications/read-all', [NotificationsController::class, 'markAllAsRead'])->name('notifications.read-all');
+
+    // View Account Profile
+    Route::prefix('account-profile')->name('account.profile.')->group(function () {
+        Route::get('/', [ViewAccountProfileController::class, 'careManagerIndex'])->name('index');
+        Route::get('/settings', [ViewAccountProfileController::class, 'careManagerSettings'])->name('settings');
+    });
+
+    // Update email and password
+    Route::post('/update-email', [CareManagerController::class, 'updateCareManagerEmail'])->name('update.email');
+    Route::post('/update-password', [CareManagerController::class, 'updateCareManagerPassword'])->name('update.password');
+
 });
