@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('messages', function (Blueprint $table) {
             $table->id('message_id');
             $table->unsignedBigInteger('conversation_id');
-            $table->unsignedBigInteger('sender_id');
+            $table->unsignedBigInteger('sender_id')->nullable();
             $table->string('sender_type', 20); // 'cose_staff', 'beneficiary', 'family_member'
             $table->text('content')->nullable(); // Allowing null when there's only an attachment
             $table->timestamp('message_timestamp')->useCurrent();

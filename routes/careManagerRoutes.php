@@ -13,6 +13,7 @@ use App\Http\Controllers\MunicipalityController;
 use App\Http\Controllers\NotificationsController;
 use App\Http\Controllers\ViewAccountProfileController;
 
+require_once __DIR__.'/routeHelpers.php';
 
 // All routes with care_manager role check
 Route::middleware(['auth', '\App\Http\Middleware\CheckRole:care_manager'])->prefix('care-manager')->name('care-manager.')->group(function () {
@@ -103,4 +104,16 @@ Route::middleware(['auth', '\App\Http\Middleware\CheckRole:care_manager'])->pref
     Route::post('/update-email', [CareManagerController::class, 'updateCareManagerEmail'])->name('update.email');
     Route::post('/update-password', [CareManagerController::class, 'updateCareManagerPassword'])->name('update.password');
 
+    // Messaging Routes 
+    Route::prefix('messaging')->name('messaging.')->group(function () {
+        Route::get('/', [MessageController::class, 'index'])->name('index');
+        Route::get('/conversation/{id}', [MessageController::class, 'viewConversation'])->name('conversation');
+        Route::post('/send-message', [MessageController::class, 'sendMessage'])->name('send');
+        Route::post('/create-conversation', [MessageController::class, 'createConversation'])->name('create');
+        Route::post('/create-group', [MessageController::class, 'createGroupConversation'])->name('create-group');
+        Route::post('/mark-as-read', [MessageController::class, 'markAsRead'])->name('read');
+        Route::get('/unread-count', [MessageController::class, 'getUnreadCount'])->name('unread-count');
+        Route::get('/recent-messages', [MessageController::class, 'getRecentMessages'])->name('recent');
+    });
+    
 });

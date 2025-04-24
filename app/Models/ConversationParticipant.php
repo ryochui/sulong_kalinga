@@ -2,66 +2,70 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\User;
+use App\Models\Beneficiary;
+use App\Models\FamilyMember;
 
 class ConversationParticipant extends Model
 {
-    use HasFactory;
-    
-    /**
-     * The primary key associated with the table.
-     */
+    protected $table = 'conversation_participants';
     protected $primaryKey = 'conversation_participant_id';
-    
-    /**
-     * The attributes that are mass assignable.
-     */
+    public $timestamps = false;
+
     protected $fillable = [
         'conversation_id',
         'participant_id',
         'participant_type',
         'joined_at',
-        'left_at'
+        'left_at',
     ];
-    
-    /**
-     * The attributes that should be cast.
-     */
+
     protected $casts = [
         'joined_at' => 'datetime',
         'left_at' => 'datetime',
     ];
-    
-    /**
-     * Get the conversation that this participant belongs to.
-     */
+
     public function conversation()
     {
-        return $this->belongsTo(Conversation::class, 'conversation_id');
+        return $this->belongsTo(Conversation::class, 'conversation_id', 'conversation_id');
     }
-    
+
     /**
-     * Get the participant entity (User, Beneficiary, or FamilyMember).
+     * Get the participant model (polymorphic).
      */
     public function participant()
     {
-        if ($this->participant_type === 'cose_staff') {
-            return $this->belongsTo(User::class, 'participant_id');
-        } elseif ($this->participant_type === 'beneficiary') {
-            return $this->belongsTo(Beneficiary::class, 'participant_id', 'beneficiary_id');
-        } elseif ($this->participant_type === 'family_member') {
-            return $this->belongsTo(FamilyMember::class, 'participant_id', 'family_member_id');
+        // Fix the polymorphic relationship by properly handling each type
+        switch($this->participant_type) {
+            case 'cose_staff':
+                return $this->belongsTo(User::class, 'participant_id');
+            case 'beneficiary':
+                return $this->belongsTo(Beneficiary::class, 'participant_id');
+            case 'family_member':
+                return $this->belongsTo(FamilyMember::class, 'participant_id');
+            default:
+                return null;
         }
-        
-        return null;
     }
-    
+
     /**
-     * Check if this participant is active (has not left the conversation)
+     * Get the name of the participant for display purposes.
      */
-    public function isActive()
+    public function getParticipantNameAttribute()
     {
-        return $this->left_at === null;
+        switch($this->participant_type) {
+            case 'cose_staff':
+                $user = User::find($this->participant_id);
+                return $user ? $user->first_name . ' ' . $user->last_name : 'Unknown Staff';
+            case 'beneficiary':
+                $beneficiary = Beneficiary::find($this->participant_id);
+                return $beneficiary ? $beneficiary->first_name . ' ' . $beneficiary->last_name : 'Unknown Beneficiary';
+            case 'family_member':
+                $familyMember = FamilyMember::find($this->participant_id);
+                return $familyMember ? $familyMember->first_name . ' ' . $familyMember->last_name : 'Unknown Family Member';
+            default:
+                return 'Unknown User';
+        }
     }
 }

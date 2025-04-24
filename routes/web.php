@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\PasswordResetController;
+use App\Http\Controllers\MessageController;
 use App\Http\Middleware\CheckRole;
 
 // Include route files for role-specific routes
@@ -89,3 +90,4 @@ Route::get('/reset-password/{token}', [PasswordResetController::class, 'showRese
     
 Route::post('/reset-password', [PasswordResetController::class, 'reset'])
     ->name('password.update');
+    
