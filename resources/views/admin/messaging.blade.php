@@ -83,6 +83,11 @@
             </div>
         </div>
 
+        <!-- Mobile Toggle Button for Conversation List -->
+        <button class="toggle-conversation-list">
+            <i class="bi bi-chat-left-text-fill"></i>
+        </button>
+
         <!-- New Private Conversation Modal -->
         <div class="modal fade" id="newConversationModal" tabindex="-1" aria-labelledby="newConversationModalLabel" aria-hidden="true">
             <div class="modal-dialog">
@@ -190,8 +195,10 @@
     <script src="{{ asset('js/jquery-3.6.0.min.js') }}"></script>
     <script src="{{ asset('js/bootstrap.bundle.min.js') }}"></script>
     
-    <!-- CONSOLIDATED JAVASCRIPT - CLEAN VERSION -->
     <script>
+        // Debug flag - set to true to enable verbose logging
+        const DEBUG = true;
+        
         // ------------------- GLOBAL VARIABLES -------------------
         // Timing variables to prevent conflicts
         window.lastRefreshTimestamp = 0;
@@ -204,19 +211,26 @@
         window.lastBlurTime = 0;
         let currentLeaveGroupId = null;
         
+        // Debug logging function
+        function debugLog(...args) {
+            if (DEBUG) {
+                console.log(...args);
+            }
+        }
+        
         // ------------------- INPUT PROTECTION -------------------
         // Override the textarea value setter to detect and prevent unwanted clearing
         const originalValueSetter = Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value').set;
         Object.defineProperty(HTMLTextAreaElement.prototype, 'value', {
             set(val) {
                 if (this.id === 'messageContent' && val === '' && this.value !== '') {
-                    console.log('Textarea being cleared from:', new Error().stack);
+                    debugLog('Textarea being cleared from:', new Error().stack);
                     
                     // Only allow clearing if we just sent a message
                     if (Date.now() - window.lastMessageSendTimestamp > 1000) {
                         // Save the content in case we need to restore it
                         window.lastBlurContent = this.value;
-                        console.log("Preventing automatic textarea clearing - saving content");
+                        debugLog("Preventing automatic textarea clearing - saving content");
                         // Let the original setter run, but we'll restore later if needed
                     }
                 }
@@ -298,24 +312,115 @@
                 return;
             }
             
+            debugLog('Adding message to display:', messageData);
+            
             // Create message element
             const messageEl = document.createElement('div');
             messageEl.className = isOutgoing ? 'message outgoing' : 'message incoming';
+            messageEl.dataset.messageId = messageData.id || '';
             
-            // Add message content
-            const contentEl = document.createElement('div');
-            contentEl.className = 'message-content';
-            
-            // Make sure we have content, with fallbacks
-            let messageContent = '';
-            if (typeof messageData.content === 'string' && messageData.content) {
-                messageContent = messageData.content;
-            } else if (messageData.formContent) {
-                messageContent = messageData.formContent;
+            // For incoming messages with sender info
+            if (!isOutgoing && messageData.sender_name) {
+                const senderInfoDiv = document.createElement('div');
+                senderInfoDiv.className = 'message-sender';
+                senderInfoDiv.innerHTML = `<small class="text-muted fw-bold">${messageData.sender_name}</small>`;
+                messageEl.appendChild(senderInfoDiv);
             }
             
-            contentEl.textContent = messageContent;
-            messageEl.appendChild(contentEl);
+            // Add message content
+            if (messageData.content || messageData.formContent) {
+                const contentEl = document.createElement('div');
+                contentEl.className = 'message-content';
+                
+                // Make sure we have content, with fallbacks
+                let messageContent = '';
+                if (typeof messageData.content === 'string' && messageData.content) {
+                    messageContent = messageData.content;
+                } else if (messageData.formContent) {
+                    messageContent = messageData.formContent;
+                }
+                
+                contentEl.textContent = messageContent;
+                messageEl.appendChild(contentEl);
+            }
+            
+            // Add attachments if available
+            if (messageData.attachments && messageData.attachments.length > 0) {
+                debugLog('Message has attachments:', messageData.attachments);
+                
+                const attachmentsContainer = document.createElement('div');
+                attachmentsContainer.className = 'message-attachments';
+                
+                messageData.attachments.forEach(attachment => {
+                    debugLog('Processing attachment:', attachment);
+                    
+                    const attachmentContainer = document.createElement('div');
+                    attachmentContainer.className = 'attachment-container';
+                    
+                    const link = document.createElement('a');
+                    link.href = `/storage/${attachment.file_path}`;
+                    link.target = '_blank';
+                    
+                    // Check if it's an image or a file
+                    const isImage = attachment.is_image === true || 
+                                   (typeof attachment.is_image === 'string' && attachment.is_image === '1') ||
+                                   attachment.file_type?.startsWith('image/');
+                    
+                    if (isImage) {
+                        // Image attachment
+                        link.className = 'attachment-link';
+                        const img = document.createElement('img');
+                        img.src = `/storage/${attachment.file_path}`;
+                        img.className = 'attachment-img';
+                        img.alt = attachment.file_name;
+                        img.onerror = function() {
+                            this.onerror = null;
+                            debugLog('Image failed to load:', attachment.file_path);
+                            // Replace with an error icon
+                            const errorDiv = document.createElement('div');
+                            errorDiv.innerHTML = '<i class="bi bi-exclamation-triangle-fill text-warning"></i>';
+                            errorDiv.style.fontSize = '2rem';
+                            errorDiv.style.padding = '10px';
+                            this.parentNode.replaceChild(errorDiv, this);
+                        };
+                        link.appendChild(img);
+                    } else {
+                        // File attachment
+                        link.className = 'attachment-file';
+                        
+                        // Determine file icon based on extension
+                        let iconClass = 'bi-file-earmark';
+                        const fileName = attachment.file_name.toLowerCase();
+                        
+                        if (attachment.file_type?.includes('pdf') || fileName.endsWith('.pdf')) {
+                            iconClass = 'bi-file-earmark-pdf';
+                        } else if (fileName.endsWith('.doc') || fileName.endsWith('.docx')) {
+                            iconClass = 'bi-file-earmark-word';
+                        } else if (fileName.endsWith('.xls') || fileName.endsWith('.xlsx')) {
+                            iconClass = 'bi-file-earmark-excel';
+                        } else if (fileName.endsWith('.txt')) {
+                            iconClass = 'bi-file-earmark-text';
+                        }
+                        
+                        const fileIcon = document.createElement('div');
+                        fileIcon.className = 'file-icon';
+                        fileIcon.innerHTML = `<i class="bi ${iconClass}"></i>`;
+                        link.appendChild(fileIcon);
+                    }
+                    
+                    attachmentContainer.appendChild(link);
+                    
+                    // Add filename
+                    const fileNameEl = document.createElement('div');
+                    fileNameEl.className = 'attachment-filename';
+                    fileNameEl.textContent = attachment.file_name;
+                    attachmentContainer.appendChild(fileNameEl);
+                    
+                    attachmentsContainer.appendChild(attachmentContainer);
+                });
+                
+                messageEl.appendChild(attachmentsContainer);
+            }
             
             // Add time indicator
             const timeEl = document.createElement('div');
@@ -408,6 +513,11 @@
                     
                     // Mark conversation as read
                     markConversationAsRead(conversationId);
+                    
+                    // On mobile, hide the conversation list after selecting a conversation
+                    if (window.innerWidth <= 768) {
+                        document.querySelector('.conversation-list').classList.add('hidden');
+                    }
                 } else {
                     document.getElementById('conversationContent').innerHTML = `
                         <div class="empty-state">
@@ -468,7 +578,7 @@
         window.refreshActiveConversation = function() {
             // Check if refresh is explicitly prevented
             if (Date.now() < window.preventRefreshUntil) {
-                console.log('Refresh prevented by time lock - ' + 
+                debugLog('Refresh prevented by time lock - ' + 
                     Math.round((window.preventRefreshUntil - Date.now())/1000) + ' seconds remaining');
                 return;
             }
@@ -480,7 +590,7 @@
             // Don't refresh if we just sent a message in the last 3 seconds
             const now = Date.now();
             if (now - window.lastMessageSendTimestamp < 3000) {
-                console.log('Refresh prevented - message recently sent');
+                debugLog('Refresh prevented - message recently sent');
                 return;
             }
             
@@ -560,6 +670,36 @@
                 window.isRefreshing = false;
             });
         };
+
+        // Check file type validity
+        function isValidFileType(file) {
+            const allowedTypes = [
+                'image/jpeg', 'image/png', 'image/gif', 'image/webp',
+                'application/pdf', 'application/msword',
+                'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                'application/vnd.ms-excel',
+                'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                'text/plain'
+            ];
+            
+            // Check by MIME type first
+            if (allowedTypes.includes(file.type)) {
+                return true;
+            }
+            
+            // Fallback to extension check for certain file types
+            const fileName = file.name.toLowerCase();
+            if (fileName.endsWith('.jpg') || fileName.endsWith('.jpeg') || 
+                fileName.endsWith('.png') || fileName.endsWith('.gif') || 
+                fileName.endsWith('.webp') || fileName.endsWith('.pdf') || 
+                fileName.endsWith('.doc') || fileName.endsWith('.docx') || 
+                fileName.endsWith('.xls') || fileName.endsWith('.xlsx') || 
+                fileName.endsWith('.txt')) {
+                return true;
+            }
+            
+            return false;
+        }
         
         // ------------------- MESSAGE FORM HANDLING -------------------
         // Initialize message form
@@ -584,7 +724,7 @@
                 const savedContent = localStorage.getItem('messageContent_' + conversationId);
                 if (savedContent) {
                     textarea.value = savedContent;
-                    console.log('Restored saved content for conversation:', conversationId);
+                    debugLog('Restored saved content for conversation:', conversationId);
                 }
             }
             
@@ -623,7 +763,7 @@
                     // If content was cleared unexpectedly, restore it
                     if (this.value === '' && window.lastBlurContent && 
                         (Date.now() - window.lastMessageSendTimestamp > 2000)) {
-                        console.log('Restoring lost content after focus change');
+                        debugLog('Restoring lost content after focus change');
                         this.value = window.lastBlurContent;
                     }
                 });
@@ -631,45 +771,124 @@
             
             // File attachment handling
             if (attachmentBtn && fileInput) {
+                // Create error message container if it doesn't exist
+                let fileErrorContainer = document.getElementById('fileErrorContainer');
+                if (!fileErrorContainer) {
+                    fileErrorContainer = document.createElement('div');
+                    fileErrorContainer.id = 'fileErrorContainer';
+                    fileErrorContainer.className = 'file-error-container alert alert-danger d-none';
+                    if (filePreviewContainer) {
+                        filePreviewContainer.parentNode.insertBefore(fileErrorContainer, filePreviewContainer);
+                    }
+                }
+                
+                // Handle attachment button click
                 attachmentBtn.addEventListener('click', function() {
                     fileInput.click();
+                    // Clear errors when opening file picker
+                    fileErrorContainer.classList.add('d-none');
+                    fileErrorContainer.textContent = '';
                 });
                 
                 if (fileInput && filePreviewContainer) {
                     fileInput.addEventListener('change', function() {
+                        // Clear previous error messages
+                        fileErrorContainer.classList.add('d-none');
+                        fileErrorContainer.innerHTML = '';
+                        
+                        // Clear previous previews
                         filePreviewContainer.innerHTML = '';
                         
-                        if (this.files.length > 0) {
-                            for (let i = 0; i < this.files.length; i++) {
-                                const file = this.files[i];
-                                const filePreview = document.createElement('div');
-                                filePreview.className = 'file-preview';
+                        if (this.files.length === 0) return;
+                        
+                        const errors = [];
+                        const maxFileSize = 10 * 1024 * 1024; // 10MB
+                        
+                        // Validate each file
+                        Array.from(this.files).forEach(file => {
+                            // Size validation
+                            if (file.size > maxFileSize) {
+                                errors.push(`File "${file.name}" exceeds the 10MB limit`);
+                                return;
+                            }
+                            
+                            // Type validation
+                            if (!isValidFileType(file)) {
+                                errors.push(`File "${file.name}" is not an allowed type. Please use JPG, PNG, GIF, WEBP, PDF, DOC, DOCX, XLS, XLSX, or TXT files.`);
+                                return;
+                            }
+                            
+                            // Create preview for valid files
+                            const filePreview = document.createElement('div');
+                            filePreview.className = 'file-preview';
+                            
+                            // Loading state
+                            const loadingContainer = document.createElement('div');
+                            loadingContainer.className = 'file-loading';
+                            loadingContainer.innerHTML = '<div class="spinner-border spinner-border-sm text-primary" role="status"></div>';
+                            filePreview.appendChild(loadingContainer);
+                            
+                            // Add file name below loading spinner
+                            const fileName = document.createElement('div');
+                            fileName.className = 'file-name';
+                            fileName.textContent = file.name;
+                            filePreview.appendChild(fileName);
+                            
+                            // Add remove button
+                            const removeBtn = document.createElement('div');
+                            removeBtn.className = 'remove-file';
+                            removeBtn.innerHTML = '&times;';
+                            removeBtn.addEventListener('click', function() {
+                                filePreview.remove();
                                 
-                                if (file.type.startsWith('image/')) {
-                                    const img = document.createElement('img');
-                                    img.src = URL.createObjectURL(file);
-                                    filePreview.appendChild(img);
-                                } else {
-                                    const fileIcon = document.createElement('div');
-                                    fileIcon.className = 'file-icon';
-                                    fileIcon.innerHTML = '<i class="bi bi-file-earmark"></i>';
-                                    filePreview.appendChild(fileIcon);
+                                // If no more previews, reset the file input
+                                if (filePreviewContainer.children.length === 0) {
+                                    fileInput.value = '';
                                 }
-                                
-                                const fileName = document.createElement('div');
-                                fileName.className = 'file-name';
-                                fileName.textContent = file.name;
-                                filePreview.appendChild(fileName);
-                                
-                                const removeBtn = document.createElement('div');
-                                removeBtn.className = 'remove-file';
-                                removeBtn.innerHTML = '&times;';
-                                removeBtn.addEventListener('click', function() {
-                                    filePreview.remove();
-                                });
-                                
-                                filePreview.appendChild(removeBtn);
-                                filePreviewContainer.appendChild(filePreview);
+                            });
+                            filePreview.appendChild(removeBtn);
+                            filePreviewContainer.appendChild(filePreview);
+                            
+                            // Process preview based on file type
+                            if (file.type.startsWith('image/')) {
+                                const img = new Image();
+                                img.onload = function() {
+                                    loadingContainer.remove();
+                                    filePreview.insertBefore(img, filePreview.firstChild);
+                                };
+                                img.onerror = function() {
+                                    loadingContainer.innerHTML = '<i class="bi bi-exclamation-triangle text-warning"></i>';
+                                };
+                                img.src = URL.createObjectURL(file);
+                                img.className = 'file-preview-img';
+                            } else {
+                                // For non-image files, show icon based on file type
+                                setTimeout(() => {
+                                    let iconClass = 'bi-file-earmark';
+                                    
+                                    if (file.type.includes('pdf')) {
+                                        iconClass = 'bi-file-earmark-pdf';
+                                    } else if (file.name.endsWith('.doc') || file.name.endsWith('.docx')) {
+                                        iconClass = 'bi-file-earmark-word';
+                                    } else if (file.name.endsWith('.xls') || file.name.endsWith('.xlsx')) {
+                                        iconClass = 'bi-file-earmark-excel';
+                                    } else if (file.name.endsWith('.txt')) {
+                                        iconClass = 'bi-file-earmark-text';
+                                    }
+                                    
+                                    loadingContainer.innerHTML = `<i class="bi ${iconClass} fs-2"></i>`;
+                                }, 500);
+                            }
+                        });
+                        
+                        // Show errors if any
+                        if (errors.length > 0) {
+                            fileErrorContainer.innerHTML = errors.map(msg => `<div>${msg}</div>`).join('');
+                            fileErrorContainer.classList.remove('d-none');
+                            
+                            // Clear invalid files from input
+                            if (errors.length === this.files.length) {
+                                this.value = '';
                             }
                         }
                     });
@@ -679,6 +898,13 @@
             // Message form submission
             messageForm.addEventListener('submit', function(e) {
                 e.preventDefault();
+                
+                // Check if there are file errors
+                const fileErrorContainer = document.getElementById('fileErrorContainer');
+                if (fileErrorContainer && !fileErrorContainer.classList.contains('d-none')) {
+                    alert('Please fix file upload errors before sending your message');
+                    return;
+                }
                 
                 // Validation
                 if (textarea.value.trim() === '' && (!fileInput.files || fileInput.files.length === 0)) {
@@ -725,6 +951,8 @@
                     return response.json();
                 })
                 .then(data => {
+                    debugLog('Message sent, server response:', data);
+                    
                     if (data.success) {
                         // Clear the input after successful sending
                         textarea.value = '';
@@ -736,10 +964,21 @@
                         // Remove from localStorage
                         localStorage.removeItem('messageContent_' + currentConversationId);
                         
+                        // Fix for file attachments - properly extract from response
+                        let attachments = [];
+                        if (data.attachments && Array.isArray(data.attachments)) {
+                            attachments = data.attachments;
+                            debugLog('Using attachments directly from response:', attachments);
+                        } else if (data.message && data.message.attachments) {
+                            attachments = data.message.attachments;
+                            debugLog('Using attachments from message object:', attachments);
+                        }
+                        
                         // Add message to display immediately without refresh
                         window.addMessageToDisplay({
                             content: messageContent,
                             id: data.message_id,
+                            attachments: attachments,
                             time: new Date().toLocaleTimeString([], {hour: 'numeric', minute:'2-digit'})
                         }, true);
                         
@@ -766,6 +1005,8 @@
         
         // ------------------- DOCUMENT READY INITIALIZATION -------------------
         document.addEventListener('DOMContentLoaded', function() {
+            debugLog('DOM content loaded, initializing messaging...');
+            
             // Set up minimized sidebar
             function setupMinimizedSidebar() {
                 const sidebar = document.querySelector(".sidebar");
@@ -813,31 +1054,36 @@
                 });
             }
             
-            // Mobile view setup
+            // Mobile view setup - CRITICAL FIX
             function setupMobileView() {
                 const conversationList = document.querySelector('.conversation-list');
                 
                 if (window.innerWidth <= 768) {
+                    // Create toggle button if it doesn't exist
                     if (!document.querySelector('.toggle-conversation-list')) {
                         const toggleButton = document.createElement('button');
                         toggleButton.className = 'toggle-conversation-list';
                         toggleButton.innerHTML = '<i class="bi bi-chat-left-text-fill"></i>';
                         document.body.appendChild(toggleButton);
-                        
-                        toggleButton.addEventListener('click', function() {
-                            conversationList.classList.toggle('hidden');
-                        });
                     }
                     
+                    // Add click handler to toggle button
+                    document.querySelector('.toggle-conversation-list').addEventListener('click', function() {
+                        conversationList.classList.toggle('hidden');
+                    });
+                    
+                    // Hide conversation list if a conversation is active
                     if (document.querySelector('.conversation-item.active')) {
                         conversationList.classList.add('hidden');
                     }
                 } else {
+                    // Remove toggle button on larger screens
                     const toggleButton = document.querySelector('.toggle-conversation-list');
                     if (toggleButton) {
                         toggleButton.remove();
                     }
                     
+                    // Always show conversation list on larger screens
                     conversationList.classList.remove('hidden');
                 }
             }
@@ -853,7 +1099,7 @@
             document.getElementById('confirmLeaveGroup')?.addEventListener('click', function() {
                 if (!currentLeaveGroupId) return;
                 
-                fetch('{{ route($rolePrefix.'.messaging.leave-group') }}', {
+                fetch('{{ route($rolePrefix.".messaging.leave-group") }}', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -877,12 +1123,12 @@
             });
             
             // New conversation form handler
-            document.getElementById('newConversationForm').addEventListener('submit', function(e) {
+            document.getElementById('newConversationForm')?.addEventListener('submit', function(e) {
                 e.preventDefault();
                 
                 const formData = new FormData(this);
                 
-                fetch('{{ route($rolePrefix.'.messaging.create') }}', {
+                fetch('{{ route($rolePrefix.".messaging.create") }}', {
                     method: 'POST',
                     body: formData,
                     headers: {
@@ -905,12 +1151,12 @@
             });
             
             // New group form handler
-            document.getElementById('newGroupForm').addEventListener('submit', function(e) {
+            document.getElementById('newGroupForm')?.addEventListener('submit', function(e) {
                 e.preventDefault();
                 
                 const formData = new FormData(this);
                 
-                fetch('{{ route($rolePrefix.'.messaging.create-group') }}', {
+                fetch('{{ route($rolePrefix.".messaging.create-group") }}', {
                     method: 'POST',
                     body: formData,
                     headers: {
@@ -933,7 +1179,7 @@
             });
             
             // User type change handler
-            document.getElementById('userType').addEventListener('change', function() {
+            document.getElementById('userType')?.addEventListener('change', function() {
                 const userType = this.value;
                 const participantSelect = document.getElementById('participantSelect');
                 
@@ -964,7 +1210,7 @@
             });
             
             // User search functionality
-            document.getElementById('userSearch').addEventListener('input', function() {
+            document.getElementById('userSearch')?.addEventListener('input', function() {
                 const searchTerm = this.value.toLowerCase();
                 const participantSelect = document.getElementById('participantSelect');
                 
@@ -1034,6 +1280,11 @@
                 });
             }
             
+            // Handle window resize for responsive layouts
+            window.addEventListener('resize', function() {
+                setupMobileView();
+            });
+            
             // Run initializations
             setupMinimizedSidebar();
             setupMobileView();
@@ -1041,11 +1292,6 @@
             
             // Set up polling for new messages every 20 seconds
             const refreshInterval = setInterval(function() {
-                // Don't refresh if explicitly prevented
-                if (Date.now() < window.preventRefreshUntil) {
-                    return;
-                }
-                
                 refreshActiveConversation();
             }, 20000);
             

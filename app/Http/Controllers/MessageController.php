@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 use App\Models\Conversation;
 use App\Models\Message;
 use App\Models\MessageAttachment;
@@ -196,9 +197,9 @@ class MessageController extends Controller
             $rolePrefix = $this->getRoleRoutePrefix();
             
             $validatedData = $request->validate([
-                'conversation_id' => 'required|integer|exists:conversations,conversation_id',
-                'content' => 'required_without:attachments',
-                'attachments.*' => 'sometimes|file|max:10240', // 10MB max
+                'conversation_id' => 'required|exists:conversations,conversation_id',
+                'content' => 'nullable|string',
+                'attachments.*' => 'sometimes|file|max:10240|mimes:jpeg,png,gif,webp,pdf,doc,docx,xls,xlsx,txt', // 10MB max with specific mime types
             ]);
             
             $conversationId = $request->conversation_id;
@@ -245,13 +246,31 @@ class MessageController extends Controller
             // Update last message in conversation
             $conversation->last_message_id = $message->message_id;
             $conversation->save();
+
+            // After saving the message and attachments
+            $attachmentData = [];
+            if ($message->attachments->count() > 0) {
+                foreach ($message->attachments as $attachment) {
+                    $attachmentData[] = [
+                        'id' => $attachment->id,
+                        'file_name' => $attachment->file_name,
+                        'file_path' => $attachment->file_path,
+                        'file_type' => $attachment->file_type,
+                        'file_size' => $attachment->file_size,
+                        'is_image' => $attachment->is_image
+                    ];
+                }
+            }
             
             // If AJAX request, return JSON
             if ($request->ajax() || $request->wantsJson()) {
                 return response()->json([
                     'success' => true,
-                    'message' => 'Message sent successfully',
-                    'message_id' => $message->message_id
+                    'message_id' => $message->message_id,
+                    'message' => [
+                        'content' => $message->content,
+                    ],
+                    'attachments' => $attachmentData
                 ]);
             }
             
@@ -839,7 +858,7 @@ class MessageController extends Controller
             
             // Get the conversation with participants
             $conversation = Conversation::with([
-                'messages.attachments',
+                'messages.attachments', // This is already correctly loading attachments
                 'participants'
             ])->findOrFail($conversationId);
             
@@ -864,7 +883,7 @@ class MessageController extends Controller
             }
             
             // Get messages for this conversation
-            $messages = Message::with(['attachments', 'readStatuses'])
+                $messages = Message::with(['attachments', 'readStatuses'])
                 ->where('conversation_id', $conversationId)
                 ->orderBy('message_timestamp', 'asc')
                 ->get();
@@ -883,6 +902,43 @@ class MessageController extends Controller
                     $message->sender_name = $sender ? $sender->first_name . ' ' . $sender->last_name : 'Unknown Family Member';
                 } else {
                     $message->sender_name = 'Unknown';
+                }
+
+                if ($message->attachments && $message->attachments->count() > 0) {
+                    Log::debug('Message has attachments', [
+                        'message_id' => $message->message_id,
+                        'attachments_count' => $message->attachments->count()
+                    ]);
+                    
+                    // Process each attachment to ensure consistent formatting
+                    foreach ($message->attachments as $attachment) {
+                        // Make sure it has the correct properties
+                        $attachment->file_path = str_replace('public/', '', $attachment->file_path);
+                        
+                        // Ensure is_image is properly set as boolean for JS use
+                        if (is_string($attachment->is_image)) {
+                            $attachment->is_image = $attachment->is_image === '1' || $attachment->is_image === 'true';
+                        }
+                        
+                        // If file_type is missing, infer it from the file extension
+                        if (empty($attachment->file_type)) {
+                            $extension = pathinfo($attachment->file_name, PATHINFO_EXTENSION);
+                            if (in_array($extension, ['jpg', 'jpeg', 'png', 'gif', 'webp'])) {
+                                $attachment->file_type = 'image/' . $extension;
+                                $attachment->is_image = true;
+                            } else if ($extension === 'pdf') {
+                                $attachment->file_type = 'application/pdf';
+                            } else if (in_array($extension, ['doc', 'docx'])) {
+                                $attachment->file_type = 'application/msword';
+                            } else if (in_array($extension, ['xls', 'xlsx'])) {
+                                $attachment->file_type = 'application/vnd.ms-excel';
+                            } else if ($extension === 'txt') {
+                                $attachment->file_type = 'text/plain';
+                            } else {
+                                $attachment->file_type = 'application/octet-stream';
+                            }
+                        }
+                    }
                 }
             }
             

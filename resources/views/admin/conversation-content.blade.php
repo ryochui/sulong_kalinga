@@ -69,7 +69,7 @@
                     </div>
                 </div>
             @else
-                <div class="message {{ $message->sender_id == Auth::id() && $message->sender_type == 'cose_staff' ? 'outgoing' : 'incoming' }}">
+                <div class="message {{ $message->sender_id == Auth::id() && $message->sender_type == 'cose_staff' ? 'outgoing' : 'incoming' }}" data-message-id="{{ $message->message_id }}">
                     @if($message->sender_id != Auth::id() || $message->sender_type != 'cose_staff')
                         <div class="d-flex">
                             <div class="flex-shrink-0">
@@ -120,9 +120,62 @@
                         </div>
                     @endif
 
-                    <!-- Message attachments -->
-                    @if(isset($message->attachments) && $message->attachments->count() > 0)
-                        <!-- Attachment code... -->
+                    <!-- Message attachments - FIXED -->
+                    @if($message->attachments && $message->attachments->count() > 0)
+                        <div class="message-attachments">
+                            @foreach($message->attachments as $attachment)
+                                <div class="attachment-container">
+                                    @php
+                                        // Ensure path doesn't have public/ prefix for storage URLs
+                                        $filePath = str_replace('public/', '', $attachment->file_path);
+                                        
+                                        // Determine if this is an image
+                                        $isImage = false;
+                                        if (isset($attachment->is_image)) {
+                                            $isImage = $attachment->is_image === true || 
+                                                       $attachment->is_image === 1 || 
+                                                       $attachment->is_image === '1';
+                                        } else {
+                                            // Check by file extension
+                                            $fileExtension = pathinfo($attachment->file_name, PATHINFO_EXTENSION);
+                                            $isImage = in_array(strtolower($fileExtension), ['jpg', 'jpeg', 'png', 'gif', 'webp']);
+                                        }
+                                    @endphp
+                                    
+                                    <a href="/storage/{{ $filePath }}" target="_blank" 
+                                       class="{{ $isImage ? 'attachment-link' : 'attachment-file' }}">
+                                        
+                                        @if($isImage)
+                                            <img src="/storage/{{ $filePath }}" 
+                                                 class="attachment-img" alt="{{ $attachment->file_name }}"
+                                                 onerror="this.onerror=null; this.parentNode.innerHTML='<div style=\'font-size:2rem;padding:10px;\'><i class=\'bi bi-exclamation-triangle-fill text-warning\'></i></div>';">
+                                        @else
+                                            <div class="file-icon">
+                                                @php
+                                                    $fileName = strtolower($attachment->file_name);
+                                                    $iconClass = 'bi-file-earmark';
+                                                    
+                                                    if(strpos($attachment->file_type ?? '', 'pdf') !== false || Str::endsWith($fileName, '.pdf')) {
+                                                        $iconClass = 'bi-file-earmark-pdf';
+                                                    } elseif(Str::endsWith($fileName, '.doc') || Str::endsWith($fileName, '.docx')) {
+                                                        $iconClass = 'bi-file-earmark-word';
+                                                    } elseif(Str::endsWith($fileName, '.xls') || Str::endsWith($fileName, '.xlsx')) {
+                                                        $iconClass = 'bi-file-earmark-excel';
+                                                    } elseif(Str::endsWith($fileName, '.txt')) {
+                                                        $iconClass = 'bi-file-earmark-text';
+                                                    }
+                                                @endphp
+                                                <i class="bi {{ $iconClass }}"></i>
+                                            </div>
+                                        @endif
+                                    </a>
+                                    
+                                    <div class="attachment-filename">
+                                        {{ $attachment->file_name }}
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
                     @endif
 
                     <!-- Message Time -->
