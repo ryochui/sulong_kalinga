@@ -19,6 +19,7 @@ use App\Http\Controllers\HighlightsAndEventsController;
 use App\Http\Controllers\ViewAccountProfileController;
 use App\Http\Controllers\NotificationsController;
 use App\Http\Controllers\MessageController;
+use App\Http\Controllers\HealthMonitoringController;
 
 // All routes with administrator role check
 
@@ -172,6 +173,11 @@ Route::middleware(['auth', '\App\Http\Middleware\CheckRole:administrator'])->pre
     Route::prefix('account-profile')->name('account.profile.')->group(function () {
         Route::get('/', [ViewAccountProfileController::class, 'index'])->name('index');
         Route::get('/settings', [ViewAccountProfileController::class, 'settings'])->name('settings');
+    });
+
+    // Health Monitoring
+    Route::prefix('health-monitoring')->name('health.monitoring.')->group(function () {
+        Route::get('/', [HealthMonitoringController::class, 'index'])->name('index');
     });
 
     // Update email and password
