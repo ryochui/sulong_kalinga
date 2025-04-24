@@ -12,264 +12,8 @@
     <link rel="stylesheet" href="{{ asset('css/sidebar.css') }}">
     <link rel="stylesheet" href="{{ asset('css/userNavbar.css') }}">
     <link rel="stylesheet" href="{{ asset('css/messaging.css') }}">
-
 </head>
 <body class="messaging-page">
-
-    <script>
-        // Define initializeMessageForm in the global scope
-        window.initializeMessageForm = function() {
-            
-            const messageForm = document.getElementById('messageForm');
-            if (!messageForm || window.messageFormInitialized) return;
-            
-            // Set flag to prevent duplicate initialization
-            window.messageFormInitialized = true;
-            console.log('Message form initialized globally');
-            
-            // Get references to form elements
-            const textarea = document.getElementById('messageContent');
-            const fileInput = document.getElementById('fileUpload');
-            const filePreviewContainer = document.getElementById('filePreviewContainer');
-            const attachmentBtn = document.getElementById('attachmentBtn');
-            
-            // Handle file attachment button click
-            if (attachmentBtn && fileInput) {
-                attachmentBtn.addEventListener('click', function() {
-                    fileInput.click();
-                });
-            }
-            
-            // Show file previews when files are selected
-            if (fileInput && filePreviewContainer) {
-                fileInput.addEventListener('change', function() {
-                    filePreviewContainer.innerHTML = '';
-                    
-                    if (this.files.length > 0) {
-                        for (let i = 0; i < this.files.length; i++) {
-                            const file = this.files[i];
-                            const filePreview = document.createElement('div');
-                            filePreview.className = 'file-preview';
-                            
-                            if (file.type.startsWith('image/')) {
-                                const img = document.createElement('img');
-                                img.src = URL.createObjectURL(file);
-                                filePreview.appendChild(img);
-                            } else {
-                                const fileIcon = document.createElement('div');
-                                fileIcon.className = 'file-icon';
-                                fileIcon.innerHTML = '<i class="bi bi-file-earmark"></i>';
-                                filePreview.appendChild(fileIcon);
-                            }
-                            
-                            const fileName = document.createElement('div');
-                            fileName.className = 'file-name';
-                            fileName.textContent = file.name;
-                            filePreview.appendChild(fileName);
-                            
-                            const removeBtn = document.createElement('div');
-                            removeBtn.className = 'remove-file';
-                            removeBtn.innerHTML = '&times;';
-                            removeBtn.addEventListener('click', function() {
-                                filePreview.remove();
-                            });
-                            
-                            filePreview.appendChild(removeBtn);
-                            filePreviewContainer.appendChild(filePreview);
-                        }
-                    }
-                });
-            }
-            
-            // Auto-resize textarea
-            if (textarea) {
-                textarea.addEventListener('input', function() {
-                    this.style.height = 'auto';
-                    this.style.height = (this.scrollHeight) + 'px';
-                    
-                    if (this.scrollHeight > 200) {
-                        this.style.overflowY = 'auto';
-                        this.style.height = '200px';
-                    } else {
-                        this.style.overflowY = 'hidden';
-                    }
-                });
-            }
-            
-            // Handle form submission with AJAX
-            messageForm.addEventListener('submit', function(e) {
-                e.preventDefault();
-                
-                // Validation
-                if (textarea.value.trim() === '' && (!fileInput.files || fileInput.files.length === 0)) {
-                    alert('Please enter a message or attach a file');
-                    return;
-                }
-                
-                // Create FormData object
-                const formData = new FormData(this);
-                
-                // Disable send button and show loading state
-                const sendBtn = document.querySelector('.send-btn');
-                const originalBtnContent = sendBtn.innerHTML;
-                sendBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
-                sendBtn.disabled = true;
-                
-                // Send the form using the form's action URL
-                fetch('{{ route($rolePrefix.".messaging.send") }}', {
-                    method: 'POST',
-                    body: formData,
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                    }
-                })
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Network response was not ok: ' + response.status);
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    if (data.success) {
-                        // Record that we just sent a message
-                        window.lastMessageSendTimestamp = Date.now();
-
-                        // Get the message content directly from the textarea before clearing it
-                        const messageContent = textarea.value.trim();
-
-                        // Only clear form after successful submission
-                        textarea.value = '';
-                        fileInput.value = '';
-                        if (filePreviewContainer) {
-                            filePreviewContainer.innerHTML = '';
-                        }
-                        
-                        // Use the improved addMessageToDisplay function with explicit content
-                        window.addMessageToDisplay({
-                            content: data.message ? data.message.content : null,
-                            formContent: messageContent, // Pass the content directly
-                            id: data.message_id,
-                            time: new Date().toLocaleTimeString([], {hour: 'numeric', minute:'2-digit'})
-                        }, true);
-                        
-                        // Update the conversation list without full refresh
-                        if (window.updateConversationList) {
-                            window.updateConversationList();
-                        }
-                    } else {
-                        throw new Error(data.message || 'Failed to send message');
-                    }
-                })
-                .catch(error => {
-                    console.error('Error sending message:', error);
-                    alert('Failed to send message: ' + error.message);
-                })
-                .finally(() => {
-                    // Reset button state
-                    sendBtn.innerHTML = originalBtnContent;
-                    sendBtn.disabled = false;
-                });
-            });
-        };
-        
-        // Also make messageFormInitialized global
-        window.messageFormInitialized = false;
-
-        window.updateConversationList = function() {
-            const activeConversationId = document.querySelector('.conversation-item.active')?.dataset.conversationId;
-            
-            // Fetch updated conversation list
-            fetch('{{ route($rolePrefix.".messaging.get-conversations") }}')
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        // Update the conversation list content
-                        const listContainer = document.querySelector('.conversation-list-items');
-                        if (listContainer) {
-                            listContainer.innerHTML = data.html;
-                            
-                            // Re-add click handlers
-                            document.querySelectorAll('.conversation-item').forEach(item => {
-                                item.addEventListener('click', function() {
-                                    // Remove active class from all items
-                                    document.querySelectorAll('.conversation-item').forEach(i => {
-                                        i.classList.remove('active');
-                                    });
-                                    
-                                    // Add active class to clicked item
-                                    this.classList.add('active');
-                                    
-                                    // Get conversation ID
-                                    const conversationId = this.dataset.conversationId;
-                                    
-                                    // Update URL without page reload
-                                    const newUrl = "{{ url('/" . $rolePrefix . "/messaging') }}?conversation=" + conversationId;
-                                    window.history.pushState({ conversationId: conversationId }, '', newUrl);
-                                    
-                                    // Load conversation content
-                                    loadConversation(conversationId);
-                                });
-                            });
-                            
-                            // Restore active state to the current conversation
-                            if (activeConversationId) {
-                                const activeItem = document.querySelector(`.conversation-item[data-conversation-id="${activeConversationId}"]`);
-                                if (activeItem) {
-                                    activeItem.classList.add('active');
-                                }
-                            }
-                        }
-                    }
-                })
-                .catch(error => {
-                    console.error('Error updating conversation list:', error);
-                });
-        };
-
-        window.addMessageToDisplay = function(messageData, isOutgoing = true) {
-            const messagesContainer = document.getElementById('messagesContainer');
-            if (!messagesContainer) {
-                console.error('Message container not found!');
-                return;
-            }
-            
-            console.log('Adding message:', messageData); // Debug output
-            
-            // Create message element
-            const messageEl = document.createElement('div');
-            messageEl.className = isOutgoing ? 'message outgoing' : 'message incoming';
-            
-            // Add message content
-            const contentEl = document.createElement('div');
-            contentEl.className = 'message-content';
-            
-            // Make sure we have content, with fallbacks
-            let messageContent = '';
-            if (typeof messageData.content === 'string') {
-                messageContent = messageData.content;
-            } else if (messageData.formContent) {
-                // Fallback to explicitly passed textarea value
-                messageContent = messageData.formContent;
-            }
-            
-            contentEl.textContent = messageContent;
-            messageEl.appendChild(contentEl);
-            
-            // Add time indicator
-            const timeEl = document.createElement('div');
-            timeEl.className = 'message-time';
-            const timeString = messageData.time || new Date().toLocaleTimeString([], {hour: 'numeric', minute:'2-digit'});
-            timeEl.innerHTML = `<small>${timeString}</small>`;
-            messageEl.appendChild(timeEl);
-            
-            // Add to container
-            messagesContainer.appendChild(messageEl);
-            
-            // Scroll to the bottom
-            messagesContainer.scrollTop = messagesContainer.scrollHeight;
-        };
-    </script>
 
     <!-- Navigation based on user role -->
     @if(auth()->user()->role_id == 1)
@@ -423,58 +167,642 @@
         </div>
     </main>
     
+    <!-- Leave Group Modal -->
+    <div class="modal fade" id="leaveGroupModal" tabindex="-1" aria-labelledby="leaveGroupModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="leaveGroupModalLabel">Leave Group</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Are you sure you want to leave this group? You won't receive any more messages from this conversation.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-danger" id="confirmLeaveGroup">Leave Group</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Scripts -->
     <script src="{{ asset('js/jquery-3.6.0.min.js') }}"></script>
     <script src="{{ asset('js/bootstrap.bundle.min.js') }}"></script>
     
-    <!-- Unified script for sidebar, tooltips and messaging functionality -->
+    <!-- CONSOLIDATED JAVASCRIPT - CLEAN VERSION -->
     <script>
+        // ------------------- GLOBAL VARIABLES -------------------
+        // Timing variables to prevent conflicts
+        window.lastRefreshTimestamp = 0;
+        window.lastMessageSendTimestamp = 0;
+        window.messageFormInitialized = false;
+        window.isRefreshing = false;
+        window.conversationFirstMessageSent = {};
+        window.preventRefreshUntil = 0;
+        window.lastBlurContent = '';
+        window.lastBlurTime = 0;
+        let currentLeaveGroupId = null;
+        
+        // ------------------- INPUT PROTECTION -------------------
+        // Override the textarea value setter to detect and prevent unwanted clearing
+        const originalValueSetter = Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value').set;
+        Object.defineProperty(HTMLTextAreaElement.prototype, 'value', {
+            set(val) {
+                if (this.id === 'messageContent' && val === '' && this.value !== '') {
+                    console.log('Textarea being cleared from:', new Error().stack);
+                    
+                    // Only allow clearing if we just sent a message
+                    if (Date.now() - window.lastMessageSendTimestamp > 1000) {
+                        // Save the content in case we need to restore it
+                        window.lastBlurContent = this.value;
+                        console.log("Preventing automatic textarea clearing - saving content");
+                        // Let the original setter run, but we'll restore later if needed
+                    }
+                }
+                return originalValueSetter.call(this, val);
+            }
+        });
+        
+        // Save content before page unload
+        window.addEventListener('beforeunload', function() {
+            const textarea = document.getElementById('messageContent');
+            const conversationId = document.querySelector('input[name="conversation_id"]')?.value;
+            if (textarea && textarea.value.trim() !== '' && conversationId) {
+                localStorage.setItem('messageContent_' + conversationId, textarea.value);
+            }
+        });
+        
+        // ------------------- UTILITY FUNCTIONS -------------------
+        // Function to mark a conversation as read
+        function markConversationAsRead(conversationId) {
+            if (!conversationId) return;
+            
+            fetch('{{ route($rolePrefix.".messaging.mark-as-read") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                },
+                body: JSON.stringify({
+                    conversation_id: conversationId
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Remove unread indicators from this conversation
+                    const unreadBadge = document.querySelector(`.conversation-item[data-conversation-id="${conversationId}"] .unread-badge`);
+                    if (unreadBadge) {
+                        unreadBadge.remove();
+                    }
+                    
+                    // Remove unread class from conversation item
+                    const conversationItem = document.querySelector(`.conversation-item[data-conversation-id="${conversationId}"]`);
+                    if (conversationItem) {
+                        conversationItem.classList.remove('unread');
+                    }
+                    
+                    // Update navbar badge count
+                    updateNavbarUnreadCount();
+                }
+            })
+            .catch(error => {
+                console.error('Error marking conversation as read:', error);
+            });
+        }
+        
+        // Function to update navbar unread count
+        function updateNavbarUnreadCount() {
+            fetch('{{ route($rolePrefix.".messaging.unread-count") }}')
+                .then(response => response.json())
+                .then(data => {
+                    const messageCount = document.querySelector('.message-count');
+                    if (messageCount) {
+                        if (data.count > 0) {
+                            messageCount.textContent = data.count;
+                            messageCount.style.display = 'block';
+                        } else {
+                            messageCount.style.display = 'none';
+                        }
+                    }
+                })
+                .catch(error => console.error('Error updating message count:', error));
+        }
+        
+        // Function to add a message to the UI
+        window.addMessageToDisplay = function(messageData, isOutgoing = true) {
+            const messagesContainer = document.getElementById('messagesContainer');
+            if (!messagesContainer) {
+                console.error('Message container not found!');
+                return;
+            }
+            
+            // Create message element
+            const messageEl = document.createElement('div');
+            messageEl.className = isOutgoing ? 'message outgoing' : 'message incoming';
+            
+            // Add message content
+            const contentEl = document.createElement('div');
+            contentEl.className = 'message-content';
+            
+            // Make sure we have content, with fallbacks
+            let messageContent = '';
+            if (typeof messageData.content === 'string' && messageData.content) {
+                messageContent = messageData.content;
+            } else if (messageData.formContent) {
+                messageContent = messageData.formContent;
+            }
+            
+            contentEl.textContent = messageContent;
+            messageEl.appendChild(contentEl);
+            
+            // Add time indicator
+            const timeEl = document.createElement('div');
+            timeEl.className = 'message-time';
+            const timeString = messageData.time || new Date().toLocaleTimeString([], {hour: 'numeric', minute:'2-digit'});
+            timeEl.innerHTML = `<small>${timeString}</small>`;
+            messageEl.appendChild(timeEl);
+            
+            // Add to container
+            messagesContainer.appendChild(messageEl);
+            
+            // Scroll to the bottom
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        };
+        
+        // Function to update conversation list
+        window.updateConversationList = function() {
+            const activeConversationId = document.querySelector('.conversation-item.active')?.dataset.conversationId;
+            
+            // Fetch updated conversation list
+            fetch('{{ route($rolePrefix.".messaging.get-conversations") }}')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Update the conversation list content
+                        const listContainer = document.querySelector('.conversation-list-items');
+                        if (listContainer) {
+                            listContainer.innerHTML = data.html;
+                            
+                            // Re-add click handlers
+                            addConversationClickHandlers();
+                            
+                            // Restore active state to the current conversation
+                            if (activeConversationId) {
+                                const activeItem = document.querySelector(`.conversation-item[data-conversation-id="${activeConversationId}"]`);
+                                if (activeItem) {
+                                    activeItem.classList.add('active');
+                                }
+                            }
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.error('Error updating conversation list:', error);
+                });
+        };
+        
+        // Function to load conversation
+        function loadConversation(conversationId) {
+            if (!conversationId) return;
+            
+            // Show loading state
+            const messageArea = document.querySelector('.message-area');
+            if (!messageArea) return;
+            
+            messageArea.innerHTML = `
+                <div id="conversationContent">
+                    <div class="loading-container d-flex justify-content-center align-items-center h-100">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // Fetch conversation content via AJAX
+            fetch("{{ route($rolePrefix.'.messaging.get-conversation') }}?id=" + conversationId, {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Update the conversation content
+                    document.getElementById('conversationContent').innerHTML = data.html;
+                    
+                    // Reset message form initialization flag
+                    window.messageFormInitialized = false;
+                    
+                    // Initialize the message form
+                    setTimeout(() => initializeMessageForm(conversationId), 200);
+                    
+                    // Scroll to bottom of messages
+                    const messagesContainer = document.getElementById('messagesContainer');
+                    if (messagesContainer) {
+                        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                    }
+                    
+                    // Mark conversation as read
+                    markConversationAsRead(conversationId);
+                } else {
+                    document.getElementById('conversationContent').innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-icon text-danger">
+                                <i class="bi bi-exclamation-triangle"></i>
+                            </div>
+                            <h4>Error Loading Conversation</h4>
+                            <p class="mb-4">${data.message || 'Could not load the conversation.'}</p>
+                            <button class="btn btn-primary" onclick="window.location.reload()">Reload Page</button>
+                        </div>
+                    `;
+                }
+            })
+            .catch(error => {
+                console.error('Error loading conversation:', error);
+                document.getElementById('conversationContent').innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon text-danger">
+                            <i class="bi bi-exclamation-triangle"></i>
+                        </div>
+                        <h4>Error Loading Conversation</h4>
+                        <p class="mb-4">Could not load the conversation. Please try again.</p>
+                        <button class="btn btn-primary" onclick="window.location.reload()">Reload Page</button>
+                    </div>
+                `;
+            });
+        }
+        
+        // Function to add click handlers to conversation items
+        function addConversationClickHandlers() {
+            document.querySelectorAll('.conversation-item').forEach(item => {
+                item.addEventListener('click', function() {
+                    // Remove active class from all items
+                    document.querySelectorAll('.conversation-item').forEach(i => {
+                        i.classList.remove('active');
+                    });
+                    
+                    // Add active class to clicked item
+                    this.classList.add('active');
+                    
+                    // Get conversation ID
+                    const conversationId = this.dataset.conversationId;
+                    
+                    // IMPORTANT: Clear any lingering message content state when switching conversations
+                    window.lastBlurContent = '';
+                    
+                    // Update URL without page reload
+                    const newUrl = "{{ url('/" . $rolePrefix . "/messaging') }}?conversation=" + conversationId;
+                    window.history.pushState({ conversationId: conversationId }, '', newUrl);
+                    
+                    // Load conversation content
+                    loadConversation(conversationId);
+                });
+            });
+        }
+        
+        // Function to refresh active conversation
+        window.refreshActiveConversation = function() {
+            // Check if refresh is explicitly prevented
+            if (Date.now() < window.preventRefreshUntil) {
+                console.log('Refresh prevented by time lock - ' + 
+                    Math.round((window.preventRefreshUntil - Date.now())/1000) + ' seconds remaining');
+                return;
+            }
+            
+            // Check if there's an active conversation
+            const activeConversationItem = document.querySelector('.conversation-item.active');
+            if (!activeConversationItem || window.isRefreshing) return;
+            
+            // Don't refresh if we just sent a message in the last 3 seconds
+            const now = Date.now();
+            if (now - window.lastMessageSendTimestamp < 3000) {
+                console.log('Refresh prevented - message recently sent');
+                return;
+            }
+            
+            window.isRefreshing = true;
+            window.lastRefreshTimestamp = now;
+            
+            const conversationId = activeConversationItem.dataset.conversationId;
+            const messagesContainer = document.getElementById('messagesContainer');
+            if (!messagesContainer) {
+                window.isRefreshing = false;
+                return;
+            }
+            
+            // Save textarea content before refresh
+            const textarea = document.getElementById('messageContent');
+            let textareaContent = '';
+            if (textarea && textarea.value.trim()) {
+                textareaContent = textarea.value;
+            }
+            
+            // Get the current scroll position
+            const wasAtBottom = messagesContainer.scrollHeight - messagesContainer.scrollTop <= messagesContainer.clientHeight + 50;
+            const scrollTop = messagesContainer.scrollTop;
+            
+            // Get the latest messages for this conversation
+            fetch('{{ route($rolePrefix.".messaging.get-conversation") }}?id=' + conversationId, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Check if there's new content by comparing HTML
+                    const contentDiv = document.getElementById('conversationContent');
+                    if (contentDiv) {
+                        const currentContent = contentDiv.innerHTML;
+                        
+                        // Only update if content has changed and there's no ongoing typing
+                        if (data.html !== currentContent && (!textarea || !textarea.value.trim() || textarea.value === textareaContent)) {
+                            contentDiv.innerHTML = data.html;
+                            
+                            // Restore textarea content
+                            const newTextarea = document.getElementById('messageContent');
+                            if (newTextarea && textareaContent) {
+                                newTextarea.value = textareaContent;
+                            }
+                            
+                            // Init form but respect existing content
+                            window.messageFormInitialized = false;
+                            setTimeout(() => initializeMessageForm(conversationId, true), 200);
+                            
+                            // If we were at the bottom, scroll to the bottom again
+                            const newMessagesContainer = document.getElementById('messagesContainer');
+                            if (newMessagesContainer) {
+                                if (wasAtBottom) {
+                                    newMessagesContainer.scrollTop = newMessagesContainer.scrollHeight;
+                                } else {
+                                    newMessagesContainer.scrollTop = scrollTop;
+                                }
+                            }
+                            
+                            // Mark messages as read
+                            markConversationAsRead(conversationId);
+                        }
+                    }
+                    
+                    updateNavbarUnreadCount();
+                }
+                window.isRefreshing = false;
+            })
+            .catch(error => {
+                console.error('Error refreshing conversation:', error);
+                window.isRefreshing = false;
+            });
+        };
+        
+        // ------------------- MESSAGE FORM HANDLING -------------------
+        // Initialize message form
+        function initializeMessageForm(conversationId, isRefresh = false) {
+            const messageForm = document.getElementById('messageForm');
+            if (!messageForm) return;
+            
+            // If already initialized and not a refresh, skip
+            if (window.messageFormInitialized && !isRefresh) return;
+            
+            // Set flag to prevent duplicate initialization
+            window.messageFormInitialized = true;
+            
+            // Get form elements
+            const textarea = document.getElementById('messageContent');
+            const fileInput = document.getElementById('fileUpload');
+            const filePreviewContainer = document.getElementById('filePreviewContainer');
+            const attachmentBtn = document.getElementById('attachmentBtn');
+            
+            // Restore previous content if this is first initialization (not refresh)
+            if (!isRefresh && textarea && textarea.value.trim() === '' && conversationId) {
+                const savedContent = localStorage.getItem('messageContent_' + conversationId);
+                if (savedContent) {
+                    textarea.value = savedContent;
+                    console.log('Restored saved content for conversation:', conversationId);
+                }
+            }
+            
+            // Auto-resize textarea
+            if (textarea) {
+                // Initial resize
+                if (textarea.value) {
+                    textarea.style.height = 'auto';
+                    textarea.style.height = (textarea.scrollHeight) + 'px';
+                }
+                
+                textarea.addEventListener('input', function() {
+                    // Auto-resize as user types
+                    this.style.height = 'auto';
+                    this.style.height = (this.scrollHeight) + 'px';
+                    
+                    if (this.scrollHeight > 200) {
+                        this.style.overflowY = 'auto';
+                        this.style.height = '200px';
+                    } else {
+                        this.style.overflowY = 'hidden';
+                    }
+                    
+                    // Save to localStorage as typing
+                    const currentConversationId = document.querySelector('input[name="conversation_id"]').value;
+                    localStorage.setItem('messageContent_' + currentConversationId, this.value);
+                });
+                
+                // Focus/blur protection
+                textarea.addEventListener('blur', function() {
+                    window.lastBlurTime = Date.now();
+                    window.lastBlurContent = this.value;
+                });
+                
+                textarea.addEventListener('focus', function() {
+                    // If content was cleared unexpectedly, restore it
+                    if (this.value === '' && window.lastBlurContent && 
+                        (Date.now() - window.lastMessageSendTimestamp > 2000)) {
+                        console.log('Restoring lost content after focus change');
+                        this.value = window.lastBlurContent;
+                    }
+                });
+            }
+            
+            // File attachment handling
+            if (attachmentBtn && fileInput) {
+                attachmentBtn.addEventListener('click', function() {
+                    fileInput.click();
+                });
+                
+                if (fileInput && filePreviewContainer) {
+                    fileInput.addEventListener('change', function() {
+                        filePreviewContainer.innerHTML = '';
+                        
+                        if (this.files.length > 0) {
+                            for (let i = 0; i < this.files.length; i++) {
+                                const file = this.files[i];
+                                const filePreview = document.createElement('div');
+                                filePreview.className = 'file-preview';
+                                
+                                if (file.type.startsWith('image/')) {
+                                    const img = document.createElement('img');
+                                    img.src = URL.createObjectURL(file);
+                                    filePreview.appendChild(img);
+                                } else {
+                                    const fileIcon = document.createElement('div');
+                                    fileIcon.className = 'file-icon';
+                                    fileIcon.innerHTML = '<i class="bi bi-file-earmark"></i>';
+                                    filePreview.appendChild(fileIcon);
+                                }
+                                
+                                const fileName = document.createElement('div');
+                                fileName.className = 'file-name';
+                                fileName.textContent = file.name;
+                                filePreview.appendChild(fileName);
+                                
+                                const removeBtn = document.createElement('div');
+                                removeBtn.className = 'remove-file';
+                                removeBtn.innerHTML = '&times;';
+                                removeBtn.addEventListener('click', function() {
+                                    filePreview.remove();
+                                });
+                                
+                                filePreview.appendChild(removeBtn);
+                                filePreviewContainer.appendChild(filePreview);
+                            }
+                        }
+                    });
+                }
+            }
+            
+            // Message form submission
+            messageForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                // Validation
+                if (textarea.value.trim() === '' && (!fileInput.files || fileInput.files.length === 0)) {
+                    alert('Please enter a message or attach a file');
+                    return;
+                }
+                
+                // Record timestamp before any async operations
+                window.lastMessageSendTimestamp = Date.now();
+                
+                // Get the message content before clearing
+                const messageContent = textarea.value.trim();
+                const currentConversationId = document.querySelector('input[name="conversation_id"]').value;
+                
+                // Create FormData object
+                const formData = new FormData(this);
+                
+                // Disable send button and show loading state
+                const sendBtn = document.querySelector('.send-btn');
+                const originalBtnContent = sendBtn.innerHTML;
+                sendBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
+                sendBtn.disabled = true;
+                
+                // Prevent refreshes for 10 seconds for first message
+                const isFirstMessage = !window.conversationFirstMessageSent[currentConversationId];
+                if (isFirstMessage) {
+                    window.preventRefreshUntil = Date.now() + 10000;
+                    window.conversationFirstMessageSent[currentConversationId] = true;
+                }
+                
+                // Send the message
+                fetch('{{ route($rolePrefix.".messaging.send") }}', {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                    }
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok: ' + response.status);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.success) {
+                        // Clear the input after successful sending
+                        textarea.value = '';
+                        fileInput.value = '';
+                        if (filePreviewContainer) {
+                            filePreviewContainer.innerHTML = '';
+                        }
+                        
+                        // Remove from localStorage
+                        localStorage.removeItem('messageContent_' + currentConversationId);
+                        
+                        // Add message to display immediately without refresh
+                        window.addMessageToDisplay({
+                            content: messageContent,
+                            id: data.message_id,
+                            time: new Date().toLocaleTimeString([], {hour: 'numeric', minute:'2-digit'})
+                        }, true);
+                        
+                        // Update the conversation list
+                        window.updateConversationList();
+                    } else {
+                        throw new Error(data.message || 'Failed to send message');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error sending message:', error);
+                    alert('Failed to send message: ' + error.message);
+                    
+                    // Restore the message content
+                    textarea.value = messageContent;
+                })
+                .finally(() => {
+                    // Reset button state
+                    sendBtn.innerHTML = originalBtnContent;
+                    sendBtn.disabled = false;
+                });
+            });
+        }
+        
+        // ------------------- DOCUMENT READY INITIALIZATION -------------------
         document.addEventListener('DOMContentLoaded', function() {
-            // 1. Force sidebar minimized while preserving tooltip functionality
+            // Set up minimized sidebar
             function setupMinimizedSidebar() {
                 const sidebar = document.querySelector(".sidebar");
                 if (!sidebar) return;
                 
                 // Ensure sidebar is in minimized state
                 sidebar.classList.add('close');
-                
-                // Ensure the width is fixed
                 sidebar.style.width = '78px';
                 sidebar.style.minWidth = '78px';
                 sidebar.style.maxWidth = '78px';
                 
-                // Disable the toggle buttons
+                // Disable toggle buttons
                 const toggles = sidebar.querySelectorAll('.bx-menu, .logo_name');
                 toggles.forEach(toggle => {
-                    // Clone to remove event listeners
                     const clone = toggle.cloneNode(true);
                     toggle.parentNode.replaceChild(clone, toggle);
                 });
                 
-                // Hide the menu text but ensure tooltips work
+                // Style nav links for minimized sidebar
                 const navLinks = sidebar.querySelectorAll('.nav-links li');
                 navLinks.forEach(item => {
-                    // Fix width to prevent overflow
                     item.style.width = '78px';
                     item.style.overflow = 'hidden';
                     
-                    // Make sure the link text is hidden but preserved for tooltips
                     const linkName = item.querySelector('.link_name');
                     if (linkName) {
                         linkName.style.opacity = '0';
                         linkName.style.pointerEvents = 'none';
                     }
                     
-                    // Make sure the sub-menu (tooltip) is styled correctly
                     const subMenu = item.querySelector('.sub-menu');
                     if (subMenu) {
-                        // Position the tooltip correctly
                         subMenu.style.position = 'absolute';
                         subMenu.style.left = '100%';
                         subMenu.style.top = '0';
                         subMenu.style.zIndex = '1000';
                         
-                        // Make sure the tooltip text is visible
                         const tooltipLinkName = subMenu.querySelector('.link_name');
                         if (tooltipLinkName) {
                             tooltipLinkName.style.display = 'block';
@@ -485,218 +813,70 @@
                 });
             }
             
-            // Setup Mobile View with Toggle Functionality
+            // Mobile view setup
             function setupMobileView() {
                 const conversationList = document.querySelector('.conversation-list');
-                const messageArea = document.querySelector('.message-area');
                 
-                // Only add these elements on small screens
                 if (window.innerWidth <= 768) {
-                    // Create toggle button if it doesn't exist
                     if (!document.querySelector('.toggle-conversation-list')) {
                         const toggleButton = document.createElement('button');
                         toggleButton.className = 'toggle-conversation-list';
                         toggleButton.innerHTML = '<i class="bi bi-chat-left-text-fill"></i>';
                         document.body.appendChild(toggleButton);
                         
-                        // Add click handler
                         toggleButton.addEventListener('click', function() {
                             conversationList.classList.toggle('hidden');
                         });
                     }
                     
-                    // When a conversation is clicked, hide the list on mobile
-                    document.querySelectorAll('.conversation-item').forEach(item => {
-                        item.addEventListener('click', function() {
-                            if (window.innerWidth <= 768) {
-                                conversationList.classList.add('hidden');
-                            }
-                        });
-                    });
-                    
-                    // Initially hide conversation list if a conversation is active
                     if (document.querySelector('.conversation-item.active')) {
                         conversationList.classList.add('hidden');
                     }
                 } else {
-                    // Remove toggle button on larger screens
                     const toggleButton = document.querySelector('.toggle-conversation-list');
                     if (toggleButton) {
                         toggleButton.remove();
                     }
                     
-                    // Make sure conversation list is visible on larger screens
                     conversationList.classList.remove('hidden');
                 }
             }
             
-            // Run setup multiple times to ensure it applies
-            setupMinimizedSidebar();
-            setTimeout(setupMinimizedSidebar, 200);
-            setTimeout(setupMinimizedSidebar, 500);
-            
-            // Initialize mobile view
-            setupMobileView();
-            
-            // Update on window resize
-            window.addEventListener('resize', function() {
-                setupMinimizedSidebar();
-                setupMobileView();
-            });
-            
-            // 2. Set up AJAX for conversation loading
-            document.querySelectorAll('.conversation-item').forEach(function(item) {
-                item.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    
-                    // Remove active class from all items
-                    document.querySelectorAll('.conversation-item').forEach(function(el) {
-                        el.classList.remove('active');
-                    });
-                    
-                    // Add active class to clicked item
-                    this.classList.add('active');
-                    
-                    // Get conversation ID
-                    const conversationId = this.getAttribute('data-conversation-id');
-                    
-                    // Update URL without page reload (for proper browser history)
-                    const newUrl = "{{ url('/" . $rolePrefix . "/messaging') }}?conversation=" + conversationId;
-                    window.history.pushState({ conversationId: conversationId }, '', newUrl);
-                    
-                    // Show loading state
-                    document.getElementById('conversationContent').innerHTML = `
-                        <div class="loading-container d-flex justify-content-center align-items-center h-100">
-                            <div class="spinner-border text-primary" role="status">
-                                <span class="visually-hidden">Loading...</span>
-                            </div>
-                        </div>
-                    `;
-                    
-                    // Fetch conversation content via AJAX
-                    fetch("{{ route($rolePrefix.'.messaging.get-conversation') }}?id=" + conversationId, {
-                        headers: {
-                            'X-Requested-With': 'XMLHttpRequest',
-                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                        }
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            // Update the conversation content
-                            document.getElementById('conversationContent').innerHTML = data.html;
-                            
-                            messageFormInitialized = false;
-                            setTimeout(initializeMessageForm, 200);
-                            
-                            // Initialize tooltips
-                            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-                            tooltipTriggerList.forEach(function (tooltipTriggerEl) {
-                                new bootstrap.Tooltip(tooltipTriggerEl);
-                            });
-                            
-                            // Scroll to bottom of messages
-                            const messagesContainer = document.getElementById('messagesContainer');
-                            if (messagesContainer) {
-                                messagesContainer.scrollTop = messagesContainer.scrollHeight;
-                            }
-                            
-                            // Mark conversation as read
-                            markConversationAsRead(conversationId);
-                            
-                            // Remove unread indicator from this conversation
-                            const unreadBadge = this.querySelector('.unread-badge');
-                            if (unreadBadge) {
-                                unreadBadge.style.display = 'none';
-                            }
-                        } else {
-                            document.getElementById('conversationContent').innerHTML = `
-                                <div class="empty-state">
-                                    <div class="empty-icon text-danger">
-                                        <i class="bi bi-exclamation-triangle"></i>
-                                    </div>
-                                    <h4>Error Loading Conversation</h4>
-                                    <p class="mb-4">${data.message || 'Could not load the conversation.'}</p>
-                                    <button class="btn btn-primary" onclick="window.location.reload()">Reload Page</button>
-                                </div>
-                            `;
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error loading conversation:', error);
-                        document.getElementById('conversationContent').innerHTML = `
-                            <div class="empty-state">
-                                <div class="empty-icon text-danger">
-                                    <i class="bi bi-exclamation-triangle"></i>
-                                </div>
-                                <h4>Error Loading Conversation</h4>
-                                <p class="mb-4">Could not load the conversation. Please try again.</p>
-                                <button class="btn btn-primary" onclick="window.location.reload()">Reload Page</button>
-                            </div>
-                        `;
-                    });
-                });
-            });
-            
-            // 3. Initialize conversation search
-            const searchInput = document.getElementById('conversationSearch');
-            if (searchInput) {
-                searchInput.addEventListener('input', function() {
-                    const searchTerm = this.value.toLowerCase().trim();
-                    const conversationItems = document.querySelectorAll('.conversation-item');
-                    let foundResults = false;
-                    
-                    conversationItems.forEach(function(item) {
-                        // Get conversation name
-                        const conversationName = item.querySelector('.conversation-title span')?.textContent.toLowerCase() || '';
-                        
-                        // Get participant names from data attribute (we'll add this data attribute)
-                        const participantNames = item.dataset.participantNames ? 
-                            item.dataset.participantNames.toLowerCase() : '';
-                        
-                        // Get group participants from data attribute (we'll add this data attribute)
-                        const groupParticipants = item.dataset.groupParticipants ? 
-                            item.dataset.groupParticipants.toLowerCase() : '';
-                        
-                        // Check if the conversation matches the search
-                        if (searchTerm === '' || 
-                            conversationName.includes(searchTerm) || 
-                            participantNames.includes(searchTerm) ||
-                            groupParticipants.includes(searchTerm)) {
-                            item.style.display = '';
-                            foundResults = true;
-                        } else {
-                            item.style.display = 'none';
-                        }
-                    });
-                    
-                    // Show no results message if needed
-                    const noResultsMessage = document.getElementById('noSearchResults');
-                    if (!foundResults && searchTerm !== '') {
-                        if (!noResultsMessage) {
-                            const message = document.createElement('div');
-                            message.id = 'noSearchResults';
-                            message.className = 'text-center py-3 text-muted';
-                            message.textContent = 'No conversations found matching "' + searchTerm + '"';
-                            document.querySelector('.conversation-list-items').appendChild(message);
-                        }
-                    } else if (noResultsMessage) {
-                        noResultsMessage.remove();
-                    }
-                });
-            }
-            
-            // 4. Auto-load conversation from URL parameter
-            const urlParams = new URLSearchParams(window.location.search);
-            const conversationId = urlParams.get('conversation');
-            if (conversationId) {
-                const conversationItem = document.querySelector(`.conversation-item[data-conversation-id="${conversationId}"]`);
-                if (conversationItem) {
-                    conversationItem.click();
+            // Initialize leave group functionality
+            document.addEventListener('click', function(e) {
+                if (e.target.closest('.leave-group-btn')) {
+                    const btn = e.target.closest('.leave-group-btn');
+                    currentLeaveGroupId = btn.dataset.conversationId;
                 }
-            }
+            });
             
-            // 5. New conversation form handler
+            document.getElementById('confirmLeaveGroup')?.addEventListener('click', function() {
+                if (!currentLeaveGroupId) return;
+                
+                fetch('{{ route($rolePrefix.'.messaging.leave-group') }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                    },
+                    body: JSON.stringify({ conversation_id: currentLeaveGroupId })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        bootstrap.Modal.getInstance(document.getElementById('leaveGroupModal')).hide();
+                        window.location.href = "{{ route($rolePrefix.'.messaging.index') }}";
+                    } else {
+                        alert(data.message || 'Failed to leave group');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error leaving group:', error);
+                    alert('Failed to leave group. Please try again.');
+                });
+            });
+            
+            // New conversation form handler
             document.getElementById('newConversationForm').addEventListener('submit', function(e) {
                 e.preventDefault();
                 
@@ -712,10 +892,7 @@
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
-                        // Close modal
                         bootstrap.Modal.getInstance(document.getElementById('newConversationModal')).hide();
-                        
-                        // Refresh the conversation list
                         window.location.href = "{{ url('/" . $rolePrefix . "/messaging') }}?conversation=" + data.conversation_id;
                     } else {
                         alert(data.message || 'Failed to create conversation');
@@ -727,7 +904,7 @@
                 });
             });
             
-            // 6. New group form handler
+            // New group form handler
             document.getElementById('newGroupForm').addEventListener('submit', function(e) {
                 e.preventDefault();
                 
@@ -743,10 +920,7 @@
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
-                        // Close modal
                         bootstrap.Modal.getInstance(document.getElementById('newGroupModal')).hide();
-                        
-                        // Refresh the conversation list
                         window.location.href = "{{ url('/" . $rolePrefix . "/messaging') }}?conversation=" + data.conversation_id;
                     } else {
                         alert(data.message || 'Failed to create group');
@@ -758,7 +932,7 @@
                 });
             });
             
-            // 7. User type change handler
+            // User type change handler
             document.getElementById('userType').addEventListener('change', function() {
                 const userType = this.value;
                 const participantSelect = document.getElementById('participantSelect');
@@ -789,7 +963,7 @@
                 });
             });
             
-            // 8. User search functionality
+            // User search functionality
             document.getElementById('userSearch').addEventListener('input', function() {
                 const searchTerm = this.value.toLowerCase();
                 const participantSelect = document.getElementById('participantSelect');
@@ -800,412 +974,112 @@
                 });
             });
             
-           
-        });
-    </script>
-
-    <!-- Leave Group Modal -->
-    <div class="modal fade" id="leaveGroupModal" tabindex="-1" aria-labelledby="leaveGroupModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="leaveGroupModalLabel">Leave Group</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <p>Are you sure you want to leave this group? You won't receive any more messages from this conversation.</p>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="button" class="btn btn-danger" id="confirmLeaveGroup">Leave Group</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        // Handle leave group functionality
-        document.addEventListener('DOMContentLoaded', function() {
-            // Store the current conversation ID when Leave Group button is clicked
-            let currentLeaveGroupId = null;
-            
-            document.addEventListener('click', function(e) {
-                if (e.target.closest('.leave-group-btn')) {
-                    const btn = e.target.closest('.leave-group-btn');
-                    currentLeaveGroupId = btn.dataset.conversationId;
-                }
-            });
-            
-            // When the Confirm button in the modal is clicked
-            document.getElementById('confirmLeaveGroup')?.addEventListener('click', function() {
-                if (!currentLeaveGroupId) return;
-                
-                // Send request to leave the group
-                fetch('{{ route($rolePrefix.'.messaging.leave-group') }}', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                    },
-                    body: JSON.stringify({ conversation_id: currentLeaveGroupId })
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        // Close modal
-                        bootstrap.Modal.getInstance(document.getElementById('leaveGroupModal')).hide();
+            // Conversation search
+            const searchInput = document.getElementById('conversationSearch');
+            if (searchInput) {
+                searchInput.addEventListener('input', function() {
+                    const searchTerm = this.value.toLowerCase().trim();
+                    const conversationItems = document.querySelectorAll('.conversation-item');
+                    let foundResults = false;
+                    
+                    conversationItems.forEach(function(item) {
+                        const conversationName = item.querySelector('.conversation-title span')?.textContent.toLowerCase() || '';
+                        const participantNames = item.dataset.participantNames ? 
+                            item.dataset.participantNames.toLowerCase() : '';
+                        const groupParticipants = item.dataset.groupParticipants ? 
+                            item.dataset.groupParticipants.toLowerCase() : '';
                         
-                        // Redirect to messaging index page
-                        window.location.href = "{{ route($rolePrefix.'.messaging.index') }}";
-                    } else {
-                        alert(data.message || 'Failed to leave group');
-                    }
-                })
-                .catch(error => {
-                    console.error('Error leaving group:', error);
-                    alert('Failed to leave group. Please try again.');
-                });
-            });
-        });
-    </script>
-
-    <script>
-    // Direct fix for scrolling issues
-    document.addEventListener('DOMContentLoaded', function() {
-        // Function to handle scrolling in messages container
-        function fixMessageScroll() {
-            const messagesContainer = document.getElementById('messagesContainer');
-            if (!messagesContainer) return;
-            
-            // Force scroll to bottom
-            messagesContainer.scrollTop = messagesContainer.scrollHeight;
-            
-            // Ensure all images are loaded before scrolling
-            const images = messagesContainer.querySelectorAll('img');
-            images.forEach(img => {
-                if (img.complete) {
-                    messagesContainer.scrollTop = messagesContainer.scrollHeight;
-                } else {
-                    img.addEventListener('load', function() {
-                        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                        if (searchTerm === '' || 
+                            conversationName.includes(searchTerm) || 
+                            participantNames.includes(searchTerm) ||
+                            groupParticipants.includes(searchTerm)) {
+                            item.style.display = '';
+                            foundResults = true;
+                        } else {
+                            item.style.display = 'none';
+                        }
                     });
-                }
-            });
-        }
-        
-        // Run initially
-        fixMessageScroll();
-        
-        // Run when conversation content is updated
-        const conversationContent = document.getElementById('conversationContent');
-        if (conversationContent) {
-            // Use MutationObserver to detect when messages are added
-            const observer = new MutationObserver(function() {
-                fixMessageScroll();
-            });
-            
-            observer.observe(conversationContent, {
-                childList: true,
-                subtree: true
-            });
-        }
-        
-        // Fix scrolling when a conversation is clicked
-        document.querySelectorAll('.conversation-item').forEach(item => {
-            item.addEventListener('click', function() {
-                // Use setTimeout to run after the conversation is loaded
-                setTimeout(fixMessageScroll, 1000);
-            });
-        });
-    });
-
-    // Auto-select the conversation from URL parameter
-    document.addEventListener('DOMContentLoaded', function() {
-        // Get conversation ID from URL
-        const urlParams = new URLSearchParams(window.location.search);
-        const conversationId = urlParams.get('conversation');
-        
-        // If we have a conversation ID, select it
-        if (conversationId) {
-            // Find the conversation item
-            const conversationItem = document.querySelector(`.conversation-item[data-conversation-id="${conversationId}"]`);
-            if (conversationItem) {
-                // Trigger a click on it
-                conversationItem.click();
-                // Update browser history to remove the query parameter (optional)
-                window.history.replaceState({}, document.title, '{{ route("admin.messaging.index") }}');
-            }
-        }
-    });
-
-
-
-    // Auto-refresh functionality for active conversations
-    document.addEventListener('DOMContentLoaded', function() {
-        let lastMessageId = 0; // Track the last message ID to detect new messages
-        let isRefreshing = false; // Prevent multiple simultaneous refreshes
-        
-        window.lastRefreshTimestamp = 0;
-        window.lastMessageSendTimestamp = 0;
-
-        // Function to refresh the active conversation
-        window.refreshActiveConversation = function() {
-            // Check if there's an active conversation
-            const activeConversationItem = document.querySelector('.conversation-item.active');
-            if (!activeConversationItem || window.isRefreshing) return;
-            
-            // Don't refresh if we just sent a message in the last 2 seconds
-            const now = Date.now();
-            if (now - window.lastMessageSendTimestamp < 2000) {
-                return;
-            }
-            
-            window.isRefreshing = true;
-            window.lastRefreshTimestamp = now;
-            
-            const conversationId = activeConversationItem.dataset.conversationId;
-            const messagesContainer = document.getElementById('messagesContainer');
-            if (!messagesContainer) {
-                window.isRefreshing = false;
-                return;
-            }
-            
-            // Get the current scroll position
-            const wasAtBottom = messagesContainer.scrollHeight - messagesContainer.scrollTop <= messagesContainer.clientHeight + 50;
-            const scrollTop = messagesContainer.scrollTop;
-            
-            // Get the latest messages for this conversation
-            fetch('{{ route($rolePrefix.".messaging.get-conversation") }}?id=' + conversationId, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                    'X-Requested-With': 'XMLHttpRequest'
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    // Check if there's new content by comparing HTML
-                    const contentDiv = document.getElementById('conversationContent');
-                    if (contentDiv) {
-                        const currentContent = contentDiv.innerHTML;
-                        
-                        // Only update if content has changed
-                        if (data.html !== currentContent) {
-                            contentDiv.innerHTML = data.html;
-                            
-                            // If we were at the bottom, scroll to the bottom again
-                            const newMessagesContainer = document.getElementById('messagesContainer');
-                            if (newMessagesContainer) {
-                                if (wasAtBottom) {
-                                    newMessagesContainer.scrollTop = newMessagesContainer.scrollHeight;
-                                } else {
-                                    newMessagesContainer.scrollTop = scrollTop;
-                                }
-                            }
-                            
-                            // Mark messages as read
-                            markConversationAsRead(conversationId);
+                    
+                    const noResultsMessage = document.getElementById('noSearchResults');
+                    if (!foundResults && searchTerm !== '') {
+                        if (!noResultsMessage) {
+                            const message = document.createElement('div');
+                            message.id = 'noSearchResults';
+                            message.className = 'text-center py-3 text-muted';
+                            message.textContent = 'No conversations found matching "' + searchTerm + '"';
+                            document.querySelector('.conversation-list-items').appendChild(message);
                         }
-                    }
-                    
-                    updateNavbarUnreadCount();
-                }
-                window.isRefreshing = false;
-            })
-            .catch(error => {
-                console.error('Error refreshing conversation:', error);
-                window.isRefreshing = false;
-            });
-        };
-
-        // Make sure isRefreshing is also global
-        window.isRefreshing = false;
-        
-        // Mark conversation as read
-        function markConversationAsRead(conversationId) {
-            fetch('{{ route($rolePrefix.".messaging.mark-as-read") }}', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                },
-                body: JSON.stringify({
-                    conversation_id: conversationId
-                })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    // Success - update UI if needed
-                    const unreadBadge = document.querySelector(`.conversation-item[data-conversation-id="${conversationId}"] .unread-badge`);
-                    if (unreadBadge) {
-                        unreadBadge.remove();
-                    }
-                    
-                    // Remove unread class from conversation item
-                    const conversationItem = document.querySelector(`.conversation-item[data-conversation-id="${conversationId}"]`);
-                    if (conversationItem) {
-                        conversationItem.classList.remove('unread');
-                    }
-                }
-            })
-            .catch(error => {
-                console.error('Error marking conversation as read:', error);
-            });
-        }
-        
-        // Set up polling for new messages every 20 seconds
-        const refreshInterval = setInterval(refreshActiveConversation, 20000);
-
-        // Also refresh when a conversation is clicked
-        document.addEventListener('click', function(e) {
-            const conversationItem = e.target.closest('.conversation-item');
-            if (conversationItem) {
-                // Short delay to let the conversation load first
-                setTimeout(refreshActiveConversation, 1000);
-            }
-        });
-        
-        // Clean up the interval when leaving the page
-        window.addEventListener('beforeunload', function() {
-            clearInterval(refreshInterval);
-        });
-    });
-    </script>
-
-    <script>
-        // Function to update the unread message badge in the navbar
-        function updateNavbarUnreadCount() {
-            fetch('{{ route($rolePrefix.".messaging.unread-count") }}')
-                .then(response => response.json())
-                .then(data => {
-                    // Find parent window's updateUnreadCount function and call it
-                    if (window.updateUnreadCount) {
-                        window.updateUnreadCount(data.count);
-                    } else {
-                        // If function not directly available, update using DOM
-                        const messageCount = document.querySelector('.message-count');
-                        if (messageCount) {
-                            if (data.count > 0) {
-                                messageCount.textContent = data.count;
-                                messageCount.style.display = 'block';
-                            } else {
-                                messageCount.style.display = 'none';
-                            }
-                        }
-                    }
-                })
-                .catch(error => console.error('Error updating message count:', error));
-        }
-
-        // Update the markConversationAsRead function to call updateNavbarUnreadCount
-        function markConversationAsRead(conversationId) {
-            fetch('{{ route($rolePrefix.".messaging.mark-as-read") }}', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                },
-                body: JSON.stringify({
-                    conversation_id: conversationId
-                })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    // Success - update UI if needed
-                    const unreadBadge = document.querySelector(`.conversation-item[data-conversation-id="${conversationId}"] .unread-badge`);
-                    if (unreadBadge) {
-                        unreadBadge.remove();
-                    }
-                    
-                    // Remove unread class from conversation item
-                    const conversationItem = document.querySelector(`.conversation-item[data-conversation-id="${conversationId}"]`);
-                    if (conversationItem) {
-                        conversationItem.classList.remove('unread');
-                    }
-                    
-                    // Update the navbar badge count
-                    updateNavbarUnreadCount();
-                }
-            })
-            .catch(error => {
-                console.error('Error marking conversation as read:', error);
-            });
-        }
-
-        // Call this whenever a conversation is loaded
-        document.addEventListener('DOMContentLoaded', function() {
-            // When conversation items are clicked
-            document.querySelectorAll('.conversation-item').forEach(item => {
-                item.addEventListener('click', function() {
-                    const conversationId = this.dataset.conversationId;
-                    if (conversationId) {
-                        // Use setTimeout to ensure the conversation loads first
-                        setTimeout(() => markConversationAsRead(conversationId), 1000);
+                    } else if (noResultsMessage) {
+                        noResultsMessage.remove();
                     }
                 });
+            }
+            
+            // Fix message scrolling
+            function fixMessageScroll() {
+                const messagesContainer = document.getElementById('messagesContainer');
+                if (!messagesContainer) return;
+                
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                
+                const images = messagesContainer.querySelectorAll('img');
+                images.forEach(img => {
+                    if (img.complete) {
+                        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                    } else {
+                        img.addEventListener('load', function() {
+                            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                        });
+                    }
+                });
+            }
+            
+            // Run initializations
+            setupMinimizedSidebar();
+            setupMobileView();
+            addConversationClickHandlers();
+            
+            // Set up polling for new messages every 20 seconds
+            const refreshInterval = setInterval(function() {
+                // Don't refresh if explicitly prevented
+                if (Date.now() < window.preventRefreshUntil) {
+                    return;
+                }
+                
+                refreshActiveConversation();
+            }, 20000);
+            
+            // Clean up on page unload
+            window.addEventListener('beforeunload', function() {
+                clearInterval(refreshInterval);
             });
             
-            // Also call this when the page loads with a conversation parameter
+            // Check for conversation in URL
             const urlParams = new URLSearchParams(window.location.search);
             const conversationId = urlParams.get('conversation');
             if (conversationId) {
-                // Short delay to let the conversation load
-                setTimeout(() => markConversationAsRead(conversationId), 1500);
-            }
-        });
-
-        // Make updateUnreadCount function globally available
-        window.updateUnreadCount = function(count) {
-            const messageCount = document.querySelector('.message-count');
-            if (messageCount) {
-                if (count > 0) {
-                    messageCount.textContent = count;
-                    messageCount.style.display = 'block';
-                } else {
-                    messageCount.style.display = 'none';
+                const conversationItem = document.querySelector(`.conversation-item[data-conversation-id="${conversationId}"]`);
+                if (conversationItem) {
+                    conversationItem.click();
                 }
             }
-        };
-    </script>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Single source of truth for message form handling
-            let messageFormInitialized = false;
             
-            // Set up MutationObserver to detect when conversation content changes
+            // Setup MutationObserver for conversation content changes
             const conversationContent = document.getElementById('conversationContent');
             if (conversationContent) {
-                const observer = new MutationObserver(function(mutations) {
-                    // Reset flag when conversation changes
-                    messageFormInitialized = false;
-                    
-                    // Re-initialize the form with the new content
-                    setTimeout(initializeMessageForm, 200);
+                const observer = new MutationObserver(function() {
+                    fixMessageScroll();
                 });
                 
                 observer.observe(conversationContent, {
-                    childList: true
+                    childList: true,
+                    subtree: true
                 });
             }
             
-            // Run the initial setup
-            initializeMessageForm();
-            
-            // Also re-initialize when conversations are clicked
-            document.querySelectorAll('.conversation-item').forEach(item => {
-                item.addEventListener('click', function() {
-                    // Reset the flag so we can re-initialize with new conversation
-                    messageFormInitialized = false;
-                    setTimeout(initializeMessageForm, 500);
-                });
-            });
+            // Update unread count on load
+            updateNavbarUnreadCount();
         });
     </script>
-
 </body>
 </html>
