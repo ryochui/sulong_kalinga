@@ -15,6 +15,262 @@
 
 </head>
 <body class="messaging-page">
+
+    <script>
+        // Define initializeMessageForm in the global scope
+        window.initializeMessageForm = function() {
+            
+            const messageForm = document.getElementById('messageForm');
+            if (!messageForm || window.messageFormInitialized) return;
+            
+            // Set flag to prevent duplicate initialization
+            window.messageFormInitialized = true;
+            console.log('Message form initialized globally');
+            
+            // Get references to form elements
+            const textarea = document.getElementById('messageContent');
+            const fileInput = document.getElementById('fileUpload');
+            const filePreviewContainer = document.getElementById('filePreviewContainer');
+            const attachmentBtn = document.getElementById('attachmentBtn');
+            
+            // Handle file attachment button click
+            if (attachmentBtn && fileInput) {
+                attachmentBtn.addEventListener('click', function() {
+                    fileInput.click();
+                });
+            }
+            
+            // Show file previews when files are selected
+            if (fileInput && filePreviewContainer) {
+                fileInput.addEventListener('change', function() {
+                    filePreviewContainer.innerHTML = '';
+                    
+                    if (this.files.length > 0) {
+                        for (let i = 0; i < this.files.length; i++) {
+                            const file = this.files[i];
+                            const filePreview = document.createElement('div');
+                            filePreview.className = 'file-preview';
+                            
+                            if (file.type.startsWith('image/')) {
+                                const img = document.createElement('img');
+                                img.src = URL.createObjectURL(file);
+                                filePreview.appendChild(img);
+                            } else {
+                                const fileIcon = document.createElement('div');
+                                fileIcon.className = 'file-icon';
+                                fileIcon.innerHTML = '<i class="bi bi-file-earmark"></i>';
+                                filePreview.appendChild(fileIcon);
+                            }
+                            
+                            const fileName = document.createElement('div');
+                            fileName.className = 'file-name';
+                            fileName.textContent = file.name;
+                            filePreview.appendChild(fileName);
+                            
+                            const removeBtn = document.createElement('div');
+                            removeBtn.className = 'remove-file';
+                            removeBtn.innerHTML = '&times;';
+                            removeBtn.addEventListener('click', function() {
+                                filePreview.remove();
+                            });
+                            
+                            filePreview.appendChild(removeBtn);
+                            filePreviewContainer.appendChild(filePreview);
+                        }
+                    }
+                });
+            }
+            
+            // Auto-resize textarea
+            if (textarea) {
+                textarea.addEventListener('input', function() {
+                    this.style.height = 'auto';
+                    this.style.height = (this.scrollHeight) + 'px';
+                    
+                    if (this.scrollHeight > 200) {
+                        this.style.overflowY = 'auto';
+                        this.style.height = '200px';
+                    } else {
+                        this.style.overflowY = 'hidden';
+                    }
+                });
+            }
+            
+            // Handle form submission with AJAX
+            messageForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                // Validation
+                if (textarea.value.trim() === '' && (!fileInput.files || fileInput.files.length === 0)) {
+                    alert('Please enter a message or attach a file');
+                    return;
+                }
+                
+                // Create FormData object
+                const formData = new FormData(this);
+                
+                // Disable send button and show loading state
+                const sendBtn = document.querySelector('.send-btn');
+                const originalBtnContent = sendBtn.innerHTML;
+                sendBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
+                sendBtn.disabled = true;
+                
+                // Send the form using the form's action URL
+                fetch('{{ route($rolePrefix.".messaging.send") }}', {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                    }
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok: ' + response.status);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.success) {
+                        // Record that we just sent a message
+                        window.lastMessageSendTimestamp = Date.now();
+
+                        // Get the message content directly from the textarea before clearing it
+                        const messageContent = textarea.value.trim();
+
+                        // Only clear form after successful submission
+                        textarea.value = '';
+                        fileInput.value = '';
+                        if (filePreviewContainer) {
+                            filePreviewContainer.innerHTML = '';
+                        }
+                        
+                        // Use the improved addMessageToDisplay function with explicit content
+                        window.addMessageToDisplay({
+                            content: data.message ? data.message.content : null,
+                            formContent: messageContent, // Pass the content directly
+                            id: data.message_id,
+                            time: new Date().toLocaleTimeString([], {hour: 'numeric', minute:'2-digit'})
+                        }, true);
+                        
+                        // Update the conversation list without full refresh
+                        if (window.updateConversationList) {
+                            window.updateConversationList();
+                        }
+                    } else {
+                        throw new Error(data.message || 'Failed to send message');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error sending message:', error);
+                    alert('Failed to send message: ' + error.message);
+                })
+                .finally(() => {
+                    // Reset button state
+                    sendBtn.innerHTML = originalBtnContent;
+                    sendBtn.disabled = false;
+                });
+            });
+        };
+        
+        // Also make messageFormInitialized global
+        window.messageFormInitialized = false;
+
+        window.updateConversationList = function() {
+            const activeConversationId = document.querySelector('.conversation-item.active')?.dataset.conversationId;
+            
+            // Fetch updated conversation list
+            fetch('{{ route($rolePrefix.".messaging.get-conversations") }}')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Update the conversation list content
+                        const listContainer = document.querySelector('.conversation-list-items');
+                        if (listContainer) {
+                            listContainer.innerHTML = data.html;
+                            
+                            // Re-add click handlers
+                            document.querySelectorAll('.conversation-item').forEach(item => {
+                                item.addEventListener('click', function() {
+                                    // Remove active class from all items
+                                    document.querySelectorAll('.conversation-item').forEach(i => {
+                                        i.classList.remove('active');
+                                    });
+                                    
+                                    // Add active class to clicked item
+                                    this.classList.add('active');
+                                    
+                                    // Get conversation ID
+                                    const conversationId = this.dataset.conversationId;
+                                    
+                                    // Update URL without page reload
+                                    const newUrl = "{{ url('/" . $rolePrefix . "/messaging') }}?conversation=" + conversationId;
+                                    window.history.pushState({ conversationId: conversationId }, '', newUrl);
+                                    
+                                    // Load conversation content
+                                    loadConversation(conversationId);
+                                });
+                            });
+                            
+                            // Restore active state to the current conversation
+                            if (activeConversationId) {
+                                const activeItem = document.querySelector(`.conversation-item[data-conversation-id="${activeConversationId}"]`);
+                                if (activeItem) {
+                                    activeItem.classList.add('active');
+                                }
+                            }
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.error('Error updating conversation list:', error);
+                });
+        };
+
+        window.addMessageToDisplay = function(messageData, isOutgoing = true) {
+            const messagesContainer = document.getElementById('messagesContainer');
+            if (!messagesContainer) {
+                console.error('Message container not found!');
+                return;
+            }
+            
+            console.log('Adding message:', messageData); // Debug output
+            
+            // Create message element
+            const messageEl = document.createElement('div');
+            messageEl.className = isOutgoing ? 'message outgoing' : 'message incoming';
+            
+            // Add message content
+            const contentEl = document.createElement('div');
+            contentEl.className = 'message-content';
+            
+            // Make sure we have content, with fallbacks
+            let messageContent = '';
+            if (typeof messageData.content === 'string') {
+                messageContent = messageData.content;
+            } else if (messageData.formContent) {
+                // Fallback to explicitly passed textarea value
+                messageContent = messageData.formContent;
+            }
+            
+            contentEl.textContent = messageContent;
+            messageEl.appendChild(contentEl);
+            
+            // Add time indicator
+            const timeEl = document.createElement('div');
+            timeEl.className = 'message-time';
+            const timeString = messageData.time || new Date().toLocaleTimeString([], {hour: 'numeric', minute:'2-digit'});
+            timeEl.innerHTML = `<small>${timeString}</small>`;
+            messageEl.appendChild(timeEl);
+            
+            // Add to container
+            messagesContainer.appendChild(messageEl);
+            
+            // Scroll to the bottom
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        };
+    </script>
+
     <!-- Navigation based on user role -->
     @if(auth()->user()->role_id == 1)
         @include('components.adminNavbar')
@@ -55,140 +311,7 @@
                 
                 <!-- Conversation List Items -->
                 <div class="conversation-list-items">
-                    @if(isset($conversations) && $conversations->count() > 0)
-                        @foreach($conversations as $convo)
-                        
-                        @php
-                            // Prepare participant names data for search
-                            $participantNames = '';
-                            $groupParticipants = '';
-                            
-                            if ($convo->is_group_chat) {
-                                // For group chats, collect all participant names
-                                foreach ($convo->participants as $participant) {
-                                    if ($participant->participant_id != Auth::id() || $participant->participant_type != 'cose_staff') {
-                                        $groupParticipants .= $participant->getParticipantNameAttribute() . ' ';
-                                    }
-                                }
-                            } else {
-                                // For private chats, just the other participant's name
-                                $participantNames = $convo->other_participant_name ?? '';
-                            }
-                        @endphp
-
-                            <div class="conversation-item"
-                                data-conversation-id="{{ $convo->conversation_id }}"
-                                data-participant-names="{{ $participantNames }}"
-                                data-group-participants="{{ $groupParticipants }}">
-                                <div class="d-flex">
-                                    <div class="flex-shrink-0">
-                                        @if($convo->is_group_chat)
-                                            <div class="rounded-circle profile-img-sm d-flex justify-content-center align-items-center bg-primary text-white">
-                                                <span>{{ $convo->name ? substr($convo->name, 0, 1) : 'G' }}</span>
-                                            </div>
-                                        @else
-                                            <img src="{{ asset('images/defaultProfile.png') }}" class="rounded-circle profile-img-sm" alt="User">
-                                        @endif
-                                    </div>
-                                    <div class="flex-grow-1 ms-3">
-                                    <div class="conversation-title">
-                                    <div class="name-container">
-                                        <span class="participant-name">
-                                            @if($convo->is_group_chat)
-                                                {{ $convo->name }}
-                                            @else
-                                                {{ $convo->other_participant_name ?? 'Unknown User' }}
-                                            @endif
-                                        </span>
-                                            
-                                        @if(!$convo->is_group_chat)
-                                            @php
-                                                $participantType = '';
-                                                $otherParticipant = null;
-                                                // Find the other participant's type
-                                                foreach ($convo->participants as $participant) {
-                                                    if (!($participant->participant_id == Auth::id() && $participant->participant_type == 'cose_staff')) {
-                                                        $participantType = $participant->participant_type;
-                                                        $otherParticipant = $participant;
-                                                        break;
-                                                    }
-                                                }
-                                                // Convert type to readable name
-                                                $typeBadgeClass = 'bg-secondary';
-                                                switch($participantType) {
-                                                    case 'cose_staff':
-                                                        // Get the user directly from database instead of relying on other_participant
-                                                        $staffUser = \App\Models\User::find($otherParticipant->participant_id);
-                                                        $userRole = $staffUser->role_id ?? 0;
-                                                        
-                                                        if ($userRole == 1) {
-                                                            $participantType = 'Administrator';
-                                                            $typeBadgeClass = 'bg-danger';
-                                                        } elseif ($userRole == 2) {
-                                                            $participantType = 'Care Manager';
-                                                            $typeBadgeClass = 'bg-primary';
-                                                        } elseif ($userRole == 3) {
-                                                            $participantType = 'Care Worker';
-                                                            $typeBadgeClass = 'bg-info';
-                                                        } else {
-                                                            $participantType = 'Staff';
-                                                        }
-                                                        break;
-                                                    case 'beneficiary':
-                                                        $participantType = 'Beneficiary';
-                                                        $typeBadgeClass = 'bg-success';
-                                                        break;
-                                                    case 'family_member':
-                                                        $participantType = 'Family Member';
-                                                        $typeBadgeClass = 'bg-warning text-dark';
-                                                        break;
-                                                }
-                                            @endphp
-                                            <span class="user-type-badge {{ $typeBadgeClass }}">{{ $participantType }}</span>
-                                        @endif
-                                        </div>
-                                        <small class="conversation-time">
-                                            @if(isset($convo->lastMessage) && $convo->lastMessage)
-                                                {{ \Carbon\Carbon::parse($convo->lastMessage->message_timestamp)->diffForHumans(null, true) }}
-                                            @endif
-                                        </small>
-                                    </div>
-                                        <div class="d-flex justify-content-between">
-                                            <p class="conversation-preview mb-0">
-                                                @if(isset($convo->lastMessage) && $convo->lastMessage)
-                                                    @if($convo->lastMessage->content)
-                                                        {{ Str::limit($convo->lastMessage->content, 40) }}
-                                                    @elseif(isset($convo->lastMessage->attachments) && $convo->lastMessage->attachments->count() > 0)
-                                                        <i class="bi bi-paperclip"></i> 
-                                                        {{ $convo->lastMessage->attachments->first()->is_image ? 'Image' : 'File' }}
-                                                    @else
-                                                        No content
-                                                    @endif
-                                                @else
-                                                    No messages yet
-                                                @endif
-                                            </p>
-                                            @php
-                                                $unreadCount = 0;
-                                                if (isset($convo->messages) && $convo->messages) {
-                                                    $unreadCount = $convo->messages->where('sender_id', '!=', Auth::id())->filter(function($msg) {
-                                                        return !$msg->isReadBy(Auth::id(), 'cose_staff');
-                                                    })->count();
-                                                }
-                                            @endphp
-                                            @if($unreadCount > 0)
-                                                <span class="badge bg-danger rounded-pill unread-badge align-self-center">{{ $unreadCount }}</span>
-                                            @endif
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        @endforeach
-                    @else
-                        <div class="text-center p-4">
-                            <p class="text-muted">No conversations yet</p>
-                        </div>
-                    @endif
+                    @include('admin.conversation-list', ['conversations' => $conversations])
                 </div>
             </div>
             
@@ -463,8 +586,8 @@
                             // Update the conversation content
                             document.getElementById('conversationContent').innerHTML = data.html;
                             
-                            // Initialize any needed event listeners for the message input
-                            initMessageInputHandlers();
+                            messageFormInitialized = false;
+                            setTimeout(initializeMessageForm, 200);
                             
                             // Initialize tooltips
                             var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
@@ -478,14 +601,8 @@
                                 messagesContainer.scrollTop = messagesContainer.scrollHeight;
                             }
                             
-                            // Mark messages as read
-                            fetch("{{ route($rolePrefix.'.messaging.mark-as-read') }}?conversation_id=" + conversationId, {
-                                method: 'POST',
-                                headers: {
-                                    'Content-Type': 'application/json',
-                                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                                }
-                            });
+                            // Mark conversation as read
+                            markConversationAsRead(conversationId);
                             
                             // Remove unread indicator from this conversation
                             const unreadBadge = this.querySelector('.unread-badge');
@@ -683,147 +800,7 @@
                 });
             });
             
-            // 9. Message input handler function
-            function initMessageInputHandlers() {
-                const messageForm = document.getElementById('messageForm');
-                if (!messageForm) return;
-                
-                // Handle file uploads
-                const fileUpload = document.getElementById('fileUpload');
-                const attachmentBtn = document.getElementById('attachmentBtn');
-                
-                if (attachmentBtn && fileUpload) {
-                    attachmentBtn.addEventListener('click', function() {
-                        fileUpload.click();
-                    });
-                    
-                    fileUpload.addEventListener('change', function() {
-                        const filePreviewContainer = document.getElementById('filePreviewContainer');
-                        if (!filePreviewContainer) return;
-                        
-                        filePreviewContainer.innerHTML = '';
-                        
-                        for (let i = 0; i < this.files.length; i++) {
-                            const file = this.files[i];
-                            const filePreview = document.createElement('div');
-                            filePreview.className = 'file-preview';
-                            
-                            if (file.type.startsWith('image/')) {
-                                const img = document.createElement('img');
-                                img.src = URL.createObjectURL(file);
-                                filePreview.appendChild(img);
-                            } else {
-                                const fileIcon = document.createElement('div');
-                                fileIcon.className = 'file-icon';
-                                
-                                let iconClass = 'bi-file-earmark';
-                                if (file.type.includes('pdf')) {
-                                    iconClass = 'bi-file-earmark-pdf';
-                                } else if (file.name.endsWith('.doc') || file.name.endsWith('.docx')) {
-                                    iconClass = 'bi-file-earmark-word';
-                                } else if (file.name.endsWith('.xls') || file.name.endsWith('.xlsx')) {
-                                    iconClass = 'bi-file-earmark-excel';
-                                }
-                                
-                                fileIcon.innerHTML = `<i class="bi ${iconClass}"></i>`;
-                                filePreview.appendChild(fileIcon);
-                            }
-                            
-                            // Add filename text element
-                            const fileName = document.createElement('div');
-                            fileName.className = 'file-name';
-                            fileName.textContent = file.name;
-                            filePreview.appendChild(fileName);
-                            
-                            // Add remove button
-                            const removeBtn = document.createElement('div');
-                            removeBtn.className = 'remove-file';
-                            removeBtn.innerHTML = '&times;';
-                            removeBtn.addEventListener('click', function() {
-                                filePreview.remove();
-                            });
-                            
-                            filePreview.appendChild(removeBtn);
-                            filePreviewContainer.appendChild(filePreview);
-
-                            // Fix scrolling behavior for messages
-                            const messagesContainer = document.getElementById('messagesContainer');
-                            if (messagesContainer) {
-                                // Ensure scrolling works initially
-                                messagesContainer.scrollTop = messagesContainer.scrollHeight;
-                                
-                                // Add mutation observer to auto-scroll when new messages are added
-                                const observer = new MutationObserver(function(mutations) {
-                                    messagesContainer.scrollTop = messagesContainer.scrollHeight;
-                                });
-                                
-                                observer.observe(messagesContainer, {
-                                    childList: true,
-                                    subtree: true
-                                });
-                                
-                                // Also manually fix scrolling for any image loads
-                                messagesContainer.querySelectorAll('img').forEach(img => {
-                                    img.addEventListener('load', function() {
-                                        messagesContainer.scrollTop = messagesContainer.scrollHeight;
-                                    });
-                                });
-                            }
-
-                            // Ensure textareas don't break layout
-                            const textareas = document.querySelectorAll('textarea.message-input');
-                            textareas.forEach(textarea => {
-                                textarea.addEventListener('input', function() {
-                                    this.style.height = 'auto';
-                                    const maxHeight = 80;
-                                    const newHeight = Math.min(this.scrollHeight, maxHeight);
-                                    this.style.height = newHeight + 'px';
-                                    
-                                    // Scroll container to bottom when typing
-                                    if (messagesContainer) {
-                                        messagesContainer.scrollTop = messagesContainer.scrollHeight;
-                                    }
-                                });
-                            });
-                        }
-                    });
-                }
-                
-                // Handle message form submission
-                messageForm.addEventListener('submit', function(e) {
-                    e.preventDefault();
-                    
-                    const formData = new FormData(this);
-                    
-                    fetch('{{ route($rolePrefix.'.messaging.send') }}', {
-                        method: 'POST',
-                        body: formData,
-                        headers: {
-                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                        }
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            // Clear form inputs
-                            document.getElementById('messageContent').value = '';
-                            document.getElementById('filePreviewContainer').innerHTML = '';
-                            
-                            // Reload the conversation
-                            const currentActiveItem = document.querySelector('.conversation-item.active');
-                            if (currentActiveItem) {
-                                currentActiveItem.click();
-                            }
-                        } else {
-                            alert(data.message || 'Failed to send message');
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error sending message:', error);
-                        alert('Failed to send message. Please try again.');
-                    });
-                });
-            }
+           
         });
     </script>
 
@@ -961,23 +938,35 @@
         }
     });
 
+
+
     // Auto-refresh functionality for active conversations
     document.addEventListener('DOMContentLoaded', function() {
         let lastMessageId = 0; // Track the last message ID to detect new messages
         let isRefreshing = false; // Prevent multiple simultaneous refreshes
         
+        window.lastRefreshTimestamp = 0;
+        window.lastMessageSendTimestamp = 0;
+
         // Function to refresh the active conversation
-        function refreshActiveConversation() {
+        window.refreshActiveConversation = function() {
             // Check if there's an active conversation
             const activeConversationItem = document.querySelector('.conversation-item.active');
-            if (!activeConversationItem || isRefreshing) return;
+            if (!activeConversationItem || window.isRefreshing) return;
             
-            isRefreshing = true;
+            // Don't refresh if we just sent a message in the last 2 seconds
+            const now = Date.now();
+            if (now - window.lastMessageSendTimestamp < 2000) {
+                return;
+            }
+            
+            window.isRefreshing = true;
+            window.lastRefreshTimestamp = now;
             
             const conversationId = activeConversationItem.dataset.conversationId;
             const messagesContainer = document.getElementById('messagesContainer');
             if (!messagesContainer) {
-                isRefreshing = false;
+                window.isRefreshing = false;
                 return;
             }
             
@@ -1023,13 +1012,16 @@
                     
                     updateNavbarUnreadCount();
                 }
-                isRefreshing = false;
+                window.isRefreshing = false;
             })
             .catch(error => {
                 console.error('Error refreshing conversation:', error);
-                isRefreshing = false;
+                window.isRefreshing = false;
             });
-        }
+        };
+
+        // Make sure isRefreshing is also global
+        window.isRefreshing = false;
         
         // Mark conversation as read
         function markConversationAsRead(conversationId) {
@@ -1064,9 +1056,9 @@
             });
         }
         
-        // Set up polling for new messages every 10 seconds
-        const refreshInterval = setInterval(refreshActiveConversation, 10000);
-        
+        // Set up polling for new messages every 20 seconds
+        const refreshInterval = setInterval(refreshActiveConversation, 20000);
+
         // Also refresh when a conversation is clicked
         document.addEventListener('click', function(e) {
             const conversationItem = e.target.closest('.conversation-item');
@@ -1178,6 +1170,41 @@
                 }
             }
         };
+    </script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Single source of truth for message form handling
+            let messageFormInitialized = false;
+            
+            // Set up MutationObserver to detect when conversation content changes
+            const conversationContent = document.getElementById('conversationContent');
+            if (conversationContent) {
+                const observer = new MutationObserver(function(mutations) {
+                    // Reset flag when conversation changes
+                    messageFormInitialized = false;
+                    
+                    // Re-initialize the form with the new content
+                    setTimeout(initializeMessageForm, 200);
+                });
+                
+                observer.observe(conversationContent, {
+                    childList: true
+                });
+            }
+            
+            // Run the initial setup
+            initializeMessageForm();
+            
+            // Also re-initialize when conversations are clicked
+            document.querySelectorAll('.conversation-item').forEach(item => {
+                item.addEventListener('click', function() {
+                    // Reset the flag so we can re-initialize with new conversation
+                    messageFormInitialized = false;
+                    setTimeout(initializeMessageForm, 500);
+                });
+            });
+        });
     </script>
 
 </body>

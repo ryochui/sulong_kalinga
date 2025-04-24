@@ -142,7 +142,7 @@
 
 <!-- Message Input Area -->
 <div class="message-input-container">
-    <form id="messageForm" method="POST">
+    <form id="messageForm" action="{{ route($rolePrefix.'.messaging.send') }}" method="POST" enctype="multipart/form-data">
         @csrf
         <input type="hidden" name="conversation_id" value="{{ $conversation->conversation_id }}">
         
@@ -151,12 +151,10 @@
         <div class="position-relative">
             <textarea class="form-control message-input" id="messageContent" name="content" rows="1" placeholder="Type a message..."></textarea>
             <input type="file" id="fileUpload" name="attachments[]" class="file-upload d-none" multiple>
-            <button type="button" class="attachment-btn" id="attachmentBtn" 
-                data-bs-toggle="tooltip" data-bs-placement="top" 
-                title="Attach files (Allowed: Images, PDF, DOC, DOCX, XLS, XLSX - Max 10MB)">
+            <button type="button" class="attachment-btn" id="attachmentBtn">
                 <i class="bi bi-paperclip"></i>
             </button>
-            <button type="submit" class="btn btn-primary send-btn">
+            <button type="submit" class="btn btn-primary send-btn" id="sendMessageBtn">
                 <i class="bi bi-send-fill"></i>
             </button>
         </div>
