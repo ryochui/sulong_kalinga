@@ -89,7 +89,7 @@ font-weight: 600;
 
   .home-section {
       margin-left: 0; 
+      font-size: clamp(1rem, 2.5vw, 1.5rem);
   }
 }
-
 

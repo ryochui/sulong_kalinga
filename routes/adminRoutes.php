@@ -18,6 +18,7 @@ use App\Http\Controllers\DonorAcknowledgementController;
 use App\Http\Controllers\HighlightsAndEventsController;
 use App\Http\Controllers\ViewAccountProfileController;
 use App\Http\Controllers\NotificationsController;
+use App\Http\Controllers\HealthMonitoringController;
 
 
 // All routes with administrator role check
@@ -181,6 +182,11 @@ Route::middleware(['auth', '\App\Http\Middleware\CheckRole:administrator'])->pre
     Route::post('/notifications/{id}/read', [NotificationsController::class, 'markAsRead'])->name('notifications.read');
     Route::post('/notifications/read-all', [NotificationsController::class, 'markAllAsRead'])->name('notifications.read-all');
 
+
+    // Health Monitoring
+    Route::prefix('health-monitoring')->name('health.monitoring.')->group(function () {
+        Route::get('/', [HealthMonitoringController::class, 'index'])->name('index');
+    });
 });
 
 // Route::get('/admin/viewProfile', function () {

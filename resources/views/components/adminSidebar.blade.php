@@ -52,6 +52,15 @@
       </ul>
     </li>
     <li>
+        <a href="{{ route('admin.health.monitoring.index') }}" class="{{ Request::routeIs('admin.health.monitoring.*') ? 'active' : '' }}">
+        <i class="bi bi-heart-pulse"></i>
+        <span class="link_name">Health Monitoring</span>
+      </a>
+      <ul class="sub-menu blank">
+        <li><a class="link_name" href="{{ route('admin.health.monitoring.index') }}">Health Monitoring</a></li>
+      </ul>
+    </li>
+    <li>
       <a href="{{ route('admin.schedules.appointments.index') }}" class="{{ Request::routeIs('admin.schedules.appointments.*') ? 'active' : '' }}">
         <i class="bi bi-calendar-week"></i>
         <span class="link_name">Schedules / Appointments</span>
