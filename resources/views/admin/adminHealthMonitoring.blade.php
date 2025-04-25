@@ -8,13 +8,61 @@
     <link rel="stylesheet" href="{{ asset('css/homeSection.css') }}">
 
     <style>
-        tbody .btn-link{
-            color: black;
-            text-decoration: none;
-            font-size: 20px;
-        }
         tbody td{
             vertical-align: middle;
+        }
+        th button{
+            transform: translateY(-3px);
+        }
+
+        tbody td {
+        vertical-align: middle;
+        }
+
+        th button {
+            transform: translateY(-3px);
+        }
+
+        #home-content {
+            font-size: clamp(0.8rem, 1vw, 1rem); /* Reduced font size for the main content */
+        }
+
+        #home-content th,
+        #home-content td {
+            font-size: clamp(0.7rem, 0.9vw, 0.9rem); /* Smaller font size for table content */
+        }
+
+        #home-content .card-header,
+        #home-content .form-label {
+            font-size: clamp(0.9rem, 1.1vw, 1.1rem); /* Reduced size for headers and labels */
+        }
+
+        #home-content .btn {
+            font-size: 0.8rem; /* Smaller button text */
+            padding: 0.25rem 0.5rem; /* Reduced button padding */
+        }
+
+        #home-content .form-select,
+        #home-content .form-control {
+            font-size: 0.8rem; /* Smaller dropdown and input text */
+            padding: 0.25rem 0.5rem; /* Reduced padding */
+        }
+
+        #home-content .table {
+            font-size: 0.8rem; /* Smaller table font size */
+        }
+
+        #beneficiaryDetailsRow .form-label {
+            font-size: clamp(0.8rem, 1vw, 1rem); /* Adjusted font size for labels */
+        }
+
+        #beneficiaryDetailsRow .form-control {
+            font-size: clamp(0.8rem, 1vw, 1rem); /* Adjusted font size for input fields */
+            padding: 0.3rem 0.5rem; /* Reduced padding for input fields */
+        }
+
+        #beneficiaryDetailsRow .card-header {
+            font-size: clamp(1rem, 1.2vw, 1.2rem); /* Slightly larger font size for the card header */
         }
     </style>
 </head>
@@ -24,14 +72,14 @@
     @include('components.adminSidebar')
 
     <div class="home-section">
-        <div class="d-flex justify-content-between align-items-center mb-2">
-            <div class="text-left">
-                <strong>HEALTH MONITORING</strong>
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <div class="text-left">
+                    <strong>HEALTH MONITORING</strong>
+                </div>
+                <button class="btn btn-danger btn-md" id="exportPdfBtn">
+                    <i class="bi bi-file-earmark-pdf"></i> Export to PDF
+                </button>
             </div>
-            <button class="btn btn-danger btn-md" id="exportPdfBtn">
-                <i class="bi bi-file-earmark-pdf"></i> Export to PDF
-            </button>
-        </div>
             <div class="container-fluid">
                 <div class="row" id="home-content">
                     <div class="col-12 mb-2">
@@ -45,10 +93,10 @@
                                         </div>
                                         <button class="btn btn-primary btn-sm" id="applyFilterBtn">Apply Filters</button>
                                     </div>
-                                    <div class="card-body">
-                                        <div class="row">
+                                    <div class="card-body p-2">
+                                        <div class="row g-2">
                                             <!-- Beneficiary Select -->
-                                            <div class="col-md-5 mb-1">
+                                            <div class="col">
                                                 <label for="beneficiarySelect" class="form-label">Select Beneficiary:</label>
                                                 <select class="form-select" id="beneficiarySelect" name="beneficiary_id">
                                                     <option value="">All Beneficiaries</option>
@@ -58,9 +106,19 @@
                                                     <option value="4">Johnson, Bob</option>
                                                 </select>
                                             </div>
-                                            
+
+                                            <!-- Municipalities Select -->
+                                            <div class="col">
+                                                <label for="municipalitySelect" class="form-label">Select Municipality:</label>
+                                                <select class="form-select" id="municipalitySelect">
+                                                    <option value="">All Municipalities</option>
+                                                    <option value="Mondragon">Mondragon</option>
+                                                    <option value="San Roque">San Roque</option>
+                                                </select>
+                                            </div>
+
                                             <!-- Time Range Select -->
-                                            <div class="col-md-2 mb-1">
+                                            <div class="col">
                                                 <label for="timeRange" class="form-label">Time Range:</label>
                                                 <select class="form-select" id="timeRange">
                                                     <option value="weeks">Weeks</option>
@@ -68,9 +126,9 @@
                                                     <option value="year">Year</option>
                                                 </select>
                                             </div>
-                                            
+
                                             <!-- Week Filter (visible by default) -->
-                                            <div class="col-md-5 mb-1" id="weekFilterContainer">
+                                            <div class="col d-none" id="weekFilterContainer">
                                                 <label for="monthSelect" class="form-label">Select Month:</label>
                                                 <select class="form-select" id="monthSelect">
                                                     <option value="1">January</option>
@@ -87,11 +145,11 @@
                                                     <option value="12">December</option>
                                                 </select>
                                             </div>
-                                            
+
                                             <!-- Month Range Filter (hidden by default) -->
-                                            <div class="col-md-5 mb-1 d-none" id="monthRangeFilterContainer">
-                                                <div class="row">
-                                                    <div class="col-md-6">
+                                            <div class="col d-none" id="monthRangeFilterContainer">
+                                                <div class="row g-2">
+                                                    <div class="col">
                                                         <label for="startMonth" class="form-label">Start Month:</label>
                                                         <select class="form-select" id="startMonth">
                                                             <option value="1">January</option>
@@ -108,7 +166,7 @@
                                                             <option value="12">December</option>
                                                         </select>
                                                     </div>
-                                                    <div class="col-md-6">
+                                                    <div class="col">
                                                         <label for="endMonth" class="form-label">End Month:</label>
                                                         <select class="form-select" id="endMonth">
                                                             <option value="1">January</option>
@@ -127,9 +185,9 @@
                                                     </div>
                                                 </div>
                                             </div>
-                                            
+
                                             <!-- Year Filter (hidden by default) -->
-                                            <div class="col-md-5 mb-1 d-none" id="yearFilterContainer">
+                                            <div class="col d-none" id="yearFilterContainer">
                                                 <label for="yearSelect" class="form-label">Select Year:</label>
                                                 <select class="form-select" id="yearSelect">
                                                     <option value="2023">2023</option>
@@ -144,34 +202,297 @@
                         </div>
                         
                         <!-- Beneficiary Details Row -->
-                        <div class="row mb-3" id="beneficiaryDetailsRow">
+                        <div class="row mb-1 d-none" id="beneficiaryDetailsRow">
                             <div class="col-12">
                                 <div class="card shadow-sm">
                                     <div class="card-header">
                                         <strong class="text-center d-block">Beneficiary Details</strong>
                                     </div>
                                     <div class="card-body p-2">
-                                        <div class="row text-md-start">
-                                            <div class="col-md-2 col-sm-6 mb-1">
-                                                <p><strong>Age:</strong> <span id="beneficiaryAge">65</span></p>
+                                        <div class="row mb-1">
+                                            <div class="col-md-4 col-sm-9 position-relative">
+                                                <label for="benficiary" class="form-label">Beneficiary Name</label>
+                                                <input type="text" class="form-control" id="beneficiary" value="" readonly data-bs-toggle="tooltip" title="Edit in General Care Plan" readonly>    
                                             </div>
-                                            <div class="col-md-3 col-sm-6 mb-1">
-                                                <p><strong>Address:</strong> <span id="beneficiaryAddress">123 Main St, City</span></p>
+                                            <div class="col-md-2 col-sm-3">
+                                                <label for="age" class="form-label">Age</label>
+                                                <input type="text" class="form-control" id="age" value="" readonly data-bs-toggle="tooltip" title="Edit in General Care Plan"  readonly>                                            
                                             </div>
-                                            <div class="col-md-2 col-sm-6 mb-1">
-                                                <p><strong>Gender:</strong> <span id="beneficiaryGender">Male</span></p>
+                                            <div class="col-md-3 col-sm-6">
+                                                <label for="birthDate" class="form-label">Birthdate</label>
+                                                <input type="text" class="form-control" id="birthDate" value="" readonly data-bs-toggle="tooltip" title="Edit in General Care Plan" readonly>                                            
                                             </div>
-                                            <div class="col-md-2 col-sm-6 mb-1">
-                                                <p><strong>Civil Status:</strong> <span id="beneficiaryCivilStatus">Married</span></p>
+                                            <div class="col-md-3 col-sm-6 position-relative">
+                                                <label for="gender" class="form-label">Gender</label>
+                                                <input type="text" class="form-control" id="gender" value="" readonly data-bs-toggle="tooltip" title="Edit in General Care Plan" readonly>
                                             </div>
-                                            <div class="col-md-3 col-sm-6 mb-1">
-                                                <p><strong>Category:</strong> <span id="beneficiaryCategory">Frail</span></p>
+                                        </div>
+                                        <div class="row mb-1">
+                                            <div class="col-md-3 col-sm-4 position-relative">
+                                                <label for="civilStatus" class="form-label">Civil Status</label>
+                                                <input type="text" class="form-control" id="civilStatus" value="" readonly data-bs-toggle="tooltip" title="Edit in General Care Plan" readonly>
+                                                </div>
+                                            <div class="col-md-6 col-sm-8">
+                                                <label for="address" class="form-label">Address</label>
+                                                <input type="text" class="form-control" id="address" value="" readonly data-bs-toggle="tooltip" title="Edit in General Care Plan" readonly>
+                                                </div>
+                                            <div class="col-md-3 col-sm-12">
+                                                <label for="category" class="form-label">Category</label>
+                                                <input type="text" class="form-control" id="category" 
+                                                value="" 
+                                                readonly data-bs-toggle="tooltip" title="Edit in General Care Plan">
+                                            </div>
+                                        </div>
+                                    </div>
+                                <hr>
+                                <!-- Replace the existing Care Services Summary section with this code -->
+                                <div class="row">
+                                    <div class="col-12">
+                                        <h6 class="text-center">Care Services Summary</h6>
+                                        <div id="careServicesCarousel" class="carousel slide" data-bs-interval="false">
+                                            <div class="carousel-inner">
+                                                <!-- Mobility Table -->
+                                                <div class="carousel-item active">
+                                                    <table class="table table-bordered table-sm">
+                                                        <thead>
+                                                            <tr>
+                                                                <th colspan="2" class="text-center bg-light position-relative">
+                                                                    <button class="btn btn-sm btn-outline-secondary position-absolute start-0" data-bs-target="#careServicesCarousel" data-bs-slide="prev">
+                                                                        <i class="bi bi-chevron-left"></i>
+                                                                    </button>
+                                                                    Mobility
+                                                                    <button class="btn btn-sm btn-outline-secondary position-absolute end-0" data-bs-target="#careServicesCarousel" data-bs-slide="next">
+                                                                        <i class="bi bi-chevron-right"></i>
+                                                                    </button>
+                                                                </th>
+                                                            </tr>
+                                                            <tr>
+                                                                <th>Intervention Implemented</th>
+                                                                <th class="text-center">Frequency</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            <tr>
+                                                                <td>Provided walker and physical therapy</td>
+                                                                <td class="text-center">3x/week</td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td>Installed stair lift</td>
+                                                                <td class="text-center">Daily</td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td>Caregiver-assisted transfers</td>
+                                                                <td class="text-center">As needed</td>
+                                                            </tr>
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+
+                                                <!-- Cognitive/Communication Table -->
+                                                <div class="carousel-item">
+                                                    <table class="table table-bordered table-sm">
+                                                        <thead>
+                                                            <tr>
+                                                                <th colspan="2" class="text-center bg-light position-relative">
+                                                                    <button class="btn btn-sm btn-outline-secondary position-absolute start-0" data-bs-target="#careServicesCarousel" data-bs-slide="prev">
+                                                                        <i class="bi bi-chevron-left"></i>
+                                                                    </button>
+                                                                    Cognitive / Communication
+                                                                    <button class="btn btn-sm btn-outline-secondary position-absolute end-0" data-bs-target="#careServicesCarousel" data-bs-slide="next">
+                                                                        <i class="bi bi-chevron-right"></i>
+                                                                    </button>
+                                                                </th>
+                                                            </tr>
+                                                            <tr>
+                                                                <th>Intervention Implemented</th>
+                                                                <th class="text-center">Frequency</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            <tr>
+                                                                <td>Memory exercises and reminders</td>
+                                                                <td class="text-center">Daily</td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td>Speech therapy sessions</td>
+                                                                <td class="text-center">2x/week</td>
+                                                            </tr>
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+
+                                                <!-- Self-sustainability Table -->
+                                                <div class="carousel-item">
+                                                    <table class="table table-bordered table-sm">
+                                                        <thead>
+                                                            <tr>
+                                                                <th colspan="2" class="text-center bg-light position-relative">
+                                                                    <button class="btn btn-sm btn-outline-secondary position-absolute start-0" data-bs-target="#careServicesCarousel" data-bs-slide="prev">
+                                                                        <i class="bi bi-chevron-left"></i>
+                                                                    </button>
+                                                                    Self-sustainability
+                                                                    <button class="btn btn-sm btn-outline-secondary position-absolute end-0" data-bs-target="#careServicesCarousel" data-bs-slide="next">
+                                                                        <i class="bi bi-chevron-right"></i>
+                                                                    </button>
+                                                                </th>
+                                                            </tr>
+                                                            <tr>
+                                                                <th>Intervention Implemented</th>
+                                                                <th class="text-center">Frequency</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            <tr>
+                                                                <td>Assistance with bathing and grooming</td>
+                                                                <td class="text-center">Daily</td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td>Meal delivery service</td>
+                                                                <td class="text-center">3x/day</td>
+                                                            </tr>
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+
+                                                <!-- Disease/Therapy Table -->
+                                                <div class="carousel-item">
+                                                    <table class="table table-bordered table-sm">
+                                                        <thead>
+                                                            <tr>
+                                                                <th colspan="2" class="text-center bg-light position-relative">
+                                                                    <button class="btn btn-sm btn-outline-secondary position-absolute start-0" data-bs-target="#careServicesCarousel" data-bs-slide="prev">
+                                                                        <i class="bi bi-chevron-left"></i>
+                                                                    </button>
+                                                                    Disease / Therapy
+                                                                    <button class="btn btn-sm btn-outline-secondary position-absolute end-0" data-bs-target="#careServicesCarousel" data-bs-slide="next">
+                                                                        <i class="bi bi-chevron-right"></i>
+                                                                    </button>
+                                                                </th>
+                                                            </tr>
+                                                            <tr>
+                                                                <th>Intervention Implemented</th>
+                                                                <th class="text-center">Frequency</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            <tr>
+                                                                <td>Memory exercises and reminders</td>
+                                                                <td class="text-center">Daily</td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td>Speech therapy sessions</td>
+                                                                <td class="text-center">2x/week</td>
+                                                            </tr>
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+
+                                                <!-- Social Contact Table -->
+                                                <div class="carousel-item">
+                                                    <table class="table table-bordered table-sm">
+                                                        <thead>
+                                                            <tr>
+                                                                <th colspan="2" class="text-center bg-light position-relative">
+                                                                    <button class="btn btn-sm btn-outline-secondary position-absolute start-0" data-bs-target="#careServicesCarousel" data-bs-slide="prev">
+                                                                        <i class="bi bi-chevron-left"></i>
+                                                                    </button>
+                                                                    Social Contact
+                                                                    <button class="btn btn-sm btn-outline-secondary position-absolute end-0" data-bs-target="#careServicesCarousel" data-bs-slide="next">
+                                                                        <i class="bi bi-chevron-right"></i>
+                                                                    </button>
+                                                                </th>
+                                                            </tr>
+                                                            <tr>
+                                                                <th>Intervention Implemented</th>
+                                                                <th class="text-center">Frequency</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            <tr>
+                                                                <td>Weekly visits from social worker</td>
+                                                                <td class="text-center">1x/week</td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td>Video call setup assistance</td>
+                                                                <td class="text-center">3x/week</td>
+                                                            </tr>
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+
+                                                <!-- Outdoor Activities Table -->
+                                                <div class="carousel-item">
+                                                    <table class="table table-bordered table-sm">
+                                                        <thead>
+                                                            <tr>
+                                                                <th colspan="2" class="text-center bg-light position-relative">
+                                                                    <button class="btn btn-sm btn-outline-secondary position-absolute start-0" data-bs-target="#careServicesCarousel" data-bs-slide="prev">
+                                                                        <i class="bi bi-chevron-left"></i>
+                                                                    </button>
+                                                                    Outdoor Activities
+                                                                    <button class="btn btn-sm btn-outline-secondary position-absolute end-0" data-bs-target="#careServicesCarousel" data-bs-slide="next">
+                                                                        <i class="bi bi-chevron-right"></i>
+                                                                    </button>
+                                                                </th>
+                                                            </tr>
+                                                            <tr>
+                                                                <th>Intervention Implemented</th>
+                                                                <th class="text-center">Frequency</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            <tr>
+                                                                <td>Medical transport service</td>
+                                                                <td class="text-center">1x/week</td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td>Accompanied walks in park</td>
+                                                                <td class="text-center">2x/week</td>
+                                                            </tr>
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+
+                                                <!-- Household Keeping Table -->
+                                                <div class="carousel-item">
+                                                    <table class="table table-bordered table-sm">
+                                                        <thead>
+                                                            <tr>
+                                                                <th colspan="2" class="text-center bg-light position-relative">
+                                                                    <button class="btn btn-sm btn-outline-secondary position-absolute start-0" data-bs-target="#careServicesCarousel" data-bs-slide="prev">
+                                                                        <i class="bi bi-chevron-left"></i>
+                                                                    </button>
+                                                                    Household Keeping
+                                                                    <button class="btn btn-sm btn-outline-secondary position-absolute end-0" data-bs-target="#careServicesCarousel" data-bs-slide="next">
+                                                                        <i class="bi bi-chevron-right"></i>
+                                                                    </button>
+                                                                </th>
+                                                            </tr>
+                                                            <tr>
+                                                                <th>Intervention Implemented</th>
+                                                                <th class="text-center">Frequency</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            <tr>
+                                                                <td>Weekly housekeeping service</td>
+                                                                <td class="text-center">1x/week</td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td>Laundry pickup and delivery</td>
+                                                                <td class="text-center">2x/week</td>
+                                                            </tr>
+                                                        </tbody>
+                                                    </table>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
+                    </div>
+              
                         
                         <!-- Statistics Table Row -->
                         <div class="row mb-3" id="reportsTableRow">
@@ -181,84 +502,144 @@
                                         <strong class="text-center d-block">Health Statistics</strong>
                                     </div>
                                     <div class="card-body p-0 pb-1">
-                                        <div class="table-responsive">
-                                            <table class="table table-striped">
-                                                <thead>
-                                                    <tr>
-                                                        <th>Category</th>
-                                                        <th class="text-center">Male</th>
-                                                        <th class="text-center">Female</th>
-                                                        <th class="text-center">Total</th>
-                                                        <th class="text-center">Percentage</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody id="reportsTableBody">
-                                                    <tr>
-                                                        <td>Bedridden</td>
-                                                        <td class="text-center">12</td>
-                                                        <td class="text-center">15</td>
-                                                        <td class="text-center">27</td>
-                                                        <td class="text-center">13%</td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td>Bedridden & Living Alone</td>
-                                                        <td class="text-center">5</td>
-                                                        <td class="text-center">7</td>
-                                                        <td class="text-center">12</td>
-                                                        <td class="text-center">6%</td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td>Frail</td>
-                                                        <td class="text-center">20</td>
-                                                        <td class="text-center">25</td>
-                                                        <td class="text-center">45</td>
-                                                        <td class="text-center">22%</td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td>Frail / PWD</td>
-                                                        <td class="text-center">8</td>
-                                                        <td class="text-center">10</td>
-                                                        <td class="text-center">18</td>
-                                                        <td class="text-center">9%</td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td>Frail / PWD & Living Alone</td>
-                                                        <td class="text-center">3</td>
-                                                        <td class="text-center">4</td>
-                                                        <td class="text-center">7</td>
-                                                        <td class="text-center">3%</td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td>Frail / Living Alone</td>
-                                                        <td class="text-center">6</td>
-                                                        <td class="text-center">8</td>
-                                                        <td class="text-center">14</td>
-                                                        <td class="text-center">7%</td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td>Frail / Dementia</td>
-                                                        <td class="text-center">4</td>
-                                                        <td class="text-center">5</td>
-                                                        <td class="text-center">9</td>
-                                                        <td class="text-center">4%</td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td>Dementia</td>
-                                                        <td class="text-center">10</td>
-                                                        <td class="text-center">12</td>
-                                                        <td class="text-center">22</td>
-                                                        <td class="text-center">11%</td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td><strong>Total</strong></td>
-                                                        <td class="text-center"><strong>68</strong></td>
-                                                        <td class="text-center"><strong>86</strong></td>
-                                                        <td class="text-center"><strong>154</strong></td>
-                                                        <td class="text-center"><strong>100%</strong></td>
-                                                    </tr>
-                                                </tbody>
-                                            </table>
-                                        </div>
+                                    <div class="table-responsive">
+                                    <table class="table table-striped">
+                                        <thead>
+                                            <tr>
+                                                <th>Category</th>
+                                                <th class="text-center">Age 60-69</th>
+                                                <th class="text-center">Age 70-79</th>
+                                                <th class="text-center">Age 80-89</th>
+                                                <th class="text-center">Age 90+</th>
+                                                <th class="text-center">Male</th>
+                                                <th class="text-center">Female</th>
+                                                <th class="text-center">Single</th>
+                                                <th class="text-center">Married</th>
+                                                <th class="text-center">Widowed</th>
+                                                <th class="text-center">Percentage</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="reportsTableBody">
+                                            <tr>
+                                                <td>Bedridden</td>
+                                                <td class="text-center">0</td>
+                                                <td class="text-center">27</td>
+                                                <td class="text-center">0</td>
+                                                <td class="text-center">0</td>
+                                                <td class="text-center">12</td>
+                                                <td class="text-center">15</td>
+                                                <td class="text-center">5</td>
+                                                <td class="text-center">15</td>
+                                                <td class="text-center">7</td>
+                                                <td class="text-center">13%</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Bedridden & Living Alone</td>
+                                                <td class="text-center">0</td>
+                                                <td class="text-center">0</td>
+                                                <td class="text-center">12</td>
+                                                <td class="text-center">0</td>
+                                                <td class="text-center">5</td>
+                                                <td class="text-center">7</td>
+                                                <td class="text-center">3</td>
+                                                <td class="text-center">6</td>
+                                                <td class="text-center">3</td>
+                                                <td class="text-center">6%</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Frail</td>
+                                                <td class="text-center">45</td>
+                                                <td class="text-center">0</td>
+                                                <td class="text-center">0</td>
+                                                <td class="text-center">0</td>
+                                                <td class="text-center">20</td>
+                                                <td class="text-center">25</td>
+                                                <td class="text-center">10</td>
+                                                <td class="text-center">20</td>
+                                                <td class="text-center">15</td>
+                                                <td class="text-center">22%</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Frail / PWD</td>
+                                                <td class="text-center">0</td>
+                                                <td class="text-center">18</td>
+                                                <td class="text-center">0</td>
+                                                <td class="text-center">0</td>
+                                                <td class="text-center">8</td>
+                                                <td class="text-center">10</td>
+                                                <td class="text-center">4</td>
+                                                <td class="text-center">8</td>
+                                                <td class="text-center">6</td>
+                                                <td class="text-center">9%</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Frail / PWD & Living Alone</td>
+                                                <td class="text-center">0</td>
+                                                <td class="text-center">0</td>
+                                                <td class="text-center">7</td>
+                                                <td class="text-center">0</td>
+                                                <td class="text-center">3</td>
+                                                <td class="text-center">4</td>
+                                                <td class="text-center">2</td>
+                                                <td class="text-center">3</td>
+                                                <td class="text-center">2</td>
+                                                <td class="text-center">3%</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Frail / Living Alone</td>
+                                                <td class="text-center">0</td>
+                                                <td class="text-center">0</td>
+                                                <td class="text-center">0</td>
+                                                <td class="text-center">14</td>
+                                                <td class="text-center">6</td>
+                                                <td class="text-center">8</td>
+                                                <td class="text-center">3</td>
+                                                <td class="text-center">7</td>
+                                                <td class="text-center">4</td>
+                                                <td class="text-center">7%</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Frail / Dementia</td>
+                                                <td class="text-center">0</td>
+                                                <td class="text-center">9</td>
+                                                <td class="text-center">0</td>
+                                                <td class="text-center">0</td>
+                                                <td class="text-center">4</td>
+                                                <td class="text-center">5</td>
+                                                <td class="text-center">2</td>
+                                                <td class="text-center">4</td>
+                                                <td class="text-center">3</td>
+                                                <td class="text-center">4%</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Dementia</td>
+                                                <td class="text-center">0</td>
+                                                <td class="text-center">0</td>
+                                                <td class="text-center">22</td>
+                                                <td class="text-center">0</td>
+                                                <td class="text-center">10</td>
+                                                <td class="text-center">12</td>
+                                                <td class="text-center">5</td>
+                                                <td class="text-center">10</td>
+                                                <td class="text-center">7</td>
+                                                <td class="text-center">11%</td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>Total</strong></td>
+                                                <td class="text-center"><strong>45</strong></td>
+                                                <td class="text-center"><strong>54</strong></td>
+                                                <td class="text-center"><strong>41</strong></td>
+                                                <td class="text-center"><strong>14</strong></td>
+                                                <td class="text-center"><strong>68</strong></td>
+                                                <td class="text-center"><strong>86</strong></td>
+                                                <td class="text-center"><strong>34</strong></td>
+                                                <td class="text-center"><strong>73</strong></td>
+                                                <td class="text-center"><strong>47</strong></td>
+                                                <td class="text-center"><strong>100%</strong></td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
                                     </div>
                                 </div>
                             </div>
