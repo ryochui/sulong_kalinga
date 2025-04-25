@@ -84,6 +84,7 @@
     flex: 0 0 30%; /* Don't grow or shrink */
     max-width: 550px; /* Maximum width for larger screens */
     z-index: 20;
+    transition: transform 0.3s ease; /* Added for mobile animation */
 }
 
 /* Conversation search styling */
@@ -138,8 +139,32 @@
 }
 
 .conversation-item.active {
-    background-color: #e9f0ff;
-    border-left: 3px solid #007bff;
+    background-color: #eaffcd; /* Light green background */
+    border-left: 3px solid #28a745; /* Green left border */
+}
+
+/* Keep unread message styling with blue theme */
+.conversation-item.unread:not(.active) {
+    background-color: rgba(13, 110, 253, 0.08);
+    border-left: 3px solid #0d6efd;
+}
+
+/* Combined styles for when a conversation is both unread and active */
+.conversation-item.unread.active {
+    background-color: #e2ffb9; /* Priority to active styling */
+    border-left: 3px solid #28a745;
+}
+
+/* Add a subtle indicator for combined state */
+.conversation-item.unread.active::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 8px;
+    height: 8px;
+    border-radius: 0 0 0 8px;
+    background-color: #0d6efd;
 }
 
 .conversation-item.unread {
@@ -428,12 +453,31 @@ textarea.message-input {
     display: flex;
     flex-direction: column;
     align-items: center;
+    background-color: #f8f9fa;
+    transition: all 0.2s ease;
+    height: 120px;
+    text-align: center;
 }
 
-.file-preview img {
+.file-preview:hover {
+    border-color: #adb5bd;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.file-preview img, .file-preview .file-icon {
+    max-width: 100%;
+    max-height: 60px;
+    margin-bottom: 8px;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.file-preview-img {
     max-width: 100%;
     max-height: 80px;
     object-fit: contain;
+    border-radius: 4px;
 }
 
 .file-icon {
@@ -445,7 +489,16 @@ textarea.message-input {
     height: 60px;
 }
 
-.file-name {
+.file-icon i {
+    font-size: 1.75rem;
+    color: #495057;
+}
+
+.message.outgoing .file-icon i {
+    color: rgba(90, 90, 90, 0.8);
+}
+
+.file-name, .file-filename {
     font-size: 0.8rem;
     text-align: center;
     word-break: break-word;
@@ -473,6 +526,74 @@ textarea.message-input {
     cursor: pointer;
     font-weight: bold;
     font-size: 14px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+/* ======== MESSAGE ATTACHMENTS ======== */
+
+/* Attachment styling in messages - FIXED SECTION */
+.message-attachments {
+    margin-top: 8px;
+    margin-bottom: 5px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    clear: both;
+    width: 100%;
+}
+
+.attachment-container {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    max-width: 150px;
+    margin-right: 10px;
+    margin-bottom: 10px;
+}
+
+.attachment-link, .attachment-file {
+    display: block;
+    text-decoration: none;
+    color: inherit;
+}
+
+.attachment-img {
+    max-width: 150px;
+    max-height: 120px;
+    border-radius: 8px;
+    border: 1px solid rgba(0,0,0,0.1);
+    object-fit: cover;
+}
+
+.attachment-file {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 80px;
+    height: 80px;
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+}
+
+.message.outgoing .attachment-file {
+    background-color: rgba(0, 0, 0, 0.2);
+    border-color: rgba(255, 255, 255, 0.3);
+    color: rgba(90, 90, 90, 0.8);
+}
+
+.attachment-filename {
+    font-size: 0.75rem;
+    margin-top: 5px;
+    text-align: center;
+    max-width: 150px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.message.outgoing .attachment-filename {
+    color: rgba(90, 90, 90, 0.8);
 }
 
 /* ======== EMPTY STATES ======== */
@@ -498,7 +619,32 @@ textarea.message-input {
 
 /* ======== RESPONSIVE DESIGN ======== */
 
-/* Mobile responsive improvements */
+/* Mobile toggle button for conversation list - CRITICAL FIX */
+.toggle-conversation-list {
+    display: none;
+    position: fixed;
+    bottom: 20px;
+    left: 20px; /* Changed from right: 20px to left: 20px */
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background-color: #0d6efd;
+    color: white;
+    border: none;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    z-index: 1000;
+    font-size: 1.5rem;
+    transition: transform 0.3s ease;
+    cursor: pointer;
+    justify-content: center;
+    align-items: center;
+}
+
+.toggle-conversation-list:hover {
+    transform: scale(1.1);
+}
+
+/* Mobile responsive improvements - FIXED SECTION */
 @media (max-width: 768px) {
     /* Fixed mobile layout with toggleable conversation list */
     .messaging-container {
@@ -534,22 +680,15 @@ textarea.message-input {
         bottom: 60px;
     }
     
-    /* Toggle button */
+    /* Toggle button - FIXED */
     .toggle-conversation-list {
+        display: flex;
         position: fixed;
         bottom: 20px;
-        left: 20px;
-        z-index: 100;
-        width: 50px;
-        height: 50px;
-        border-radius: 50%;
-        background: #007bff;
-        color: white;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-        border: none;
+        right: 20px;
+        z-index: 1000;
+        width: 60px;
+        height: 60px;
     }
 }
 
@@ -568,88 +707,30 @@ textarea.message-input {
     }
 }
 
-/* Attachment styling in messages */
-.message-attachments {
-    margin: 5px 0;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
+/* ======== ADDITIONAL STYLES ======== */
+
+/* Message sender in group chats */
+.message-sender {
+    margin-bottom: 2px;
+    font-size: 0.8rem;
 }
 
-.attachment-container {
-    display: inline-flex;
-    flex-direction: column;
-    align-items: center;
-    margin: 5px 10px 5px 0;
-    max-width: 200px;
-}
-
-.attachment-link {
-    display: block;
-    text-decoration: none;
-}
-
-.attachment-img {
-    max-width: 200px;
-    max-height: 150px;
-    border-radius: 8px;
-    border: 1px solid #dee2e6;
-    display: block;
-}
-
-.attachment-file {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    background-color: #f8f9fa;
-    border: 1px solid #dee2e6;
-    border-radius: 8px;
-    padding: 10px;
-    width: 100px;
-    height: 100px;
-    justify-content: center;
-    text-decoration: none;
-    color: inherit;
-}
-
-.attachment-filename {
-    font-size: 0.75rem;
-    color: #6c757d;
-    margin-top: 5px;
-    text-align: center;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    max-width: 200px;
-}
-
-.message-attachments .file-icon {
-    height: 40px;
-    font-size: 1.75rem;
+/* Loading state for file previews */
+.file-loading {
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #6c757d;
+    height: 60px;
+    margin-bottom: 8px;
+    width: 100%;
 }
 
-/* Adjust attachment styling based on message type */
-.message.outgoing .attachment-filename {
-    color: rgba(255, 255, 255, 0.9);
-}
-
-.message.outgoing .attachment-file {
-    background-color: rgba(255, 255, 255, 0.2);
-    border-color: rgba(255, 255, 255, 0.3);
-}
-
-.message.outgoing .file-icon {
-    color: rgba(255, 255, 255, 0.9);
-}
-
-.message-image {
-    max-width: 100%;
-    border-radius: 0.5rem;
-    margin-bottom: 0.5rem;
+/* File error container */
+.file-error-container {
+    margin-bottom: 10px;
+    padding: 8px 12px;
+    font-size: 0.9rem;
+    animation: fadeIn 0.3s ease;
 }
 
 /* Search highlight styles */
@@ -792,4 +873,40 @@ textarea.message-input {
     margin-top: 3px;
     font-size: 0.7rem;
     opacity: 0.7;
+}
+
+.conversation-item .unread-badge {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background-color: #dc3545;
+    color: white;
+    border-radius: 50%;
+    min-width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-weight: bold;
+    border: 2px solid #fff;
+    padding: 0 4px;
+}
+
+/* Style for unread conversations */
+.conversation-item.unread {
+    background-color: rgba(13, 110, 253, 0.08);
+    border-left: 3px solid #0d6efd;
+}
+
+.conversation-item.unread .conversation-title,
+.conversation-item.unread .conversation-preview {
+    font-weight: 600;
+    color: #212529;
+}
+
+/* Animation for error messages */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
 }

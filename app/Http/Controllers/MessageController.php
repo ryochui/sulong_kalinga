@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 use App\Models\Conversation;
 use App\Models\Message;
 use App\Models\MessageAttachment;
@@ -187,7 +188,7 @@ class MessageController extends Controller
     }
     
     /**
-     * Send a message.
+     * Send a message via AJAX or form submission
      */
     public function sendMessage(Request $request)
     {
@@ -195,63 +196,110 @@ class MessageController extends Controller
             $user = Auth::user();
             $rolePrefix = $this->getRoleRoutePrefix();
             
-            $request->validate([
+            $validatedData = $request->validate([
                 'conversation_id' => 'required|exists:conversations,conversation_id',
-                'content' => 'required_without:attachments',
-                'attachments.*' => 'sometimes|file|max:10240', // 10MB max
+                'content' => 'nullable|string',
+                'attachments.*' => 'sometimes|file|max:10240|mimes:jpeg,png,gif,webp,pdf,doc,docx,xls,xlsx,txt', // 10MB max with specific mime types
             ]);
             
-            $conversation = Conversation::findOrFail($request->conversation_id);
+            $conversationId = $request->conversation_id;
+            $conversation = Conversation::findOrFail($conversationId);
             
             // Check if user is participant
             $isParticipant = $conversation->hasParticipant($user->id, 'cose_staff');
             if (!$isParticipant) {
-                return redirect()->route($rolePrefix . '.messaging.index')
-                    ->with('error', 'You do not have access to this conversation.');
+                return $this->jsonResponse(false, 'You are not a participant in this conversation', 403);
             }
             
             // Create message
-            $message = Message::create([
-                'conversation_id' => $conversation->conversation_id,
+            $message = new Message([
+                'conversation_id' => $conversationId,
                 'sender_id' => $user->id,
                 'sender_type' => 'cose_staff',
                 'content' => $request->content,
                 'message_timestamp' => now(),
             ]);
+            $message->save();
             
             // Handle attachments
             if ($request->hasFile('attachments')) {
                 foreach ($request->file('attachments') as $file) {
-                    $fileName = $file->getClientOriginalName();
-                    $fileType = $file->getMimeType();
-                    $fileSize = $file->getSize();
-                    $isImage = strpos($fileType, 'image') === 0;
+                    // Create a unique filename
+                    $filename = uniqid() . '_' . $file->getClientOriginalName();
                     
-                    // Store path based on file type
-                    $path = $isImage ? 'message_attachments/images' : 'message_attachments/documents';
-                    $filePath = $file->store($path, 'public');
+                    // Store the file
+                    $filePath = $file->storeAs('message_attachments', $filename, 'public');
                     
-                    MessageAttachment::create([
+                    // Create attachment record
+                    $attachment = new MessageAttachment([
                         'message_id' => $message->message_id,
-                        'file_name' => $fileName,
+                        'file_name' => $file->getClientOriginalName(),
                         'file_path' => $filePath,
-                        'file_type' => $fileType,
-                        'file_size' => $fileSize,
-                        'is_image' => $isImage,
+                        'file_type' => $file->getMimeType(),
+                        'file_size' => $file->getSize(),
+                        'is_image' => Str::startsWith($file->getMimeType(), 'image/')
                     ]);
+                    $attachment->save();
                 }
             }
             
             // Update last message in conversation
             $conversation->last_message_id = $message->message_id;
             $conversation->save();
+
+            // After saving the message and attachments
+            $attachmentData = [];
+            if ($message->attachments->count() > 0) {
+                foreach ($message->attachments as $attachment) {
+                    $attachmentData[] = [
+                        'id' => $attachment->id,
+                        'file_name' => $attachment->file_name,
+                        'file_path' => $attachment->file_path,
+                        'file_type' => $attachment->file_type,
+                        'file_size' => $attachment->file_size,
+                        'is_image' => $attachment->is_image
+                    ];
+                }
+            }
             
-            return redirect()->route($rolePrefix . '.messaging.conversation', $conversation->conversation_id)
+            // If AJAX request, return JSON
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message_id' => $message->message_id,
+                    'message' => [
+                        'content' => $message->content,
+                    ],
+                    'attachments' => $attachmentData
+                ]);
+            }
+            
+            // Otherwise redirect back
+            return redirect()->route($rolePrefix . '.messaging.index', ['conversation' => $conversationId])
                 ->with('success', 'Message sent successfully.');
         } catch (\Exception $e) {
-            Log::error('Error sending message: ' . $e->getMessage());
-            return back()->with('error', 'Message could not be sent. Please try again.');
+            Log::error('Error sending message: ' . $e->getMessage() . "\n" . $e->getTraceAsString());
+            
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Error sending message: ' . $e->getMessage()
+                ], 500);
+            }
+            
+            return back()->with('error', 'Message could not be sent: ' . $e->getMessage());
         }
+    }
+
+    /**
+     * Helper for consistent JSON responses
+     */
+    private function jsonResponse($success, $message, $statusCode = 200, $data = [])
+    {
+        return response()->json(array_merge([
+            'success' => $success,
+            'message' => $message
+        ], $data), $statusCode);
     }
     
     /**
@@ -810,7 +858,7 @@ class MessageController extends Controller
             
             // Get the conversation with participants
             $conversation = Conversation::with([
-                'messages.attachments',
+                'messages.attachments', // This is already correctly loading attachments
                 'participants'
             ])->findOrFail($conversationId);
             
@@ -835,7 +883,7 @@ class MessageController extends Controller
             }
             
             // Get messages for this conversation
-            $messages = Message::with(['attachments', 'readStatuses'])
+                $messages = Message::with(['attachments', 'readStatuses'])
                 ->where('conversation_id', $conversationId)
                 ->orderBy('message_timestamp', 'asc')
                 ->get();
@@ -854,6 +902,43 @@ class MessageController extends Controller
                     $message->sender_name = $sender ? $sender->first_name . ' ' . $sender->last_name : 'Unknown Family Member';
                 } else {
                     $message->sender_name = 'Unknown';
+                }
+
+                if ($message->attachments && $message->attachments->count() > 0) {
+                    Log::debug('Message has attachments', [
+                        'message_id' => $message->message_id,
+                        'attachments_count' => $message->attachments->count()
+                    ]);
+                    
+                    // Process each attachment to ensure consistent formatting
+                    foreach ($message->attachments as $attachment) {
+                        // Make sure it has the correct properties
+                        $attachment->file_path = str_replace('public/', '', $attachment->file_path);
+                        
+                        // Ensure is_image is properly set as boolean for JS use
+                        if (is_string($attachment->is_image)) {
+                            $attachment->is_image = $attachment->is_image === '1' || $attachment->is_image === 'true';
+                        }
+                        
+                        // If file_type is missing, infer it from the file extension
+                        if (empty($attachment->file_type)) {
+                            $extension = pathinfo($attachment->file_name, PATHINFO_EXTENSION);
+                            if (in_array($extension, ['jpg', 'jpeg', 'png', 'gif', 'webp'])) {
+                                $attachment->file_type = 'image/' . $extension;
+                                $attachment->is_image = true;
+                            } else if ($extension === 'pdf') {
+                                $attachment->file_type = 'application/pdf';
+                            } else if (in_array($extension, ['doc', 'docx'])) {
+                                $attachment->file_type = 'application/msword';
+                            } else if (in_array($extension, ['xls', 'xlsx'])) {
+                                $attachment->file_type = 'application/vnd.ms-excel';
+                            } else if ($extension === 'txt') {
+                                $attachment->file_type = 'text/plain';
+                            } else {
+                                $attachment->file_type = 'application/octet-stream';
+                            }
+                        }
+                    }
                 }
             }
             
@@ -979,6 +1064,61 @@ class MessageController extends Controller
         }
         
         return implode(', ', $names);
+    }
+
+    /**
+     * Get conversations list via AJAX to refresh the sidebar
+     */
+    public function getConversationsList(Request $request)
+    {
+        try {
+            $user = Auth::user();
+            
+            // Get conversations
+            $conversations = $this->getUserConversations($user);
+            
+            // Process participant names for display
+            foreach ($conversations as $conversation) {
+                if (!$conversation->is_group_chat) {
+                    // Find the other participant
+                    $otherParticipant = $conversation->participants()
+                        ->where(function($query) use ($user) {
+                            $query->where('participant_id', '!=', $user->id)
+                                ->orWhere('participant_type', '!=', 'cose_staff');
+                        })
+                        ->whereNull('left_at')
+                        ->first();
+                    
+                    if ($otherParticipant) {
+                        $conversation->other_participant_name = $this->getParticipantName($otherParticipant);
+                        $conversation->other_participant_type = $otherParticipant->participant_type;
+                    } else {
+                        $conversation->other_participant_name = 'Unknown User';
+                        $conversation->other_participant_type = '';
+                    }
+                }
+            }
+            
+            // Render conversation list HTML
+            $html = view('components.conversation-list', [
+                'conversations' => $conversations
+            ])->render();
+            
+            return response()->json([
+                'success' => true,
+                'html' => $html
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error getting conversations list', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Error loading conversations: ' . $e->getMessage()
+            ]);
+        }
     }
 
 }
