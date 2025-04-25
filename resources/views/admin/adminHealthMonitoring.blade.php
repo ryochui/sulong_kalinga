@@ -24,7 +24,14 @@
     @include('components.adminSidebar')
 
     <div class="home-section">
-        <div class="text-left">HEALTH MONITORING</div>
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <div class="text-left">
+                <strong>HEALTH MONITORING</strong>
+            </div>
+            <button class="btn btn-danger btn-md" id="exportPdfBtn">
+                <i class="bi bi-file-earmark-pdf"></i> Export to PDF
+            </button>
+        </div>
             <div class="container-fluid">
                 <div class="row" id="home-content">
                     <div class="col-12 mb-2">
@@ -166,58 +173,92 @@
                             </div>
                         </div>
                         
-                        <!-- Reports Table Row (hidden by default) -->
-                        <div class="row mb-3 d-none" id="reportsTableRow">
+                        <!-- Statistics Table Row -->
+                        <div class="row mb-3" id="reportsTableRow">
                             <div class="col-12">
                                 <div class="card shadow-sm">
                                     <div class="card-header">
-                                        <strong class="text-center d-block">Health Reports</strong>
+                                        <strong class="text-center d-block">Health Statistics</strong>
                                     </div>
                                     <div class="card-body p-0 pb-1">
-                                    <div class="table-responsive">
-    <table class="table table-striped">
-        <thead>
-            <tr>
-                <th>Author</th>
-                <th>Report Type</th>
-                <th class="d-none d-md-table-cell">Date Uploaded</th> <!-- Hide on small screens -->
-                <th class="text-center">Action</th>
-            </tr>
-        </thead>
-        <tbody id="reportsTableBody">
-            <tr>
-                <td>Dr. Smith</td>
-                <td>Initial Assessment</td>
-                <td class="d-none d-md-table-cell">2023-05-15</td> <!-- Hide on small screens -->
-                <td class="text-center">
-                    <button class="btn btn-link" title="View Report">
-                        <i class="bi bi-eye"></i>
-                    </button>
-                </td>
-            </tr>
-            <tr>
-                <td>Nurse Johnson</td>
-                <td>Monthly Checkup</td>
-                <td class="d-none d-md-table-cell">2023-06-20</td> <!-- Hide on small screens -->
-                <td class="text-center">
-                    <button class="btn btn-link" title="View Report">
-                        <i class="bi bi-eye"></i>
-                    </button>
-                </td>
-            </tr>
-            <tr>
-                <td>Dr. Williams</td>
-                <td>Follow-up</td>
-                <td class="d-none d-md-table-cell">2023-07-10</td> <!-- Hide on small screens -->
-                <td class="text-center">
-                    <button class="btn btn-link" title="View Report">
-                        <i class="bi bi-eye"></i>
-                    </button>
-                </td>
-            </tr>
-        </tbody>
-    </table>
-</div>
+                                        <div class="table-responsive">
+                                            <table class="table table-striped">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Category</th>
+                                                        <th class="text-center">Male</th>
+                                                        <th class="text-center">Female</th>
+                                                        <th class="text-center">Total</th>
+                                                        <th class="text-center">Percentage</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="reportsTableBody">
+                                                    <tr>
+                                                        <td>Bedridden</td>
+                                                        <td class="text-center">12</td>
+                                                        <td class="text-center">15</td>
+                                                        <td class="text-center">27</td>
+                                                        <td class="text-center">13%</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Bedridden & Living Alone</td>
+                                                        <td class="text-center">5</td>
+                                                        <td class="text-center">7</td>
+                                                        <td class="text-center">12</td>
+                                                        <td class="text-center">6%</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Frail</td>
+                                                        <td class="text-center">20</td>
+                                                        <td class="text-center">25</td>
+                                                        <td class="text-center">45</td>
+                                                        <td class="text-center">22%</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Frail / PWD</td>
+                                                        <td class="text-center">8</td>
+                                                        <td class="text-center">10</td>
+                                                        <td class="text-center">18</td>
+                                                        <td class="text-center">9%</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Frail / PWD & Living Alone</td>
+                                                        <td class="text-center">3</td>
+                                                        <td class="text-center">4</td>
+                                                        <td class="text-center">7</td>
+                                                        <td class="text-center">3%</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Frail / Living Alone</td>
+                                                        <td class="text-center">6</td>
+                                                        <td class="text-center">8</td>
+                                                        <td class="text-center">14</td>
+                                                        <td class="text-center">7%</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Frail / Dementia</td>
+                                                        <td class="text-center">4</td>
+                                                        <td class="text-center">5</td>
+                                                        <td class="text-center">9</td>
+                                                        <td class="text-center">4%</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Dementia</td>
+                                                        <td class="text-center">10</td>
+                                                        <td class="text-center">12</td>
+                                                        <td class="text-center">22</td>
+                                                        <td class="text-center">11%</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td><strong>Total</strong></td>
+                                                        <td class="text-center"><strong>68</strong></td>
+                                                        <td class="text-center"><strong>86</strong></td>
+                                                        <td class="text-center"><strong>154</strong></td>
+                                                        <td class="text-center"><strong>100%</strong></td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -288,83 +329,67 @@
     <script>
         // Chart variables
         let bloodPressureChart, heartRateChart, respiratoryRateChart, temperatureChart;
-        
+
         // Initialize charts
         function initCharts() {
-            // Sample data for weeks in a month
             const weekLabels = ['Week 1', 'Week 2', 'Week 3', 'Week 4'];
-            
+
             // Blood Pressure Chart
             const bloodPressureCtx = document.getElementById('bloodPressureChart').getContext('2d');
-            bloodPressureChart = new Chart(bloodPressureCtx, {
-                type: 'line',
-                data: {
-                    labels: weekLabels,
-                    datasets: [{
-                        label: 'Blood Pressure (mmHg)',
-                        data: [120, 125, 130, 128],
-                        borderColor: 'rgba(75, 192, 192, 1)',
-                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                        fill: true,
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                }
-            });
+            bloodPressureChart = createChart(
+                bloodPressureCtx,
+                'Blood Pressure (mmHg)',
+                weekLabels,
+                [120, 125, 130, 128],
+                'rgba(255, 99, 132, 1)', // Border color
+                'rgba(255, 99, 132, 0.2)' // Background color
+            );
 
             // Heart Rate Chart
             const heartRateCtx = document.getElementById('heartRateChart').getContext('2d');
-            heartRateChart = new Chart(heartRateCtx, {
-                type: 'line',
-                data: {
-                    labels: weekLabels,
-                    datasets: [{
-                        label: 'Heart Rate (bpm)',
-                        data: [72, 75, 78, 76],
-                        borderColor: 'rgba(255, 99, 132, 1)',
-                        backgroundColor: 'rgba(255, 99, 132, 0.2)',
-                        fill: true,
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                }
-            });
+            heartRateChart = createChart(
+                heartRateCtx,
+                'Heart Rate (bpm)',
+                weekLabels,
+                [72, 75, 78, 76],
+                'rgba(54, 162, 235, 1)', // Border color
+                'rgba(54, 162, 235, 0.2)' // Background color
+            );
 
             // Respiratory Rate Chart
             const respiratoryRateCtx = document.getElementById('respiratoryRateChart').getContext('2d');
-            respiratoryRateChart = new Chart(respiratoryRateCtx, {
-                type: 'line',
-                data: {
-                    labels: weekLabels,
-                    datasets: [{
-                        label: 'Respiratory Rate (breaths/min)',
-                        data: [16, 18, 17, 16],
-                        borderColor: 'rgba(54, 162, 235, 1)',
-                        backgroundColor: 'rgba(54, 162, 235, 0.2)',
-                        fill: true,
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                }
-            });
+            respiratoryRateChart = createChart(
+                respiratoryRateCtx,
+                'Respiratory Rate (breaths/min)',
+                weekLabels,
+                [16, 18, 17, 16],
+                'rgba(255, 206, 86, 1)', // Border color
+                'rgba(255, 206, 86, 0.2)' // Background color
+            );
 
             // Temperature Chart
             const temperatureCtx = document.getElementById('temperatureChart').getContext('2d');
-            temperatureChart = new Chart(temperatureCtx, {
+            temperatureChart = createChart(
+                temperatureCtx,
+                'Temperature (°C)',
+                weekLabels,
+                [36.5, 36.7, 36.8, 36.6],
+                'rgba(75, 192, 192, 1)', // Border color
+                'rgba(75, 192, 192, 0.2)' // Background color
+            );
+        }
+
+        // Create a chart
+        function createChart(ctx, label, labels, data, borderColor, backgroundColor) {
+            return new Chart(ctx, {
                 type: 'line',
                 data: {
-                    labels: weekLabels,
+                    labels: labels,
                     datasets: [{
-                        label: 'Temperature (°C)',
-                        data: [36.5, 36.7, 36.8, 36.6],
-                        borderColor: 'rgba(255, 206, 86, 1)',
-                        backgroundColor: 'rgba(255, 206, 86, 0.2)',
+                        label: label,
+                        data: data,
+                        borderColor: borderColor,
+                        backgroundColor: backgroundColor,
                         fill: true,
                     }]
                 },
@@ -374,16 +399,41 @@
                 }
             });
         }
-        
+
+        // Toggle Beneficiary Details and Health Reports
+        function toggleBeneficiaryDetails() {
+            const beneficiaryId = document.getElementById('beneficiarySelect').value;
+            const detailsRow = document.getElementById('beneficiaryDetailsRow');
+            const reportsRow = document.getElementById('reportsTableRow');
+
+            if (beneficiaryId) {
+                // Show Beneficiary Details and hide Health Reports
+                detailsRow.classList.remove('d-none');
+                reportsRow.classList.add('d-none');
+
+                // Update Beneficiary Details with sample data
+                document.getElementById('beneficiaryAge').textContent = Math.floor(Math.random() * 30) + 50;
+                document.getElementById('beneficiaryGender').textContent = beneficiaryId % 2 === 0 ? 'Female' : 'Male';
+                document.getElementById('beneficiaryCivilStatus').textContent =
+                    ['Single', 'Married', 'Widowed', 'Separated'][Math.floor(Math.random() * 4)];
+                document.getElementById('beneficiaryCategory').textContent =
+                    ['Frail', 'Bedridden', 'Disabled', 'Chronic Illness'][Math.floor(Math.random() * 4)];
+            } else {
+                // Show Health Reports and hide Beneficiary Details
+                detailsRow.classList.add('d-none');
+                reportsRow.classList.remove('d-none');
+            }
+        }
+
         // Update time range filter visibility
         function updateTimeFilters() {
             const timeRange = document.getElementById('timeRange').value;
-            
+
             // Hide all filters first
             document.getElementById('weekFilterContainer').classList.add('d-none');
             document.getElementById('monthRangeFilterContainer').classList.add('d-none');
             document.getElementById('yearFilterContainer').classList.add('d-none');
-            
+
             // Show the appropriate filter
             if (timeRange === 'weeks') {
                 document.getElementById('weekFilterContainer').classList.remove('d-none');
@@ -393,180 +443,62 @@
                 document.getElementById('yearFilterContainer').classList.remove('d-none');
             }
         }
-        
-        // Toggle beneficiary details and reports based on selection
-        function toggleBeneficiaryDetails() {
-            const beneficiaryId = document.getElementById('beneficiarySelect').value;
-            const detailsRow = document.getElementById('beneficiaryDetailsRow');
-            const reportsRow = document.getElementById('reportsTableRow');
-            
-            if (beneficiaryId) {
-                detailsRow.classList.remove('d-none');
-                reportsRow.classList.remove('d-none');
-                
-                // In a real app, you would fetch beneficiary details here
-                // For demo purposes, we'll just update with sample data
-                document.getElementById('beneficiaryAge').textContent = Math.floor(Math.random() * 30) + 50;
-                document.getElementById('beneficiaryGender').textContent = 
-                    beneficiaryId % 2 === 0 ? 'Female' : 'Male';
-                document.getElementById('beneficiaryCivilStatus').textContent = 
-                    ['Single', 'Married', 'Widowed', 'Separated'][Math.floor(Math.random() * 4)];
-                document.getElementById('beneficiaryCategory').textContent = 
-                    ['Frail', 'Bedridden', 'Disabled', 'Chronic Illness'][Math.floor(Math.random() * 4)];
-                
-                // Update reports table with sample data
-                const reports = [
-                    { author: 'Dr. Smith', type: 'Initial Assessment', date: '2023-05-15' },
-                    { author: 'Nurse Johnson', type: 'Monthly Checkup', date: '2023-06-20' },
-                    { author: 'Dr. Williams', type: 'Follow-up', date: '2023-07-10' }
-                ];
-                
-                const tableBody = document.getElementById('reportsTableBody');
-                tableBody.innerHTML = '';
-                reports.forEach(report => {
-                    const row = document.createElement('tr');
-                    row.innerHTML = `
-                        <td>${report.author}</td>
-                        <td>${report.type}</td>
-                        <td class="d-none d-md-table-cell">${report.date}</td>
-                        <td class="text-center">
-                            <button class="btn btn-link" title="View Report">
-                                <i class="bi bi-eye"></i>
-                            </button>
-                        </td>
-                    `;
-                    tableBody.appendChild(row);
-                });
-            } else {
-                detailsRow.classList.add('d-none');
-                reportsRow.classList.add('d-none');
-            }
-        }
-        
-        // Update charts based on selected filters
-        function updateCharts() {
+
+        // Apply filters and update charts
+        function applyFilters() {
             const timeRange = document.getElementById('timeRange').value;
-            const beneficiaryId = document.getElementById('beneficiarySelect').value;
-            const beneficiaryText = beneficiaryId ? 
-                document.getElementById('beneficiarySelect').options[document.getElementById('beneficiarySelect').selectedIndex].text : 
-                'All Beneficiaries';
-            
-            // Toggle beneficiary details visibility
-            toggleBeneficiaryDetails();
-            
-            // In a real application, you would fetch data from the server here
-            // For this example, we'll simulate different data based on the time range
-            
             let labels, bpData, hrData, rrData, tempData;
-            
+
             if (timeRange === 'weeks') {
                 const month = document.getElementById('monthSelect').value;
-                const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 
-                                    'July', 'August', 'September', 'October', 'November', 'December'];
-                
                 labels = ['Week 1', 'Week 2', 'Week 3', 'Week 4'];
-                bpData = [120 + month*2, 125 + month*2, 130 + month*2, 128 + month*2];
-                hrData = [72 + month, 75 + month, 78 + month, 76 + month];
-                rrData = [16 + month/3, 18 + month/3, 17 + month/3, 16 + month/3];
-                tempData = [36.5 + month/10, 36.7 + month/10, 36.8 + month/10, 36.6 + month/10];
-                
-                // Update chart titles to show month and beneficiary
-                document.querySelector('#bloodPressureChart').closest('.card').querySelector('.card-header strong').textContent = 
-                    `Blood Pressure - ${monthNames[month-1]} (${beneficiaryText})`;
-                document.querySelector('#heartRateChart').closest('.card').querySelector('.card-header strong').textContent = 
-                    `Heart Rate - ${monthNames[month-1]} (${beneficiaryText})`;
-                document.querySelector('#respiratoryRateChart').closest('.card').querySelector('.card-header strong').textContent = 
-                    `Respiratory Rate - ${monthNames[month-1]} (${beneficiaryText})`;
-                document.querySelector('#temperatureChart').closest('.card').querySelector('.card-header strong').textContent = 
-                    `Temperature - ${monthNames[month-1]} (${beneficiaryText})`;
-                
+                bpData = [120, 125, 130, 128];
+                hrData = [72, 75, 78, 76];
+                rrData = [16, 18, 17, 16];
+                tempData = [36.5, 36.7, 36.8, 36.6];
             } else if (timeRange === 'months') {
                 const startMonth = parseInt(document.getElementById('startMonth').value);
                 const endMonth = parseInt(document.getElementById('endMonth').value);
-                const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 
-                                    'July', 'August', 'September', 'October', 'November', 'December'];
-                
-                // Generate labels for the selected months
-                labels = [];
-                for (let i = startMonth; i <= endMonth; i++) {
-                    labels.push(monthNames[i-1]);
-                }
-                
-                // Generate sample data
-                bpData = labels.map((_, index) => 120 + (index * 5));
-                hrData = labels.map((_, index) => 70 + (index * 2));
-                rrData = labels.map((_, index) => 15 + (index * 0.5));
-                tempData = labels.map((_, index) => 36.0 + (index * 0.2));
-                
-                // Update chart titles to show month range and beneficiary
-                const rangeText = `${monthNames[startMonth-1]} to ${monthNames[endMonth-1]}`;
-                document.querySelector('#bloodPressureChart').closest('.card').querySelector('.card-header strong').textContent = 
-                    `Blood Pressure - ${rangeText} (${beneficiaryText})`;
-                document.querySelector('#heartRateChart').closest('.card').querySelector('.card-header strong').textContent = 
-                    `Heart Rate - ${rangeText} (${beneficiaryText})`;
-                document.querySelector('#respiratoryRateChart').closest('.card').querySelector('.card-header strong').textContent = 
-                    `Respiratory Rate - ${rangeText} (${beneficiaryText})`;
-                document.querySelector('#temperatureChart').closest('.card').querySelector('.card-header strong').textContent = 
-                    `Temperature - ${rangeText} (${beneficiaryText})`;
-                
+                labels = Array.from({ length: endMonth - startMonth + 1 }, (_, i) => `Month ${startMonth + i}`);
+                bpData = labels.map(() => Math.random() * 20 + 110);
+                hrData = labels.map(() => Math.random() * 10 + 70);
+                rrData = labels.map(() => Math.random() * 5 + 15);
+                tempData = labels.map(() => Math.random() * 1 + 36);
             } else if (timeRange === 'year') {
                 const year = document.getElementById('yearSelect').value;
                 labels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-                
-                // Generate sample data with some variation
-                bpData = labels.map((_, index) => 120 + Math.sin(index) * 10);
-                hrData = labels.map((_, index) => 70 + Math.cos(index) * 8);
-                rrData = labels.map((_, index) => 15 + Math.sin(index/2) * 3);
-                tempData = labels.map((_, index) => 36.5 + Math.cos(index/3) * 0.5);
-                
-                // Update chart titles to show year and beneficiary
-                document.querySelector('#bloodPressureChart').closest('.card').querySelector('.card-header strong').textContent = 
-                    `Blood Pressure - ${year} (${beneficiaryText})`;
-                document.querySelector('#heartRateChart').closest('.card').querySelector('.card-header strong').textContent = 
-                    `Heart Rate - ${year} (${beneficiaryText})`;
-                document.querySelector('#respiratoryRateChart').closest('.card').querySelector('.card-header strong').textContent = 
-                    `Respiratory Rate - ${year} (${beneficiaryText})`;
-                document.querySelector('#temperatureChart').closest('.card').querySelector('.card-header strong').textContent = 
-                    `Temperature - ${year} (${beneficiaryText})`;
+                bpData = labels.map(() => Math.random() * 20 + 110);
+                hrData = labels.map(() => Math.random() * 10 + 70);
+                rrData = labels.map(() => Math.random() * 5 + 15);
+                tempData = labels.map(() => Math.random() * 1 + 36);
             }
-            
-            // Update all charts with new data
-            bloodPressureChart.data.labels = labels;
-            bloodPressureChart.data.datasets[0].data = bpData;
-            bloodPressureChart.update();
-            
-            heartRateChart.data.labels = labels;
-            heartRateChart.data.datasets[0].data = hrData;
-            heartRateChart.update();
-            
-            respiratoryRateChart.data.labels = labels;
-            respiratoryRateChart.data.datasets[0].data = rrData;
-            respiratoryRateChart.update();
-            
-            temperatureChart.data.labels = labels;
-            temperatureChart.data.datasets[0].data = tempData;
-            temperatureChart.update();
+
+            // Update all charts
+            updateChart(bloodPressureChart, labels, bpData);
+            updateChart(heartRateChart, labels, hrData);
+            updateChart(respiratoryRateChart, labels, rrData);
+            updateChart(temperatureChart, labels, tempData);
         }
-        
+
+        // Update a specific chart
+        function updateChart(chart, labels, data) {
+            chart.data.labels = labels;
+            chart.data.datasets[0].data = data;
+            chart.update();
+        }
+
         // Initialize the page
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             initCharts();
-            // Set current month as default
-            const currentMonth = new Date().getMonth() + 1;
-            document.getElementById('monthSelect').value = currentMonth;
-            document.getElementById('startMonth').value = currentMonth;
-            document.getElementById('endMonth').value = currentMonth;
-            // Set current year as default
-            document.getElementById('yearSelect').value = new Date().getFullYear();
-            
+
             // Event listeners
-            document.getElementById('timeRange').addEventListener('change', updateTimeFilters);
-            document.getElementById('applyFilterBtn').addEventListener('click', updateCharts);
             document.getElementById('beneficiarySelect').addEventListener('change', toggleBeneficiaryDetails);
-            
-            // Initial filter setup
-            updateTimeFilters();
+            document.getElementById('timeRange').addEventListener('change', updateTimeFilters);
+            document.getElementById('applyFilterBtn').addEventListener('click', applyFilters);
+
+            // Initial setup
             toggleBeneficiaryDetails();
+            updateTimeFilters();
         });
     </script>
 
