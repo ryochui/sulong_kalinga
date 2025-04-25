@@ -145,15 +145,18 @@
                                     <a href="/storage/{{ $filePath }}" target="_blank" 
                                        class="{{ $isImage ? 'attachment-link' : 'attachment-file' }}">
                                         
-                                       @if($isImage)
-                                       <div class="attachment-loading" id="loading-{{$attachment->attachment_id}}" style="display: none;">
-                                            <div class="spinner-border text-primary loading-pulse"></div>
-                                        </div>
-                                            <img src="/storage/{{ $filePath }}" 
-                                                class="attachment-img" alt="{{ $attachment->file_name }}"
-                                                id="img-{{$attachment->attachment_id}}"
-                                                onerror="this.onerror=null; this.parentNode.innerHTML='<div style=\'font-size:2rem;padding:10px;\'><i class=\'bi bi-exclamation-triangle-fill text-warning\'></i></div>';">
-                                        @else
+                                            @if($isImage)
+                                                <div class="attachment-loading" id="loading-{{$attachment->attachment_id}}">
+                                                    <div class="spinner-border text-primary loading-pulse"></div>
+                                                </div>
+                                                <img src="/storage/{{ $filePath }}" 
+                                                    class="attachment-img" 
+                                                    alt="{{ $attachment->file_name }}"
+                                                    style="display: none;" 
+                                                    id="img-{{$attachment->attachment_id}}"
+                                                    onload="this.style.display='block'; document.getElementById('loading-{{$attachment->attachment_id}}').style.display='none';"
+                                                    onerror="this.onerror=null; this.parentNode.innerHTML='<div style=\'font-size:2rem;padding:10px;\'><i class=\'bi bi-exclamation-triangle-fill text-warning\'></i></div>';">
+                                            @else
                                             <div class="file-icon">
                                                 @php
                                                     $fileName = strtolower($attachment->file_name);
