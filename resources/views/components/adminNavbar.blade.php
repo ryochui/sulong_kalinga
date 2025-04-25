@@ -193,35 +193,21 @@
         
         // Load recent messages for dropdown
         function loadRecentMessages() {
-            const container = document.getElementById('message-preview-container');
-            container.innerHTML = `
-                <li class="text-center py-3">
-                    <div class="spinner-border spinner-border-sm text-primary" role="status">
-                        <span class="visually-hidden">Loading...</span>
-                    </div>
-                </li>
-            `;
-            
-            fetch('{{ route("admin.messaging.recent") }}')
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error(`HTTP error! Status: ${response.status}`);
-                    }
-                    return response.json();
-                })
+            fetch('{{ route("admin.messaging.recent") }}') // Adjust route for each role
+                .then(response => response.json())
                 .then(data => {
+                    const container = document.getElementById('message-preview-container');
                     container.innerHTML = '';
                     
                     if (!data.conversations || data.conversations.length === 0) {
                         container.innerHTML = `
-                            <li class="empty-messages">
-                                <span class="text-muted">No messages</span>
+                            <li class="text-center py-3">
+                                <span class="text-muted">No new messages</span>
                             </li>
                         `;
                         return;
                     }
                     
-                    // Add all conversations
                     data.conversations.forEach(conversation => {
                         const lastMessage = conversation.last_message;
                         if (!lastMessage) {
@@ -234,31 +220,49 @@
                         // Get first letter of name for the avatar placeholder
                         const nameInitial = conversation.name ? conversation.name.charAt(0) : '?';
                         
+                        // Create appropriate message preview text
+                        let messagePreview = 'No messages';
+                        
+                        if (lastMessage) {
+                            if (lastMessage.content && lastMessage.content.trim() !== '') {
+                                // Message has text content
+                                messagePreview = lastMessage.content;
+                            } else if (lastMessage.attachments && lastMessage.attachments.length > 0) {
+                                // Message has attachments but no text
+                                if (lastMessage.attachments.length === 1) {
+                                    // Show the filename for a single attachment
+                                    messagePreview = `📎 ${lastMessage.attachments[0].file_name}`;
+                                } else {
+                                    // Show count for multiple attachments
+                                    messagePreview = `📎 ${lastMessage.attachments.length} attachments`;
+                                }
+                            } else {
+                                messagePreview = 'No content';
+                            }
+                        }
+                        
                         const previewHtml = `
-                            <a href="{{ route('admin.messaging.index') }}?conversation=${conversation.conversation_id}" 
-                            class="message-preview ${isUnread ? 'unread' : ''}">
-                                <div class="d-flex align-items-start">
-                                    <div class="message-icon">
-                                        ${conversation.is_group_chat ? 
-                                            `<span>${nameInitial}</span>` :
-                                            `<span>${nameInitial}</span>`
-                                        }
-                                        <!-- Removed the badge from here -->
-                                    </div>
-                                    <div class="message-preview-content">
-                                        <div class="d-flex justify-content-between align-items-center">
-                                            <span class="sender-name">${conversation.name}</span>
-                                            <div class="d-flex align-items-center">
-                                                ${isUnread ? `<span class="message-badge">${conversation.unread_count || 1}</span>` : ''}
-                                                <small class="message-time">${lastMessage.message_timestamp ? timeSince(new Date(lastMessage.message_timestamp)) : 'Just now'}</small>
-                                            </div>
+                            <li>
+                                <a class="dropdown-item message-preview ${isUnread ? 'unread' : ''}" 
+                                href="{{ url('/${data.route_prefix}/messaging') }}?conversation=${conversation.conversation_id}">
+                                    <div class="d-flex">
+                                        <div class="flex-shrink-0">
+                                            ${conversation.is_group_chat ?
+                                                `<div class="rounded-circle profile-img-sm d-flex justify-content-center align-items-center bg-primary text-white">
+                                                    <span>${conversation.name ? conversation.name.charAt(0) : 'G'}</span>
+                                                </div>` :
+                                                `<img src="{{ asset('images/defaultProfile.png') }}" class="rounded-circle profile-img-sm" alt="User">`
+                                            }
                                         </div>
-                                        <p class="message-content">
-                                            ${conversation.is_group_chat && lastMessage.sender_name ? lastMessage.sender_name + ': ' : ''}${lastMessage.content || 'No content'}
-                                        </p>
+                                        <div class="flex-grow-1 ms-2 overflow-hidden">
+                                            <p class="mb-0 fw-bold">${conversation.is_group_chat ? conversation.name : (conversation.other_participant_name || 'Unknown')}</p>
+                                            <p class="small text-truncate mb-0">${conversation.is_group_chat && lastMessage.sender_name ? lastMessage.sender_name + ': ' : ''}${messagePreview}</p>
+                                            <p class="text-muted small mb-0">${lastMessage ? timeSince(new Date(lastMessage.message_timestamp)) : ''}</p>
+                                        </div>
                                     </div>
-                                </div>
-                            </a>
+                                </a>
+                            </li>
+                            <li><hr class="dropdown-divider m-0"></li>
                         `;
                         
                         container.innerHTML += previewHtml;
@@ -266,10 +270,9 @@
                 })
                 .catch(error => {
                     console.error('Error loading recent messages:', error);
-                    container.innerHTML = `
-                        <li class="empty-messages">
-                            <span class="text-muted">No messages</span>
-                            <small class="d-block text-danger">Try again later</small>
+                    document.getElementById('message-preview-container').innerHTML = `
+                        <li class="text-center py-3">
+                            <span class="text-muted">No new messages</span>
                         </li>
                     `;
                 });

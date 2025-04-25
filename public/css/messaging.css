@@ -288,15 +288,23 @@
 }
 
 /* Messages container - CRITICAL FIX FOR SCROLLING */
+/* Improve message container scrolling */
 .messages-container {
     position: absolute;
-    top: 60px; /* Adjust based on title height */
-    bottom: 80px; /* Space for input container */
+    top: 60px; 
+    bottom: 80px;
     left: 0;
     right: 0;
     overflow-y: scroll !important;
+    overflow-x: hidden;
     padding: 15px;
     background-color: #f8f9fa;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Class for hiding during refresh */
+.updating-content {
+    opacity: 0;
 }
 
 /* Message styling */
@@ -449,15 +457,22 @@ textarea.message-input {
     border: 1px solid #dee2e6;
     border-radius: 4px;
     padding: 5px;
-    width: 120px;
+    width: 100px;
+    height: 100px;
     display: flex;
     flex-direction: column;
     align-items: center;
     background-color: #f8f9fa;
     transition: all 0.2s ease;
-    height: 120px;
-    text-align: center;
-}
+    overflow: hidden;
+  }
+
+  /* Make spinner animation more visible */
+.spinner-border.spinner-border-sm {
+    width: 1.25rem;
+    height: 1.25rem;
+    border-width: 0.2em;
+  }
 
 .file-preview:hover {
     border-color: #adb5bd;
@@ -558,8 +573,11 @@ textarea.message-input {
 }
 
 .attachment-img {
-    max-width: 150px;
-    max-height: 120px;
+    max-width: 100%;
+    max-height: 200px;
+    width: auto;
+    height: auto;
+    display: block;
     border-radius: 8px;
     border: 1px solid rgba(0,0,0,0.1);
     object-fit: cover;
@@ -710,9 +728,11 @@ textarea.message-input {
 /* ======== ADDITIONAL STYLES ======== */
 
 /* Message sender in group chats */
-.message-sender {
-    margin-bottom: 2px;
-    font-size: 0.8rem;
+.message-sender small.text-muted.fw-bold {
+    font-size: 1.0rem; /* Increase from default size */
+    line-height: 1.4;
+    display: block;
+    margin-bottom: 3px;
 }
 
 /* Loading state for file previews */
@@ -807,11 +827,12 @@ textarea.message-input {
 
 /* Sender role in group chats */
 .sender-role {
-    font-size: 0.75em;
-    opacity: 0.8;
+    font-size: 0.8em; /* Relative to parent for better proportion */
+    opacity: 0.9;
     font-weight: normal;
-    margin-left: 3px;
+    margin-left: 4px;
     color: #6c757d;
+    font-style: italic;
 }
 
 /* Specific colors for different user types */
@@ -853,6 +874,8 @@ textarea.message-input {
     padding: 5px 15px;
     border-radius: 15px;
 }
+
+
 
 /* Special system message types */
 .message.system .message-content.leave-message {
@@ -910,3 +933,58 @@ textarea.message-input {
     from { opacity: 0; transform: translateY(-10px); }
     to { opacity: 1; transform: translateY(0); }
 }
+
+/* Loading indicator for attachments */
+.attachment-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 80px;
+    min-width: 80px;
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+}
+
+.message.outgoing .attachment-loading {
+    background-color: rgba(255, 255, 255, 0.3);
+    border-color: rgba(255, 255, 255, 0.4);
+}
+
+/* Pulse animation for loading */
+.attachment-loading .spinner-border {
+    width: 2rem;
+    height: 2rem;
+}
+
+.spinner-border {
+    display: inline-block !important;
+    width: 2rem !important;
+    height: 2rem !important;
+    border: 0.25em solid currentColor !important;
+    border-right-color: transparent !important;
+    border-radius: 50% !important;
+    animation: spinner-border 0.75s linear infinite !important;
+  }
+  
+  @keyframes spinner-border {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+  
+  .spinner-border-sm {
+    width: 1rem !important;
+    height: 1rem !important;
+    border-width: 0.2em !important;
+  }
+
+@keyframes pulse {
+    0% { opacity: 0.6; }
+    50% { opacity: 1; }
+    100% { opacity: 0.6; }
+}
+
+.attachment-loading .loading-pulse {
+    animation: pulse 1.5s infinite ease-in-out;
+}
+

@@ -145,10 +145,14 @@
                                     <a href="/storage/{{ $filePath }}" target="_blank" 
                                        class="{{ $isImage ? 'attachment-link' : 'attachment-file' }}">
                                         
-                                        @if($isImage)
+                                       @if($isImage)
+                                       <div class="attachment-loading" id="loading-{{$attachment->attachment_id}}" style="display: none;">
+                                            <div class="spinner-border text-primary loading-pulse"></div>
+                                        </div>
                                             <img src="/storage/{{ $filePath }}" 
-                                                 class="attachment-img" alt="{{ $attachment->file_name }}"
-                                                 onerror="this.onerror=null; this.parentNode.innerHTML='<div style=\'font-size:2rem;padding:10px;\'><i class=\'bi bi-exclamation-triangle-fill text-warning\'></i></div>';">
+                                                class="attachment-img" alt="{{ $attachment->file_name }}"
+                                                id="img-{{$attachment->attachment_id}}"
+                                                onerror="this.onerror=null; this.parentNode.innerHTML='<div style=\'font-size:2rem;padding:10px;\'><i class=\'bi bi-exclamation-triangle-fill text-warning\'></i></div>';">
                                         @else
                                             <div class="file-icon">
                                                 @php
@@ -203,7 +207,7 @@
         
         <div class="position-relative">
             <textarea class="form-control message-input" id="messageContent" name="content" rows="1" placeholder="Type a message..."></textarea>
-            <input type="file" id="fileUpload" name="attachments[]" class="file-upload d-none" multiple>
+            <input type="file" id="fileUpload" name="attachments[]" class="file-upload d-none" multiple accept="image/jpeg,image/png,image/gif,image/webp,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/plain">
             <button type="button" class="attachment-btn" id="attachmentBtn">
                 <i class="bi bi-paperclip"></i>
             </button>
