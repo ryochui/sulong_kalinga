@@ -1497,4 +1497,200 @@ class MessageController extends Controller
         }
     }
 
+    /**
+     * Get members of a group conversation
+     */
+    public function getGroupMembers($id)
+    {
+        try {
+            $user = Auth::user();
+            $conversation = Conversation::findOrFail($id);
+            
+            // Check if this is a group chat and user is a participant
+            if (!$conversation->is_group_chat) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'This is not a group conversation'
+                ], 400);
+            }
+            
+            $isParticipant = ConversationParticipant::where('conversation_id', $id)
+                ->where('participant_id', $user->id)
+                ->where('participant_type', 'cose_staff')
+                ->whereNull('left_at')
+                ->exists();
+                
+            if (!$isParticipant) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'You are not a member of this group'
+                ], 403);
+            }
+            
+            // Get all participants
+            $participants = ConversationParticipant::where('conversation_id', $id)
+                ->whereNull('left_at')
+                ->orderBy('joined_at', 'asc')
+                ->get();
+            
+            $members = [];
+            
+            foreach ($participants as $participant) {
+                $member = [
+                    'participant_id' => $participant->participant_id,
+                    'participant_type' => $participant->participant_type,
+                    'joined_at' => $participant->joined_at->format('Y-m-d H:i:s'),
+                ];
+                
+                // Get participant details based on type
+                if ($participant->participant_type === 'cose_staff') {
+                    $staff = User::find($participant->participant_id);
+                    if ($staff) {
+                        $member['name'] = $staff->first_name . ' ' . $staff->last_name;
+                        $member['email'] = $staff->email;
+                        $member['role_id'] = $staff->role_id;
+                    }
+                } elseif ($participant->participant_type === 'beneficiary') {
+                    $beneficiary = Beneficiary::find($participant->participant_id);
+                    if ($beneficiary) {
+                        $member['name'] = $beneficiary->first_name . ' ' . $beneficiary->last_name;
+                    }
+                } elseif ($participant->participant_type === 'family_member') {
+                    $familyMember = FamilyMember::find($participant->participant_id);
+                    if ($familyMember) {
+                        $member['name'] = $familyMember->first_name . ' ' . $familyMember->last_name;
+                        $member['email'] = $familyMember->email;
+                    }
+                }
+                
+                $members[] = $member;
+            }
+            
+            return response()->json([
+                'success' => true,
+                'conversation_id' => $id,
+                'conversation_name' => $conversation->name,
+                'members' => $members
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error getting group members: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Could not load group members: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Add a member to a group conversation
+     */
+    public function addGroupMember(Request $request)
+    {
+        try {
+            $request->validate([
+                'conversation_id' => 'required|exists:conversations,conversation_id',
+                'participant_id' => 'required',
+                'participant_type' => 'required|in:cose_staff,beneficiary,family_member',
+            ]);
+            
+            $user = Auth::user();
+            $conversationId = $request->conversation_id;
+            $participantId = $request->participant_id;
+            $participantType = $request->participant_type;
+            
+            // Get the conversation
+            $conversation = Conversation::findOrFail($conversationId);
+            
+            // Check if this is a group chat
+            if (!$conversation->is_group_chat) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'This is not a group conversation'
+                ], 400);
+            }
+            
+            // Check if the current user is a participant
+            $isParticipant = ConversationParticipant::where('conversation_id', $conversationId)
+                ->where('participant_id', $user->id)
+                ->where('participant_type', 'cose_staff')
+                ->whereNull('left_at')
+                ->exists();
+                
+            if (!$isParticipant) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'You are not a member of this group'
+                ], 403);
+            }
+            
+            // Check if participant already exists in the group
+            $participantExists = ConversationParticipant::where('conversation_id', $conversationId)
+                ->where('participant_id', $participantId)
+                ->where('participant_type', $participantType)
+                ->whereNull('left_at')
+                ->exists();
+                
+            if ($participantExists) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'This user is already a member of the group'
+                ], 400);
+            }
+            
+            // Add new participant
+            ConversationParticipant::create([
+                'conversation_id' => $conversationId,
+                'participant_id' => $participantId,
+                'participant_type' => $participantType,
+                'joined_at' => now(),
+            ]);
+            
+            // Add system message about new member
+            $participant = null;
+            $participantName = 'Unknown User';
+            
+            if ($participantType === 'cose_staff') {
+                $participant = User::find($participantId);
+                if ($participant) {
+                    $participantName = $participant->first_name . ' ' . $participant->last_name;
+                }
+            } elseif ($participantType === 'beneficiary') {
+                $participant = Beneficiary::find($participantId);
+                if ($participant) {
+                    $participantName = $participant->first_name . ' ' . $participant->last_name;
+                }
+            } elseif ($participantType === 'family_member') {
+                $participant = FamilyMember::find($participantId);
+                if ($participant) {
+                    $participantName = $participant->first_name . ' ' . $participant->last_name;
+                }
+            }
+            
+            $message = new Message([
+                'conversation_id' => $conversationId,
+                'sender_id' => 0,
+                'sender_type' => 'system',
+                'content' => $user->first_name . ' ' . $user->last_name . ' added ' . $participantName . ' to the group',
+                'message_timestamp' => now(),
+            ]);
+            $message->save();
+            
+            // Update last message in conversation
+            $conversation->last_message_id = $message->message_id;
+            $conversation->save();
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Member added successfully',
+                'conversation_id' => $conversationId
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error adding group member: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Could not add member: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
 }

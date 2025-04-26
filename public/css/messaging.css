@@ -1176,3 +1176,67 @@ select.form-select[size]:not([size="1"]) option {
 select.form-select[size]:not([size="1"]) option:last-child {
     border-bottom: none;
 }
+
+/* Group Members Modal Styles */
+#viewMembersModal .list-group-item {
+    padding: 12px 15px;
+    transition: background-color 0.2s;
+}
+
+#viewMembersModal .list-group-item:hover {
+    background-color: #f8f9fa;
+}
+
+#viewMembersModal .modal-body {
+    max-height: 60vh;
+    overflow-y: auto;
+}
+
+/* Add Member Modal Styles */
+#addMemberModal label {
+    font-weight: 500;
+}
+
+#addMemberModal .form-select,
+#addMemberModal .form-control {
+    padding: 10px 12px;
+    border-radius: 6px;
+}
+
+#addMemberModal .input-group-text {
+    background-color: #f8f9fa;
+}
+
+/* Add these styles to enhance the member select dropdown appearance */
+
+#memberSelect.active-dropdown {
+    position: absolute;
+    z-index: 1050;
+    max-height: 300px;
+    overflow-y: auto;
+    width: 100%;
+    background: white;
+    border: 1px solid #ced4da;
+    border-radius: 0.25rem;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+
+#memberSelect.active-dropdown option {
+    padding: 8px 12px;
+    cursor: pointer;
+}
+
+#memberSelect.active-dropdown option:hover {
+    background-color: #f8f9fa;
+}
+
+#memberSelect.active-dropdown option:first-child {
+    font-weight: bold;
+    border-bottom: 1px solid #dee2e6;
+    background-color: #f8f9fa;
+}
+
+/* Position the dropdown container properly */
+.member-select-container {
+    position: relative;
+}

@@ -206,6 +206,8 @@ Route::middleware(['auth', '\App\Http\Middleware\CheckRole:administrator'])->pre
         Route::post('/get-conversations-with-recipient', [MessageController::class, 'getConversationsWithRecipient'])->name('messaging.get-conversations-with-recipient');
         Route::get('check-last-participant/{id}', [MessageController::class, 'checkLastParticipant'])->name('check-last-participant');
         Route::post('leave-conversation', [MessageController::class, 'leaveConversation'])->name('leave-conversation');
+        Route::get('group-members/{id}', [MessageController::class, 'getGroupMembers'])->name('group-members');
+        Route::post('add-group-member', [MessageController::class, 'addGroupMember'])->name('add-group-member');
     });
 });
 

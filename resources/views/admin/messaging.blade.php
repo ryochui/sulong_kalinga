@@ -274,6 +274,77 @@
         </div>
     </div>
 
+    <!-- View Group Members Modal -->
+    <div class="modal fade" id="viewMembersModal" tabindex="-1" aria-labelledby="viewMembersModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="viewMembersModalLabel">Group Members</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="groupMembersList" class="list-group">
+                        <!-- Members will be loaded dynamically here -->
+                        <div class="text-center py-3">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Group Member Modal -->
+    <div class="modal fade" id="addMemberModal" tabindex="-1" aria-labelledby="addMemberModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addMemberModalLabel">Add Member to Group</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form id="addMemberForm">
+                    <div class="modal-body">
+                        <input type="hidden" id="groupConversationId" name="conversation_id" value="">
+                        
+                        <div class="mb-3">
+                            <label for="memberUserType" class="form-label">Member Type</label>
+                            <select class="form-select" id="memberUserType" name="participant_type" required>
+                                <option value="" selected disabled>Select member type</option>
+                                <option value="cose_staff">Staff Member</option>
+                                <option value="beneficiary">Beneficiary</option>
+                                <option value="family_member">Family Member</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="memberSearch" class="form-label">Search for member</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-search"></i></span>
+                                <input type="text" class="form-control" id="memberSearch" placeholder="Type to search...">
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="memberSelect" class="form-label">Select Member</label>
+                            <select class="form-select" id="memberSelect" name="participant_id" required disabled>
+                                <option value="" selected disabled>First select a user type</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary" id="addMemberBtn">Add to Group</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <!-- Scripts -->
     <script src="{{ asset('js/jquery-3.6.0.min.js') }}"></script>
     <script src="{{ asset('js/bootstrap.bundle.min.js') }}"></script>
@@ -282,6 +353,7 @@
         // ============= GLOBAL VARIABLES AND CONFIGURATION =============
         const DEBUG = true;
         let currentLeaveGroupId = null;
+        window.intentionalClear = false;
 
         // Timing variables to prevent conflicts
         window.lastRefreshTimestamp = 0;
@@ -621,7 +693,7 @@
         // Override the textarea value setter to detect and prevent unwanted clearing
         window.intentionalClear = false;
 
-        const originalValueSetter = Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value').set;
+        /*const originalValueSetter = Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value').set;
         Object.defineProperty(HTMLTextAreaElement.prototype, 'value', {
             set(val) {
                 // Allow clearing if it's intentional (after message send)
@@ -638,7 +710,7 @@
                 
                 originalValueSetter.call(this, val);
             }
-        });
+        });*/
 
         // Save content before page unload
         window.addEventListener('beforeunload', function() {
@@ -1223,20 +1295,81 @@
                         });
                     }
                 })
+                
                 .then(data => {
                     console.log('Message sent successfully:', data);
                     
                     if (data.success) {
-                        // CRITICAL: Reset UI elements properly
-                        // 1. Clear textarea and reset height
-                        window.intentionalClear = true;
-                        textarea.value = '';
-
-                        if (textarea.style) {
-                            textarea.style.height = 'auto';
-                        }
+                        // BRUTE FORCE APPROACH - Find the text area and forcefully clear it multiple ways
+                        const textarea = document.getElementById('messageContent');
                         
+                        console.log('Before clearing, textarea value:', textarea?.value);
+                        
+                        if (textarea) {
+                            // Try all possible ways to clear it
+                            textarea.value = '';
+                            
+                            
+                            // Also directly modify the DOM element via innerHTML
+                            textarea.innerHTML = '';
+                            
+                            console.log('After first clearing attempt, value is:', textarea?.value);
+                            
+                            // Do it again with a delay to make sure it happens
+                            setTimeout(() => {
+                                textarea.value = '';
+                                textarea.innerHTML = '';
+                                
+                                // Reset height
+                                if (textarea.style) {
+                                    textarea.style.height = 'auto';
+                                }
+                                
+                                // Clear any localStorage drafts
+                                const conversationId = document.querySelector('input[name="conversation_id"]')?.value;
+                                if (conversationId) {
+                                    localStorage.removeItem('messageContent_' + conversationId);
+                                }
+                                
+                                console.log('After delayed clearing, textarea value:', textarea?.value);
+                                
+                                // Clear global variables that might restore content
+                                window.lastBlurContent = '';
+                            }, 50);
+                            
+                            // NUCLEAR OPTION - Replace the entire textarea with a new one
+                            setTimeout(() => {
+                                if (textarea.value !== '') {
+                                    console.log('Textarea still not cleared, using nuclear option');
+                                    
+                                    // Create a new textarea with same attributes but empty value
+                                    const newTextarea = document.createElement('textarea');
+                                    newTextarea.id = textarea.id;
+                                    newTextarea.name = textarea.name;
+                                    newTextarea.className = textarea.className;
+                                    newTextarea.placeholder = textarea.placeholder;
+                                    
+                                    // Replace the old one
+                                    textarea.parentNode.replaceChild(newTextarea, textarea);
+                                    
+                                    // Initialize height adjust for the new textarea
+                                    newTextarea.addEventListener('input', function() {
+                                        this.style.height = 'auto';
+                                        this.style.height = (this.scrollHeight) + 'px';
+                                    });
+                                }
+                            }, 100);
+                
+                            // 5. Clear any stored content
+                            if (conversationId) {
+                                localStorage.removeItem('messageContent_' + conversationId);
+                            }
+                            window.lastBlurContent = '';
+                        }
+                                        
                         // 2. Clear file previews if they exist
+                        // Also properly reset the file input
+                        fileUpload.value = '';
                         if (filePreviewContainer) {
                             filePreviewContainer.innerHTML = '';
                         }
@@ -1291,7 +1424,7 @@
                             setTimeout(() => {
                                 smoothRefreshConversationList();
                             }, 300);
-                        }, 500);
+                        }, 90);
                     } else {
                         // Handle failure
                         console.error('Failed to send message:', data.error || 'Unknown error');
@@ -1314,6 +1447,18 @@
                 });
             });
         }
+
+        // To ensure the overridden value property of textareas works correctly
+        document.addEventListener('DOMContentLoaded', function() {
+            // Clean up any old drafts or restore if needed
+            const messageContent = document.getElementById('messageContent');
+            if (messageContent) {
+                // Ensure we start fresh and override any stored text
+                window.intentionalClear = true;
+                messageContent.value = '';
+                setTimeout(() => { window.intentionalClear = false; }, 100);
+            }
+        });
 
         // ============= REFRESH FUNCTIONALITY - FIXED =============
         // Function to refresh active conversation with protection for attachments and scroll
@@ -3043,6 +3188,417 @@
                 
                 confirmBtn.disabled = false;
                 confirmBtn.textContent = originalText;
+            });
+        }
+
+        // Group Members Management
+        let viewMembersModal;
+        let addMemberModal;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize modals
+            viewMembersModal = new bootstrap.Modal(document.getElementById('viewMembersModal'));
+            addMemberModal = new bootstrap.Modal(document.getElementById('addMemberModal'));
+            
+            // Event delegation for dynamic elements
+            document.addEventListener('click', function(e) {
+                // View members button
+                if (e.target.closest('.view-members-btn')) {
+                    e.preventDefault();
+                    const btn = e.target.closest('.view-members-btn');
+                    const conversationId = btn.getAttribute('data-conversation-id');
+                    loadGroupMembers(conversationId);
+                }
+                
+                // Add member button
+                if (e.target.closest('.add-member-btn')) {
+                    e.preventDefault();
+                    const btn = e.target.closest('.add-member-btn');
+                    const conversationId = btn.getAttribute('data-conversation-id');
+                    document.getElementById('groupConversationId').value = conversationId;
+                    addMemberModal.show();
+                }
+            });
+            
+            // Set up add member form functionality similar to new conversation
+            const memberUserTypeSelect = document.getElementById('memberUserType');
+            const memberSearch = document.getElementById('memberSearch');
+            const memberSelect = document.getElementById('memberSelect');
+            
+            // Handle user type selection
+            memberUserTypeSelect?.addEventListener('change', function() {
+                const userType = this.value;
+                console.log('Selected member type:', userType);
+                
+                // Show loading state
+                if (memberSelect) {
+                    memberSelect.innerHTML = '<option value="" selected disabled>Loading users...</option>';
+                    memberSelect.disabled = true;
+                }
+                
+                // Fetch users of selected type
+                fetch(`${window.location.origin}/${rolePrefix}/messaging/get-users?type=${userType}`, {
+                    method: 'GET',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    credentials: 'same-origin'
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! Status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('Received users data:', data);
+                    
+                    if (memberSelect) {
+                        let usersArray = null;
+                        
+                        if (data.users && Array.isArray(data.users)) {
+                            usersArray = data.users;
+                        } else if (Array.isArray(data)) {
+                            usersArray = data;
+                        } else if (data.data && Array.isArray(data.data)) {
+                            usersArray = data.data;
+                        }
+                        
+                        if (usersArray && usersArray.length > 0) {
+                            console.log('Found', usersArray.length, 'users');
+                            
+                            // Store users for filtering
+                            window.memberOptions = usersArray;
+                            
+                            // Enable select and update options
+                            memberSelect.disabled = false;
+                            
+                            // Initial rendering of all options
+                            updateMemberOptions('');
+                        } else {
+                            console.warn('No users found');
+                            memberSelect.innerHTML = '<option value="" selected disabled>No users found</option>';
+                            memberSelect.disabled = true;
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching users:', error);
+                    if (memberSelect) {
+                        memberSelect.innerHTML = '<option value="" selected disabled>Error loading users: ' + error.message + '</option>';
+                        memberSelect.disabled = true;
+                    }
+                });
+            });
+            
+            // Handle search input
+            memberSearch?.addEventListener('input', function() {
+                updateMemberOptions(this.value);
+            });
+            
+            // Handle form submission
+            document.getElementById('addMemberForm')?.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const conversationId = document.getElementById('groupConversationId').value;
+                const participantId = memberSelect.value;
+                const participantType = memberUserTypeSelect.value;
+                
+                if (!conversationId || !participantId || !participantType) {
+                    alert('Please select a member to add to the group');
+                    return;
+                }
+                
+                const submitBtn = document.getElementById('addMemberBtn');
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Adding...';
+                
+                // Send request to add member
+                fetch(`${window.location.origin}/${rolePrefix}/messaging/add-group-member`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: JSON.stringify({
+                        conversation_id: conversationId,
+                        participant_id: participantId,
+                        participant_type: participantType
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Close modal and reset form
+                        addMemberModal.hide();
+                        this.reset();
+                        
+                        if (memberSelect) {
+                            memberSelect.innerHTML = '<option value="" selected disabled>First select a user type</option>';
+                            memberSelect.disabled = true;
+                            memberSelect.size = 1;
+                            memberSelect.classList.remove('active-dropdown');
+                            memberSelect.removeAttribute('data-dropdown-visible');
+                        }
+                        
+                        if (memberSearch) {
+                            memberSearch.value = '';
+                        }
+                        
+                        // Show success notification
+                        const notificationDiv = document.createElement('div');
+                        notificationDiv.className = 'alert alert-success alert-dismissible fade show position-fixed top-0 end-0 m-3';
+                        notificationDiv.style.zIndex = "9999";
+                        notificationDiv.innerHTML = `
+                            <strong>Success!</strong> New member has been added to the group.
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        `;
+                        document.body.appendChild(notificationDiv);
+                        
+                        // Auto-dismiss after 5 seconds
+                        setTimeout(() => {
+                            if (notificationDiv.parentNode) {
+                                notificationDiv.parentNode.removeChild(notificationDiv);
+                            }
+                        }, 5000);
+                        
+                        // Completely reload the conversation content if this is the active conversation
+                        if (window.currentlyLoadedConversation == conversationId) {
+                            // Use a direct fetch to get conversation content
+                            fetch(`${window.location.origin}/${rolePrefix}/messaging/get-conversation?id=${conversationId}&_=${new Date().getTime()}`, {
+                                method: 'GET',
+                                headers: {
+                                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                                    'Accept': 'application/json',
+                                    'X-Requested-With': 'XMLHttpRequest',
+                                    // Force cache busting headers
+                                    'Cache-Control': 'no-cache, no-store, must-revalidate',
+                                    'Pragma': 'no-cache',
+                                    'Expires': '0'
+                                }
+                            })
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.success) {
+                                    // Replace the entire message area content
+                                    const messageArea = document.querySelector('.message-area');
+                                    if (messageArea) {
+                                        messageArea.innerHTML = data.html;
+                                        
+                                        // Re-initialize the message form
+                                        window.messageFormInitialized = false;
+                                        initializeMessageForm(conversationId, true);
+                                        
+                                        // Scroll to bottom
+                                        const messagesContainer = document.getElementById('messagesContainer');
+                                        if (messagesContainer) {
+                                            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                                        }
+                                        
+                                        console.log('Conversation content updated successfully');
+                                    }
+                                }
+                            })
+                            .catch(error => {
+                                console.error('Error refreshing conversation content:', error);
+                            });
+                        }
+                        
+                        // Also refresh the conversation list
+                        smoothRefreshConversationList();
+                    } else {
+                        throw new Error(data.message || 'Failed to add member');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error adding member:', error);
+                    alert('Failed to add member: ' + error.message);
+                })
+                .finally(() => {
+                    // Reset button
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Add to Group';
+                });
+            });
+            
+            // Function to update member options based on search
+            function updateMemberOptions(searchTerm) {
+                if (!memberSelect || !window.memberOptions) return;
+                
+                // Clear existing options
+                memberSelect.innerHTML = '';
+                
+                // Add default option
+                const defaultOption = document.createElement('option');
+                defaultOption.value = '';
+                defaultOption.disabled = true;
+                defaultOption.selected = true;
+                defaultOption.textContent = searchTerm ? 'Search results' : 'Select a member';
+                memberSelect.appendChild(defaultOption);
+                
+                // Filter users based on search term
+                const filteredUsers = searchTerm 
+                    ? window.memberOptions.filter(user => 
+                        user.name.toLowerCase().includes(searchTerm.toLowerCase()))
+                    : window.memberOptions;
+                
+                // Add matching users to dropdown
+                if (filteredUsers.length === 0) {
+                    const option = document.createElement('option');
+                    option.disabled = true;
+                    option.textContent = 'No matching members found';
+                    memberSelect.appendChild(option);
+                } else {
+                    // Add each filtered user to the dropdown
+                    filteredUsers.forEach(user => {
+                        const option = document.createElement('option');
+                        option.value = user.id;
+                        option.textContent = user.name; // Just name, no email
+                        memberSelect.appendChild(option);
+                    });
+                }
+                
+                // Keep dropdown visible during search
+                memberSelect.size = Math.min(10, filteredUsers.length + 1);
+                memberSelect.classList.add('active-dropdown');
+                memberSelect.setAttribute('data-dropdown-visible', 'true');
+            }
+
+            // Add these event listeners for member selection dropdown
+            if (memberSelect) {
+                // Handle click on option
+                memberSelect.addEventListener('click', function(e) {
+                    if (e.target.tagName === 'OPTION' && e.target.value) {
+                        // Set the selected value
+                        this.value = e.target.value;
+                        
+                        // Reset display and close dropdown
+                        this.size = 1;
+                        this.classList.remove('active-dropdown');
+                        this.removeAttribute('data-dropdown-visible');
+                        
+                        // Clear the search field
+                        if (memberSearch) {
+                            memberSearch.value = '';
+                        }
+                    }
+                });
+                
+                // Add focus handlers to keep dropdown open
+                memberSearch?.addEventListener('focus', function() {
+                    if (window.memberOptions && window.memberOptions.length > 0) {
+                        memberSelect.size = Math.min(10, window.memberOptions.length + 1);
+                        memberSelect.classList.add('active-dropdown');
+                        memberSelect.setAttribute('data-dropdown-visible', 'true');
+                    }
+                });
+                
+                // Add click handler on document to close dropdown when clicking elsewhere
+                document.addEventListener('click', function(e) {
+                    if (memberSelect && 
+                        !memberSelect.contains(e.target) && 
+                        !memberSearch?.contains(e.target) &&
+                        memberSelect.getAttribute('data-dropdown-visible') === 'true') {
+                        memberSelect.size = 1;
+                        memberSelect.classList.remove('active-dropdown');
+                        memberSelect.removeAttribute('data-dropdown-visible');
+                    }
+                });
+            }
+        });
+
+        // Function to load group members
+        function loadGroupMembers(conversationId) {
+            const membersList = document.getElementById('groupMembersList');
+            
+            // Show loading state
+            membersList.innerHTML = `
+                <div class="text-center py-3">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+            `;
+            
+            // Show modal while loading
+            viewMembersModal.show();
+            
+            // Fetch members from server
+            fetch(`${window.location.origin}/${rolePrefix}/messaging/group-members/${conversationId}`, {
+                method: 'GET',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (!data.members || data.members.length === 0) {
+                    membersList.innerHTML = '<div class="text-center py-3">No members found</div>';
+                    return;
+                }
+                
+                // Clear loading state
+                membersList.innerHTML = '';
+                
+                // Add members to list
+                data.members.forEach(member => {
+                    // Determine badge color based on member type
+                    let badgeClass = 'bg-secondary';
+                    let userType = 'Unknown';
+                    
+                    if (member.participant_type === 'cose_staff') {
+                        switch(member.role_id) {
+                            case 1:
+                                badgeClass = 'bg-danger';
+                                userType = 'Administrator';
+                                break;
+                            case 2:
+                                badgeClass = 'bg-primary';
+                                userType = 'Care Manager';
+                                break;
+                            case 3:
+                                badgeClass = 'bg-info';
+                                userType = 'Care Worker';
+                                break;
+                        }
+                    } else if (member.participant_type === 'beneficiary') {
+                        badgeClass = 'bg-success';
+                        userType = 'Beneficiary';
+                    } else if (member.participant_type === 'family_member') {
+                        badgeClass = 'bg-warning text-dark';
+                        userType = 'Family Member';
+                    }
+                    
+                    const memberItem = document.createElement('div');
+                    memberItem.className = 'list-group-item d-flex justify-content-between align-items-center';
+                    memberItem.innerHTML = `
+                        <div class="d-flex align-items-center">
+                            <div class="me-3">
+                                <img src="/images/defaultProfile.png" class="rounded-circle" width="40" height="40" alt="${member.name}">
+                            </div>
+                            <div>
+                                <div class="fw-bold">${member.name}</div>
+                                <div class="small text-muted">${member.email || 'No email'}</div>
+                            </div>
+                        </div>
+                        <span class="badge ${badgeClass}">${userType}</span>
+                    `;
+                    
+                    membersList.appendChild(memberItem);
+                });
+            })
+            .catch(error => {
+                console.error('Error loading group members:', error);
+                membersList.innerHTML = `
+                    <div class="alert alert-danger">
+                        Error loading members: ${error.message}
+                    </div>
+                `;
             });
         }
     </script>
