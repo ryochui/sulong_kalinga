@@ -250,8 +250,8 @@
             </div>
         </div>
     </main>
-    
-    <!-- Leave Group Modal -->
+
+    <!-- Leave Group Confirmation Modal -->
     <div class="modal fade" id="leaveGroupModal" tabindex="-1" aria-labelledby="leaveGroupModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -260,11 +260,15 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <p>Are you sure you want to leave this group? You won't receive any more messages from this conversation.</p>
+                    <p id="leaveGroupMessage">Are you sure you want to leave this group?</p>
+                    <div id="lastMemberWarning" class="alert alert-warning d-none">
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                        <strong>Warning:</strong> You are the last member of this group. If you leave, the group and all its messages will be permanently deleted.
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="button" class="btn btn-danger" id="confirmLeaveGroup">Leave Group</button>
+                    <button type="button" class="btn btn-danger" id="confirmLeaveBtn">Leave Group</button>
                 </div>
             </div>
         </div>
@@ -2882,6 +2886,165 @@
                 });
             });
         });
+
+        let leaveGroupModal;
+        let currentConversationId;
+        let isLastGroupMember = false;
+
+        // Initialize leave group modal when DOM loads
+        document.addEventListener('DOMContentLoaded', function() {
+            leaveGroupModal = new bootstrap.Modal(document.getElementById('leaveGroupModal'));
+            
+            // Add event listener for the leave group button in conversation header
+            document.addEventListener('click', function(e) {
+                const leaveBtn = e.target.closest('.leave-group-btn');
+                if (!leaveBtn) return;
+                
+                e.preventDefault();
+                
+                const conversationId = leaveBtn.getAttribute('data-conversation-id');
+                if (!conversationId) return;
+                
+                currentConversationId = conversationId;
+                
+                // Check if user is the last participant
+                checkLastParticipant(conversationId);
+            });
+            
+            // Handle confirmation button click
+            document.getElementById('confirmLeaveBtn')?.addEventListener('click', function() {
+                if (!currentConversationId) return;
+                
+                leaveConversation(currentConversationId);
+            });
+        });
+
+        // Function to check if user is the last participant
+        function checkLastParticipant(conversationId) {
+            console.log('Checking if last participant for conversation:', conversationId);
+            
+            // Show loading state
+            const lastMemberWarning = document.getElementById('lastMemberWarning');
+            lastMemberWarning.classList.add('d-none');
+            document.getElementById('leaveGroupMessage').innerHTML = '<div class="d-flex align-items-center"><div class="spinner-border spinner-border-sm me-2" role="status"></div> Checking group status...</div>';
+            
+            fetch(`${window.location.origin}/${rolePrefix}/messaging/check-last-participant/${conversationId}`, {
+                method: 'GET',
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Last participant check result:', data);
+                isLastGroupMember = data.is_last;
+                
+                if (isLastGroupMember) {
+                    lastMemberWarning.classList.remove('d-none');
+                    document.getElementById('leaveGroupMessage').textContent = 'You are about to leave this group.';
+                    document.getElementById('confirmLeaveBtn').textContent = 'Leave & Delete Group';
+                } else {
+                    lastMemberWarning.classList.add('d-none');
+                    document.getElementById('leaveGroupMessage').textContent = 'Are you sure you want to leave this group?';
+                    document.getElementById('confirmLeaveBtn').textContent = 'Leave Group';
+                }
+                
+                // Show the modal
+                leaveGroupModal.show();
+            })
+            .catch(error => {
+                console.error('Error checking if last participant:', error);
+                alert('Could not check group status. Please try again.');
+            });
+        }
+
+        // Function to leave the conversation
+        function leaveConversation(conversationId) {
+            // Show loading state
+            const confirmBtn = document.getElementById('confirmLeaveBtn');
+            const originalText = confirmBtn.textContent;
+            confirmBtn.disabled = true;
+            confirmBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Processing...';
+            
+            fetch(`${window.location.origin}/${rolePrefix}/messaging/leave-conversation`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify({
+                    conversation_id: conversationId
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Hide the modal first
+                    leaveGroupModal.hide();
+                    
+                    // IMMEDIATELY update the content area to show empty state
+                    const messageArea = document.querySelector('.message-area');
+                    if (messageArea) {
+                        if (data.was_last) {
+                            messageArea.innerHTML = `
+                                <div class="empty-state">
+                                    <i class="bi bi-check-circle-fill empty-icon text-success"></i>
+                                    <h4>Group Deleted</h4>
+                                    <p>You were the last member of the group. It has been successfully deleted.</p>
+                                    <button class="btn btn-primary mt-3" onclick="window.location.href='${window.location.origin}/${rolePrefix}/messaging'">
+                                        <i class="bi bi-arrow-left me-2"></i>Return to Messages
+                                    </button>
+                                </div>
+                            `;
+                        } else {
+                            messageArea.innerHTML = `
+                                <div class="empty-state">
+                                    <i class="bi bi-check-circle-fill empty-icon text-success"></i>
+                                    <h4>Left Group</h4>
+                                    <p>You have successfully left the group conversation.</p>
+                                    <button class="btn btn-primary mt-3" onclick="window.location.href='${window.location.origin}/${rolePrefix}/messaging'">
+                                        <i class="bi bi-arrow-left me-2"></i>Return to Messages
+                                    </button>
+                                </div>
+                            `;
+                        }
+                    }
+                    
+                    // Reset current conversation tracking
+                    window.currentlyLoadedConversation = null;
+                    
+                    // Remove active class from conversation list
+                    document.querySelectorAll('.conversation-item.active').forEach(item => {
+                        item.classList.remove('active');
+                    });
+                    
+                    // Refresh the conversation list
+                    smoothRefreshConversationList();
+                    
+                    // Remove group from UI immediately rather than waiting for refresh
+                    const groupItem = document.querySelector(`.conversation-item[data-conversation-id="${conversationId}"]`);
+                    if (groupItem) {
+                        groupItem.remove();
+                    }
+                    
+                    // Add a clear indicator to the window title
+                    document.title = `Left Group - ${document.title.split('-')[1] || 'SulongKalinga'}`;
+                } else {
+                    throw new Error(data.message || 'Failed to leave conversation');
+                }
+            })
+            .catch(error => {
+                console.error('Error leaving conversation:', error);
+                alert('Failed to leave conversation: ' + error.message);
+                
+                confirmBtn.disabled = false;
+                confirmBtn.textContent = originalText;
+            });
+        }
     </script>
 </body>
 </html>

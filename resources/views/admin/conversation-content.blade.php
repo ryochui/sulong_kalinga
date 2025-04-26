@@ -13,13 +13,18 @@
             @endif
         </div>
         
-        @if($conversation->is_group_chat)
-            <!-- Replace info with leave button -->
-            <button class="btn btn-sm btn-outline-danger leave-group-btn" 
-                data-conversation-id="{{ $conversation->conversation_id }}"
-                data-bs-toggle="modal" data-bs-target="#leaveGroupModal">
-                <i class="bi bi-box-arrow-right"></i> Leave Group
+         <!-- Group actions dropdown -->
+         @if($conversation->is_group_chat)
+        <div class="dropdown">
+            <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="groupActionsDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="bi bi-gear"></i>
             </button>
+            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="groupActionsDropdown">
+                <li><a class="dropdown-item leave-group-btn" href="#" data-conversation-id="{{ $conversation->conversation_id }}">
+                    <i class="bi bi-box-arrow-right text-danger me-2"></i> Leave Group
+                </a></li>
+            </ul>
+        </div>
         @endif
     </div>
 </div>

@@ -202,9 +202,10 @@ Route::middleware(['auth', '\App\Http\Middleware\CheckRole:administrator'])->pre
         Route::get('/get-users', [MessageController::class, 'getUsers'])->name('get-users');
         Route::get('/get-conversation', [MessageController::class, 'getConversation'])->name('get-conversation');
         Route::post('/mark-as-read', [MessageController::class, 'markConversationAsRead'])->name('mark-as-read');
-        Route::post('/leave-group', [MessageController::class, 'leaveGroupConversation'])->name('leave-group');
         Route::get('/get-conversations', [MessageController::class, 'getConversationsList'])->name('get-conversations');
         Route::post('/get-conversations-with-recipient', [MessageController::class, 'getConversationsWithRecipient'])->name('messaging.get-conversations-with-recipient');
+        Route::get('check-last-participant/{id}', [MessageController::class, 'checkLastParticipant'])->name('check-last-participant');
+        Route::post('leave-conversation', [MessageController::class, 'leaveConversation'])->name('leave-conversation');
     });
 });
 

@@ -1469,4 +1469,124 @@ class MessageController extends Controller
         }
     }
 
+    public function checkLastParticipant($id)
+    {
+        try {
+            $user = Auth::user();
+            $conversation = Conversation::findOrFail($id);
+            
+            // Only apply to group chats
+            if (!$conversation->is_group_chat) {
+                return response()->json(['is_last' => false]);
+            }
+            
+            // Count active participants
+            $participantCount = ConversationParticipant::where('conversation_id', $id)
+                ->count();
+            
+            // Return if this is the last participant
+            return response()->json([
+                'is_last' => $participantCount <= 1,
+                'count' => $participantCount
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error checking if last participant: ' . $e->getMessage());
+            return response()->json([
+                'is_last' => false,
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Leave a conversation
+     */
+    public function leaveConversation(Request $request)
+    {
+        try {
+            $request->validate([
+                'conversation_id' => 'required|exists:conversations,conversation_id',
+            ]);
+            
+            $user = Auth::user();
+            $conversationId = $request->conversation_id;
+            $isLastParticipant = false;
+            
+            // Get the conversation
+            $conversation = Conversation::findOrFail($conversationId);
+            
+            // Check if this is a group chat
+            if ($conversation->is_group_chat) {
+                // Count participants before leaving
+                $participantCount = ConversationParticipant::where('conversation_id', $conversationId)
+                    ->count();
+                
+                $isLastParticipant = ($participantCount <= 1);
+            }
+            
+            // If this is the last participant, delete the entire conversation
+            if ($isLastParticipant) {
+                // Get all message IDs in this conversation
+                $messageIds = Message::where('conversation_id', $conversationId)
+                    ->pluck('message_id')
+                    ->toArray();
+                
+                // Delete read statuses for these messages
+                if (!empty($messageIds)) {
+                    MessageReadStatus::whereIn('message_id', $messageIds)->delete();
+                }
+                
+                // Delete message attachments if any
+                MessageAttachment::whereIn('message_id', $messageIds)->delete();
+                
+                // Delete messages
+                Message::where('conversation_id', $conversationId)->delete();
+                
+                // Delete participants
+                ConversationParticipant::where('conversation_id', $conversationId)->delete();
+                
+                // Finally delete the conversation
+                $conversation->delete();
+                
+                return response()->json([
+                    'success' => true,
+                    'message' => 'You were the last member. Group has been deleted.',
+                    'was_last' => true
+                ]);
+            } else {
+                // Just remove this participant
+                ConversationParticipant::where('conversation_id', $conversationId)
+                    ->where('participant_id', $user->id)
+                    ->where('participant_type', 'cose_staff')
+                    ->delete();
+                
+                // Add system message about user leaving
+                $message = new Message([
+                    'conversation_id' => $conversationId,
+                    'sender_id' => 0,
+                    'sender_type' => 'system',
+                    'content' => $user->first_name . ' ' . $user->last_name . ' left the group',
+                    'message_timestamp' => now(),
+                ]);
+                $message->save();
+                
+                // Update last message in conversation
+                $conversation->last_message_id = $message->message_id;
+                $conversation->save();
+                
+                return response()->json([
+                    'success' => true,
+                    'message' => 'You have left the conversation',
+                    'was_last' => false
+                ]);
+            }
+        } catch (\Exception $e) {
+            Log::error('Error leaving conversation: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Could not leave conversation: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
 }
