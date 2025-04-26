@@ -464,8 +464,8 @@ textarea.message-input {
     align-items: center;
     background-color: #f8f9fa;
     transition: all 0.2s ease;
-    overflow: hidden;
-  }
+    overflow: visible; /* CHANGED from hidden to visible */
+}
 
   /* Make spinner animation more visible */
 .spinner-border.spinner-border-sm {
@@ -528,8 +528,8 @@ textarea.message-input {
 
 .remove-file {
     position: absolute;
-    top: -5px;
-    right: -5px;
+    top: -8px; /* Move slightly higher */
+    right: -8px; /* Move slightly more to the right */
     background: #dc3545;
     color: white;
     border-radius: 50%;
@@ -541,7 +541,14 @@ textarea.message-input {
     cursor: pointer;
     font-weight: bold;
     font-size: 14px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    box-shadow: 0 0 0 2px white; /* Add white outline */
+    z-index: 10; /* Ensure it appears on top */
+    border: none; /* Remove any default border */
+}
+
+.remove-file:hover {
+    background: #c82333;
+    transform: scale(1.1);
 }
 
 /* ======== MESSAGE ATTACHMENTS ======== */
