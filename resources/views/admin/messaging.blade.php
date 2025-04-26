@@ -310,17 +310,62 @@
             removeBtn.className = 'remove-file';
             removeBtn.innerHTML = '&times;';
             removeBtn.addEventListener('click', function() {
+                console.log('Remove button clicked - starting file removal process');
                 filePreview.remove();
                 
                 // Create a new FileList without this file
                 const dataTransfer = new DataTransfer();
                 const fileInput = document.getElementById('fileUpload');
-                Array.from(fileInput.files || []).forEach(f => {
-                    if (f.name !== file.name || f.size !== file.size) {
-                        dataTransfer.items.add(f);
+                
+                // Log the current state of the file input
+                console.log('Current files in input:', fileInput?.files?.length);
+                
+                if (fileInput && fileInput.files) {
+                    Array.from(fileInput.files || []).forEach(f => {
+                        if (f.name !== file.name || f.size !== file.size) {
+                            dataTransfer.items.add(f);
+                        }
+                    });
+                    
+                    // Update the file input with new FileList
+                    fileInput.files = dataTransfer.files;
+                    console.log('Updated files in input after removal:', fileInput.files.length);
+                }
+                
+                // Update any stored files in global storage
+                const conversationId = document.querySelector('input[name="conversation_id"]')?.value;
+                if (conversationId && window.savedAttachments && window.savedAttachments.has(conversationId)) {
+                    const files = window.savedAttachments.get(conversationId);
+                    const updatedFiles = files.filter(f => f.name !== file.name || f.size !== file.size);
+                    window.savedAttachments.set(conversationId, updatedFiles);
+                    console.log(`Updated stored files after removal: ${updatedFiles.length} files remaining`);
+                }
+                
+                // CRITICAL FIX: Ensure the input can receive new files
+                // We'll use a simpler approach that doesn't replace the element
+                if (fileInput) {
+                    // Remove all existing event listeners by cloning and replacing
+                    const newFileInput = fileInput.cloneNode(true);
+                    fileInput.parentNode.replaceChild(newFileInput, fileInput);
+                    
+                    // Add the handleFileInputChange event listener to the new input
+                    newFileInput.addEventListener('change', handleFileInputChange);
+                    console.log('Reinstalled file input change handler');
+                    
+                    // Reconnect the attachment button to the new file input
+                    const attachmentBtn = document.getElementById('attachmentBtn');
+                    if (attachmentBtn) {
+                        // First, remove any existing listeners by cloning
+                        const newAttachmentBtn = attachmentBtn.cloneNode(true);
+                        attachmentBtn.parentNode.replaceChild(newAttachmentBtn, attachmentBtn);
+                        
+                        // Add the click event listener
+                        newAttachmentBtn.addEventListener('click', function() {
+                            document.getElementById('fileUpload').click();
+                        });
+                        console.log('Reconnected attachment button to file input');
                     }
-                });
-                if (fileInput) fileInput.files = dataTransfer.files;
+                }
             });
             filePreview.appendChild(removeBtn);
             container.appendChild(filePreview);
