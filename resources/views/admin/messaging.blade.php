@@ -2246,6 +2246,8 @@
                         recipientSelect.disabled = true;
                     }
                 });
+
+
             });
             
             // Function to update options based on search text
@@ -2404,6 +2406,115 @@
                     }
                 });
             });
+
+            // Create container for feedback messages in the modal
+            const feedbackContainer = document.createElement('div');
+            feedbackContainer.id = 'conversationFormFeedback';
+            feedbackContainer.className = 'mb-3 d-none';
+            feedbackContainer.innerHTML = '<div class="alert alert-info mb-0"></div>';
+
+            // Insert feedback container before the modal footer
+            const modalBody = document.querySelector('#newConversationModal .modal-body');
+            const modalFooter = document.querySelector('#newConversationModal .modal-footer');
+            if (modalBody && modalFooter) {
+                modalBody.appendChild(feedbackContainer);
+            }
+
+            // Add event listener to recipient select to check for existing conversations
+            recipientSelect?.addEventListener('change', function() {
+                const userId = this.value;
+                const userType = userTypeSelect?.value;
+                
+                if (!userId || !userType) return;
+                
+                // Show loading state
+                feedbackContainer.classList.remove('d-none');
+                feedbackContainer.innerHTML = `
+                    <div class="alert alert-info mb-0 d-flex align-items-center">
+                        <div class="spinner-border spinner-border-sm me-2" role="status"></div>
+                        <div>Checking for existing conversations...</div>
+                    </div>
+                `;
+                
+                // Perform check by attempting to find conversations with this user
+                fetch(`${window.location.origin}/${rolePrefix}/messaging/get-conversations-with-recipient`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        participant_type: userType,
+                        participant_id: userId
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.exists) {
+                        // Show "conversation exists" message
+                        feedbackContainer.innerHTML = `
+                            <div class="alert alert-info mb-0">
+                                <i class="bi bi-info-circle me-2"></i>
+                                A conversation with this recipient already exists.
+                                <a href="${window.location.origin}/${rolePrefix}/messaging?conversation=${data.conversation_id}" 
+                                class="alert-link ms-2" id="goToExistingConversation">
+                                Go to conversation
+                                </a>
+                            </div>
+                        `;
+                        
+                        // Change button text to indicate going to existing conversation
+                        const submitButton = document.getElementById('startConversationBtn');
+                        if (submitButton) {
+                            submitButton.textContent = 'Go to Existing Conversation';
+                            submitButton.dataset.conversationId = data.conversation_id;
+                            submitButton.classList.remove('btn-primary');
+                            submitButton.classList.add('btn-info');
+                        }
+                    } else {
+                        // Hide feedback if no existing conversation
+                        feedbackContainer.classList.add('d-none');
+                        
+                        // Reset button
+                        const submitButton = document.getElementById('startConversationBtn');
+                        if (submitButton) {
+                            submitButton.textContent = 'Start Conversation';
+                            delete submitButton.dataset.conversationId;
+                            submitButton.classList.remove('btn-info');
+                            submitButton.classList.add('btn-primary');
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.error('Error checking for existing conversation:', error);
+                    feedbackContainer.classList.add('d-none');
+                });
+            });
+
+            // Update the form submission handler to handle existing conversations
+            const originalSubmitHandler = newConversationForm.onsubmit;
+            newConversationForm.onsubmit = function(e) {
+                e.preventDefault();
+                
+                const submitButton = document.getElementById('startConversationBtn');
+                
+                // If we're going to an existing conversation, redirect instead of submitting
+                if (submitButton && submitButton.dataset.conversationId) {
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('newConversationModal'));
+                    if (modal) modal.hide();
+                    
+                    // Navigate to existing conversation
+                    window.location.href = `${window.location.origin}/${rolePrefix}/messaging?conversation=${submitButton.dataset.conversationId}`;
+                    return;
+                }
+                
+                // Otherwise proceed with normal form submission
+                if (originalSubmitHandler) {
+                    originalSubmitHandler.call(this, e);
+                }
+            };
         });
 
         // Group Conversation Modal Functionality

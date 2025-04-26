@@ -1430,4 +1430,42 @@ class MessageController extends Controller
         }
     }
 
+    /**
+     * Check if conversation exists with a specific recipient.
+     */
+    public function getConversationsWithRecipient(Request $request)
+    {
+        try {
+            $request->validate([
+                'participant_type' => 'required|in:cose_staff,beneficiary,family_member',
+                'participant_id' => 'required',
+            ]);
+            
+            $user = Auth::user();
+            
+            // Check if a private conversation exists between these users
+            $existingConversation = $this->findExistingPrivateConversation(
+                $user->id, 'cose_staff',
+                $request->participant_id, $request->participant_type
+            );
+            
+            if ($existingConversation) {
+                return response()->json([
+                    'exists' => true,
+                    'conversation_id' => $existingConversation->conversation_id
+                ]);
+            }
+            
+            return response()->json([
+                'exists' => false
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error checking existing conversations: ' . $e->getMessage());
+            return response()->json([
+                'exists' => false,
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
 }
