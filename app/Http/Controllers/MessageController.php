@@ -152,10 +152,29 @@ class MessageController extends Controller
             // Get role prefix for routes
             $rolePrefix = $this->getRoleRoutePrefix();
             
-            return view('admin.conversation', compact('conversation', 'messages', 'conversations', 'rolePrefix'));
+            // Check if the request is AJAX
+            if (request()->ajax() || request()->header('X-Requested-With') === 'XMLHttpRequest') {
+                return response()->json([
+                    'success' => true,
+                    'html' => view('admin.conversation-content', compact('conversation', 'messages', 'rolePrefix'))->render()
+                ]);
+            }
+            
+            // For normal requests, redirect to the messaging index page with conversation ID parameter
+            return redirect()->route($rolePrefix . '.messaging.index', ['conversation' => $id]);
+            
         } catch (\Exception $e) {
             Log::error('Error viewing conversation: ' . $e->getMessage() . "\n" . $e->getTraceAsString());
-            return redirect()->route($this->getRoleRoutePrefix() . '.messaging.index')->with('error', 'Unable to view conversation: ' . $e->getMessage());
+            
+            if (request()->ajax() || request()->header('X-Requested-With') === 'XMLHttpRequest') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Error loading conversation: ' . $e->getMessage()
+                ], 500);
+            }
+            
+            return redirect()->route($this->getRoleRoutePrefix() . '.messaging.index')
+                ->with('error', 'Unable to view conversation: ' . $e->getMessage());
         }
     }
 
@@ -449,8 +468,10 @@ class MessageController extends Controller
                 ]);
             }
             
-            return redirect()->route($rolePrefix . '.messaging.conversation', ['conversation' => $conversation->conversation_id])
-                ->with('success', 'Conversation created successfully');
+            // For normal form submissions, redirect to the messaging INDEX with query parameter
+            return redirect()->route($rolePrefix . '.messaging.index', ['conversation' => $conversation->conversation_id])
+            ->with('success', 'Conversation created successfully');
+            
         } catch (\Exception $e) {
             Log::error('Error creating conversation: ' . $e->getMessage());
             
@@ -1082,7 +1103,7 @@ class MessageController extends Controller
         try {
             if ($type == 'cose_staff') {
                 // Get all staff
-                $staffUsers = User::where('status', 'active')
+                $staffUsers = User::where('status', 'Active')
                     ->orderBy('first_name')
                     ->get(['id', 'first_name', 'last_name', 'email', 'mobile', 'role_id']);
                 

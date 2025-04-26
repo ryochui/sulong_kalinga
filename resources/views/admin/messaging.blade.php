@@ -846,7 +846,7 @@
                 return response.json();
             })
             .then(data => {
-                console.log('Received conversation data:', data);
+                console.log('Received conversation data successfully');
                 
                 if (data.success) {
                     // Update the message area with the conversation
@@ -860,6 +860,15 @@
                     const messagesContainer = document.getElementById('messagesContainer');
                     if (messagesContainer) {
                         messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                    }
+                    
+                    // Also update the conversation list to show this conversation as active
+                    const conversationItem = document.querySelector(`.conversation-item[data-conversation-id="${conversationId}"]`);
+                    if (conversationItem) {
+                        document.querySelectorAll('.conversation-item').forEach(el => {
+                            el.classList.remove('active');
+                        });
+                        conversationItem.classList.add('active');
                     }
                 } else {
                     messageArea.innerHTML = `
@@ -1901,18 +1910,65 @@
             // Initial update of unread count
             updateNavbarUnreadCount();
             
-            // Handle selected conversation from dropdown if present
+            // Handle selected conversation from URL parameters
             const urlParams = new URLSearchParams(window.location.search);
             const selectedConversationId = urlParams.get('conversation');
-            
+
             if (selectedConversationId) {
-                const conversationItem = document.querySelector(`.conversation-item[data-conversation-id="${selectedConversationId}"]`);
-                if (conversationItem) {
-                    conversationItem.click();
+                console.log('Found conversation ID in URL:', selectedConversationId);
+                
+                // More aggressive retry strategy with multiple attempts
+                let maxRetries = 10; // Try up to 10 times (total of ~5 seconds)
+                let retryCount = 0;
+                let retryDelay = 200; // Start with 200ms, then increase
+                
+                function attemptLoadConversation() {
+                    console.log(`Attempt ${retryCount+1} to find conversation ${selectedConversationId}`);
+                    const conversationItem = document.querySelector(`.conversation-item[data-conversation-id="${selectedConversationId}"]`);
                     
-                    // Clean URL without reloading page
-                    window.history.replaceState({}, document.title, window.location.pathname);
+                    if (conversationItem) {
+                        console.log('Found conversation element, selecting it');
+                        
+                        // Remove active class from all items
+                        document.querySelectorAll('.conversation-item').forEach(el => {
+                            el.classList.remove('active');
+                        });
+                        
+                        // Add active class
+                        conversationItem.classList.add('active');
+                        
+                        // Manually trigger the conversation load
+                        loadConversation(selectedConversationId);
+                        
+                        // Mark as read
+                        markConversationAsRead(selectedConversationId);
+                        
+                        // Clean URL without reloading page
+                        window.history.replaceState({}, document.title, window.location.pathname);
+                        return true;
+                    }
+                    
+                    if (retryCount < maxRetries) {
+                        retryCount++;
+                        retryDelay = Math.min(retryDelay * 1.5, 1000); // Increase delay but cap at 1 second
+                        
+                        console.log(`Conversation not found yet, retrying in ${retryDelay}ms (attempt ${retryCount}/${maxRetries})`);
+                        
+                        setTimeout(attemptLoadConversation, retryDelay);
+                    } else {
+                        console.log('Max retries reached, loading conversation directly via AJAX');
+                        // Direct load as last resort
+                        loadConversation(selectedConversationId);
+                        
+                        // Clean URL without reloading page
+                        window.history.replaceState({}, document.title, window.location.pathname);
+                    }
+                    
+                    return false;
                 }
+                
+                // Start the retry process
+                attemptLoadConversation();
             }
             
             // Track typing activity
@@ -2118,6 +2174,7 @@
             // Handle user type selection
             userTypeSelect?.addEventListener('change', function() {
                 const userType = this.value;
+                console.log('Selected recipient type:', userType);
                 
                 // Show loading state
                 if (recipientSelect) {
@@ -2125,19 +2182,50 @@
                     recipientSelect.disabled = true;
                 }
                 
+                // Construct URL with direct path to ensure it works
+                const url = `${window.location.origin}/${rolePrefix}/messaging/get-users?type=${userType}`;
+                console.log('Fetching users from:', url);
+                
                 // Use existing endpoint with the current route prefix
-                fetch(`${window.location.origin}/${rolePrefix}/messaging/get-users?type=${userType}`, {
+                fetch(url, {
+                    method: 'GET',
                     headers: {
                         'X-Requested-With': 'XMLHttpRequest',
-                        'Accept': 'application/json'
-                    }
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    credentials: 'same-origin'
                 })
-                .then(response => response.json())
+                .then(response => {
+                    console.log('Response status:', response.status);
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! Status: ${response.status}`);
+                    }
+                    return response.json();
+                })
                 .then(data => {
+                    console.log('Received user data:', data);
+                    
                     if (recipientSelect) {
-                        if (data.users && data.users.length > 0) {
+                        // Handle multiple possible response formats
+                        let usersArray = null;
+                        
+                        if (data.users && Array.isArray(data.users)) {
+                            // Standard format: { users: [...] }
+                            usersArray = data.users;
+                        } else if (Array.isArray(data)) {
+                            // Alternative format: direct array
+                            usersArray = data;
+                        } else if (data.data && Array.isArray(data.data)) {
+                            // Another possible format: { data: [...] }
+                            usersArray = data.data;
+                        }
+                        
+                        if (usersArray && usersArray.length > 0) {
+                            console.log('Found', usersArray.length, 'users');
+                            
                             // Add users to options array for filtering
-                            window.userOptions = data.users;
+                            window.userOptions = usersArray;
                             
                             // Enable select and update UI
                             recipientSelect.disabled = false;
@@ -2145,6 +2233,7 @@
                             // Initial rendering of all options
                             updateRecipientOptions('');
                         } else {
+                            console.warn('No users found in response');
                             recipientSelect.innerHTML = '<option value="" selected disabled>No users found</option>';
                             recipientSelect.disabled = true;
                         }
@@ -2153,7 +2242,7 @@
                 .catch(error => {
                     console.error('Error fetching users:', error);
                     if (recipientSelect) {
-                        recipientSelect.innerHTML = '<option value="" selected disabled>Error loading users</option>';
+                        recipientSelect.innerHTML = '<option value="" selected disabled>Error loading users: ' + error.message + '</option>';
                         recipientSelect.disabled = true;
                     }
                 });
