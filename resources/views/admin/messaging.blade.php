@@ -3337,6 +3337,7 @@
                         addMemberModal.hide();
                         this.reset();
                         
+                        // Reset memberSelect
                         if (memberSelect) {
                             memberSelect.innerHTML = '<option value="" selected disabled>First select a user type</option>';
                             memberSelect.disabled = true;
@@ -3349,7 +3350,49 @@
                             memberSearch.value = '';
                         }
                         
-                        // Show success notification
+                        // Create success notification that stays visible during reload
+                        const notificationDiv = document.createElement('div');
+                        notificationDiv.className = 'alert alert-success position-fixed top-0 end-0 m-3';
+                        notificationDiv.style.zIndex = "9999";
+                        notificationDiv.innerHTML = `
+                            <strong>Success!</strong> New member has been added to the group. Refreshing...
+                        `;
+                        document.body.appendChild(notificationDiv);
+                        
+                        // Store success flag in sessionStorage to show notification after reload
+                        sessionStorage.setItem('memberAdded', 'true');
+                        sessionStorage.setItem('memberAddedTime', Date.now());
+                        
+                        // Always force a hard page reload with the conversation ID
+                        // This is the most reliable way to ensure the conversation area shows the latest content
+                        const cacheBuster = Date.now();
+                        window.location.href = `${window.location.origin}/${rolePrefix}/messaging?conversation=${conversationId}&refresh=${cacheBuster}`;
+                    } else {
+                        throw new Error(data.message || 'Failed to add member');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error adding member:', error);
+                    alert('Failed to add member: ' + error.message);
+                })
+                .finally(() => {
+                    // Reset button (this will only run if there's an error)
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Add to Group';
+                });
+            });
+
+            // Add this to the document.addEventListener('DOMContentLoaded', function() {...}) section
+            // to handle displaying the notification after page reload
+            document.addEventListener('DOMContentLoaded', function() {
+                // Check if we just added a member
+                if (sessionStorage.getItem('memberAdded') === 'true') {
+                    const addedTime = parseInt(sessionStorage.getItem('memberAddedTime') || '0');
+                    const currentTime = Date.now();
+                    
+                    // Only show if the flag was set within the last 3 seconds (to avoid stale notifications)
+                    if (currentTime - addedTime < 3000) {
+                        // Show temporary success notification
                         const notificationDiv = document.createElement('div');
                         notificationDiv.className = 'alert alert-success alert-dismissible fade show position-fixed top-0 end-0 m-3';
                         notificationDiv.style.zIndex = "9999";
@@ -3365,64 +3408,12 @@
                                 notificationDiv.parentNode.removeChild(notificationDiv);
                             }
                         }, 5000);
-                        
-                        // Completely reload the conversation content if this is the active conversation
-                        if (window.currentlyLoadedConversation == conversationId) {
-                            // Use a direct fetch to get conversation content
-                            fetch(`${window.location.origin}/${rolePrefix}/messaging/get-conversation?id=${conversationId}&_=${new Date().getTime()}`, {
-                                method: 'GET',
-                                headers: {
-                                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                                    'Accept': 'application/json',
-                                    'X-Requested-With': 'XMLHttpRequest',
-                                    // Force cache busting headers
-                                    'Cache-Control': 'no-cache, no-store, must-revalidate',
-                                    'Pragma': 'no-cache',
-                                    'Expires': '0'
-                                }
-                            })
-                            .then(response => response.json())
-                            .then(data => {
-                                if (data.success) {
-                                    // Replace the entire message area content
-                                    const messageArea = document.querySelector('.message-area');
-                                    if (messageArea) {
-                                        messageArea.innerHTML = data.html;
-                                        
-                                        // Re-initialize the message form
-                                        window.messageFormInitialized = false;
-                                        initializeMessageForm(conversationId, true);
-                                        
-                                        // Scroll to bottom
-                                        const messagesContainer = document.getElementById('messagesContainer');
-                                        if (messagesContainer) {
-                                            messagesContainer.scrollTop = messagesContainer.scrollHeight;
-                                        }
-                                        
-                                        console.log('Conversation content updated successfully');
-                                    }
-                                }
-                            })
-                            .catch(error => {
-                                console.error('Error refreshing conversation content:', error);
-                            });
-                        }
-                        
-                        // Also refresh the conversation list
-                        smoothRefreshConversationList();
-                    } else {
-                        throw new Error(data.message || 'Failed to add member');
                     }
-                })
-                .catch(error => {
-                    console.error('Error adding member:', error);
-                    alert('Failed to add member: ' + error.message);
-                })
-                .finally(() => {
-                    // Reset button
-                    submitBtn.disabled = false;
-                    submitBtn.textContent = 'Add to Group';
-                });
+                    
+                    // Clear flags
+                    sessionStorage.removeItem('memberAdded');
+                    sessionStorage.removeItem('memberAddedTime');
+                }
             });
             
             // Function to update member options based on search
