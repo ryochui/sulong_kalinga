@@ -270,6 +270,132 @@
             return messagesContainer ? messagesContainer.innerHTML : '';
         }
 
+        // Helper function to determine file icon class based on file type
+        function getFileIconClass(file) {
+            const fileName = file.name.toLowerCase();
+            
+            if (file.type.includes('pdf') || fileName.endsWith('.pdf')) {
+                return 'bi-file-earmark-pdf';
+            } else if (fileName.endsWith('.doc') || fileName.endsWith('.docx')) {
+                return 'bi-file-earmark-word';
+            } else if (fileName.endsWith('.xls') || fileName.endsWith('.xlsx')) {
+                return 'bi-file-earmark-excel';
+            } else if (fileName.endsWith('.txt')) {
+                return 'bi-file-earmark-text';
+            } else if (file.type.startsWith('image/')) {
+                return 'bi-file-earmark-image';
+            } else {
+                return 'bi-file-earmark';
+            }
+        }
+
+        function createFilePreview(file, container) {
+            const filePreview = document.createElement('div');
+            filePreview.className = 'file-preview';
+            
+            // Loading state
+            const loadingContainer = document.createElement('div');
+            loadingContainer.className = 'file-loading';
+            loadingContainer.innerHTML = '<div class="spinner-border spinner-border-sm text-primary" role="status"></div>';
+            filePreview.appendChild(loadingContainer);
+            
+            // Add file name below loading spinner
+            const fileName = document.createElement('div');
+            fileName.className = 'file-name';
+            fileName.textContent = file.name;
+            filePreview.appendChild(fileName);
+            
+            // Add remove button
+            const removeBtn = document.createElement('div');
+            removeBtn.className = 'remove-file';
+            removeBtn.innerHTML = '&times;';
+            removeBtn.addEventListener('click', function() {
+                filePreview.remove();
+                
+                // Create a new FileList without this file
+                const dataTransfer = new DataTransfer();
+                const fileInput = document.getElementById('fileUpload');
+                Array.from(fileInput.files || []).forEach(f => {
+                    if (f.name !== file.name || f.size !== file.size) {
+                        dataTransfer.items.add(f);
+                    }
+                });
+                if (fileInput) fileInput.files = dataTransfer.files;
+            });
+            filePreview.appendChild(removeBtn);
+            container.appendChild(filePreview);
+            
+            // Process preview based on file type
+            if (file.type.startsWith('image/')) {
+                const img = new Image();
+                img.onload = function() {
+                    loadingContainer.remove();
+                    filePreview.insertBefore(img, filePreview.firstChild);
+                };
+                img.onerror = function() {
+                    loadingContainer.innerHTML = '<i class="bi bi-exclamation-triangle text-warning"></i>';
+                };
+                img.src = URL.createObjectURL(file);
+                img.className = 'file-preview-img';
+            } else {
+                // For non-image files, show icon based on file type
+                setTimeout(() => {
+                    const iconClass = getFileIconClass(file);
+                    loadingContainer.innerHTML = `<i class="bi ${iconClass} fs-2"></i>`;
+                }, 500);
+            }
+
+            // Store file in global storage
+            const conversationId = document.querySelector('input[name="conversation_id"]')?.value;
+            if (conversationId) {
+                if (!window.savedAttachments) {
+                    window.savedAttachments = new Map();
+                }
+                
+                if (!window.savedAttachments.has(conversationId)) {
+                    window.savedAttachments.set(conversationId, []);
+                }
+                
+                const files = window.savedAttachments.get(conversationId);
+                // Only add if not already there
+                if (!files.some(f => f.name === file.name && f.size === file.size)) {
+                    files.push(file);
+                    console.log(`Stored file in window.savedAttachments: ${file.name}`);
+                }
+            }
+        }
+
+        function syncFilePreviewsWithInput() {
+                const filePreviewContainer = document.getElementById('filePreviewContainer');
+                const fileInput = document.getElementById('fileUpload');
+                
+                if (!filePreviewContainer || !fileInput) return;
+                
+                // If there are previews but no files in the input, fix the input
+                const previews = filePreviewContainer.querySelectorAll('.file-preview');
+                if (previews.length > 0 && (!fileInput.files || fileInput.files.length === 0)) {
+                    console.log('Reconnecting file previews to file input');
+                    
+                    // Create a new FormData to collect files from previews
+                    const dataTransfer = new DataTransfer();
+                    
+                    // Find saved files in our global storage
+                    const conversationId = document.querySelector('input[name="conversation_id"]')?.value;
+                    if (conversationId && window.savedAttachments && window.savedAttachments.has(conversationId)) {
+                        const files = window.savedAttachments.get(conversationId);
+                        if (files && files.length > 0) {
+                            files.forEach(file => {
+                                dataTransfer.items.add(file);
+                            });
+                            
+                            // Assign the files back to the input
+                            fileInput.files = dataTransfer.files;
+                            console.log('Restored', dataTransfer.files.length, 'files to input');
+                        }
+                    }
+                }
+            }
+
         function smoothRefreshConversationList() {
             console.log('Refreshing conversation list...');
             
@@ -367,14 +493,23 @@
 
         // ============= INPUT PROTECTION =============
         // Override the textarea value setter to detect and prevent unwanted clearing
+        window.intentionalClear = false;
+
         const originalValueSetter = Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value').set;
         Object.defineProperty(HTMLTextAreaElement.prototype, 'value', {
             set(val) {
-                if (val === '' && this.value !== '' && Date.now() - window.lastBlurTime < 3000) {
+                // Allow clearing if it's intentional (after message send)
+                if (val === '' && this.value !== '' && !window.intentionalClear && Date.now() - window.lastBlurTime < 3000) {
                     console.warn('Prevented textarea from being cleared unexpectedly');
                     window.preventRefreshUntil = Date.now() + 5000; // Prevent refresh for 5 seconds
                     return;
                 }
+                
+                // Reset the flag after use
+                if (window.intentionalClear) {
+                    window.intentionalClear = false;
+                }
+                
                 originalValueSetter.call(this, val);
             }
         });
@@ -710,6 +845,17 @@
                     }
                 });
             }
+
+            if (textarea) {
+                // Clear error message when typing starts
+                textarea.addEventListener('input', function() {
+                    const fileErrorContainer = document.getElementById('fileErrorContainer');
+                    if (fileErrorContainer && !fileErrorContainer.classList.contains('d-none')) {
+                        fileErrorContainer.classList.add('d-none');
+                        fileErrorContainer.innerHTML = '';
+                    }
+                });
+            }
             
             // File attachment handling
             if (attachmentBtn && fileInput) {
@@ -778,104 +924,43 @@
                 }
             }
             
-            // Function to create a file preview
-            function createFilePreview(file, container) {
-                const filePreview = document.createElement('div');
-                filePreview.className = 'file-preview';
-                
-                // Loading state
-                const loadingContainer = document.createElement('div');
-                loadingContainer.className = 'file-loading';
-                loadingContainer.innerHTML = '<div class="spinner-border spinner-border-sm text-primary" role="status"></div>';
-                filePreview.appendChild(loadingContainer);
-                
-                // Add file name below loading spinner
-                const fileName = document.createElement('div');
-                fileName.className = 'file-name';
-                fileName.textContent = file.name;
-                filePreview.appendChild(fileName);
-                
-                // Add remove button
-                const removeBtn = document.createElement('div');
-                removeBtn.className = 'remove-file';
-                removeBtn.innerHTML = '&times;';
-                removeBtn.addEventListener('click', function() {
-                    filePreview.remove();
-                    
-                    // Create a new FileList without this file
-                    const dataTransfer = new DataTransfer();
-                    Array.from(fileInput.files).forEach(f => {
-                        if (f.name !== file.name || f.size !== file.size) {
-                            dataTransfer.items.add(f);
-                        }
-                    });
-                    fileInput.files = dataTransfer.files;
-                });
-                filePreview.appendChild(removeBtn);
-                container.appendChild(filePreview);
-                
-                // Process preview based on file type
-                if (file.type.startsWith('image/')) {
-                    const img = new Image();
-                    img.onload = function() {
-                        loadingContainer.remove();
-                        filePreview.insertBefore(img, filePreview.firstChild);
-                    };
-                    img.onerror = function() {
-                        loadingContainer.innerHTML = '<i class="bi bi-exclamation-triangle text-warning"></i>';
-                    };
-                    img.src = URL.createObjectURL(file);
-                    img.className = 'file-preview-img';
-                } else {
-                    // For non-image files, show icon based on file type
-                    setTimeout(() => {
-                        let iconClass = 'bi-file-earmark';
-                        
-                        if (file.type.includes('pdf')) {
-                            iconClass = 'bi-file-earmark-pdf';
-                        } else if (file.name.endsWith('.doc') || file.name.endsWith('.docx')) {
-                            iconClass = 'bi-file-earmark-word';
-                        } else if (file.name.endsWith('.xls') || file.name.endsWith('.xlsx')) {
-                            iconClass = 'bi-file-earmark-excel';
-                        } else if (file.name.endsWith('.txt')) {
-                            iconClass = 'bi-file-earmark-text';
-                        }
-                        
-                        loadingContainer.innerHTML = `<i class="bi ${iconClass} fs-2"></i>`;
-                    }, 500);
-                }
-            }
-            
             // Message form submission
             messageForm.addEventListener('submit', function(e) {
                 e.preventDefault();
+
+                // Clear any existing error messages
+                const fileErrorContainer = document.getElementById('fileErrorContainer');
+                if (fileErrorContainer) {
+                    fileErrorContainer.classList.add('d-none');
+                    fileErrorContainer.innerHTML = '';
+                }
                 
-                // Validation - check for empty message and no attachments
+                // Get direct references to all required elements
                 const textarea = document.getElementById('messageContent');
                 const fileInput = document.getElementById('fileUpload');
-                
-                // FIXED: Check both the fileInput.files AND the file previews in the container
                 const filePreviewContainer = document.getElementById('filePreviewContainer');
-                const hasAttachments = (fileInput.files && fileInput.files.length > 0) || 
-                           (filePreviewContainer && filePreviewContainer.querySelectorAll('.file-preview').length > 0);
 
-                // Use hasAttachments variable in the condition
-                if (textarea.value.trim() === '' && !hasAttachments) {
-                    const fileErrorContainer = document.getElementById('fileErrorContainer') || createErrorContainer();
-                    fileErrorContainer.innerHTML = 'Please enter a message or attach a file.';
-                    fileErrorContainer.classList.remove('d-none');
-                    return;
-                }
-
-                if (textarea.value.trim() === '' && (!fileInput.files || fileInput.files.length === 0)) {
-                    const fileErrorContainer = document.getElementById('fileErrorContainer') || createErrorContainer();
-                    fileErrorContainer.innerHTML = 'Please enter a message or attach a file.';
-                    fileErrorContainer.classList.remove('d-none');
-                    return;
+                // Ensure global storage exists
+                if (!window.savedAttachments) {
+                    window.savedAttachments = new Map();
                 }
                 
-                // Prepare for AJAX submission
-                const formData = new FormData(this);
+                // Store the conversation ID
+                const conversationId = document.querySelector('input[name="conversation_id"]').value;
+
+                // Debug the current file input state
+                console.log('Before sync - fileInput files:', fileInput?.files?.length || 0);
+
+                // Basic validation
+                const hasTextContent = textarea.value.trim() !== '';
+                const hasFilePreview = filePreviewContainer && filePreviewContainer.querySelectorAll('.file-preview').length > 0;
+                
+                if (!hasTextContent && !hasFilePreview) {
+                    const errorContainer = document.getElementById('fileErrorContainer') || createErrorContainer();
+                    errorContainer.innerHTML = 'Please enter a message or attach a file.';
+                    errorContainer.classList.remove('d-none');
+                    return;
+                }
                 
                 // Show "sending" state
                 const sendBtn = document.getElementById('sendMessageBtn');
@@ -883,100 +968,214 @@
                 sendBtn.disabled = true;
                 sendBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
                 
+                // Create a completely fresh FormData object
+                const formData = new FormData();
+                
+                // Add form fields manually
+                formData.append('_token', document.querySelector('meta[name="csrf-token"]').getAttribute('content'));
+                formData.append('conversation_id', document.querySelector('input[name="conversation_id"]').value);
+                formData.append('content', textarea.value);
+                
+                // Add files directly from the input element without any manipulation
+                if (fileInput && fileInput.files && fileInput.files.length > 0) {
+                    console.log(`DIRECT UPLOAD: Found ${fileInput.files.length} files`);
+                    
+                    for (let i = 0; i < fileInput.files.length; i++) {
+                        // Log file details before appending
+                        console.log(`File ${i+1}: ${fileInput.files[i].name} (${fileInput.files[i].size} bytes)`);
+                        
+                        // Just append with standard array notation
+                        formData.append('attachments[]', fileInput.files[i]);
+                    }
+                }
+
+                // Check if we have previews but no files
+                if (filePreviewContainer && filePreviewContainer.querySelectorAll('.file-preview').length > 0) {
+                    if (!fileInput.files || fileInput.files.length === 0) {
+                        console.log('Detected file previews without fileInput.files - fixing');
+                        
+                        // Create new Files list
+                        const dataTransfer = new DataTransfer();
+                        
+                        // Get file objects from preview elements
+                        filePreviewContainer.querySelectorAll('.file-preview').forEach(preview => {
+                            const fileName = preview.querySelector('.file-name')?.textContent;
+                            if (fileName) {
+                                // Try to find the file in savedAttachments or recreate it
+                                let foundFile = null;
+                                
+                                // Look in global storage
+                                if (window.savedAttachments && window.savedAttachments.has(conversationId)) {
+                                    const savedFiles = window.savedAttachments.get(conversationId);
+                                    if (savedFiles && savedFiles.length > 0) {
+                                        console.log(`Using ${savedFiles.length} files from savedAttachments`);
+                                        
+                                        for (let i = 0; i < savedFiles.length; i++) {
+                                            // IMPORTANT: Use the exact name format Laravel expects
+                                            formData.append('attachments[]', savedFiles[i]);
+                                            console.log(`Directly added file to FormData: ${savedFiles[i].name} (${Math.round(savedFiles[i].size/1024)}KB)`);
+                                        }
+                                    }
+                                } else if (fileInput && fileInput.files && fileInput.files.length > 0) {
+                                    // Fall back to fileInput.files if savedAttachments doesn't have entries
+                                    console.log(`Using ${fileInput.files.length} files from fileInput`);
+                                    
+                                    for (let i = 0; i < fileInput.files.length; i++) {
+                                        formData.append('attachments[]', fileInput.files[i]);
+                                        console.log(`Added file from input to FormData: ${fileInput.files[i].name} (${Math.round(fileInput.files[i].size/1024)}KB)`);
+                                    }
+                                }
+                                
+                                if (foundFile) {
+                                    dataTransfer.items.add(foundFile);
+                                    console.log(`Retrieved file from storage: ${foundFile.name}`);
+                                }
+                            }
+                        });
+                        
+                        // If we found any files, set them to the input
+                        if (dataTransfer.files.length > 0) {
+                            fileInput.files = dataTransfer.files;
+                            console.log(`Restored ${dataTransfer.files.length} files to input`);
+                        }
+                    }
+                }
+
+                // Log what we have after sync attempt
+                console.log('After sync - fileInput files:', fileInput?.files?.length || 0);
+                if (fileInput?.files?.length > 0) {
+                    for (let i = 0; i < fileInput.files.length; i++) {
+                        console.log(`File ${i+1}:`, fileInput.files[i].name, fileInput.files[i].size);
+                    }
+                }
+                
+                // Log all form data to verify contents
+                console.log('FINAL FORM DATA:');
+                for (let pair of formData.entries()) {
+                    console.log(`${pair[0]}: ${pair[1] instanceof File ? 
+                        `File: ${pair[1].name} (${Math.round(pair[1].size/1024)}KB)` : 
+                        pair[1].toString().substring(0, 30)}`);
+                }
+                
+                // Make a direct fetch request with proper AJAX headers
                 fetch(this.action, {
                     method: 'POST',
                     body: formData,
                     headers: {
                         'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                        'X-Requested-With': 'XMLHttpRequest'
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json'
+                        // DO NOT SET 'Content-Type' here - it will be set automatically with proper boundary
                     }
                 })
-                .then(response => response.json())
+                .then(response => {
+                    console.log('Response status:', response.status);
+                    
+                    // Check content type before parsing
+                    const contentType = response.headers.get('content-type');
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! Status: ${response.status}`);
+                    }
+                    
+                    // Only parse as JSON if it's actually JSON
+                    if (contentType && contentType.includes('application/json')) {
+                        return response.json();
+                    } else {
+                        // Handle HTML or other non-JSON responses
+                        return response.text().then(text => {
+                            console.error('Received non-JSON response:', text.substring(0, 500) + '...');
+                            throw new Error('Server returned non-JSON response');
+                        });
+                    }
+                })
                 .then(data => {
+                    console.log('Message sent successfully:', data);
+                    
                     if (data.success) {
-                        // Set timestamp to prevent immediate refresh
-                        window.lastBlurTime = Date.now() - 10000; // Prevent protection mechanism from blocking clear
-                        window.lastMessageSendTimestamp = Date.now();
-                        
-                        // SUPER STRONG INPUT CLEARING - BYPASSES PROTECTION
-                        const messageContent = document.getElementById('messageContent');
-                        if (messageContent) {
-                            // Force clear the input by temporarily removing event listeners
-                            const newTextarea = messageContent.cloneNode(true);
-                            newTextarea.value = '';
-                            messageContent.parentNode.replaceChild(newTextarea, messageContent);
-                            
-                            // Re-add auto-resize behavior to new textarea
-                            newTextarea.addEventListener('input', function() {
-                                this.style.height = 'auto';
-                                this.style.height = (this.scrollHeight) + 'px';
-                            });
+                        // CRITICAL: Reset UI elements properly
+                        // 1. Clear textarea and reset height
+                        window.intentionalClear = true;
+                        textarea.value = '';
+
+                        if (textarea.style) {
+                            textarea.style.height = 'auto';
                         }
                         
-                        // Clear file previews completely
-                        const filePreviewContainer = document.getElementById('filePreviewContainer');
+                        // 2. Clear file previews if they exist
                         if (filePreviewContainer) {
                             filePreviewContainer.innerHTML = '';
                         }
                         
-                        // Reset file input completely
-                        const fileInput = document.getElementById('fileUpload');
+                        // 3. Clear file input by resetting value
+                        // After sending a message and clearing the input, we need to reattach handlers
                         if (fileInput) {
-                            const newFileInput = fileInput.cloneNode(true);
+                            // First, clear the FileList by resetting value
+                            fileInput.value = '';
+
+                            // Clone and replace the file input to completely reset it
+                            const newFileInput = fileInput.cloneNode(false);
                             fileInput.parentNode.replaceChild(newFileInput, fileInput);
                             newFileInput.addEventListener('change', handleFileInputChange);
-                        }
-                        
-                        // Clear localStorage for this conversation
-                        if (conversationId) {
-                            localStorage.removeItem('messageContent_' + conversationId);
-                        }
-                        
-                        // Reset sending state
-                        sendBtn.disabled = false;
-                        sendBtn.innerHTML = originalBtnContent;
-                        
-                        // Add the message to the UI immediately for instant feedback
-                        appendNewMessage(data.message);
 
-                        // Smoothly update the conversation area
-                        setTimeout(function() {
-                            forceRefreshConversation(conversationId);
-                        }, 200);
-
-                        function refreshWithRetry(retryCount = 0) {
-                            setTimeout(() => {
-                                console.log(`Attempting conversation list refresh (attempt ${retryCount + 1})`);
-                                smoothRefreshConversationList();
+                            const attachmentBtn = document.getElementById('attachmentBtn');
+                            if (attachmentBtn) {
+                                // Remove any existing click handlers
+                                attachmentBtn.replaceWith(attachmentBtn.cloneNode(true));
                                 
-                                // Try again with a longer delay if we haven't reached max retries
-                                if (retryCount < 2) {
-                                    refreshWithRetry(retryCount + 1);
-                                }
-                            }, 700 * (retryCount + 1)); // 700ms, 1400ms, 2100ms
+                                // Get the fresh reference
+                                const newAttachmentBtn = document.getElementById('attachmentBtn');
+                                
+                                // Add the click handler to the button
+                                newAttachmentBtn.addEventListener('click', function() {
+                                    document.getElementById('fileUpload').click();
+                                });
+                                
+                                console.log('Attachment button reconnected to new file input');
+                            }
+                            
+                            console.log('File input completely reset with new event handlers');
                         }
 
-                        // Start the retry process
-                        refreshWithRetry();
-
-                    } else {
-                        // Show error message
+                        // Clear window.savedAttachments for this conversation
+                        if (window.savedAttachments && window.savedAttachments.has(conversationId)) {
+                            window.savedAttachments.set(conversationId, []);
+                            console.log('Cleared saved attachments for conversation', conversationId);
+                        }
+                        
+                        // 4. Reset the sending state IMMEDIATELY
                         sendBtn.disabled = false;
                         sendBtn.innerHTML = originalBtnContent;
+                        
+                        // 5. Trigger conversation refresh with delay to ensure server processing
+                        setTimeout(function() {
+                            const conversationId = document.querySelector('input[name="conversation_id"]').value;
+                            console.log("Refreshing conversation:", conversationId);
+                            forceRefreshConversation(conversationId);
+                            
+                            // Also refresh the conversation list
+                            setTimeout(() => {
+                                smoothRefreshConversationList();
+                            }, 300);
+                        }, 500);
+                    } else {
+                        // Handle failure
                         console.error('Failed to send message:', data.error || 'Unknown error');
+                        sendBtn.disabled = false;
+                        sendBtn.innerHTML = originalBtnContent;
+                        
+                        const errorContainer = document.getElementById('fileErrorContainer') || createErrorContainer();
+                        errorContainer.innerHTML = 'Failed to send message. Please try again.';
+                        errorContainer.classList.remove('d-none');
                     }
                 })
                 .catch(error => {
                     console.error('Error sending message:', error);
-                    
-                    // Show error
-                    const fileErrorContainer = document.getElementById('fileErrorContainer') || createErrorContainer();
-                    fileErrorContainer.innerHTML = 'An error occurred. Please try again.';
-                    fileErrorContainer.classList.remove('d-none');
-                    
-                    // Reset sending state
                     sendBtn.disabled = false;
                     sendBtn.innerHTML = originalBtnContent;
+                    
+                    const errorContainer = document.getElementById('fileErrorContainer') || createErrorContainer();
+                    errorContainer.innerHTML = 'An error occurred while sending your message. Please try again.';
+                    errorContainer.classList.remove('d-none');
                 });
             });
         }

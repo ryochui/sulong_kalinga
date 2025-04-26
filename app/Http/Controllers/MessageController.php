@@ -192,6 +192,13 @@ class MessageController extends Controller
      */
     public function sendMessage(Request $request)
     {
+
+        Log::info('Request data for file upload', [
+            'has_file_attachments' => $request->hasFile('attachments'),
+            'all_files' => $request->allFiles(),
+            'request_keys' => array_keys($request->all())
+        ]);
+
         try {
             $user = Auth::user();
             $rolePrefix = $this->getRoleRoutePrefix();
@@ -211,36 +218,73 @@ class MessageController extends Controller
                 return $this->jsonResponse(false, 'You are not a participant in this conversation', 403);
             }
             
-            // Create message
+            // Create message with all required fields
             $message = new Message([
                 'conversation_id' => $conversationId,
                 'sender_id' => $user->id,
                 'sender_type' => 'cose_staff',
-                'content' => $request->content,
+                'content' => $request->content, // Add this to set content
                 'message_timestamp' => now(),
             ]);
             $message->save();
             
             // Handle attachments
             if ($request->hasFile('attachments')) {
-                foreach ($request->file('attachments') as $file) {
-                    // Create a unique filename
-                    $filename = uniqid() . '_' . $file->getClientOriginalName();
-                    
-                    // Store the file
-                    $filePath = $file->storeAs('message_attachments', $filename, 'public');
-                    
-                    // Create attachment record
-                    $attachment = new MessageAttachment([
-                        'message_id' => $message->message_id,
-                        'file_name' => $file->getClientOriginalName(),
-                        'file_path' => $filePath,
-                        'file_type' => $file->getMimeType(),
-                        'file_size' => $file->getSize(),
-                        'is_image' => Str::startsWith($file->getMimeType(), 'image/')
-                    ]);
-                    $attachment->save();
+                Log::info("Request has attachments", [
+                    'count' => is_array($request->file('attachments')) ? count($request->file('attachments')) : 1,
+                    'conversation_id' => $conversationId
+                ]);
+
+                // Handle both array and non-array formats
+                $files = $request->file('attachments');
+                Log::info("Found files in request:", [
+                    'count' => is_array($files) ? count($files) : 1
+                ]);
+
+                if (!is_array($files)) {
+                    $files = [$files];
                 }
+
+                foreach ($files as $file) {
+                    // Check if file is valid
+                    if ($file && $file->isValid()) {
+                        // Get file info
+                        $fileName = $file->getClientOriginalName();
+                        $fileType = $file->getMimeType();
+                        $fileSize = $file->getSize();
+                        
+                        // Determine if it's an image
+                        $isImage = str_starts_with($fileType, 'image/');
+                        
+                        // Store file in storage/app/public/attachments folder
+                        $filePath = $file->store('attachments', 'public');
+                        
+                        // Create attachment record
+                        $attachment = new MessageAttachment([
+                            'message_id' => $message->message_id,
+                            'file_name' => $fileName,
+                            'file_path' => $filePath,
+                            'file_type' => $fileType,
+                            'file_size' => $fileSize,
+                            'is_image' => $isImage
+                        ]);
+                        $attachment->save();
+                        
+                        // Log successful file upload
+                        Log::info("File attachment created", [
+                            'message_id' => $message->message_id,
+                            'file_name' => $fileName,
+                            'file_path' => $filePath
+                        ]);
+                    } else {
+                        Log::error('Invalid file upload', ['filename' => $file->getClientOriginalName()]);
+                    }
+                }
+            } else {
+                Log::warning("No attachments found in request", [
+                    'has_file' => $request->hasFile('attachments'),
+                    'files' => $request->allFiles(),
+                ]);
             }
             
             // Update last message in conversation
@@ -273,6 +317,13 @@ class MessageController extends Controller
                     'attachments' => $attachmentData
                 ]);
             }
+
+            Log::info('Request data for file upload', [
+                'has_file_attachments' => $request->hasFile('attachments'),
+                'has_array_attachments' => is_array($request->file('attachments')),
+                'files_count' => $request->hasFile('attachments') ? count($request->file('attachments')) : 0,
+                'all_files' => $request->allFiles()
+            ]);
             
             // Otherwise redirect back
             return redirect()->route($rolePrefix . '.messaging.index', ['conversation' => $conversationId])

@@ -14,10 +14,10 @@
                     @if(config('app.debug'))
                     <div class="mt-4">
                         <h5>Debug Information:</h5>
-                        <pre>User ID: {{ Auth::id() }}
-Role ID: {{ Auth::user()->role_id }}
-Organization Role ID: {{ Auth::user()->organization_role_id }}
-URL: {{ request()->fullUrl() }}</pre>
+                        <pre>User ID: {{ Auth::id() ?? 'Not logged in' }}
+                            Role ID: {{ Auth::check() ? Auth::user()->role_id : 'N/A' }}
+                            Organization Role ID: {{ Auth::check() ? Auth::user()->organization_role_id : 'N/A' }}
+                            URL: {{ request()->fullUrl() }}</pre>
                     </div>
                     @endif
                     
