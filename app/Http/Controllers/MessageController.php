@@ -496,13 +496,28 @@ class MessageController extends Controller
             $user = Auth::user();
             $rolePrefix = $this->getRoleRoutePrefix();
             
+             // Validate the request with more specific rules
             $request->validate([
                 'name' => 'required|string|max:255',
                 'participants' => 'required|array|min:1',
-                'participants.*.id' => 'required',
+                'participants.*.id' => 'required|numeric',
                 'participants.*.type' => 'required|in:cose_staff,beneficiary,family_member',
                 'initial_message' => 'nullable|string',
             ]);
+            
+            // Log the participants for debugging
+            Log::info('Creating group conversation with participants:', [
+                'participants_count' => count($request->participants),
+                'participants' => $request->participants
+            ]);
+
+            // Check if participants array is empty after validation
+            if (empty($request->participants)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'At least one participant is required'
+                ], 422);
+            }
             
             // Create new conversation
             $conversation = Conversation::create([
@@ -573,15 +588,6 @@ class MessageController extends Controller
                 $conversation->save();
             }
             
-            // Create notifications for all participants
-            foreach ($request->participants as $participant) {
-                $this->createGroupJoinNotification(
-                    $conversation,
-                    $participant['id'], 
-                    $participant['type'],
-                    $user->first_name . ' ' . $user->last_name
-                );
-            }
             
             // For AJAX requests, return JSON
             if ($request->ajax() || $request->header('X-Requested-With') === 'XMLHttpRequest') {
@@ -607,104 +613,6 @@ class MessageController extends Controller
             return back()->with('error', 'Could not create group. Please try again.');
         }
     }
-
-    /**
-     * Create notification for new message
-     */
-    private function createMessageNotification($message, $recipientId, $recipientType)
-    {
-        try {
-            // Get sender name
-            $senderName = 'System';
-            if ($message->sender_type == 'cose_staff') {
-                $sender = User::find($message->sender_id);
-                $senderName = $sender ? $sender->first_name . ' ' . $sender->last_name : 'Unknown Staff';
-            } elseif ($message->sender_type == 'beneficiary') {
-                $sender = Beneficiary::find($message->sender_id);
-                $senderName = $sender ? $sender->first_name . ' ' . $sender->last_name : 'Unknown Beneficiary';
-            } elseif ($message->sender_type == 'family_member') {
-                $sender = FamilyMember::find($message->sender_id);
-                $senderName = $sender ? $sender->first_name . ' ' . $sender->last_name : 'Unknown Family Member';
-            }
-            
-            // Determine recipient model
-            $recipientModel = null;
-            if ($recipientType == 'cose_staff') {
-                $recipientModel = User::find($recipientId);
-            } elseif ($recipientType == 'beneficiary') {
-                $recipientModel = Beneficiary::find($recipientId);
-            } elseif ($recipientType == 'family_member') {
-                $recipientModel = FamilyMember::find($recipientId);
-            }
-            
-            if (!$recipientModel) {
-                return false;
-            }
-            
-            // Create the notification
-            \App\Models\Notification::create([
-                'recipient_id' => $recipientId,
-                'recipient_type' => $recipientType,
-                'message_title' => 'New Message',
-                'message' => "$senderName sent you a message.",
-                'notification_type' => 'message',
-                'is_read' => false,
-                'link' => "/messaging?conversation=" . $message->conversation_id,
-                'date_created' => now(),
-            ]);
-            
-            return true;
-        } catch (\Exception $e) {
-            Log::error('Error creating message notification: ' . $e->getMessage());
-            return false;
-        }
-    }
-
-    /**
-     * Create notification for group join
-     */
-    private function createGroupJoinNotification($conversation, $recipientId, $recipientType, $creatorName)
-    {
-        try {
-            // Skip if recipient is the creator
-            if ($recipientType == 'cose_staff' && $recipientId == Auth::id()) {
-                return true;
-            }
-            
-            // Determine recipient model
-            $recipientModel = null;
-            if ($recipientType == 'cose_staff') {
-                $recipientModel = User::find($recipientId);
-            } elseif ($recipientType == 'beneficiary') {
-                $recipientModel = Beneficiary::find($recipientId);
-            } elseif ($recipientType == 'family_member') {
-                $recipientModel = FamilyMember::find($recipientId);
-            }
-            
-            if (!$recipientModel) {
-                return false;
-            }
-            
-            // Create the notification
-            \App\Models\Notification::create([
-                'recipient_id' => $recipientId,
-                'recipient_type' => $recipientType,
-                'message_title' => 'Added to Group Chat',
-                'message' => "$creatorName added you to the group \"$conversation->name\".",
-                'notification_type' => 'group_message',
-                'is_read' => false,
-                'link' => "/messaging?conversation=" . $conversation->conversation_id,
-                'date_created' => now(),
-            ]);
-            
-            return true;
-        } catch (\Exception $e) {
-            Log::error('Error creating group join notification: ' . $e->getMessage());
-            return false;
-        }
-    }
-
-    
     
     /**
      * Get unread message count for the user.

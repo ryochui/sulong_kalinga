@@ -219,7 +219,7 @@
 .conversation-title span {
     font-weight: 500;
     color: #333;
-    max-width: 70%;
+    max-width: 150%;
     white-space: normal;
     word-wrap: break-word;
     overflow-wrap: break-word;
@@ -781,7 +781,6 @@ textarea.message-input {
 .conversation-title span:not(.user-type-badge) {
     font-weight: 500;
     color: #333;
-    max-width: 70%;
     white-space: normal;
     word-wrap: break-word;
     overflow-wrap: break-word;
@@ -798,7 +797,7 @@ textarea.message-input {
     display: flex;
     align-items: center;
     flex-wrap: nowrap;
-    max-width: 85%;
+    max-width: 150%;
     overflow: hidden;
 }
 
