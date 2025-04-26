@@ -223,11 +223,38 @@
         window.route_prefix = rolePrefix + '.messaging';
 
         function getRouteUrl(routeName) {
-            return `${window.location.origin}/${rolePrefix}/messaging/${routeName.replace(/^.*\./, '')}`;
+            // Extract just the endpoint part after the last dot
+            const endpoint = routeName.replace(/^.*\./, '');
+            
+            // Build the full URL
+            const baseUrl = `${window.location.origin}/${rolePrefix}/messaging/`;
+            const fullUrl = baseUrl + endpoint;
+            
+            console.log(`Converting route ${routeName} to URL: ${fullUrl}`);
+            return fullUrl;
         }
 
         let lastKnownScrollPosition = 0;
         let scrollTimeoutId = null;
+
+        // Add this helper function right after the loadConversation function
+        function logResponseDetails(response) {
+            console.log('Response headers:', {
+                'content-type': response.headers.get('content-type'),
+                'status': response.status
+            });
+            
+            return response.text().then(text => {
+                try {
+                    const json = JSON.parse(text);
+                    console.log('Response parsed as JSON:', json);
+                    return json;
+                } catch (e) {
+                    console.error('Response is not valid JSON:', text.substring(0, 500) + '...');
+                    throw new Error('Invalid JSON response');
+                }
+            });
+        }
 
         // Helper to determine if user is at bottom of container
         function isAtBottom(container) {
@@ -241,6 +268,101 @@
             tempDiv.innerHTML = html;
             const messagesContainer = tempDiv.querySelector('.messages-container');
             return messagesContainer ? messagesContainer.innerHTML : '';
+        }
+
+        function smoothRefreshConversationList() {
+            console.log('Refreshing conversation list...');
+            
+            // INCREASE DELAY - Give server more time to process the message
+            setTimeout(() => {
+                // Strong cache-busting
+                const timestamp = new Date().getTime();
+                const url = getRouteUrl(route_prefix + '.get-conversations') + 
+                        '?nocache=' + timestamp;
+                
+                fetch(url, {
+                    method: 'GET',
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Cache-Control': 'no-cache, no-store, must-revalidate',
+                        'Pragma': 'no-cache',
+                        'Expires': '0',
+                        'If-Modified-Since': '0'
+                    }
+                })
+                .then(response => {
+                    console.log('Conversation list response status:', response.status);
+                    if (!response.ok) {
+                        throw new Error(`Error fetching conversations: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('Received conversation list data:', data.success);
+                    
+                    if (data.success && data.html) {
+                        // Find the container
+                        const conversationListItems = document.querySelector('.conversation-list-items');
+                        if (!conversationListItems) {
+                            console.error('Conversation list items container not found');
+                            return;
+                        }
+                        
+                        // Get currently active conversation ID
+                        const activeConversationId = document.querySelector('.conversation-item.active')?.dataset.conversationId;
+                        
+                        // CRITICAL FIX: Parse the new HTML before inserting
+                        const parser = new DOMParser();
+                        const doc = parser.parseFromString(data.html, 'text/html');
+                        const newContent = doc.body.innerHTML;
+                        
+                        // Force-update the HTML immediately
+                        conversationListItems.innerHTML = newContent;
+                        console.log('Updated conversation list HTML with fresh content');
+                        
+                        // Re-add active class to current conversation
+                        if (activeConversationId) {
+                            const newActiveItem = conversationListItems.querySelector(
+                                `.conversation-item[data-conversation-id="${activeConversationId}"]`
+                            );
+                            if (newActiveItem) {
+                                newActiveItem.classList.add('active');
+                            }
+                        }
+                        
+                        // Reattach click handlers
+                        addConversationClickHandlers();
+                    } else {
+                        console.error('Invalid conversation list data received:', data);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error refreshing conversation list:', error);
+                });
+            }, 800); // INCREASED DELAY from 300ms to 800ms for server processing
+        }
+
+        function handleFileInputChange(event) {
+            const fileInput = event.target;
+            const files = fileInput.files;
+            
+            if (files.length === 0) return;
+            
+            const filePreviewContainer = document.getElementById('filePreviewContainer');
+            if (!filePreviewContainer) return;
+            
+            // Process each selected file
+            for (let i = 0; i < files.length; i++) {
+                if (isValidFileType(files[i])) {
+                    createFilePreview(files[i], filePreviewContainer);
+                } else {
+                    const fileErrorContainer = document.getElementById('fileErrorContainer') || createErrorContainer();
+                    fileErrorContainer.innerHTML = 'Invalid file type. Please select images, PDFs, Word, Excel, or text files.';
+                    fileErrorContainer.classList.remove('d-none');
+                }
+            }
         }
 
         // ============= INPUT PROTECTION =============
@@ -361,42 +483,82 @@
 
         // ============= CONVERSATION LIST AND LOADING =============
         // Function to add click handlers to conversation items
+        let conversationClicksInitialized = false;
+
         function addConversationClickHandlers() {
-            document.querySelectorAll('.conversation-item').forEach(item => {
-                item.addEventListener('click', function() {
-                    // Remove active class from all items
-                    document.querySelectorAll('.conversation-item').forEach(el => {
-                        el.classList.remove('active');
-                    });
-                    
-                    // Add active class to clicked item
-                    this.classList.add('active');
-                    
-                    // Get conversation ID and load it
-                    const conversationId = this.dataset.conversationId;
-                    loadConversation(conversationId);
-                    
-                    // Mark conversation as read
-                    markConversationAsRead(conversationId);
-                    
-                    // Hide conversation list on mobile after selecting
-                    if (window.innerWidth < 768) {
-                        const conversationList = document.querySelector('.conversation-list');
-                        if (conversationList) {
-                            conversationList.classList.add('hidden');
-                        }
-                    }
-                });
+            console.log('Adding conversation click handlers');
+            
+            // Use event delegation instead of attaching to each item
+            const conversationListContainer = document.querySelector('.conversation-list-items');
+            
+            if (!conversationListContainer) {
+                console.error('Conversation list container not found');
+                return;
+            }
+            
+            // Remove any existing handler
+            conversationListContainer.removeEventListener('click', handleConversationListClick);
+            
+            // Add a single event handler to the container
+            conversationListContainer.addEventListener('click', handleConversationListClick);
+            
+            console.log('Added conversation click handler to container');
+        }
+
+        // Add this new function to handle clicks through event delegation
+        function handleConversationListClick(e) {
+            // Find the closest conversation item
+            const conversationItem = e.target.closest('.conversation-item');
+            
+            if (!conversationItem) return;
+            
+            console.log('Conversation clicked:', conversationItem.dataset.conversationId);
+            
+            // Remove active class from all items
+            document.querySelectorAll('.conversation-item').forEach(el => {
+                el.classList.remove('active');
             });
+            
+            // Add active class to clicked item
+            conversationItem.classList.add('active');
+            
+            // Get conversation ID and load it
+            const conversationId = conversationItem.dataset.conversationId;
+            if (!conversationId) {
+                console.error('Missing conversation ID on clicked item', conversationItem);
+                return;
+            }
+            
+            // Load the conversation
+            loadConversation(conversationId);
+            
+            // Mark conversation as read
+            markConversationAsRead(conversationId);
+            
+            // Hide conversation list on mobile after selecting
+            if (window.innerWidth < 768) {
+                const conversationList = document.querySelector('.conversation-list');
+                if (conversationList) {
+                    conversationList.classList.add('hidden');
+                }
+            }
         }
 
         // Function to load conversation
         function loadConversation(conversationId) {
-            if (!conversationId) return;
+            console.log('Loading conversation:', conversationId);
+            
+            if (!conversationId) {
+                console.error('No conversation ID provided');
+                return;
+            }
             
             // Show loading state
             const messageArea = document.querySelector('.message-area');
-            if (!messageArea) return;
+            if (!messageArea) {
+                console.error('Message area not found');
+                return;
+            }
             
             messageArea.innerHTML = `
                 <div id="conversationContent" class="d-flex justify-content-center align-items-center h-100">
@@ -406,51 +568,63 @@
                 </div>
             `;
             
+            // Generate URL with protection against malformed URLs
+            const url = getRouteUrl(route_prefix + '.get-conversation') + '?id=' + conversationId;
+            console.log('Fetching conversation from URL:', url);
+            
             // Fetch conversation content via AJAX
-            fetch(getRouteUrl(route_prefix + '.get-conversation') + '?id=' + conversationId, {
+            fetch(url, {
+                method: 'GET',
                 headers: {
                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                    'Accept': 'application/json'
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
                 }
             })
-            .then(response => response.json())
+            .then(response => {
+                console.log('Response status:', response.status);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+                return response.json();
+            })
             .then(data => {
+                console.log('Received conversation data:', data);
+                
                 if (data.success) {
-                    // Update the conversation content
-                    document.getElementById('conversationContent').innerHTML = data.html;
+                    // Update the message area with the conversation
+                    messageArea.innerHTML = data.html;
                     
-                    // Initialize message form for the conversation
+                    // Initialize the message form
+                    window.messageFormInitialized = false;
                     initializeMessageForm(conversationId);
                     
-                    // Scroll to bottom of message container
+                    // Scroll to bottom of messages container
                     const messagesContainer = document.getElementById('messagesContainer');
                     if (messagesContainer) {
                         messagesContainer.scrollTop = messagesContainer.scrollHeight;
                     }
-                    
-                    // Mark messages as read
-                    markConversationAsRead(conversationId);
                 } else {
-                    document.getElementById('conversationContent').innerHTML = `
+                    messageArea.innerHTML = `
                         <div class="empty-state">
-                            <div class="empty-icon">
-                                <i class="bi bi-exclamation-triangle"></i>
-                            </div>
-                            <h5>Error Loading Conversation</h5>
-                            <p>${data.message || 'Could not load the conversation. Please try again.'}</p>
+                            <i class="bi bi-exclamation-triangle-fill empty-icon"></i>
+                            <h4>Error Loading Conversation</h4>
+                            <p>${data.message || 'Could not load conversation. Please try again.'}</p>
                         </div>
                     `;
+                    console.error('Failed to load conversation:', data.message);
                 }
+                
+                // Mark conversation as read
+                markConversationAsRead(conversationId);
             })
             .catch(error => {
                 console.error('Error loading conversation:', error);
-                document.getElementById('conversationContent').innerHTML = `
+                messageArea.innerHTML = `
                     <div class="empty-state">
-                        <div class="empty-icon">
-                            <i class="bi bi-exclamation-triangle"></i>
-                        </div>
-                        <h5>Error Loading Conversation</h5>
-                        <p>Could not load the conversation. Please try again.</p>
+                        <i class="bi bi-exclamation-triangle-fill empty-icon"></i>
+                        <h4>Error Loading Conversation</h4>
+                        <p>Could not load conversation. Please try again.</p>
                     </div>
                 `;
             });
@@ -680,6 +854,19 @@
                 const textarea = document.getElementById('messageContent');
                 const fileInput = document.getElementById('fileUpload');
                 
+                // FIXED: Check both the fileInput.files AND the file previews in the container
+                const filePreviewContainer = document.getElementById('filePreviewContainer');
+                const hasAttachments = (fileInput.files && fileInput.files.length > 0) || 
+                           (filePreviewContainer && filePreviewContainer.querySelectorAll('.file-preview').length > 0);
+
+                // Use hasAttachments variable in the condition
+                if (textarea.value.trim() === '' && !hasAttachments) {
+                    const fileErrorContainer = document.getElementById('fileErrorContainer') || createErrorContainer();
+                    fileErrorContainer.innerHTML = 'Please enter a message or attach a file.';
+                    fileErrorContainer.classList.remove('d-none');
+                    return;
+                }
+
                 if (textarea.value.trim() === '' && (!fileInput.files || fileInput.files.length === 0)) {
                     const fileErrorContainer = document.getElementById('fileErrorContainer') || createErrorContainer();
                     fileErrorContainer.innerHTML = 'Please enter a message or attach a file.';
@@ -707,13 +894,38 @@
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
-                        // Clear textarea and file input
-                        textarea.value = '';
-                        textarea.style.height = 'auto';
+                        // Set timestamp to prevent immediate refresh
+                        window.lastBlurTime = Date.now() - 10000; // Prevent protection mechanism from blocking clear
+                        window.lastMessageSendTimestamp = Date.now();
                         
-                        // Clear file previews
-                        filePreviewContainer.innerHTML = '';
-                        fileInput.value = '';
+                        // SUPER STRONG INPUT CLEARING - BYPASSES PROTECTION
+                        const messageContent = document.getElementById('messageContent');
+                        if (messageContent) {
+                            // Force clear the input by temporarily removing event listeners
+                            const newTextarea = messageContent.cloneNode(true);
+                            newTextarea.value = '';
+                            messageContent.parentNode.replaceChild(newTextarea, messageContent);
+                            
+                            // Re-add auto-resize behavior to new textarea
+                            newTextarea.addEventListener('input', function() {
+                                this.style.height = 'auto';
+                                this.style.height = (this.scrollHeight) + 'px';
+                            });
+                        }
+                        
+                        // Clear file previews completely
+                        const filePreviewContainer = document.getElementById('filePreviewContainer');
+                        if (filePreviewContainer) {
+                            filePreviewContainer.innerHTML = '';
+                        }
+                        
+                        // Reset file input completely
+                        const fileInput = document.getElementById('fileUpload');
+                        if (fileInput) {
+                            const newFileInput = fileInput.cloneNode(true);
+                            fileInput.parentNode.replaceChild(newFileInput, fileInput);
+                            newFileInput.addEventListener('change', handleFileInputChange);
+                        }
                         
                         // Clear localStorage for this conversation
                         if (conversationId) {
@@ -724,24 +936,34 @@
                         sendBtn.disabled = false;
                         sendBtn.innerHTML = originalBtnContent;
                         
-                        // Set timestamp to prevent immediate refresh
-                        window.lastMessageSendTimestamp = Date.now();
-                        
-                        // If a new attachment was added, refresh to see it properly rendered
-                        if (data.message.attachments && data.message.attachments.length > 0) {
-                            setTimeout(function() {
-                                window.refreshActiveConversation();
-                            }, 500);
+                        // Add the message to the UI immediately for instant feedback
+                        appendNewMessage(data.message);
+
+                        // Smoothly update the conversation area
+                        setTimeout(function() {
+                            forceRefreshConversation(conversationId);
+                        }, 200);
+
+                        function refreshWithRetry(retryCount = 0) {
+                            setTimeout(() => {
+                                console.log(`Attempting conversation list refresh (attempt ${retryCount + 1})`);
+                                smoothRefreshConversationList();
+                                
+                                // Try again with a longer delay if we haven't reached max retries
+                                if (retryCount < 2) {
+                                    refreshWithRetry(retryCount + 1);
+                                }
+                            }, 700 * (retryCount + 1)); // 700ms, 1400ms, 2100ms
                         }
+
+                        // Start the retry process
+                        refreshWithRetry();
+
                     } else {
-                        // Show error
-                        const fileErrorContainer = document.getElementById('fileErrorContainer') || createErrorContainer();
-                        fileErrorContainer.innerHTML = data.message || 'An error occurred. Please try again.';
-                        fileErrorContainer.classList.remove('d-none');
-                        
-                        // Reset sending state
+                        // Show error message
                         sendBtn.disabled = false;
                         sendBtn.innerHTML = originalBtnContent;
+                        console.error('Failed to send message:', data.error || 'Unknown error');
                     }
                 })
                 .catch(error => {
@@ -763,11 +985,34 @@
         // Function to refresh active conversation with protection for attachments and scroll
         window.refreshActiveConversation = function() {
             // Skip if conditions prevent refresh
-            if (Date.now() < window.preventRefreshUntil ||
-                window.isRefreshing ||
-                document.getElementById('filePreviewContainer')?.children.length > 0 ||
-                (document.getElementById('messageContent')?.value.trim() && Date.now() - window.lastTypingTime < 5000) ||
-                (Date.now() - window.lastMessageSendTimestamp < 3000)) {
+            if (Date.now() < window.preventRefreshUntil) {
+                debugLog('Refresh prevented by time lock');
+                return;
+            }
+
+            // IMPROVED CHECK: Check for file previews more reliably
+            const filePreviewContainer = document.getElementById('filePreviewContainer');
+            if (filePreviewContainer && filePreviewContainer.querySelectorAll('.file-preview').length > 0) {
+                debugLog('Refresh prevented - attachments present');
+                return;
+            }
+
+            // Don't refresh if the user is actively typing
+            const textarea = document.getElementById('messageContent');
+            if (textarea && textarea.value.trim() && Date.now() - window.lastTypingTime < 5000) {
+                debugLog('Refresh prevented - user is typing');
+                return;
+            }
+
+            // Don't refresh if we just sent a message in the last 3 seconds
+            if (Date.now() - window.lastMessageSendTimestamp < 3000) {
+                debugLog('Refresh prevented - message recently sent');
+                return;
+            }
+
+            // Don't refresh if already refreshing
+            if (window.isRefreshing) {
+                debugLog('Refresh prevented - already refreshing');
                 return;
             }
             
@@ -825,11 +1070,9 @@
             }
             
             // Save form state
-            const textarea = document.getElementById('messageContent');
             const textareaContent = textarea?.value || '';
             const fileInput = document.getElementById('fileUpload');
             const savedFiles = fileInput?.files || null;
-            const filePreviewContainer = document.getElementById('filePreviewContainer');
             const filePreviewHTML = filePreviewContainer?.innerHTML || '';
             
             // Fetch updated content
@@ -881,7 +1124,6 @@
                             document.body.removeChild(tempContainer);
                             
                             // Restore form state
-                            const textarea = document.getElementById('messageContent');
                             if (textarea && textareaContent) {
                                 textarea.value = textareaContent;
                                 textarea.style.height = 'auto';
@@ -1151,6 +1393,8 @@
             });
         }
 
+
+
         // Add scroll event listener to detect user interaction
         document.addEventListener('DOMContentLoaded', function() {
             document.body.addEventListener('scroll', function(e) {
@@ -1412,6 +1656,136 @@
                 document.head.appendChild(styleEl);
             }
         });
+
+        // Add this function after your message form initialization
+        function appendNewMessage(message) {
+            const messagesContainer = document.getElementById('messagesContainer');
+            if (!messagesContainer) return;
+            
+            // Only append if container exists
+            const isCurrentUserSender = message.sender_id == {{ auth()->id() }} && 
+                                        message.sender_type == 'cose_staff';
+            
+            // Create a temporary wrapper to hold the HTML
+            const temp = document.createElement('div');
+            
+            // Format the timestamp
+            const timestamp = new Date(message.message_timestamp);
+            const timeString = timestamp.toLocaleTimeString([], {hour: 'numeric', minute:'2-digit'});
+            
+            // Create the message HTML
+            temp.innerHTML = `
+                <div class="message ${isCurrentUserSender ? 'outgoing' : 'incoming'}" data-message-id="${message.message_id}">
+                    <div class="message-content">
+                        ${message.content || ''}
+                        ${message.attachments && message.attachments.length > 0 ? 
+                            '<div class="message-attachments"><small>Attachments will appear after refresh...</small></div>' : ''}
+                    </div>
+                    <div class="message-time">
+                        <small>${timeString}</small>
+                    </div>
+                </div>
+            `;
+            
+            // Append the new message
+            messagesContainer.appendChild(temp.firstChild);
+            
+            // Scroll to bottom to show the new message
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        // Add this function to force a clean, non-flashing refresh
+        function forceRefreshConversation(conversationId) {
+            if (!conversationId) return;
+            
+            const activeConversationId = document.querySelector('.conversation-item.active')?.dataset.conversationId;
+            if (activeConversationId !== conversationId) return;
+            
+            // Add a timestamp parameter to prevent caching
+            const cacheBuster = '&_=' + new Date().getTime();
+            fetch(getRouteUrl(route_prefix + '.get-conversation') + '?id=' + conversationId + cacheBuster, {
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                    'Accept': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Create an off-screen div to prepare the content
+                    const tempDiv = document.createElement('div');
+                    tempDiv.style.position = 'absolute';
+                    tempDiv.style.left = '-9999px';
+                    tempDiv.style.visibility = 'hidden';
+                    tempDiv.innerHTML = data.html;
+                    document.body.appendChild(tempDiv);
+                    
+                    // Get references to current containers
+                    const currentMessagesContainer = document.getElementById('messagesContainer');
+                    if (!currentMessagesContainer) {
+                        document.body.removeChild(tempDiv);
+                        return;
+                    }
+                    
+                    // Keep scroll position at bottom
+                    const wasAtBottom = isAtBottom(currentMessagesContainer);
+                    
+                    // Preload all images in the temp container
+                    const images = tempDiv.querySelectorAll('img');
+                    let loadedImages = 0;
+                    const totalImages = images.length;
+                                        
+                    const updateContent = function() {
+                        const newMessagesContainer = tempDiv.querySelector('.messages-container');
+                        if (newMessagesContainer) {
+                            // Instead of replacing the whole container, just update its content
+                            const currentMessagesContainer = document.getElementById('messagesContainer');
+                            if (currentMessagesContainer) {
+                                // Keep scroll position at bottom
+                                const wasAtBottom = isAtBottom(currentMessagesContainer);
+                                
+                                // Update content
+                                currentMessagesContainer.innerHTML = newMessagesContainer.innerHTML;
+                                
+                                // Restore scroll position
+                                if (wasAtBottom) {
+                                    currentMessagesContainer.scrollTop = currentMessagesContainer.scrollHeight;
+                                }
+                            }
+                        }
+                        
+                        // Clean up
+                        document.body.removeChild(tempDiv);
+                    };
+                    
+                    // If no images, update immediately
+                    if (totalImages === 0) {
+                        updateContent();
+                    } else {
+                        // Set a timeout to ensure we don't wait forever
+                        const timeout = setTimeout(() => {
+                            updateContent();
+                        }, 2000);
+                        
+                        // Preload each image
+                        images.forEach(img => {
+                            const tempImg = new Image();
+                            tempImg.onload = tempImg.onerror = function() {
+                                loadedImages++;
+                                if (loadedImages >= totalImages) {
+                                    clearTimeout(timeout);
+                                    updateContent();
+                                }
+                            };
+                            tempImg.src = img.src;
+                        });
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Error refreshing conversation after sending:', error);
+            });
+        }
     </script>
 </body>
 </html>

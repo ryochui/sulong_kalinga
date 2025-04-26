@@ -1100,7 +1100,7 @@ class MessageController extends Controller
             }
             
             // Render conversation list HTML
-            $html = view('components.conversation-list', [
+            $html = view('admin.conversation-list', [
                 'conversations' => $conversations
             ])->render();
             
