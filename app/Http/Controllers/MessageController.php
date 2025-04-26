@@ -531,9 +531,15 @@ class MessageController extends Controller
                 ->whereNull('left_at')
                 ->pluck('conversation_id');
             
-            // Get conversations with last message
+            // Get conversations with all necessary relationships
             $conversations = Conversation::whereIn('conversation_id', $conversationIds)
-                ->with(['lastMessage'])
+                ->with([
+                    'lastMessage', 
+                    'lastMessage.attachments',
+                    'participants' => function($query) {
+                        $query->whereNull('left_at');
+                    }
+                ])
                 ->get();
             
             // Sort by last message timestamp
@@ -546,90 +552,83 @@ class MessageController extends Controller
             foreach ($sortedConversations as $conversation) {
                 $lastMessage = $conversation->lastMessage;
                 
-                // For private chats, find the other participant's name
-                $otherParticipantName = "Unknown User";
-                $hasUnread = false;
-                $unreadCount = 0; // Add this line to track unread count
+                // Create data structure for this conversation
+                $convoData = [
+                    'conversation_id' => $conversation->conversation_id,
+                    'is_group_chat' => $conversation->is_group_chat,
+                    'name' => $conversation->name ?? '',
+                    'has_unread' => false,
+                    'unread_count' => 0
+                ];
                 
+                // Set other participant name for private chats
                 if (!$conversation->is_group_chat) {
-                    // Find other participant
-                    $otherParticipant = ConversationParticipant::where('conversation_id', $conversation->conversation_id)
-                        ->where(function($query) use ($user) {
-                            $query->where('participant_id', '!=', $user->id)
-                                ->orWhere('participant_type', '!=', 'cose_staff');
-                        })
-                        ->whereNull('left_at')
-                        ->first();
+                    $otherParticipant = null;
+                    
+                    foreach ($conversation->participants as $participant) {
+                        if (!($participant->participant_id == $user->id && $participant->participant_type == 'cose_staff')) {
+                            $otherParticipant = $participant;
+                            break;
+                        }
+                    }
                     
                     if ($otherParticipant) {
-                        if ($otherParticipant->participant_type === 'cose_staff') {
-                            $staff = User::find($otherParticipant->participant_id);
-                            $otherParticipantName = $staff ? $staff->first_name . ' ' . $staff->last_name : 'Unknown Staff';
-                        } elseif ($otherParticipant->participant_type === 'beneficiary') {
-                            $beneficiary = Beneficiary::find($otherParticipant->participant_id);
-                            $otherParticipantName = $beneficiary ? $beneficiary->first_name . ' ' . $beneficiary->last_name : 'Unknown Beneficiary';
-                        } elseif ($otherParticipant->participant_type === 'family_member') {
-                            $familyMember = FamilyMember::find($otherParticipant->participant_id);
-                            $otherParticipantName = $familyMember ? $familyMember->first_name . ' ' . $familyMember->last_name : 'Unknown Family Member';
-                        }
+                        $convoData['other_participant_name'] = $this->getParticipantName($otherParticipant);
+                    } else {
+                        $convoData['other_participant_name'] = 'Unknown User';
                     }
                 }
                 
-                // Check for unread messages
+                // Add last message data
                 if ($lastMessage) {
-                    $hasUnread = $lastMessage->sender_id != $user->id || $lastMessage->sender_type != 'cose_staff';
-                    if ($hasUnread) {
+                    $messageData = [
+                        'message_id' => $lastMessage->message_id,
+                        'content' => $lastMessage->content,
+                        'message_timestamp' => $lastMessage->message_timestamp,
+                        'sender_name' => 'Unknown'
+                    ];
+                    
+                    // Resolve sender name
+                    if ($lastMessage->sender_type == 'cose_staff') {
+                        $staff = User::find($lastMessage->sender_id);
+                        $messageData['sender_name'] = $staff ? $staff->first_name . ' ' . $staff->last_name : 'Unknown Staff';
+                    } else if ($lastMessage->sender_type == 'beneficiary') {
+                        $beneficiary = Beneficiary::find($lastMessage->sender_id);
+                        $messageData['sender_name'] = $beneficiary ? $beneficiary->first_name . ' ' . $beneficiary->last_name : 'Unknown Beneficiary';
+                    } else if ($lastMessage->sender_type == 'family_member') {
+                        $familyMember = FamilyMember::find($lastMessage->sender_id);
+                        $messageData['sender_name'] = $familyMember ? $familyMember->first_name . ' ' . $familyMember->last_name : 'Unknown Family Member';
+                    } else if ($lastMessage->sender_type == 'system') {
+                        // Add this case for system messages
+                        $messageData['sender_name'] = 'System';
+                    }
+                    
+                    // Add attachment data if message has attachments but no text
+                    if ((!$lastMessage->content || trim($lastMessage->content) === '') && 
+                        $lastMessage->attachments && $lastMessage->attachments->count() > 0) {
+                        
+                        if ($lastMessage->attachments->count() == 1) {
+                            $attachment = $lastMessage->attachments->first();
+                            $messageData['content'] = "📎 " . $attachment->file_name;
+                        } else {
+                            $messageData['content'] = "📎 " . $lastMessage->attachments->count() . " attachments";
+                        }
+                    }
+                    
+                    $convoData['last_message'] = $messageData;
+                    
+                    // Check for unread status
+                    $hasUnread = false;
+                    if ($lastMessage->sender_id != $user->id || $lastMessage->sender_type != 'cose_staff') {
                         $readStatus = MessageReadStatus::where('message_id', $lastMessage->message_id)
                             ->where('reader_id', $user->id)
                             ->where('reader_type', 'cose_staff')
                             ->exists();
                         $hasUnread = !$readStatus;
                     }
-
-                    $unreadCount = Message::where('conversation_id', $conversation->conversation_id)
-                    ->where(function($query) use ($user) {
-                        $query->where('sender_id', '!=', $user->id)
-                            ->orWhere('sender_type', '!=', 'cose_staff');
-                    })
-                    ->whereDoesntHave('readStatuses', function($query) use ($user) {
-                        $query->where('reader_id', $user->id)
-                            ->where('reader_type', 'cose_staff');
-                    })
-                    ->count();
-
-                    $hasUnread = $unreadCount > 0;
                     
-                    // Get sender name for display
-                    $senderName = "Unknown";
-                    if ($lastMessage->sender_type === 'cose_staff') {
-                        $staff = User::find($lastMessage->sender_id);
-                        $senderName = $staff ? $staff->first_name . ' ' . $staff->last_name : 'Unknown Staff';
-                    } elseif ($lastMessage->sender_type === 'beneficiary') {
-                        $beneficiary = Beneficiary::find($lastMessage->sender_id);
-                        $senderName = $beneficiary ? $beneficiary->first_name . ' ' . $beneficiary->last_name : 'Unknown Beneficiary';
-                    } elseif ($lastMessage->sender_type === 'family_member') {
-                        $familyMember = FamilyMember::find($lastMessage->sender_id);
-                        $senderName = $familyMember ? $familyMember->first_name . ' ' . $familyMember->last_name : 'Unknown Family Member';
-                    } elseif ($lastMessage->sender_type === 'system') {
-                        $senderName = 'System';
-                    }
-                    
-                    $lastMessage->sender_name = $senderName;
+                    $convoData['has_unread'] = $hasUnread;
                 }
-                
-                $convoData = [
-                    'conversation_id' => $conversation->conversation_id,
-                    'is_group_chat' => $conversation->is_group_chat,
-                    'name' => $conversation->is_group_chat ? $conversation->name : $otherParticipantName,
-                    'last_message' => $lastMessage ? [
-                        'message_id' => $lastMessage->message_id,
-                        'content' => $lastMessage->content,
-                        'message_timestamp' => $lastMessage->message_timestamp,
-                        'sender_name' => $lastMessage->sender_name ?? 'Unknown'
-                    ] : null,
-                    'has_unread' => $hasUnread,
-                    'unread_count' => $unreadCount // Add this line
-                ];
                 
                 $result[] = $convoData;
             }
@@ -657,22 +656,22 @@ class MessageController extends Controller
         try {
             switch ($participant->participant_type) {
                 case 'cose_staff':
-                    $user = User::find($participant->participant_id);
+                    $user = \App\Models\User::find($participant->participant_id);
                     return $user ? $user->first_name . ' ' . $user->last_name : 'Unknown Staff';
                 
                 case 'beneficiary':
-                    $beneficiary = Beneficiary::find($participant->participant_id);
+                    $beneficiary = \App\Models\Beneficiary::find($participant->participant_id);
                     return $beneficiary ? $beneficiary->first_name . ' ' . $beneficiary->last_name : 'Unknown Beneficiary';
                     
                 case 'family_member':
-                    $familyMember = FamilyMember::find($participant->participant_id);
+                    $familyMember = \App\Models\FamilyMember::find($participant->participant_id);
                     return $familyMember ? $familyMember->first_name . ' ' . $familyMember->last_name : 'Unknown Family Member';
                     
                 default:
                     return 'Unknown User';
             }
         } catch (\Exception $e) {
-            Log::error('Error getting participant name: ' . $e->getMessage());
+            \Log::error('Error getting participant name: ' . $e->getMessage());
             return 'Unknown User';
         }
     }
@@ -682,31 +681,46 @@ class MessageController extends Controller
      */
     private function getUserConversations($user)
     {
-        // Remove the problematic eager loading of participants.participant
-        return Conversation::whereHas('participants', function ($query) use ($user) {
+        $conversations = Conversation::whereHas('participants', function ($query) use ($user) {
             $query->where('participant_id', $user->id)
                 ->where('participant_type', 'cose_staff')
                 ->whereNull('left_at');
         })
         ->with([
             'lastMessage', 
+            'lastMessage.attachments',
             'participants' => function($query) {
                 $query->whereNull('left_at');
-            },
-            // Remove the participants.participant eager loading
-            'messages' => function($query) use ($user) {
-                $query->where(function($q) use ($user) {
-                    $q->where('sender_id', '!=', $user->id)
-                    ->orWhere('sender_type', '!=', 'cose_staff');
-                });
-            },
-            'messages.readStatuses' => function($query) use ($user) {
-                $query->where('reader_id', $user->id)
-                    ->where('reader_type', 'cose_staff');
             }
         ])
         ->orderBy('updated_at', 'desc')
         ->get();
+
+        // Process conversations to add other participant name for private chats
+        foreach ($conversations as $conversation) {
+            if (!$conversation->is_group_chat) {
+                // For private conversations, find the other participant
+                $otherParticipant = null;
+                
+                foreach ($conversation->participants as $participant) {
+                    if (!($participant->participant_id == $user->id && 
+                        $participant->participant_type == 'cose_staff')) {
+                        $otherParticipant = $participant;
+                        break;
+                    }
+                }
+                
+                if ($otherParticipant) {
+                    // Use the helper method to get the name
+                    $conversation->other_participant_name = $this->getParticipantName($otherParticipant);
+                    $conversation->other_participant_type = $otherParticipant->participant_type;
+                } else {
+                    $conversation->other_participant_name = 'No Other Participant';
+                }
+            }
+        }
+
+        return $conversations;
     }
     
     /**
