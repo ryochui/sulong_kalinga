@@ -2275,10 +2275,20 @@
                 // Submit the form
                 fetch(`${window.location.origin}/${rolePrefix}/messaging/create-conversation`, {
                     method: 'POST',
-                    body: formData
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest', // Add this line to ensure proper AJAX handling
+                        'Accept': 'application/json'          // Add this line to request JSON response
+                    }
                 })
                 .then(response => {
                     if (!response.ok) {
+                        if (response.headers.get('content-type')?.includes('text/html')) {
+                            // Handle HTML error response
+                            return response.text().then(text => {
+                                throw new Error('Server returned HTML error page instead of JSON');
+                            });
+                        }
                         throw new Error('Network response was not ok');
                     }
                     return response.json();

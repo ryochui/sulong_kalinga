@@ -389,12 +389,10 @@ class MessageController extends Controller
                     // Update last message in conversation
                     $existingConversation->last_message_id = $message->message_id;
                     $existingConversation->save();
-                    
-                    // Create notification for recipient
-                    $this->createMessageNotification($message, $request->participant_id, $request->participant_type);
                 }
                 
-                if ($request->wantsJson()) {
+                // Consistent AJAX detection using header, not wantsJson()
+                if ($request->ajax() || $request->header('X-Requested-With') === 'XMLHttpRequest') {
                     return response()->json([
                         'success' => true,
                         'message' => 'Conversation already exists',
@@ -440,12 +438,10 @@ class MessageController extends Controller
                 // Update last message in conversation
                 $conversation->last_message_id = $message->message_id;
                 $conversation->save();
-                
-                // Create notification for recipient
-                $this->createMessageNotification($message, $request->participant_id, $request->participant_type);
             }
             
-            if ($request->wantsJson()) {
+            // Consistent AJAX detection using header, not wantsJson()
+            if ($request->ajax() || $request->header('X-Requested-With') === 'XMLHttpRequest') {
                 return response()->json([
                     'success' => true,
                     'message' => 'Conversation created successfully',
@@ -453,12 +449,13 @@ class MessageController extends Controller
                 ]);
             }
             
-            return redirect()->route($rolePrefix . '.messaging.conversation', $conversation->conversation_id)
+            return redirect()->route($rolePrefix . '.messaging.conversation', ['conversation' => $conversation->conversation_id])
                 ->with('success', 'Conversation created successfully');
         } catch (\Exception $e) {
             Log::error('Error creating conversation: ' . $e->getMessage());
             
-            if ($request->wantsJson()) {
+            // ALWAYS return JSON for AJAX requests
+            if ($request->ajax() || $request->header('X-Requested-With') === 'XMLHttpRequest') {
                 return response()->json([
                     'success' => false,
                     'message' => 'Could not create conversation: ' . $e->getMessage()
@@ -573,7 +570,7 @@ class MessageController extends Controller
                 ]);
             }
             
-            return redirect()->route($rolePrefix . '.messaging.conversation', $conversation->conversation_id)
+            return redirect()->route($rolePrefix . '.messaging.conversation', ['conversation' => $conversation->conversation_id])
                 ->with('success', 'Group conversation created successfully');
         } catch (\Exception $e) {
             Log::error('Error creating group conversation: ' . $e->getMessage());
