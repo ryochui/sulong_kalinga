@@ -363,20 +363,47 @@ class MessageController extends Controller
             $rolePrefix = $this->getRoleRoutePrefix();
             
             $request->validate([
-                'participant_id' => 'required',
                 'participant_type' => 'required|in:cose_staff,beneficiary,family_member',
+                'participant_id' => 'required',
+                'initial_message' => 'nullable|string',
             ]);
             
             // Check if conversation already exists
             $existingConversation = $this->findExistingPrivateConversation(
-                $user->id, 
-                'cose_staff',
-                $request->participant_id, 
-                $request->participant_type
+                $user->id, 'cose_staff',
+                $request->participant_id, $request->participant_type
             );
             
             if ($existingConversation) {
-                return redirect()->route($rolePrefix . '.messaging.conversation', $existingConversation->conversation_id);
+                // Send initial message if provided
+                if (!empty($request->initial_message)) {
+                    $message = new Message([
+                        'conversation_id' => $existingConversation->conversation_id,
+                        'sender_id' => $user->id,
+                        'sender_type' => 'cose_staff',
+                        'content' => $request->initial_message,
+                        'message_timestamp' => now(),
+                    ]);
+                    $message->save();
+                    
+                    // Update last message in conversation
+                    $existingConversation->last_message_id = $message->message_id;
+                    $existingConversation->save();
+                    
+                    // Create notification for recipient
+                    $this->createMessageNotification($message, $request->participant_id, $request->participant_type);
+                }
+                
+                if ($request->wantsJson()) {
+                    return response()->json([
+                        'success' => true,
+                        'message' => 'Conversation already exists',
+                        'conversation_id' => $existingConversation->conversation_id
+                    ]);
+                }
+                
+                return redirect()->route($rolePrefix . '.messaging.conversation', $existingConversation->conversation_id)
+                    ->with('success', 'Conversation already exists');
             }
             
             // Create new conversation
@@ -399,10 +426,45 @@ class MessageController extends Controller
                 'joined_at' => now(),
             ]);
             
+            // Send initial message if provided
+            if (!empty($request->initial_message)) {
+                $message = new Message([
+                    'conversation_id' => $conversation->conversation_id,
+                    'sender_id' => $user->id,
+                    'sender_type' => 'cose_staff',
+                    'content' => $request->initial_message,
+                    'message_timestamp' => now(),
+                ]);
+                $message->save();
+                
+                // Update last message in conversation
+                $conversation->last_message_id = $message->message_id;
+                $conversation->save();
+                
+                // Create notification for recipient
+                $this->createMessageNotification($message, $request->participant_id, $request->participant_type);
+            }
+            
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Conversation created successfully',
+                    'conversation_id' => $conversation->conversation_id
+                ]);
+            }
+            
             return redirect()->route($rolePrefix . '.messaging.conversation', $conversation->conversation_id)
-                ->with('success', 'Conversation created successfully.');
+                ->with('success', 'Conversation created successfully');
         } catch (\Exception $e) {
             Log::error('Error creating conversation: ' . $e->getMessage());
+            
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Could not create conversation: ' . $e->getMessage()
+                ], 500);
+            }
+            
             return back()->with('error', 'Could not create conversation. Please try again.');
         }
     }
@@ -421,12 +483,13 @@ class MessageController extends Controller
                 'participants' => 'required|array|min:1',
                 'participants.*.id' => 'required',
                 'participants.*.type' => 'required|in:cose_staff,beneficiary,family_member',
+                'initial_message' => 'nullable|string',
             ]);
             
             // Create new conversation
             $conversation = Conversation::create([
-                'name' => $request->name,
                 'is_group_chat' => true,
+                'name' => $request->name,
             ]);
             
             // Add creator as participant
@@ -439,7 +502,7 @@ class MessageController extends Controller
             
             // Add other participants
             foreach ($request->participants as $participant) {
-                // Skip if participant is the creator
+                // Skip if already added (like the creator)
                 if ($participant['id'] == $user->id && $participant['type'] == 'cose_staff') {
                     continue;
                 }
@@ -465,9 +528,9 @@ class MessageController extends Controller
 
             $message = new Message([
                 'conversation_id' => $conversation->conversation_id,
-                'sender_id' => null,
+                'sender_id' => 0,
                 'sender_type' => 'system',
-                'content' => "Group created by {$creatorName} ({$userRole})",
+                'content' => "$creatorName ($userRole) created this group.",
                 'message_timestamp' => now(),
             ]);
             $message->save();
@@ -475,14 +538,154 @@ class MessageController extends Controller
             // Update last message in conversation
             $conversation->last_message_id = $message->message_id;
             $conversation->save();
+
+            // Send initial message if provided
+            if (!empty($request->initial_message)) {
+                $userMessage = new Message([
+                    'conversation_id' => $conversation->conversation_id,
+                    'sender_id' => $user->id,
+                    'sender_type' => 'cose_staff',
+                    'content' => $request->initial_message,
+                    'message_timestamp' => now(),
+                ]);
+                $userMessage->save();
+                
+                // Update last message in conversation
+                $conversation->last_message_id = $userMessage->message_id;
+                $conversation->save();
+            }
+            
+            // Create notifications for all participants
+            foreach ($request->participants as $participant) {
+                $this->createGroupJoinNotification(
+                    $conversation,
+                    $participant['id'], 
+                    $participant['type'],
+                    $user->first_name . ' ' . $user->last_name
+                );
+            }
+            
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Group conversation created successfully',
+                    'conversation_id' => $conversation->conversation_id
+                ]);
+            }
             
             return redirect()->route($rolePrefix . '.messaging.conversation', $conversation->conversation_id)
-                ->with('success', 'Group conversation created successfully.');
+                ->with('success', 'Group conversation created successfully');
         } catch (\Exception $e) {
             Log::error('Error creating group conversation: ' . $e->getMessage());
+            
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Could not create group: ' . $e->getMessage()
+                ], 500);
+            }
+            
             return back()->with('error', 'Could not create group. Please try again.');
         }
     }
+
+    /**
+     * Create notification for new message
+     */
+    private function createMessageNotification($message, $recipientId, $recipientType)
+    {
+        try {
+            // Get sender name
+            $senderName = 'System';
+            if ($message->sender_type == 'cose_staff') {
+                $sender = User::find($message->sender_id);
+                $senderName = $sender ? $sender->first_name . ' ' . $sender->last_name : 'Unknown Staff';
+            } elseif ($message->sender_type == 'beneficiary') {
+                $sender = Beneficiary::find($message->sender_id);
+                $senderName = $sender ? $sender->first_name . ' ' . $sender->last_name : 'Unknown Beneficiary';
+            } elseif ($message->sender_type == 'family_member') {
+                $sender = FamilyMember::find($message->sender_id);
+                $senderName = $sender ? $sender->first_name . ' ' . $sender->last_name : 'Unknown Family Member';
+            }
+            
+            // Determine recipient model
+            $recipientModel = null;
+            if ($recipientType == 'cose_staff') {
+                $recipientModel = User::find($recipientId);
+            } elseif ($recipientType == 'beneficiary') {
+                $recipientModel = Beneficiary::find($recipientId);
+            } elseif ($recipientType == 'family_member') {
+                $recipientModel = FamilyMember::find($recipientId);
+            }
+            
+            if (!$recipientModel) {
+                return false;
+            }
+            
+            // Create the notification
+            \App\Models\Notification::create([
+                'recipient_id' => $recipientId,
+                'recipient_type' => $recipientType,
+                'message_title' => 'New Message',
+                'message' => "$senderName sent you a message.",
+                'notification_type' => 'message',
+                'is_read' => false,
+                'link' => "/messaging?conversation=" . $message->conversation_id,
+                'date_created' => now(),
+            ]);
+            
+            return true;
+        } catch (\Exception $e) {
+            Log::error('Error creating message notification: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Create notification for group join
+     */
+    private function createGroupJoinNotification($conversation, $recipientId, $recipientType, $creatorName)
+    {
+        try {
+            // Skip if recipient is the creator
+            if ($recipientType == 'cose_staff' && $recipientId == Auth::id()) {
+                return true;
+            }
+            
+            // Determine recipient model
+            $recipientModel = null;
+            if ($recipientType == 'cose_staff') {
+                $recipientModel = User::find($recipientId);
+            } elseif ($recipientType == 'beneficiary') {
+                $recipientModel = Beneficiary::find($recipientId);
+            } elseif ($recipientType == 'family_member') {
+                $recipientModel = FamilyMember::find($recipientId);
+            }
+            
+            if (!$recipientModel) {
+                return false;
+            }
+            
+            // Create the notification
+            \App\Models\Notification::create([
+                'recipient_id' => $recipientId,
+                'recipient_type' => $recipientType,
+                'message_title' => 'Added to Group Chat',
+                'message' => "$creatorName added you to the group \"$conversation->name\".",
+                'notification_type' => 'group_message',
+                'is_read' => false,
+                'link' => "/messaging?conversation=" . $conversation->conversation_id,
+                'date_created' => now(),
+            ]);
+            
+            return true;
+        } catch (\Exception $e) {
+            Log::error('Error creating group join notification: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    
     
     /**
      * Get unread message count for the user.
@@ -880,36 +1083,59 @@ class MessageController extends Controller
         $users = [];
         
         try {
-            switch ($type) {
-                case 'cose_staff':
-                    // Get all staff excluding the current user
-                    $users = User::where('id', '!=', Auth::id())
-                        ->where('status', 1) 
-                        ->select('id', 'first_name', 'last_name')
-                        ->get();
-                    break;
+            if ($type == 'cose_staff') {
+                // Get all staff
+                $staffUsers = User::where('status', 'active')
+                    ->orderBy('first_name')
+                    ->get(['id', 'first_name', 'last_name', 'email', 'mobile', 'role_id']);
+                
+                foreach ($staffUsers as $user) {
+                    $roleLabel = '';
+                    if ($user->role_id == 1) $roleLabel = '(Admin)';
+                    else if ($user->role_id == 2) $roleLabel = '(Care Manager)';
+                    else if ($user->role_id == 3) $roleLabel = '(Care Worker)';
                     
-                case 'beneficiary':
-                    // Get all active beneficiaries
-                    $users = Beneficiary::where('status', 1)
-                        ->select('beneficiary_id as id', 'first_name', 'last_name')
-                        ->get();
-                    break;
-                    
-                case 'family_member':
-                    // Get all family members
-                    $users = FamilyMember::select('family_member_id as id', 'first_name', 'last_name')
-                        ->get();
-                    break;
-                    
-                default:
-                    return response()->json(['error' => 'Invalid user type'], 400);
+                    $users[] = [
+                        'id' => $user->id,
+                        'name' => $user->first_name . ' ' . $user->last_name . ' ' . $roleLabel,
+                        'email' => $user->email,
+                        'mobile' => $user->mobile
+                    ];
+                }
+            } 
+            else if ($type == 'beneficiary') {
+                // Get all active beneficiaries
+                $beneficiaries = Beneficiary::where('beneficiary_status_id', 1) // Active status
+                    ->orderBy('first_name')
+                    ->get(['beneficiary_id', 'first_name', 'last_name', 'mobile']);
+                
+                foreach ($beneficiaries as $beneficiary) {
+                    $users[] = [
+                        'id' => $beneficiary->beneficiary_id,
+                        'name' => $beneficiary->first_name . ' ' . $beneficiary->last_name . ' (Beneficiary)',
+                        'mobile' => $beneficiary->mobile
+                    ];
+                }
+            } 
+            else if ($type == 'family_member') {
+                // Get all family members
+                $familyMembers = FamilyMember::orderBy('first_name')
+                    ->get(['family_member_id', 'first_name', 'last_name', 'mobile', 'email']);
+                
+                foreach ($familyMembers as $member) {
+                    $users[] = [
+                        'id' => $member->family_member_id,
+                        'name' => $member->first_name . ' ' . $member->last_name . ' (Family Member)',
+                        'email' => $member->email,
+                        'mobile' => $member->mobile
+                    ];
+                }
             }
             
             return response()->json(['users' => $users]);
         } catch (\Exception $e) {
-            Log::error('Error fetching users for messaging: ' . $e->getMessage());
-            return response()->json(['error' => 'Failed to fetch users'], 500);
+            Log::error('Error fetching users: ' . $e->getMessage());
+            return response()->json(['users' => [], 'error' => 'Failed to fetch users'], 500);
         }
     }
 

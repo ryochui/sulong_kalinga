@@ -95,36 +95,45 @@
             <div class="modal-dialog">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title" id="newConversationModalLabel">New Conversation</h5>
+                        <h5 class="modal-title" id="newConversationModalLabel">New Private Conversation</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <form id="newConversationForm">
                         @csrf
                         <div class="modal-body">
                             <div class="mb-3">
-                                <label for="userType" class="form-label">User Type</label>
+                                <label for="userType" class="form-label">Recipient Type</label>
                                 <select class="form-select" id="userType" name="participant_type" required>
-                                    <option value="cose_staff">Staff</option>
+                                    <option value="" selected disabled>Select recipient type</option>
+                                    <option value="cose_staff">Staff Member</option>
                                     <option value="beneficiary">Beneficiary</option>
                                     <option value="family_member">Family Member</option>
                                 </select>
                             </div>
                             
                             <div class="mb-3">
-                                <label for="userSearch" class="form-label">Search for a user</label>
-                                <input type="text" class="form-control" id="userSearch" placeholder="Type a name...">
+                                <label for="userSearch" class="form-label">Search for recipient</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="bi bi-search"></i></span>
+                                    <input type="text" class="form-control" id="userSearch" placeholder="Type to search...">
+                                </div>
                             </div>
                             
                             <div class="mb-3">
-                                <label class="form-label">Select User</label>
-                                <select class="form-select" name="participant_id" id="participantSelect" required>
-                                    <option value="">Select a user</option>
+                                <label for="recipientSelect" class="form-label">Select Recipient</label>
+                                <select class="form-select" id="recipientSelect" name="participant_id" required disabled>
+                                    <option value="" selected disabled>First select a user type</option>
                                 </select>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="initialMessage" class="form-label">Initial Message (Optional)</label>
+                                <textarea class="form-control" id="initialMessage" name="initial_message" rows="3" placeholder="Write an initial message..."></textarea>
                             </div>
                         </div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                            <button type="submit" class="btn btn-primary">Start Conversation</button>
+                            <button type="submit" class="btn btn-primary" id="startConversationBtn">Start Conversation</button>
                         </div>
                     </form>
                 </div>
@@ -133,7 +142,7 @@
 
         <!-- New Group Conversation Modal -->
         <div class="modal fade" id="newGroupModal" tabindex="-1" aria-labelledby="newGroupModalLabel" aria-hidden="true">
-            <div class="modal-dialog">
+            <div class="modal-dialog modal-lg">
                 <div class="modal-content">
                     <div class="modal-header">
                         <h5 class="modal-title" id="newGroupModalLabel">Create Group Chat</h5>
@@ -144,29 +153,97 @@
                         <div class="modal-body">
                             <div class="mb-3">
                                 <label for="groupName" class="form-label">Group Name</label>
-                                <input type="text" class="form-control" id="groupName" name="name" placeholder="Enter group name" required>
+                                <input type="text" class="form-control" id="groupName" name="name" required placeholder="Enter a name for this group">
                             </div>
+                            
                             <div class="mb-3">
-                                <label class="form-label">Select Participants</label>
-                                <div class="input-group mb-2">
-                                    <span class="input-group-text bg-transparent border-end-0">
-                                        <i class="bi bi-search"></i>
-                                    </span>
-                                    <input type="text" class="form-control border-start-0" id="participantSearch" placeholder="Search...">
+                                <label class="form-label">Add Participants</label>
+                                
+                                <div class="participant-section mb-3">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <h6 class="m-0">Staff Members</h6>
+                                        <button type="button" class="btn btn-sm btn-outline-primary toggle-section" data-section="staff">
+                                            <i class="bi bi-plus"></i> Add
+                                        </button>
+                                    </div>
+                                    <div class="participant-list staff-list" style="display: none;">
+                                        <div class="input-group mb-2">
+                                            <span class="input-group-text"><i class="bi bi-search"></i></span>
+                                            <input type="text" class="form-control user-search" data-type="cose_staff" placeholder="Search staff...">
+                                        </div>
+                                        <div class="user-checkboxes cose_staff-users scrollable-checklist">
+                                            <!-- Staff checkboxes will be added here -->
+                                            <div class="text-center p-2">
+                                                <div class="spinner-border spinner-border-sm text-primary" role="status">
+                                                    <span class="visually-hidden">Loading...</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                                 
-                                <div id="selectedParticipantsContainer" class="selected-participants mb-2">
-                                    <!-- Selected participants will appear here as tags -->
+                                <div class="participant-section mb-3">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <h6 class="m-0">Beneficiaries</h6>
+                                        <button type="button" class="btn btn-sm btn-outline-primary toggle-section" data-section="beneficiaries">
+                                            <i class="bi bi-plus"></i> Add
+                                        </button>
+                                    </div>
+                                    <div class="participant-list beneficiaries-list" style="display: none;">
+                                        <div class="input-group mb-2">
+                                            <span class="input-group-text"><i class="bi bi-search"></i></span>
+                                            <input type="text" class="form-control user-search" data-type="beneficiary" placeholder="Search beneficiaries...">
+                                        </div>
+                                        <div class="user-checkboxes beneficiary-users scrollable-checklist">
+                                            <!-- Beneficiary checkboxes will be added here -->
+                                            <div class="text-center p-2">
+                                                <div class="spinner-border spinner-border-sm text-primary" role="status">
+                                                    <span class="visually-hidden">Loading...</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                                 
-                                <div id="participantsList" class="list-group mt-2" style="max-height: 200px; overflow-y: auto;">
-                                    <!-- Participants will be loaded here -->
+                                <div class="participant-section mb-3">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <h6 class="m-0">Family Members</h6>
+                                        <button type="button" class="btn btn-sm btn-outline-primary toggle-section" data-section="family">
+                                            <i class="bi bi-plus"></i> Add
+                                        </button>
+                                    </div>
+                                    <div class="participant-list family-list" style="display: none;">
+                                        <div class="input-group mb-2">
+                                            <span class="input-group-text"><i class="bi bi-search"></i></span>
+                                            <input type="text" class="form-control user-search" data-type="family_member" placeholder="Search family members...">
+                                        </div>
+                                        <div class="user-checkboxes family_member-users scrollable-checklist">
+                                            <!-- Family member checkboxes will be added here -->
+                                            <div class="text-center p-2">
+                                                <div class="spinner-border spinner-border-sm text-primary" role="status">
+                                                    <span class="visually-hidden">Loading...</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="selectedParticipants" class="form-label">Selected Participants <span class="badge bg-primary" id="participant-count">0</span></label>
+                                <div id="selectedParticipants" class="selected-participants p-2 border rounded">
+                                    <div class="text-muted text-center no-participants">No participants selected</div>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="groupInitialMessage" class="form-label">Initial Message (Optional)</label>
+                                <textarea class="form-control" id="groupInitialMessage" name="initial_message" rows="3" placeholder="Write an initial message..."></textarea>
                             </div>
                         </div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                            <button type="submit" class="btn btn-primary">Create Group</button>
+                            <button type="submit" class="btn btn-primary" id="createGroupBtn">Create Group</button>
                         </div>
                     </form>
                 </div>
@@ -2030,6 +2107,529 @@
                 console.error('Error refreshing conversation after sending:', error);
             });
         }
+
+        // Private Conversation Modal Functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const userTypeSelect = document.getElementById('userType');
+            const userSearch = document.getElementById('userSearch');
+            const recipientSelect = document.getElementById('recipientSelect');
+            const newConversationForm = document.getElementById('newConversationForm');
+            
+            // Handle user type selection
+            userTypeSelect?.addEventListener('change', function() {
+                const userType = this.value;
+                
+                // Show loading state
+                if (recipientSelect) {
+                    recipientSelect.innerHTML = '<option value="" selected disabled>Loading users...</option>';
+                    recipientSelect.disabled = true;
+                }
+                
+                // Use existing endpoint with the current route prefix
+                fetch(`${window.location.origin}/${rolePrefix}/messaging/get-users?type=${userType}`, {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (recipientSelect) {
+                        if (data.users && data.users.length > 0) {
+                            // Add users to options array for filtering
+                            window.userOptions = data.users;
+                            
+                            // Enable select and update UI
+                            recipientSelect.disabled = false;
+                            
+                            // Initial rendering of all options
+                            updateRecipientOptions('');
+                        } else {
+                            recipientSelect.innerHTML = '<option value="" selected disabled>No users found</option>';
+                            recipientSelect.disabled = true;
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching users:', error);
+                    if (recipientSelect) {
+                        recipientSelect.innerHTML = '<option value="" selected disabled>Error loading users</option>';
+                        recipientSelect.disabled = true;
+                    }
+                });
+            });
+            
+            // Function to update options based on search text
+            function updateRecipientOptions(searchTerm) {
+                if (!recipientSelect || !window.userOptions) return;
+                
+                // Clear existing options
+                recipientSelect.innerHTML = '';
+                
+                // Add default option
+                const defaultOption = document.createElement('option');
+                defaultOption.value = '';
+                defaultOption.disabled = true;
+                defaultOption.selected = true;
+                defaultOption.textContent = searchTerm ? 'Search results' : 'Select a recipient';
+                recipientSelect.appendChild(defaultOption);
+                
+                // Filter users based on search term
+                const filteredUsers = window.userOptions.filter(user => {
+                    return searchTerm === '' || 
+                        user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                        (user.email && user.email.toLowerCase().includes(searchTerm.toLowerCase())) ||
+                        (user.mobile && user.mobile.includes(searchTerm));
+                });
+                
+                // Add filtered users to dropdown
+                filteredUsers.forEach(user => {
+                    const option = document.createElement('option');
+                    option.value = user.id;
+                    option.textContent = user.name;
+                    recipientSelect.appendChild(option);
+                });
+                
+                // Update dropdown visibility
+                if (searchTerm && filteredUsers.length > 0) {
+                    // Make dropdown visible by setting size, but don't change focus
+                    recipientSelect.size = Math.min(10, filteredUsers.length + 1);
+                    recipientSelect.classList.add('active-dropdown');
+                    recipientSelect.setAttribute('data-dropdown-visible', 'true');
+                } else {
+                    recipientSelect.size = 1;
+                    recipientSelect.classList.remove('active-dropdown');
+                    recipientSelect.removeAttribute('data-dropdown-visible');
+                }
+            }
+
+            // Add this new code directly after the updateRecipientOptions function:
+
+            // Ensure recipientSelect handles click events properly
+            if (recipientSelect) {
+                recipientSelect.addEventListener('click', function(e) {
+                    if (e.target.tagName === 'OPTION' && e.target.value) {
+                        // Set the selected value
+                        this.value = e.target.value;
+                        
+                        // Reset display after selection
+                        this.size = 1;
+                        this.classList.remove('active-dropdown');
+                        this.removeAttribute('data-dropdown-visible');
+                        
+                        // Clear the search field
+                        if (userSearch) {
+                            userSearch.value = '';
+                        }
+                    }
+                });
+                
+                // Close dropdown when clicking elsewhere
+                document.addEventListener('click', function(e) {
+                    if (recipientSelect && !recipientSelect.contains(e.target) && !userSearch.contains(e.target)) {
+                        recipientSelect.size = 1;
+                        recipientSelect.classList.remove('active-dropdown');
+                        recipientSelect.removeAttribute('data-dropdown-visible');
+                    }
+                });
+            }
+            
+            // Handle real-time search filtering
+            userSearch?.addEventListener('input', function() {
+                const searchTerm = this.value.trim();
+                updateRecipientOptions(searchTerm);
+            });
+            
+            // Handle form submission
+            newConversationForm?.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const submitButton = document.getElementById('startConversationBtn');
+                if (submitButton) {
+                    submitButton.disabled = true;
+                    submitButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Creating...';
+                }
+                
+                // Get form data
+                const userType = userTypeSelect?.value;
+                const userId = recipientSelect?.value;
+                const initialMessage = document.getElementById('initialMessage')?.value;
+                
+                // Validate required fields
+                if (!userType || !userId) {
+                    alert('Please select both user type and recipient');
+                    if (submitButton) {
+                        submitButton.disabled = false;
+                        submitButton.textContent = 'Start Conversation';
+                    }
+                    return;
+                }
+                
+                // Create FormData object
+                const formData = new FormData();
+                formData.append('participant_type', userType);
+                formData.append('participant_id', userId);
+                formData.append('initial_message', initialMessage || '');
+                formData.append('_token', document.querySelector('meta[name="csrf-token"]').getAttribute('content'));
+                
+                // Submit the form
+                fetch(`${window.location.origin}/${rolePrefix}/messaging/create-conversation`, {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.success) {
+                        // Close modal
+                        const modal = bootstrap.Modal.getInstance(document.getElementById('newConversationModal'));
+                        if (modal) modal.hide();
+                        
+                        // Redirect to the new conversation
+                        window.location.href = `${window.location.origin}/${rolePrefix}/messaging/conversation/${data.conversation_id}`;
+                    } else {
+                        throw new Error(data.message || 'Failed to create conversation');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error creating conversation:', error);
+                    alert('Failed to create conversation: ' + error.message);
+                    
+                    if (submitButton) {
+                        submitButton.disabled = false;
+                        submitButton.textContent = 'Start Conversation';
+                    }
+                });
+            });
+        });
+
+        // Group Conversation Modal Functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const newGroupForm = document.getElementById('newGroupForm');
+            const selectedParticipantsContainer = document.getElementById('selectedParticipants');
+            const participantCountBadge = document.getElementById('participant-count');
+            let selectedParticipants = []; // Array to store selected participants
+            
+            // Toggle participant sections
+            document.querySelectorAll('.toggle-section').forEach(button => {
+                button.addEventListener('click', function() {
+                    const section = this.getAttribute('data-section');
+                    const listElement = document.querySelector(`.${section}-list`);
+                    
+                    if (listElement.style.display === 'none') {
+                        // Show section and load users if not already loaded
+                        listElement.style.display = 'block';
+                        button.innerHTML = '<i class="bi bi-dash"></i> Hide';
+                        
+                        // Load users if they haven't been loaded yet
+                        const userContainer = listElement.querySelector('.user-checkboxes');
+                        const userType = getUserTypeFromSection(section);
+                        
+                        if (userContainer && !userContainer.dataset.loaded) {
+                            loadUsers(userType, userContainer);
+                        }
+                    } else {
+                        // Hide section
+                        listElement.style.display = 'none';
+                        button.innerHTML = '<i class="bi bi-plus"></i> Add';
+                    }
+                });
+            });
+            
+            // Function to get user type from section name
+            function getUserTypeFromSection(section) {
+                switch (section) {
+                    case 'staff': return 'cose_staff';
+                    case 'beneficiaries': return 'beneficiary';
+                    case 'family': return 'family_member';
+                    default: return 'cose_staff';
+                }
+            }
+            
+            // Load users for a specific type
+            function loadUsers(userType, container) {
+                // Show loading indicator
+                container.innerHTML = `
+                    <div class="text-center p-2">
+                        <div class="spinner-border spinner-border-sm text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                `;
+                
+                // Load users from server
+                fetch(`${window.location.origin}/${rolePrefix}/messaging/get-users?type=${userType}`, {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    container.innerHTML = '';
+                    
+                    if (data.users && data.users.length > 0) {
+                        // Store users for filtering
+                        window[`${userType}Users`] = data.users;
+                        
+                        renderFilteredUsers(userType, data.users, container);
+                        
+                        // Mark as loaded
+                        container.dataset.loaded = 'true';
+                    } else {
+                        container.innerHTML = '<div class="text-muted text-center p-3">No users available</div>';
+                    }
+                })
+                .catch(error => {
+                    console.error(`Error loading ${userType} users:`, error);
+                    container.innerHTML = '<div class="text-danger text-center p-3">Error loading users</div>';
+                });
+            }
+            
+            // Render filtered users
+            function renderFilteredUsers(userType, users, container, searchTerm = '') {
+                // Clear container
+                container.innerHTML = '';
+                
+                // Filter users if search term provided
+                const filteredUsers = searchTerm ? 
+                    users.filter(user => user.name.toLowerCase().includes(searchTerm.toLowerCase())) :
+                    users;
+                
+                if (filteredUsers.length === 0) {
+                    container.innerHTML = `<div class="text-muted text-center p-3">No ${userType.replace('_', ' ')} match "${searchTerm}"</div>`;
+                    return;
+                }
+                
+                // Skip the current user for staff section
+                filteredUsers.forEach(user => {
+                    // Skip the current user for staff section
+                    if (userType === 'cose_staff' && user.id === {{ Auth::id() }}) {
+                        return;
+                    }
+                    
+                    const checkbox = document.createElement('div');
+                    checkbox.className = 'form-check user-checkbox';
+                    
+                    // Check if user is already selected
+                    const isSelected = selectedParticipants.some(p => p.id === user.id && p.type === userType);
+                    
+                    checkbox.innerHTML = `
+                        <input class="form-check-input" type="checkbox" 
+                            id="${userType}_${user.id}" 
+                            data-id="${user.id}" 
+                            data-type="${userType}" 
+                            data-name="${user.name}"
+                            ${isSelected ? 'checked' : ''}>
+                        <label class="form-check-label" for="${userType}_${user.id}">
+                            ${user.name}
+                        </label>
+                    `;
+                    
+                    container.appendChild(checkbox);
+                    
+                    // Add event listener to checkbox
+                    const input = checkbox.querySelector('input');
+                    input.addEventListener('change', function() {
+                        if (this.checked) {
+                            addParticipant(this.dataset.id, this.dataset.type, this.dataset.name);
+                        } else {
+                            removeParticipant(this.dataset.id, this.dataset.type);
+                        }
+                    });
+                });
+            }
+            
+            // Handle search filtering
+            document.querySelectorAll('.user-search').forEach(searchInput => {
+                searchInput.addEventListener('input', function() {
+                    const searchTerm = this.value.toLowerCase().trim();
+                    const userType = this.dataset.type;
+                    const checkboxesContainer = document.querySelector(`.${userType}-users`);
+                    
+                    // Get users array for this type
+                    const usersArray = window[`${userType}Users`];
+                    
+                    if (usersArray && checkboxesContainer) {
+                        renderFilteredUsers(userType, usersArray, checkboxesContainer, searchTerm);
+                    }
+                });
+            });
+            
+            // Add participant to selection
+            function addParticipant(id, type, name) {
+                // Check if already selected
+                if (selectedParticipants.some(p => p.id === id && p.type === type)) return;
+                
+                // Add to array
+                selectedParticipants.push({ id, type, name });
+                
+                // Update UI
+                updateSelectedParticipantsUI();
+                updateParticipantCount();
+            }
+            
+            // Remove participant from selection
+            function removeParticipant(id, type) {
+                // Filter out the removed participant
+                selectedParticipants = selectedParticipants.filter(p => !(p.id === id && p.type === type));
+                
+                // Update UI
+                updateSelectedParticipantsUI();
+                updateParticipantCount();
+                
+                // Update checkbox state
+                const checkbox = document.getElementById(`${type}_${id}`);
+                if (checkbox) checkbox.checked = false;
+            }
+            
+            // Update participant count badge
+            function updateParticipantCount() {
+                if (participantCountBadge) {
+                    participantCountBadge.textContent = selectedParticipants.length;
+                }
+            }
+            
+            // Update selected participants UI
+            function updateSelectedParticipantsUI() {
+                // Clear container
+                if (!selectedParticipantsContainer) return;
+                
+                selectedParticipantsContainer.innerHTML = '';
+                
+                if (selectedParticipants.length === 0) {
+                    selectedParticipantsContainer.innerHTML = '<div class="text-muted text-center no-participants">No participants selected</div>';
+                    return;
+                }
+                
+                // Add each participant badge
+                selectedParticipants.forEach(participant => {
+                    const badge = document.createElement('span');
+                    badge.className = 'badge bg-primary me-2 mb-2 participant-badge';
+                    badge.innerHTML = `
+                        ${participant.name} 
+                        <i class="bi bi-x-circle-fill remove-participant" 
+                        data-id="${participant.id}" 
+                        data-type="${participant.type}"></i>
+                    `;
+                    selectedParticipantsContainer.appendChild(badge);
+                    
+                    // Add click handler for removal
+                    badge.querySelector('.remove-participant').addEventListener('click', function() {
+                        removeParticipant(this.dataset.id, this.dataset.type);
+                    });
+                });
+            }
+            
+            // Handle group creation form submission
+            newGroupForm?.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const submitButton = document.getElementById('createGroupBtn');
+                const groupName = document.getElementById('groupName')?.value.trim();
+                const initialMessage = document.getElementById('groupInitialMessage')?.value;
+                
+                // Validate
+                if (!groupName) {
+                    alert('Please enter a group name');
+                    return;
+                }
+                
+                if (selectedParticipants.length === 0) {
+                    alert('Please select at least one participant');
+                    return;
+                }
+                
+                // Disable button and show loading state
+                if (submitButton) {
+                    submitButton.disabled = true;
+                    submitButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Creating...';
+                }
+                
+                // Create FormData object
+                const formData = new FormData();
+                formData.append('name', groupName);
+                formData.append('initial_message', initialMessage || '');
+                formData.append('_token', document.querySelector('meta[name="csrf-token"]').getAttribute('content'));
+                
+                // Add participants
+                selectedParticipants.forEach((participant, index) => {
+                    formData.append(`participants[${index}][id]`, participant.id);
+                    formData.append(`participants[${index}][type]`, participant.type);
+                });
+                
+                // Submit the form
+                fetch(`${window.location.origin}/${rolePrefix}/messaging/create-group`, {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.success) {
+                        // Close modal
+                        const modal = bootstrap.Modal.getInstance(document.getElementById('newGroupModal'));
+                        if (modal) modal.hide();
+                        
+                        // Redirect to the new group conversation
+                        window.location.href = `${window.location.origin}/${rolePrefix}/messaging/conversation/${data.conversation_id}`;
+                    } else {
+                        throw new Error(data.message || 'Failed to create group');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error creating group:', error);
+                    alert('Failed to create group: ' + error.message);
+                    
+                    if (submitButton) {
+                        submitButton.disabled = false;
+                        submitButton.textContent = 'Create Group';
+                    }
+                });
+            });
+            
+            // Reset modals when closed
+            document.getElementById('newGroupModal')?.addEventListener('hidden.bs.modal', function() {
+                selectedParticipants = [];
+                updateSelectedParticipantsUI();
+                updateParticipantCount();
+                
+                if (document.getElementById('groupName')) {
+                    document.getElementById('groupName').value = '';
+                }
+                
+                if (document.getElementById('groupInitialMessage')) {
+                    document.getElementById('groupInitialMessage').value = '';
+                }
+                
+                if (document.getElementById('createGroupBtn')) {
+                    document.getElementById('createGroupBtn').disabled = false;
+                    document.getElementById('createGroupBtn').textContent = 'Create Group';
+                }
+                
+                // Hide all sections and reset buttons
+                document.querySelectorAll('.participant-list').forEach(list => {
+                    list.style.display = 'none';
+                });
+                
+                document.querySelectorAll('.toggle-section').forEach(button => {
+                    button.innerHTML = '<i class="bi bi-plus"></i> Add';
+                });
+                
+                // Clear search inputs
+                document.querySelectorAll('.user-search').forEach(input => {
+                    input.value = '';
+                });
+            });
+        });
     </script>
 </body>
 </html>

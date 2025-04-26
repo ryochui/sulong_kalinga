@@ -995,3 +995,108 @@ textarea.message-input {
     animation: pulse 1.5s infinite ease-in-out;
 }
 
+/* ======== GROUP CHAT MODAL ======== */
+
+/* Scrollable user checkboxes */
+.scrollable-checklist {
+    max-height: 200px;
+    overflow-y: auto;
+    border: 1px solid #dee2e6;
+    border-radius: 0.25rem;
+    padding: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.scrollable-checklist .user-checkbox {
+    padding: 0.5rem;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.scrollable-checklist .user-checkbox:last-child {
+    border-bottom: none;
+}
+
+/* Selected participants area */
+.selected-participants {
+    max-height: 150px;
+    overflow-y: auto;
+}
+
+.participant-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.4rem 0.6rem;
+    margin-right: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.participant-badge .remove-participant {
+    margin-left: 0.5rem;
+    cursor: pointer;
+}
+
+/* Improve search input styling */
+.user-search {
+    padding-left: 2.5rem;
+}
+
+.input-group .input-group-text {
+    background-color: transparent;
+    border-right: none;
+}
+
+.user-search {
+    border-left: none;
+}
+
+/* Enhanced dropdown styling */
+select.form-select.active-dropdown {
+    border-color: #86b7fe;
+    outline: 0;
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+
+/* Ensure the dropdown remains visible even when not focused */
+select.form-select[data-dropdown-visible="true"] {
+    z-index: 1060;
+    position: relative;
+}
+
+/* Make the input field maintain consistent apperance */
+#userSearch:focus {
+    position: relative;
+    z-index: 1061;
+}
+
+/* Add these CSS rules for better select dropdown behavior */
+
+select.form-select {
+    cursor: pointer;
+}
+
+select.form-select option {
+    padding: 10px;
+    cursor: pointer;
+}
+
+select.form-select option:hover {
+    background-color: #f0f7ff;
+}
+
+select.form-select.active-dropdown {
+    overflow-y: auto;
+    z-index: 1050;
+    position: relative;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    border-color: #86b7fe;
+}
+
+/* Fix the dropdown panel to look better */
+select.form-select[size]:not([size="1"]) option {
+    padding: 8px 12px;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+select.form-select[size]:not([size="1"]) option:last-child {
+    border-bottom: none;
+}
