@@ -997,23 +997,100 @@ textarea.message-input {
 
 /* ======== GROUP CHAT MODAL ======== */
 
-/* Scrollable user checkboxes */
+/* Scrollable user checkboxes - Fix spacing issues */
 .scrollable-checklist {
     max-height: 200px;
     overflow-y: auto;
     border: 1px solid #dee2e6;
     border-radius: 0.25rem;
-    padding: 0.5rem;
+    padding: 10px; /* Increased from 0.5rem to 10px */
     margin-bottom: 1rem;
 }
 
+/* Fix checkbox container spacing */
 .scrollable-checklist .user-checkbox {
-    padding: 0.5rem;
+    padding: 2% 4%; /* Increased padding */
     border-bottom: 1px solid #f0f0f0;
+    margin-bottom: 5px; /* Add bottom margin */
+    display: flex;
+    align-items: center; /* Vertically center checkbox and label */
+}
+
+/* Ensure checkboxes don't get cut off */
+.scrollable-checklist .form-check,
+.scrollable-checklist .form-check-input {
+    min-height: 1.2rem; /* Ensure minimum height */
+    min-width: 1.2rem; /* Ensure minimum width */
+    margin-top: 0; /* Remove default margin that can cause misalignment */
+    position: relative; /* Ensure proper positioning */
+}
+
+/* Add more space to the label */
+.scrollable-checklist .form-check-label {
+    margin-left: 8px; /* Space between checkbox and label */
+    padding-top: 2px; /* Slight adjustment for vertical alignment */
+}
+
+/* Fix last item in the list */
+.scrollable-checklist .user-checkbox:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+}
+
+/* Add some space between checkbox and text */
+.scrollable-checklist .form-check-input {
+    margin-right: 8px;
+}
+
+/* Improve checkbox appearance */
+.scrollable-checklist .form-check-input:checked {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+}
+
+/* Make hover state more obvious */
+.scrollable-checklist .user-checkbox:hover {
+    background-color: #f8f9fa;
+    border-radius: 4px;
 }
 
 .scrollable-checklist .user-checkbox:last-child {
     border-bottom: none;
+}
+
+/* Enhance checkbox visibility with darker borders */
+.scrollable-checklist .form-check-input {
+    border: 2px solid #6c757d !important; /* Darker border than default */
+    box-shadow: none; /* Remove default shadow that can make border look lighter */
+    min-height: 1.2rem;
+    min-width: 1.2rem;
+    margin-right: 10px; /* Increase space between checkbox and label */
+}
+
+/* Improve hover state for the checkbox itself */
+.scrollable-checklist .form-check-input:hover {
+    border-color: #0d6efd !important;
+    cursor: pointer;
+}
+
+/* Focus state */
+.scrollable-checklist .form-check-input:focus {
+    border-color: #0d6efd !important;
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+
+/* Checked state - make more prominent */
+.scrollable-checklist .form-check-input:checked {
+    background-color: #0d6efd;
+    border-color: #0d6efd !important;
+    box-shadow: 0 0 0 1px rgba(13, 110, 253, 0.25);
+}
+
+/* Make labels more visible */
+.scrollable-checklist .form-check-label {
+    color: #212529;
+    font-weight: 500;
+    cursor: pointer;
 }
 
 /* Selected participants area */

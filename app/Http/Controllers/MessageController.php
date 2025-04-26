@@ -583,7 +583,8 @@ class MessageController extends Controller
                 );
             }
             
-            if ($request->wantsJson()) {
+            // For AJAX requests, return JSON
+            if ($request->ajax() || $request->header('X-Requested-With') === 'XMLHttpRequest') {
                 return response()->json([
                     'success' => true,
                     'message' => 'Group conversation created successfully',

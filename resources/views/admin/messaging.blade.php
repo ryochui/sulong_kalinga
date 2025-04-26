@@ -2772,31 +2772,73 @@
                     formData.append(`participants[${index}][type]`, participant.type);
                 });
                 
-                // Submit the form
+                // Submit the form with explicit AJAX headers
                 fetch(`${window.location.origin}/${rolePrefix}/messaging/create-group`, {
                     method: 'POST',
-                    body: formData
+                    body: formData,
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json'
+                    }
                 })
                 .then(response => {
+                    console.log('Group creation response status:', response.status);
+                    
+                    // Check content type before parsing
+                    const contentType = response.headers.get('content-type');
+                    
                     if (!response.ok) {
-                        throw new Error('Network response was not ok');
+                        throw new Error(`HTTP error! Status: ${response.status}`);
                     }
-                    return response.json();
+                    
+                    // Only parse as JSON if the response is actually JSON
+                    if (contentType && contentType.includes('application/json')) {
+                        return response.json();
+                    } else {
+                        // Handle HTML or other non-JSON responses
+                        return response.text().then(text => {
+                            console.log('Received non-JSON response for group creation');
+                            
+                            // If the group was created successfully, the page may contain a redirect URL
+                            // Look for a redirect URL in the HTML that contains the conversation ID
+                            const match = text.match(/messaging\?conversation=(\d+)/);
+                            if (match && match[1]) {
+                                return { 
+                                    success: true, 
+                                    conversation_id: match[1],
+                                    message: 'Group created successfully (extracted from HTML)'
+                                };
+                            }
+                            
+                            throw new Error('Server returned HTML instead of JSON, but we cannot extract the conversation ID');
+                        });
+                    }
                 })
                 .then(data => {
+                    console.log('Group creation successful:', data);
+                    
                     if (data.success) {
                         // Close modal
                         const modal = bootstrap.Modal.getInstance(document.getElementById('newGroupModal'));
                         if (modal) modal.hide();
                         
                         // Redirect to the new group conversation
-                        window.location.href = `${window.location.origin}/${rolePrefix}/messaging/conversation/${data.conversation_id}`;
+                        window.location.href = `${window.location.origin}/${rolePrefix}/messaging?conversation=${data.conversation_id}`;
                     } else {
                         throw new Error(data.message || 'Failed to create group');
                     }
                 })
                 .catch(error => {
                     console.error('Error creating group:', error);
+                    
+                    // Special handling - if this is likely a success but with HTML response
+                    if (error.message.includes('HTML instead of JSON')) {
+                        alert('The group may have been created successfully. Reloading the page...');
+                        setTimeout(() => window.location.reload(), 1000);
+                        return;
+                    }
+                    
                     alert('Failed to create group: ' + error.message);
                     
                     if (submitButton) {
