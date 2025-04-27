@@ -101,10 +101,10 @@ class MessageController extends Controller
             }
             
             // Get messages for this conversation
-            $messages = Message::with(['attachments', 'readStatuses']) // <-- CHANGE HERE from readStatus to readStatuses
-            ->where('conversation_id', $id)
-            ->orderBy('message_timestamp', 'asc')
-            ->get();
+            $messages = Message::with(['attachments', 'readStatuses'])
+                ->where('conversation_id', $id)
+                ->orderBy('message_timestamp', 'asc')
+                ->get();
             
             // Add sender name to each message for display
             foreach ($messages as $message) {
@@ -713,7 +713,9 @@ class MessageController extends Controller
                 if ($lastMessage) {
                     $messageData = [
                         'message_id' => $lastMessage->message_id,
-                        'content' => $lastMessage->content,
+                        'content' => $lastMessage->is_unsent 
+                            ? 'This message was unsent' 
+                            : $lastMessage->content,
                         'message_timestamp' => $lastMessage->message_timestamp,
                         'sender_name' => 'Unknown'
                     ];
@@ -1690,6 +1692,38 @@ class MessageController extends Controller
                 'success' => false,
                 'message' => 'Could not add member: ' . $e->getMessage()
             ], 500);
+        }
+    }
+
+    /**
+     * Unsend (soft delete) a message
+     * 
+     * @param int $id
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function unsendMessage($id)
+    {
+        try {
+            $message = Message::findOrFail($id);
+            
+            // Check if the user is the sender of this message
+            if ($message->sender_id != Auth::id() || $message->sender_type != 'cose_staff') {
+                return $this->jsonResponse(false, 'You can only unsend your own messages', 403);
+            }
+            
+            // Check if message is too old to unsend (e.g., 24 hours limit)
+            if (now()->diffInHours($message->message_timestamp) > 24) {
+                return $this->jsonResponse(false, 'Messages can only be unsent within 24 hours of sending', 403);
+            }
+            
+            // Mark message as unsent
+            $message->is_unsent = true;
+            $message->save();
+            
+            return $this->jsonResponse(true, 'Message unsent successfully');
+        } catch (\Exception $e) {
+            Log::error('Error unsending message: ' . $e->getMessage() . "\n" . $e->getTraceAsString());
+            return $this->jsonResponse(false, 'Error unsending message');
         }
     }
 

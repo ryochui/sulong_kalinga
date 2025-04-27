@@ -345,6 +345,43 @@
         </div>
     </div>
 
+    <!-- Confirm Unsend Modal -->
+    <div class="modal fade" id="confirmUnsendModal" tabindex="-1" aria-labelledby="confirmUnsendModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title" id="confirmUnsendModalLabel">Confirm Unsend Message</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Are you sure you want to unsend this message? This action cannot be undone.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-danger" id="confirmUnsendButton">Unsend Message</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Error Modal -->
+    <div class="modal fade" id="errorModal" tabindex="-1" aria-labelledby="errorModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title" id="errorModalLabel">Error</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p id="errorModalMessage"></p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Scripts -->
     <script src="{{ asset('js/jquery-3.6.0.min.js') }}"></script>
     <script src="{{ asset('js/bootstrap.bundle.min.js') }}"></script>
@@ -374,6 +411,54 @@
 
         const rolePrefix = document.querySelector('meta[name="role-prefix"]')?.getAttribute('content') || 'admin';
         window.route_prefix = rolePrefix + '.messaging';
+
+        // Function to format message preview text
+        function formatMessagePreview(lastMessage, isGroupChat, senderName) {
+            // If there's no message
+            if (!lastMessage) return 'No messages';
+            
+            // If message is unsent
+            if (lastMessage.is_unsent) {
+                return '<em class="text-muted">This message was unsent</em>';
+            }
+            
+            // Add null check before accessing content
+            const content = lastMessage.content || '';
+            
+            // Format based on chat type and sender
+            let prefix = '';
+            if (isGroupChat && senderName) {
+                prefix = `<span class="text-muted">${senderName}: </span>`;
+            }
+            
+            return prefix + content;
+        }
+
+        // Make sure this is run after page load
+        document.addEventListener('DOMContentLoaded', function() {
+            // Modify any navbar message loading functions (after page loads)
+            const originalMessageLoad = window.loadRecentMessages;
+            if (typeof originalMessageLoad === 'function') {
+                window.loadRecentMessages = function() {
+                    // Call the original function
+                    const result = originalMessageLoad.apply(this, arguments);
+                    
+                    // Add a small delay to ensure the messages have been loaded and rendered
+                    setTimeout(function() {
+                        // Find all dropdown messages and check if any contain unsent messages
+                        document.querySelectorAll('.dropdown-item.message-preview .small.text-truncate').forEach(preview => {
+                            // Match "This message was unsent" text (case insensitive)
+                            if (preview.textContent.match(/This message was unsent/i)) {
+                                // Set italic style for unsent messages in dropdown
+                                preview.innerHTML = '<em class="text-muted">This message was unsent</em>';
+                            }
+                        });
+                    }, 100);
+                    
+                    return result;
+                };
+            }
+        });
 
         function getRouteUrl(routeName) {
             // Extract just the endpoint part after the last dot
@@ -984,6 +1069,10 @@
                         window.resetSearchAfterConversationLoad();
                     }
 
+                    setTimeout(() => {
+                        initializeMessageActions();
+                    }, 500);
+
                 } else {
                     messageArea.innerHTML = `
                         <div class="empty-state">
@@ -1403,6 +1492,11 @@
                                 localStorage.removeItem('messageContent_' + conversationId);
                             }
                             window.lastBlurContent = '';
+
+                            // After the message is sent and processed, reinitialize the action handlers
+                            setTimeout(() => {
+                                addMessageActionHandlers();
+                            }, 100);
                         }
                                         
                         // 2. Clear file previews if they exist
@@ -2256,6 +2350,11 @@
             
             // Scroll to bottom to show the new message
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+            // After the message is added to DOM, initialize action handlers
+            setTimeout(() => {
+                addMessageActionHandlers();
+            }, 100);
         }
 
         // Add this function to force a clean, non-flashing refresh
@@ -4014,6 +4113,146 @@
             // Wait for page to fully load before initializing search
             setTimeout(ensureSearchInputWorks, 1500);
         });
+
+        // At the end of your loadConversation function, right before the final curly brace:
+            setTimeout(() => {
+                initializeMessageActions();
+            }, 500);
+
+        function addMessageActionHandlers() {
+            document.querySelectorAll('.unsend-message').forEach(button => {
+                button.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const messageId = this.getAttribute('data-message-id');
+                    unsendMessage(messageId);
+                });
+            });
+        }
+
+        function unsendMessage(messageId) {
+            // Store the message ID for the confirm button
+            let currentMessageToUnsend = messageId;
+            
+            // Show confirmation modal instead of using confirm()
+            const confirmModal = new bootstrap.Modal(document.getElementById('confirmUnsendModal'));
+            
+            // Set up the confirm button handler
+            document.getElementById('confirmUnsendButton').onclick = function() {
+                // Hide the confirmation modal
+                confirmModal.hide();
+                
+                const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+                
+                fetch(`/${rolePrefix}/messaging/unsend-message/${currentMessageToUnsend}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Update UI to show message as unsent
+                        const messageElement = document.querySelector(`.message[data-message-id="${currentMessageToUnsend}"]`);
+                        if (messageElement) {
+                            const contentElement = messageElement.querySelector('.message-content');
+                            if (contentElement) {
+                                // Replace content with "unsent" message
+                                contentElement.classList.add('unsent');
+                                contentElement.innerHTML = '<em>This message was unsent</em>';
+                                
+                                // Remove any attachments
+                                const attachmentsElement = messageElement.querySelector('.message-attachments');
+                                if (attachmentsElement) {
+                                    attachmentsElement.remove();
+                                }
+                                
+                                // Remove message actions
+                                const actionsElement = messageElement.querySelector('.message-actions');
+                                if (actionsElement) {
+                                    actionsElement.remove();
+                                }
+                                
+                                // Remove message time (optional)
+                                const timeElement = messageElement.querySelector('.message-time');
+                                if (timeElement) {
+                                    timeElement.remove();
+                                }
+                            }
+                        }
+
+                        // Force refresh the conversation list to update preview
+                        smoothRefreshConversationList();
+                        
+                        // Also update the navbar dropdown
+                        if (typeof loadRecentMessages === 'function') {
+                            loadRecentMessages();
+                        }
+
+                    } else {
+                        // Show error in modal
+                        const errorModal = new bootstrap.Modal(document.getElementById('errorModal'));
+                        document.getElementById('errorModalMessage').textContent = data.message || 'An error occurred while unsending the message.';
+                        errorModal.show();
+                    }
+                })
+                .catch(error => {
+                    console.error('Error unsending message:', error);
+                    
+                    // Show error in modal
+                    const errorModal = new bootstrap.Modal(document.getElementById('errorModal'));
+                    document.getElementById('errorModalMessage').textContent = 'An error occurred while trying to unsend the message.';
+                    errorModal.show();
+                });
+            };
+            
+            // Show the confirmation modal
+            confirmModal.show();
+        }
+
+        // Add this to your loadConversation function, right before the final curly brace
+        function initializeMessageActions() {
+            setTimeout(() => {
+                addMessageActionHandlers();
+            }, 200);
+        }
+
+        // Use event delegation for handling unsend button clicks
+        // Improved function using event delegation for better handling of dynamic content
+        function addMessageActionHandlers() {
+            // Get container for event delegation
+            const messagesContainer = document.getElementById('messagesContainer');
+            if (!messagesContainer) return;
+            
+            // Remove any existing click handlers to prevent duplicates
+            messagesContainer.removeEventListener('click', handleUnsendClick);
+            
+            // Add a single event listener to the container
+            messagesContainer.addEventListener('click', handleUnsendClick);
+            
+            console.log('Message action handlers initialized with event delegation');
+        }
+
+        // Handle clicks on unsend buttons via event delegation
+        function handleUnsendClick(e) {
+            // Find if the click was on an unsend button or its child elements
+            let target = e.target;
+            
+            // Navigate up to find the unsend-message link
+            while (target !== this && !target.classList.contains('unsend-message')) {
+                target = target.parentNode;
+                if (!target) return; // Click was not on any element we care about
+            }
+            
+            // If we found the unsend-message link, handle it
+            if (target.classList.contains('unsend-message')) {
+                e.preventDefault();
+                const messageId = target.getAttribute('data-message-id');
+                unsendMessage(messageId);
+            }
+        }
 
     </script>
 </body>

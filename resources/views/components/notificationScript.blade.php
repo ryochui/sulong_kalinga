@@ -103,21 +103,27 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 data.conversations.forEach(conversation => {
                     const lastMessage = conversation.last_message;
-                    if (!lastMessage) return;
+                    const senderName = lastMessage && lastMessage.sender ? 
+                        (lastMessage.sender.first_name + ' ' + lastMessage.sender.last_name) : 
+                        'Unknown';
                     
-                    // Determine if this conversation has unread messages
-                    const isUnread = conversation.has_unread === true;
+                    // ADD YOUR CODE RIGHT HERE - for safely processing message content
+                    let messageContent = lastMessage && lastMessage.content ? lastMessage.content : 'No content';
                     
-                    // Create message preview content
-                    let messageContent = 'No content';
-                    if (lastMessage.content) {
-                        messageContent = lastMessage.content;
+                    // If message is unsent, override the content
+                    if (lastMessage && lastMessage.is_unsent) {
+                        messageContent = '<em class="text-muted">This message was unsent</em>';
                     }
                     
-                    // Format for file attachments
-                    if (messageContent.startsWith('📎')) {
-                        messageContent = `<span class="attachment-indicator"><i class="bi bi-paperclip"></i>${messageContent.replace('📎 ', '')}</span>`;
+                    // If checking for attachments:
+                    if (messageContent && typeof messageContent === 'string' && messageContent.includes('📎')) {
+                        // Process attachment indicators - extract file name from attachment indicator
+                        const fileName = messageContent.split('📎')[1].trim();
+                        messageContent = `<span class="attachment-indicator"><i class="bi bi-paperclip"></i> ${fileName}</span>`;
                     }
+                    
+                    // Determine if conversation has unread messages
+                    const isUnread = conversation.has_unread || false; // ADD THIS LINE
                     
                     const previewHtml = `
                         <li>

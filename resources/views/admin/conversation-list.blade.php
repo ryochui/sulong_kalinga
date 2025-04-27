@@ -123,6 +123,8 @@
                     @if(isset($convo->lastMessage))
                         @if($convo->lastMessage->sender_type === 'system')
                             <span class="text-muted fst-italic">{{ $convo->lastMessage->content }}</span>
+                        @elseif(isset($convo->lastMessage->is_unsent) && $convo->lastMessage->is_unsent)
+                            <span class="text-muted fst-italic">This message was unsent</span>
                         @elseif($convo->lastMessage->sender_id == Auth::id() && $convo->lastMessage->sender_type == 'cose_staff')
                             <span class="text-muted">You: </span>{{ $convo->lastMessage->content }}
                         @else

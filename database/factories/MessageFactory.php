@@ -31,6 +31,7 @@ class MessageFactory extends Factory
             'sender_id' => User::factory(),
             'sender_type' => 'cose_staff',
             'content' => $this->faker->paragraph,
+            'is_unsent' => false, // Add this line
             'message_timestamp' => $this->faker->dateTimeBetween('-7 days', 'now'),
             'created_at' => now(),
             'updated_at' => now(),

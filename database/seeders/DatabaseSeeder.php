@@ -304,11 +304,13 @@ class DatabaseSeeder extends Seeder
                     // Alternate between the two participants
                     $senderId = ($j % 2 == 0) ? $staffUser->id : $otherStaffUser->id;
                     
+                    $isUnsent = (rand(1, 20) === 1); // 5% chance of being unsent
                     $message = Message::create([
                         'conversation_id' => $conversation->conversation_id,
                         'sender_id' => $senderId,
                         'sender_type' => 'cose_staff',
                         'content' => \Faker\Factory::create()->sentence(rand(3, 15)),
+                        'is_unsent' => $isUnsent, // Add this line
                         'message_timestamp' => now()->subDays(5)->addMinutes($j * 30),
                     ]);
                     

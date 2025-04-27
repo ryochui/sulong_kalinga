@@ -18,6 +18,7 @@ class Message extends Model
         'sender_id',
         'sender_type',
         'content',
+        'is_unsent',
         'message_timestamp',
     ];
 

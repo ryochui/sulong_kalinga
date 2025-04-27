@@ -1364,3 +1364,45 @@ select.form-select[size]:not([size="1"]) option:last-child {
     color: #dc3545;
     font-weight: 500;
 }
+
+/* Unsent message styling */
+.message-content.unsent {
+    font-style: italic;
+    color: #6c757d;
+    background-color: rgba(108, 117, 125, 0.1);
+    padding: 10px 15px;
+    border-radius: 8px;
+}
+
+/* Message actions dropdown */
+.message-actions {
+    position: absolute;
+    left: -30px; /* Position to the left of the message instead of right */
+    top: 5px;
+    opacity: 1;
+    z-index: 5;
+}
+
+.message-actions .btn {
+    padding: 0.5rem 0.15rem;
+    background: none;
+    border: none;
+    color: #6c757d;
+    vertical-align: middle;
+}
+
+/* For outgoing messages, keep the same left positioning */
+.message.outgoing .message-actions {
+    left: -30px;
+}
+
+/* For incoming messages, adjust positioning to account for the avatar */
+.message.incoming .message-actions {
+    left: 40px; /* Position after the avatar */
+}
+
+/* Remove the right-side padding since we're not using it anymore */
+.message-content {
+    padding-right: 10px !important; /* Reduce right padding */
+    padding-left: 25px !important; /* Add left padding for the button */
+}

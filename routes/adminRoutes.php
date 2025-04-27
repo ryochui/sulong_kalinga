@@ -208,6 +208,7 @@ Route::middleware(['auth', '\App\Http\Middleware\CheckRole:administrator'])->pre
         Route::post('leave-conversation', [MessageController::class, 'leaveConversation'])->name('leave-conversation');
         Route::get('group-members/{id}', [MessageController::class, 'getGroupMembers'])->name('group-members');
         Route::post('add-group-member', [MessageController::class, 'addGroupMember'])->name('add-group-member');
+        Route::post('unsend-message/{id}', [MessageController::class, 'unsendMessage'])->name('unsend');
     });
 });
 
