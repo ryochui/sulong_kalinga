@@ -59,4 +59,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/family-members', [FamilyMemberApiController::class, 'store']);
     Route::put('/family-members/{id}', [FamilyMemberApiController::class, 'update']);
     Route::delete('/family-members/{id}', [FamilyMemberApiController::class, 'destroy']);
+
+    // Notification Routes
+    Route::post('/mobile-notifications', [NotificationController::class, 'store']);
 });
