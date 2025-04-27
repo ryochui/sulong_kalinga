@@ -4166,6 +4166,9 @@
                             // Add unsent class to the entire message element for CSS styling
                             messageElement.classList.add('has-unsent');
                             
+                            // Check if this message had attachments
+                            const hadAttachments = !!attachmentsElement;
+                            
                             if (contentElement) {
                                 // Replace content with "unsent" message
                                 contentElement.classList.add('unsent');
@@ -4185,6 +4188,17 @@
                             // Keep the time element but make it more subtle
                             if (timeElement) {
                                 timeElement.classList.add('unsent-time');
+                            }
+                            
+                            // Force a conversation refresh after a short delay if this was a message with attachments
+                            if (hadAttachments || data.had_attachments) {
+                                setTimeout(() => {
+                                    const conversationId = document.querySelector('input[name="conversation_id"]')?.value;
+                                    if (conversationId) {
+                                        console.log("Message had attachments - forcing conversation refresh");
+                                        forceRefreshConversation(conversationId);
+                                    }
+                                }, 300);
                             }
                         }
                         
