@@ -3635,6 +3635,7 @@
         // Global search variables
         let searchMatches = [];
         let currentMatchIndex = -1;
+        let searchInitialized = false;
 
         // Debounce helper for search input
         function debounce(func, delay) {
@@ -3692,17 +3693,20 @@
             if (prevBtn) prevBtn.disabled = matchCount === 0;
             if (nextBtn) nextBtn.disabled = matchCount === 0;
             
-            // Update results count text
+            // Update results count text with improved feedback
             if (resultsCount) {
-                if (matchCount === 0) {
-                    const query = document.getElementById('messageSearchInput')?.value || '';
-                    if (query.trim().length >= 2) {
-                        resultsCount.textContent = 'No matches found';
-                    } else {
-                        resultsCount.textContent = '';
-                    }
+                const query = document.getElementById('messageSearchInput')?.value || '';
+                
+                if (query.trim().length < 2) {
+                    // Show "query too short" message when query is too short
+                    resultsCount.textContent = 'Type at least 2 characters to search';
+                    resultsCount.classList.add('text-muted');
+                } else if (matchCount === 0) {
+                    resultsCount.textContent = 'No matches found';
+                    resultsCount.classList.remove('text-muted');
                 } else {
                     resultsCount.textContent = `${Math.min(currentMatchIndex + 1, matchCount)} of ${matchCount} matches`;
+                    resultsCount.classList.remove('text-muted');
                 }
             }
         }
@@ -3717,7 +3721,9 @@
                 searchMatches[currentMatchIndex].classList.remove('current');
             }
             
-            // Update index based on direction
+            // FIXED DIRECTION LOGIC: 
+            // "prev" (up button) should navigate to previous match (decreasing index)
+            // "next" (down button) should navigate to next match (increasing index)
             if (direction === 'next') {
                 currentMatchIndex = (currentMatchIndex + 1) % searchMatches.length;
             } else {
@@ -3756,9 +3762,9 @@
             // Reset current search state
             clearSearch();
             
-            // Skip search if query is too short
+            // IMPROVED: Always update navigation to show feedback, even for short queries
             if (!query || query.trim().length < 2) {
-                console.log('Search query too short, skipping');
+                console.log('Search query too short');
                 updateSearchNavigation(0);
                 return;
             }
@@ -3847,8 +3853,14 @@
             
             console.log('Found search elements, setting up event listeners');
             
-            // Setup search button
-            searchBtn.addEventListener('click', function() {
+            // Clear existing listeners to prevent duplicates
+            const newSearchBtn = searchBtn.cloneNode(true);
+            if (searchBtn.parentNode) {
+                searchBtn.parentNode.replaceChild(newSearchBtn, searchBtn);
+            }
+            
+            // Add click event listener for search button
+            newSearchBtn.addEventListener('click', function() {
                 console.log('Search button clicked');
                 const isVisible = searchContainer.style.display === 'block';
                 const messagesContainer = document.getElementById('messagesContainer');
@@ -3865,51 +3877,58 @@
                     // Add active class to messages container
                     if (messagesContainer) messagesContainer.classList.add('search-active');
                 } else {
-                    // Hide search
-                    searchContainer.classList.remove('active');
-                    setTimeout(() => {
-                        searchContainer.style.display = 'none';
-                    }, 300);
-                    
-                    // Clear search
-                    clearSearch();
-                    
-                    // Remove active class
-                    if (messagesContainer) messagesContainer.classList.remove('search-active');
+                    // Hide search - FIXED closing logic
+                    closeSearchUI();
                 }
             });
             
-            // Setup search input handler
-            const searchInput = document.getElementById('messageSearchInput');
-            if (searchInput) {
-                searchInput.addEventListener('input', debounce(function() {
-                    console.log('Search input changed:', this.value);
-                    performSearch(this.value);
-                }, 300));
-                
-                // Navigation with keyboard
-                searchInput.addEventListener('keydown', function(e) {
-                    if (e.key === 'Enter') {
-                        e.preventDefault();
-                        if (e.shiftKey) {
-                            navigateSearch('prev');
-                        } else {
-                            navigateSearch('next');
-                        }
-                    } else if (e.key === 'Escape') {
-                        searchContainer.classList.remove('active');
-                        setTimeout(() => {
-                            searchContainer.style.display = 'none';
-                        }, 300);
-                        clearSearch();
-                    }
-                });
-            }
+            // Ensure search input has event listeners
+            ensureSearchInputWorks();
             
-            // Setup navigation buttons
+            console.log('Search button initialization complete');
+        };
+
+        // Make sure search input responds to typing
+        function ensureSearchInputWorks() {
+            const searchInput = document.getElementById('messageSearchInput');
             const prevBtn = document.getElementById('searchPrevBtn');
             const nextBtn = document.getElementById('searchNextBtn');
+            const closeBtn = document.getElementById('closeSearchBtn');
             
+            if (!searchInput) {
+                console.log('Search input not found, will try again later');
+                setTimeout(ensureSearchInputWorks, 500);
+                return;
+            }
+            
+            console.log('Setting up search input event listeners');
+            
+            // Clear any existing event listeners by cloning
+            const newInput = searchInput.cloneNode(true);
+            searchInput.parentNode.replaceChild(newInput, searchInput);
+            
+            // Add input handler with debounce
+            newInput.addEventListener('input', debounce(function() {
+                console.log('Search input changed:', this.value);
+                performSearch(this.value);
+            }, 300));
+            
+            // Add keyboard navigation
+            newInput.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    if (e.shiftKey) {
+                        navigateSearch('prev');
+                    } else {
+                        navigateSearch('next');
+                    }
+                } else if (e.key === 'Escape') {
+                    // FIXED escape key behavior to properly close search
+                    closeSearchUI();
+                }
+            });
+            
+            // Make sure navigation buttons work too
             if (prevBtn) {
                 prevBtn.addEventListener('click', function() {
                     navigateSearch('prev');
@@ -3922,25 +3941,40 @@
                 });
             }
             
-            // Close button handler
-            const closeBtn = document.getElementById('closeSearchBtn');
+            // FIXED close button handler
             if (closeBtn) {
                 closeBtn.addEventListener('click', function() {
-                    searchContainer.classList.remove('active');
-                    setTimeout(() => {
-                        searchContainer.style.display = 'none';
-                    }, 300);
-                    clearSearch();
-                    
-                    const messagesContainer = document.getElementById('messagesContainer');
-                    if (messagesContainer) {
-                        messagesContainer.classList.remove('search-active');
-                    }
+                    closeSearchUI();
                 });
             }
             
-            console.log('Search button initialization complete');
-        };
+            console.log('Search input event listeners initialized');
+        }
+
+        // ADDED new function to consistently close search UI
+        function closeSearchUI() {
+            const searchContainer = document.getElementById('messageSearchContainer');
+            if (!searchContainer) return;
+            
+            // First remove active class for animation
+            searchContainer.classList.remove('active');
+            
+            // Then hide after animation completes
+            setTimeout(() => {
+                searchContainer.style.display = 'none';
+            }, 300);
+            
+            // Clear existing search results
+            clearSearch();
+            
+            // Remove active class from messages container
+            const messagesContainer = document.getElementById('messagesContainer');
+            if (messagesContainer) {
+                messagesContainer.classList.remove('search-active');
+            }
+            
+            console.log('Search UI closed');
+        }
 
         // Reset search UI when conversations change
         window.resetSearchAfterConversationLoad = function() {
@@ -3975,140 +4009,9 @@
             currentMatchIndex = -1;
         };
 
-        // Define the search button initialization function
-        window.initializeSearchButton = function() {
-            console.log('Initializing search button');
-            const searchBtn = document.getElementById('messageSearchBtn');
-            const searchContainer = document.getElementById('messageSearchContainer');
-            
-            // Exit gracefully if required elements don't exist
-            if (!searchBtn || !searchContainer) {
-                console.log('Search UI elements not found', {
-                    searchBtn: !!searchBtn,
-                    searchContainer: !!searchContainer
-                });
-                return;
-            }
-            
-            console.log('Found search elements, setting up event listeners');
-            
-            // Clear existing listeners to prevent duplicates
-            const newSearchBtn = searchBtn.cloneNode(true);
-            if (searchBtn.parentNode) {
-                searchBtn.parentNode.replaceChild(newSearchBtn, searchBtn);
-            }
-            
-            // Add click event listener for search button
-            newSearchBtn.addEventListener('click', function() {
-                console.log('Search button clicked');
-                const isVisible = searchContainer.style.display === 'block';
-                const messagesContainer = document.getElementById('messagesContainer');
-                
-                if (!isVisible) {
-                    // Show search
-                    searchContainer.style.display = 'block';
-                    searchContainer.classList.add('active');
-                    
-                    // Focus search input
-                    const searchInput = document.getElementById('messageSearchInput');
-                    if (searchInput) setTimeout(() => searchInput.focus(), 50);
-                    
-                    // Add active class to messages container
-                    if (messagesContainer) messagesContainer.classList.add('search-active');
-                } else {
-                    // Hide search
-                    searchContainer.classList.remove('active');
-                    setTimeout(() => {
-                        searchContainer.style.display = 'none';
-                    }, 300);
-                    
-                    // Clear search
-                    clearSearch();
-                    
-                    // Remove active class
-                    if (messagesContainer) messagesContainer.classList.remove('search-active');
-                }
-            });
-            
-            console.log('Search button initialization complete');
-        };
-
-        // Make sure search input responds to typing
+        // Initialize on page load
         document.addEventListener('DOMContentLoaded', function() {
-            // Function to ensure search input has event listeners
-            function ensureSearchInputWorks() {
-                const searchInput = document.getElementById('messageSearchInput');
-                const prevBtn = document.getElementById('searchPrevBtn');
-                const nextBtn = document.getElementById('searchNextBtn');
-                const closeBtn = document.getElementById('closeSearchBtn');
-                
-                if (!searchInput) {
-                    console.log('Search input not found, will try again later');
-                    setTimeout(ensureSearchInputWorks, 500);
-                    return;
-                }
-                
-                console.log('Setting up search input event listeners');
-                
-                // Clear any existing event listeners by cloning
-                const newInput = searchInput.cloneNode(true);
-                searchInput.parentNode.replaceChild(newInput, searchInput);
-                
-                // Add input handler with debounce
-                newInput.addEventListener('input', debounce(function() {
-                    console.log('Search input changed:', this.value);
-                    performSearch(this.value);
-                }, 300));
-                
-                // Add keyboard navigation
-                newInput.addEventListener('keydown', function(e) {
-                    if (e.key === 'Enter') {
-                        e.preventDefault();
-                        if (e.shiftKey) {
-                            navigateSearch('prev');
-                        } else {
-                            navigateSearch('next');
-                        }
-                    } else if (e.key === 'Escape') {
-                        const searchContainer = document.getElementById('messageSearchContainer');
-                        if (searchContainer) {
-                            searchContainer.classList.remove('active');
-                            setTimeout(() => {
-                                searchContainer.style.display = 'none';
-                            }, 300);
-                        }
-                        clearSearch();
-                    }
-                });
-                
-                // Make sure navigation buttons work too
-                if (prevBtn) {
-                    prevBtn.addEventListener('click', function() {
-                        navigateSearch('prev');
-                    });
-                }
-                
-                if (nextBtn) {
-                    nextBtn.addEventListener('click', function() {
-                        navigateSearch('next');
-                    });
-                }
-                
-                console.log('Search input event listeners initialized');
-            }
-            
-            // Original button function only handles showing/hiding the search UI,
-            // but doesn't set up the input event handlers correctly.
-            // This modifies the existing function:
-            const originalInitSearchBtn = window.initializeSearchButton;
-            window.initializeSearchButton = function() {
-                originalInitSearchBtn.apply(this, arguments);
-                
-                // Run our additional function to ensure input works
-                setTimeout(ensureSearchInputWorks, 100);
-            };
-            
-            // Also try to initialize on page load
+            // Wait for page to fully load before initializing search
             setTimeout(ensureSearchInputWorks, 1500);
         });
 
