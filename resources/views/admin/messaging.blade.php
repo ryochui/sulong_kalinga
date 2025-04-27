@@ -932,6 +932,12 @@
                     window.messageFormInitialized = false;
                     initializeMessageForm(conversationId);
                     
+                   // Initialize the search button with a specific delay to ensure DOM is ready
+                    setTimeout(() => {
+                        console.log('Initializing search after conversation load');
+                        window.initializeSearchButton();
+                    }, 500);
+                    
                     // Scroll to bottom of messages container
                     const messagesContainer = document.getElementById('messagesContainer');
                     if (messagesContainer) {
@@ -946,6 +952,38 @@
                         });
                         conversationItem.classList.add('active');
                     }
+                    
+                    // ADDED CODE: Reset search functionality when conversation changes
+                    const searchContainer = document.getElementById('messageSearchContainer');
+                    if (searchContainer) {
+                        // Hide search bar
+                        searchContainer.style.display = 'none';
+                        
+                        // Remove search-active class from messages container
+                        const messagesContainer = document.getElementById('messagesContainer');
+                        if (messagesContainer) {
+                            messagesContainer.classList.remove('search-active');
+                        }
+                        
+                        // Clear any previous search input
+                        const searchInput = document.getElementById('messageSearchInput');
+                        if (searchInput) {
+                            searchInput.value = '';
+                        }
+                        
+                        // Reset results counter
+                        const resultsCount = document.getElementById('searchResultsCount');
+                        if (resultsCount) {
+                            resultsCount.textContent = '';
+                            resultsCount.classList.remove('too-many');
+                        }
+                    }
+
+                     // Reset search UI after loading a new conversation
+                    if (typeof window.resetSearchAfterConversationLoad === 'function') {
+                        window.resetSearchAfterConversationLoad();
+                    }
+
                 } else {
                     messageArea.innerHTML = `
                         <div class="empty-state">
@@ -956,7 +994,7 @@
                     `;
                     console.error('Failed to load conversation:', data.message);
                 }
-                
+
                 // Mark conversation as read
                 markConversationAsRead(conversationId);
             })
@@ -3592,6 +3630,488 @@
                 `;
             });
         }
+
+        // ============= IMPROVED MESSAGE SEARCH FUNCTIONALITY =============
+        // Global search variables
+        let searchMatches = [];
+        let currentMatchIndex = -1;
+
+        // Debounce helper for search input
+        function debounce(func, delay) {
+            let timeout;
+            return function() {
+                const context = this;
+                const args = arguments;
+                clearTimeout(timeout);
+                timeout = setTimeout(() => func.apply(context, args), delay);
+            };
+        }
+
+        // Escape special characters in search query for regex safety
+        function escapeRegExp(string) {
+            return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        }
+
+        // Clear search highlights
+        function clearSearch() {
+            console.log('Clearing search');
+            const messagesContainer = document.getElementById('messagesContainer');
+            if (!messagesContainer) return;
+            
+            clearSearchHighlights();
+            
+            // Reset search state
+            searchMatches = [];
+            currentMatchIndex = -1;
+            
+            // Update UI
+            updateSearchNavigation(0);
+        }
+
+        // Remove highlight spans and restore original text
+        function clearSearchHighlights() {
+            console.log('Clearing search highlights');
+            const highlightedElements = document.querySelectorAll('.search-highlight');
+            console.log(`Found ${highlightedElements.length} highlighted elements to clear`);
+            
+            highlightedElements.forEach(element => {
+                // Replace the highlight span with its text content
+                const textContent = document.createTextNode(element.textContent);
+                element.parentNode.replaceChild(textContent, element);
+            });
+        }
+
+        // Update navigation button states and result count display
+        function updateSearchNavigation(matchCount) {
+            console.log(`Updating search navigation with ${matchCount} matches`);
+            const prevBtn = document.getElementById('searchPrevBtn');
+            const nextBtn = document.getElementById('searchNextBtn');
+            const resultsCount = document.getElementById('searchResultsCount');
+            
+            // Enable/disable navigation buttons
+            if (prevBtn) prevBtn.disabled = matchCount === 0;
+            if (nextBtn) nextBtn.disabled = matchCount === 0;
+            
+            // Update results count text
+            if (resultsCount) {
+                if (matchCount === 0) {
+                    const query = document.getElementById('messageSearchInput')?.value || '';
+                    if (query.trim().length >= 2) {
+                        resultsCount.textContent = 'No matches found';
+                    } else {
+                        resultsCount.textContent = '';
+                    }
+                } else {
+                    resultsCount.textContent = `${Math.min(currentMatchIndex + 1, matchCount)} of ${matchCount} matches`;
+                }
+            }
+        }
+
+        // Navigate between search matches
+        function navigateSearch(direction) {
+            console.log(`Navigating search ${direction}, matches: ${searchMatches.length}`);
+            if (searchMatches.length === 0) return;
+            
+            // Remove current highlight
+            if (currentMatchIndex >= 0 && currentMatchIndex < searchMatches.length) {
+                searchMatches[currentMatchIndex].classList.remove('current');
+            }
+            
+            // Update index based on direction
+            if (direction === 'next') {
+                currentMatchIndex = (currentMatchIndex + 1) % searchMatches.length;
+            } else {
+                currentMatchIndex = (currentMatchIndex - 1 + searchMatches.length) % searchMatches.length;
+            }
+            
+            // Get current match
+            const currentMatch = searchMatches[currentMatchIndex];
+            if (!currentMatch) {
+                console.error('Current match is undefined');
+                return;
+            }
+            
+            // Highlight current match
+            currentMatch.classList.add('current');
+            
+            // Scroll match into view
+            try {
+                currentMatch.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'center'
+                });
+            } catch (err) {
+                console.error('Error scrolling to match:', err);
+            }
+            
+            // Update status text
+            const resultsCount = document.getElementById('searchResultsCount');
+            if (resultsCount) {
+                resultsCount.textContent = `${currentMatchIndex + 1} of ${searchMatches.length} matches`;
+            }
+        }
+
+        // Simple approach to highlight text in each message
+        function performSearch(query) {
+            // Reset current search state
+            clearSearch();
+            
+            // Skip search if query is too short
+            if (!query || query.trim().length < 2) {
+                console.log('Search query too short, skipping');
+                updateSearchNavigation(0);
+                return;
+            }
+            
+            console.log('Searching for:', query);
+            
+            // Get messages container
+            const messagesContainer = document.getElementById('messagesContainer');
+            if (!messagesContainer) {
+                console.error('Messages container not found');
+                return;
+            }
+            
+            // Find all message elements
+            const messageElements = messagesContainer.querySelectorAll('.message');
+            console.log(`Searching through ${messageElements.length} messages`);
+            
+            if (messageElements.length === 0) {
+                console.error('No message elements found. Check your DOM structure.');
+                return;
+            }
+            
+            searchMatches = [];
+            
+            // Process each message
+            messageElements.forEach(messageElement => {
+                // Skip system messages
+                if (messageElement.classList.contains('system')) return;
+                
+                // Focus on message content
+                const messageContent = messageElement.querySelector('.message-content');
+                if (!messageContent) return;
+                
+                // Get text content
+                const text = messageContent.textContent;
+                if (!text) return;
+                
+                // Check for match using case-insensitive comparison
+                if (!text.toLowerCase().includes(query.toLowerCase())) return;
+                
+                console.log('Found matching message:', text.substring(0, 30) + '...');
+                
+                // Replace text with highlighted version
+                try {
+                    const regex = new RegExp(`(${escapeRegExp(query)})`, 'gi');
+                    const html = messageContent.innerHTML;
+                    
+                    // This approach preserves existing HTML structure while adding highlights
+                    const highlightedHTML = html.replace(regex, '<span class="search-highlight">$1</span>');
+                    messageContent.innerHTML = highlightedHTML;
+                    
+                    // Find all highlighted spans we just created
+                    const highlights = messageContent.querySelectorAll('.search-highlight');
+                    highlights.forEach(highlight => {
+                        searchMatches.push(highlight);
+                    });
+                } catch (error) {
+                    console.error('Error highlighting text:', error);
+                }
+            });
+            
+            // Update navigation UI
+            console.log(`Found ${searchMatches.length} matches total`);
+            updateSearchNavigation(searchMatches.length);
+            
+            // Select first match if available
+            if (searchMatches.length > 0) {
+                navigateSearch('next');
+            }
+        }
+
+        // Define the search button initialization function
+        window.initializeSearchButton = function() {
+            console.log('Initializing search button');
+            const searchBtn = document.getElementById('messageSearchBtn');
+            const searchContainer = document.getElementById('messageSearchContainer');
+            
+            // Exit gracefully if required elements don't exist
+            if (!searchBtn || !searchContainer) {
+                console.log('Search UI elements not found', {
+                    searchBtn: !!searchBtn,
+                    searchContainer: !!searchContainer
+                });
+                return;
+            }
+            
+            console.log('Found search elements, setting up event listeners');
+            
+            // Setup search button
+            searchBtn.addEventListener('click', function() {
+                console.log('Search button clicked');
+                const isVisible = searchContainer.style.display === 'block';
+                const messagesContainer = document.getElementById('messagesContainer');
+                
+                if (!isVisible) {
+                    // Show search
+                    searchContainer.style.display = 'block';
+                    searchContainer.classList.add('active');
+                    
+                    // Focus search input
+                    const searchInput = document.getElementById('messageSearchInput');
+                    if (searchInput) setTimeout(() => searchInput.focus(), 50);
+                    
+                    // Add active class to messages container
+                    if (messagesContainer) messagesContainer.classList.add('search-active');
+                } else {
+                    // Hide search
+                    searchContainer.classList.remove('active');
+                    setTimeout(() => {
+                        searchContainer.style.display = 'none';
+                    }, 300);
+                    
+                    // Clear search
+                    clearSearch();
+                    
+                    // Remove active class
+                    if (messagesContainer) messagesContainer.classList.remove('search-active');
+                }
+            });
+            
+            // Setup search input handler
+            const searchInput = document.getElementById('messageSearchInput');
+            if (searchInput) {
+                searchInput.addEventListener('input', debounce(function() {
+                    console.log('Search input changed:', this.value);
+                    performSearch(this.value);
+                }, 300));
+                
+                // Navigation with keyboard
+                searchInput.addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        if (e.shiftKey) {
+                            navigateSearch('prev');
+                        } else {
+                            navigateSearch('next');
+                        }
+                    } else if (e.key === 'Escape') {
+                        searchContainer.classList.remove('active');
+                        setTimeout(() => {
+                            searchContainer.style.display = 'none';
+                        }, 300);
+                        clearSearch();
+                    }
+                });
+            }
+            
+            // Setup navigation buttons
+            const prevBtn = document.getElementById('searchPrevBtn');
+            const nextBtn = document.getElementById('searchNextBtn');
+            
+            if (prevBtn) {
+                prevBtn.addEventListener('click', function() {
+                    navigateSearch('prev');
+                });
+            }
+            
+            if (nextBtn) {
+                nextBtn.addEventListener('click', function() {
+                    navigateSearch('next');
+                });
+            }
+            
+            // Close button handler
+            const closeBtn = document.getElementById('closeSearchBtn');
+            if (closeBtn) {
+                closeBtn.addEventListener('click', function() {
+                    searchContainer.classList.remove('active');
+                    setTimeout(() => {
+                        searchContainer.style.display = 'none';
+                    }, 300);
+                    clearSearch();
+                    
+                    const messagesContainer = document.getElementById('messagesContainer');
+                    if (messagesContainer) {
+                        messagesContainer.classList.remove('search-active');
+                    }
+                });
+            }
+            
+            console.log('Search button initialization complete');
+        };
+
+        // Reset search UI when conversations change
+        window.resetSearchAfterConversationLoad = function() {
+            const searchContainer = document.getElementById('messageSearchContainer');
+            if (!searchContainer) return;
+            
+            // Hide search UI
+            searchContainer.style.display = 'none';
+            searchContainer.classList.remove('active');
+            
+            // Reset messages container
+            const messagesContainer = document.getElementById('messagesContainer');
+            if (messagesContainer) {
+                messagesContainer.classList.remove('search-active');
+            }
+            
+            // Clear search input
+            const searchInput = document.getElementById('messageSearchInput');
+            if (searchInput) {
+                searchInput.value = '';
+            }
+            
+            // Reset results counter
+            const resultsCount = document.getElementById('searchResultsCount');
+            if (resultsCount) {
+                resultsCount.textContent = '';
+            }
+            
+            // Clear any highlights
+            clearSearchHighlights();
+            searchMatches = [];
+            currentMatchIndex = -1;
+        };
+
+        // Define the search button initialization function
+        window.initializeSearchButton = function() {
+            console.log('Initializing search button');
+            const searchBtn = document.getElementById('messageSearchBtn');
+            const searchContainer = document.getElementById('messageSearchContainer');
+            
+            // Exit gracefully if required elements don't exist
+            if (!searchBtn || !searchContainer) {
+                console.log('Search UI elements not found', {
+                    searchBtn: !!searchBtn,
+                    searchContainer: !!searchContainer
+                });
+                return;
+            }
+            
+            console.log('Found search elements, setting up event listeners');
+            
+            // Clear existing listeners to prevent duplicates
+            const newSearchBtn = searchBtn.cloneNode(true);
+            if (searchBtn.parentNode) {
+                searchBtn.parentNode.replaceChild(newSearchBtn, searchBtn);
+            }
+            
+            // Add click event listener for search button
+            newSearchBtn.addEventListener('click', function() {
+                console.log('Search button clicked');
+                const isVisible = searchContainer.style.display === 'block';
+                const messagesContainer = document.getElementById('messagesContainer');
+                
+                if (!isVisible) {
+                    // Show search
+                    searchContainer.style.display = 'block';
+                    searchContainer.classList.add('active');
+                    
+                    // Focus search input
+                    const searchInput = document.getElementById('messageSearchInput');
+                    if (searchInput) setTimeout(() => searchInput.focus(), 50);
+                    
+                    // Add active class to messages container
+                    if (messagesContainer) messagesContainer.classList.add('search-active');
+                } else {
+                    // Hide search
+                    searchContainer.classList.remove('active');
+                    setTimeout(() => {
+                        searchContainer.style.display = 'none';
+                    }, 300);
+                    
+                    // Clear search
+                    clearSearch();
+                    
+                    // Remove active class
+                    if (messagesContainer) messagesContainer.classList.remove('search-active');
+                }
+            });
+            
+            console.log('Search button initialization complete');
+        };
+
+        // Make sure search input responds to typing
+        document.addEventListener('DOMContentLoaded', function() {
+            // Function to ensure search input has event listeners
+            function ensureSearchInputWorks() {
+                const searchInput = document.getElementById('messageSearchInput');
+                const prevBtn = document.getElementById('searchPrevBtn');
+                const nextBtn = document.getElementById('searchNextBtn');
+                const closeBtn = document.getElementById('closeSearchBtn');
+                
+                if (!searchInput) {
+                    console.log('Search input not found, will try again later');
+                    setTimeout(ensureSearchInputWorks, 500);
+                    return;
+                }
+                
+                console.log('Setting up search input event listeners');
+                
+                // Clear any existing event listeners by cloning
+                const newInput = searchInput.cloneNode(true);
+                searchInput.parentNode.replaceChild(newInput, searchInput);
+                
+                // Add input handler with debounce
+                newInput.addEventListener('input', debounce(function() {
+                    console.log('Search input changed:', this.value);
+                    performSearch(this.value);
+                }, 300));
+                
+                // Add keyboard navigation
+                newInput.addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        if (e.shiftKey) {
+                            navigateSearch('prev');
+                        } else {
+                            navigateSearch('next');
+                        }
+                    } else if (e.key === 'Escape') {
+                        const searchContainer = document.getElementById('messageSearchContainer');
+                        if (searchContainer) {
+                            searchContainer.classList.remove('active');
+                            setTimeout(() => {
+                                searchContainer.style.display = 'none';
+                            }, 300);
+                        }
+                        clearSearch();
+                    }
+                });
+                
+                // Make sure navigation buttons work too
+                if (prevBtn) {
+                    prevBtn.addEventListener('click', function() {
+                        navigateSearch('prev');
+                    });
+                }
+                
+                if (nextBtn) {
+                    nextBtn.addEventListener('click', function() {
+                        navigateSearch('next');
+                    });
+                }
+                
+                console.log('Search input event listeners initialized');
+            }
+            
+            // Original button function only handles showing/hiding the search UI,
+            // but doesn't set up the input event handlers correctly.
+            // This modifies the existing function:
+            const originalInitSearchBtn = window.initializeSearchButton;
+            window.initializeSearchButton = function() {
+                originalInitSearchBtn.apply(this, arguments);
+                
+                // Run our additional function to ensure input works
+                setTimeout(ensureSearchInputWorks, 100);
+            };
+            
+            // Also try to initialize on page load
+            setTimeout(ensureSearchInputWorks, 1500);
+        });
+
     </script>
 </body>
 </html>

@@ -13,27 +13,52 @@
             @endif
         </div>
         
-         <!-- Group actions dropdown -->
-        @if($conversation->is_group_chat)
-        <div class="dropdown">
-            <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="groupActionsDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                <i class="bi bi-gear"></i>
+        <div class="d-flex align-items-center">
+            <!-- Search icon - ADD THIS -->
+            <button class="btn btn-sm btn-outline-secondary me-2" id="messageSearchBtn">
+                <i class="bi bi-search"></i>
             </button>
-            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="groupActionsDropdown">
-                <li><a class="dropdown-item view-members-btn" href="#" data-conversation-id="{{ $conversation->conversation_id }}">
-                    <i class="bi bi-people-fill text-primary me-2"></i> View Members
-                </a></li>
-                <li><a class="dropdown-item add-member-btn" href="#" data-conversation-id="{{ $conversation->conversation_id }}">
-                    <i class="bi bi-person-plus-fill text-success me-2"></i> Add Member
-                </a></li>
-                <li><hr class="dropdown-divider"></li>
-                <li><a class="dropdown-item leave-group-btn" href="#" data-conversation-id="{{ $conversation->conversation_id }}">
-                    <i class="bi bi-box-arrow-right text-danger me-2"></i> Leave Group
-                </a></li>
-            </ul>
+            
+            <!-- Group actions dropdown -->
+            @if($conversation->is_group_chat)
+            <div class="dropdown">
+                <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="groupActionsDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="bi bi-gear"></i>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="groupActionsDropdown">
+                    <li><a class="dropdown-item view-members-btn" href="#" data-conversation-id="{{ $conversation->conversation_id }}">
+                        <i class="bi bi-people-fill text-primary me-2"></i> View Members
+                    </a></li>
+                    <li><a class="dropdown-item add-member-btn" href="#" data-conversation-id="{{ $conversation->conversation_id }}">
+                        <i class="bi bi-person-plus-fill text-success me-2"></i> Add Member
+                    </a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item leave-group-btn" href="#" data-conversation-id="{{ $conversation->conversation_id }}">
+                        <i class="bi bi-box-arrow-right text-danger me-2"></i> Leave Group
+                    </a></li>
+                </ul>
+            </div>
+            @endif
         </div>
-        @endif
     </div>
+    
+    <!-- Search container -->
+    <div id="messageSearchContainer" class="message-search-container" style="display: none;">
+        <div class="input-group">
+            <input type="text" class="form-control" id="messageSearchInput" placeholder="Search in conversation...">
+            <button class="btn btn-outline-secondary search-nav-btn" id="searchPrevBtn" disabled>
+                <i class="bi bi-arrow-up"></i>
+            </button>
+            <button class="btn btn-outline-secondary search-nav-btn" id="searchNextBtn" disabled>
+                <i class="bi bi-arrow-down"></i>
+            </button>
+            <button class="btn btn-outline-secondary" id="closeSearchBtn">
+                <i class="bi bi-x"></i>
+            </button>
+        </div>
+        <div class="search-results-count" id="searchResultsCount"></div>
+    </div>
+
 </div>
 
 <!-- Messages Container -->
