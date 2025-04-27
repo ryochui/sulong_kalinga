@@ -1406,3 +1406,23 @@ select.form-select[size]:not([size="1"]) option:last-child {
     padding-right: 10px !important; /* Reduce right padding */
     padding-left: 25px !important; /* Add left padding for the button */
 }
+
+/* Message that had attachments but is now unsent */
+.message.has-unsent {
+    opacity: 0.85;
+}
+
+/* Make time more subtle for unsent messages */
+.unsent-time {
+    opacity: 0.7;
+}
+
+/* Add a subtle indicator for messages that had attachments */
+.message-content.unsent.had-attachments::after {
+    content: '(had attachments)';
+    display: block;
+    font-size: 0.75em;
+    color: #999;
+    margin-top: 4px;
+    font-style: italic;
+}

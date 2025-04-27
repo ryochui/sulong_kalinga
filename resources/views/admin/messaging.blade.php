@@ -4157,32 +4157,37 @@
                         // Update UI to show message as unsent
                         const messageElement = document.querySelector(`.message[data-message-id="${currentMessageToUnsend}"]`);
                         if (messageElement) {
+                            // First, save references to all elements we need to modify
                             const contentElement = messageElement.querySelector('.message-content');
+                            const attachmentsElement = messageElement.querySelector('.message-attachments');
+                            const actionsElement = messageElement.querySelector('.message-actions');
+                            const timeElement = messageElement.querySelector('.message-time');
+                            
+                            // Add unsent class to the entire message element for CSS styling
+                            messageElement.classList.add('has-unsent');
+                            
                             if (contentElement) {
                                 // Replace content with "unsent" message
                                 contentElement.classList.add('unsent');
                                 contentElement.innerHTML = '<em>This message was unsent</em>';
-                                
-                                // Remove any attachments
-                                const attachmentsElement = messageElement.querySelector('.message-attachments');
-                                if (attachmentsElement) {
-                                    attachmentsElement.remove();
-                                }
-                                
-                                // Remove message actions
-                                const actionsElement = messageElement.querySelector('.message-actions');
-                                if (actionsElement) {
-                                    actionsElement.remove();
-                                }
-                                
-                                // Remove message time (optional)
-                                const timeElement = messageElement.querySelector('.message-time');
-                                if (timeElement) {
-                                    timeElement.remove();
-                                }
+                            }
+                            
+                            // Handle attachments - remove them completely
+                            if (attachmentsElement) {
+                                attachmentsElement.remove();
+                            }
+                            
+                            // Remove the actions dropdown to prevent further unsend attempts
+                            if (actionsElement) {
+                                actionsElement.remove();
+                            }
+                            
+                            // Keep the time element but make it more subtle
+                            if (timeElement) {
+                                timeElement.classList.add('unsent-time');
                             }
                         }
-
+                        
                         // Force refresh the conversation list to update preview
                         smoothRefreshConversationList();
                         
@@ -4190,7 +4195,6 @@
                         if (typeof loadRecentMessages === 'function') {
                             loadRecentMessages();
                         }
-
                     } else {
                         // Show error in modal
                         const errorModal = new bootstrap.Modal(document.getElementById('errorModal'));

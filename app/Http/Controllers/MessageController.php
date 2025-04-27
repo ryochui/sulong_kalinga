@@ -739,11 +739,16 @@ class MessageController extends Controller
                     if ((!$lastMessage->content || trim($lastMessage->content) === '') && 
                         $lastMessage->attachments && $lastMessage->attachments->count() > 0) {
                         
-                        if ($lastMessage->attachments->count() == 1) {
-                            $attachment = $lastMessage->attachments->first();
-                            $messageData['content'] = "📎 " . $attachment->file_name;
+                        // Update this section to check if message is unsent first
+                        if ($lastMessage->is_unsent) {
+                            $messageData['content'] = 'This message was unsent';
                         } else {
-                            $messageData['content'] = "📎 " . $lastMessage->attachments->count() . " attachments";
+                            if ($lastMessage->attachments->count() == 1) {
+                                $attachment = $lastMessage->attachments->first();
+                                $messageData['content'] = "📎 " . $attachment->file_name;
+                            } else {
+                                $messageData['content'] = "📎 " . $lastMessage->attachments->count() . " attachments";
+                            }
                         }
                     }
                     
