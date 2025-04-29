@@ -55,6 +55,113 @@
         <div class="container-fluid">
             <div class="row" id="home-content">
                 <div class="col-12">
+                    <div class="card shadow-sm mb-3">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <div class="d-flex align-items-center">
+                                <strong class="me-3">Filters</strong>
+                            </div>
+                            <button class="btn btn-primary btn-sm" id="applyFilterBtn">Apply Filters</button>
+                        </div>
+                        <div class="card-body p-2">
+                            <div class="row g-2">
+                                <!-- Beneficiary Select -->
+                                <div class="col">
+                                    <label for="beneficiarySelect" class="form-label">Select Beneficiary:</label>
+                                    <select class="form-select" id="beneficiarySelect" name="beneficiary_id">
+                                        <option value="">All Beneficiaries</option>
+                                        <option value="1">Doe, John</option>
+                                        <option value="2">Smith, Jane</option>
+                                        <option value="3">Brown, Alice</option>
+                                        <option value="4">Johnson, Bob</option>
+                                    </select>
+                                </div>
+                                <!-- Municipalities Select -->
+                                <div class="col">
+                                    <label for="municipalitySelect" class="form-label">Select Municipality:</label>
+                                    <select class="form-select" id="municipalitySelect">
+                                        <option value="">All Municipalities</option>
+                                        <option value="Mondragon">Mondragon</option>
+                                        <option value="San Roque">San Roque</option>
+                                    </select>
+                                </div>
+                                <!-- Time Range Select -->
+                                <div class="col">
+                                    <label for="timeRange" class="form-label">Time Range:</label>
+                                    <select class="form-select" id="timeRange">
+                                        <option value="weeks">Weeks</option>
+                                        <option value="months">Months</option>
+                                        <option value="year">Year</option>
+                                    </select>
+                                </div>
+                                <!-- Week Filter (visible by default) -->
+                                <div class="col d-none" id="weekFilterContainer">
+                                    <label for="monthSelect" class="form-label">Select Month:</label>
+                                    <select class="form-select" id="monthSelect">
+                                        <option value="1">January</option>
+                                        <option value="2">February</option>
+                                        <option value="3">March</option>
+                                        <option value="4">April</option>
+                                        <option value="5">May</option>
+                                        <option value="6">June</option>
+                                        <option value="7">July</option>
+                                        <option value="8">August</option>
+                                        <option value="9">September</option>
+                                        <option value="10">October</option>
+                                        <option value="11">November</option>
+                                        <option value="12">December</option>
+                                    </select>
+                                </div>
+                                <!-- Month Range Filter (hidden by default) -->
+                                <div class="col d-none" id="monthRangeFilterContainer">
+                                    <div class="row g-2">
+                                        <div class="col">
+                                            <label for="startMonth" class="form-label">Start Month:</label>
+                                            <select class="form-select" id="startMonth">
+                                                <option value="1">January</option>
+                                                <option value="2">February</option>
+                                                <option value="3">March</option>
+                                                <option value="4">April</option>
+                                                <option value="5">May</option>
+                                                <option value="6">June</option>
+                                                <option value="7">July</option>
+                                                <option value="8">August</option>
+                                                <option value="9">September</option>
+                                                <option value="10">October</option>
+                                                <option value="11">November</option>
+                                                <option value="12">December</option>
+                                            </select>
+                                        </div>
+                                        <div class="col">
+                                            <label for="endMonth" class="form-label">End Month:</label>
+                                            <select class="form-select" id="endMonth">
+                                                <option value="1">January</option>
+                                                <option value="2">February</option>
+                                                <option value="3">March</option>
+                                                <option value="4">April</option>
+                                                <option value="5">May</option>
+                                                <option value="6">June</option>
+                                                <option value="7">July</option>
+                                                <option value="8">August</option>
+                                                <option value="9">September</option>
+                                                <option value="10">October</option>
+                                                <option value="11">November</option>
+                                                <option value="12">December</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- Year Filter (hidden by default) -->
+                                <div class="col d-none" id="yearFilterContainer">
+                                    <label for="yearSelect" class="form-label">Select Year:</label>
+                                    <select class="form-select" id="yearSelect">
+                                        <option value="2023">2023</option>
+                                        <option value="2024">2024</option>
+                                        <option value="2025">2025</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                     <!-- Summary Cards -->
                     <div class="row mb-2">
                         <div class="col-md-4 mb-2">
@@ -99,22 +206,7 @@
                                 </div>
                             </div>
                         </div>
-                        
-                        <!-- Avg. Time/Care Need Category (Now Doughnut Chart) -->
-                        <div class="col-lg-6 mb-2">
-                            <div class="card h-100">
-                                <div class="card-header bg-white">
-                                    <h5 class="mb-0" style="font-size: clamp(1rem, 1.5vw, 1.2rem);">Avg. Time/Care Need Category</h5>
-                                </div>
-                                <div class="card-body">
-                                    <canvas id="timePerCategoryChart" height="200" width="400"></canvas>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
 
-                    <!-- Second Charts Row -->
-                    <div class="row mb-2">
                         <!-- Hours per Client -->
                         <div class="col-lg-6 mb-2">
                             <div class="card h-100">
@@ -123,6 +215,21 @@
                                 </div>
                                 <div class="card-body">
                                     <canvas id="clientHoursChart" height="200" width="400"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Second Charts Row -->
+                    <div class="row mb-2">
+                        <!-- Avg. Time/Care Need Category (Now Doughnut Chart) -->
+                        <div class="col-lg-6 mb-2">
+                            <div class="card h-100">
+                                <div class="card-header bg-white">
+                                    <h5 class="mb-0" style="font-size: clamp(1rem, 1.5vw, 1.2rem);">Avg. Time/Care Need Category</h5>
+                                </div>
+                                <div class="card-body">
+                                    <canvas id="timePerCategoryChart" height="200" width="400"></canvas>
                                 </div>
                             </div>
                         </div>
@@ -153,15 +260,21 @@
                     <div class="row">
                         <div class="col-12">
                             <div class="card">
-                                <div class="card-header bg-white">
-                                    <h5 class="mb-0" style="font-size: clamp(1rem, 1.5vw, 1.2rem);">Top Performing Care Workers</h5>
+                                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                                    <h5 class="mb-0" style="font-size: clamp(1rem, 1.5vw, 1.2rem);">Care Worker Performance</h5>
+                                    <div class="d-flex align-items-center">
+                                        <label for="sortFilter" class="me-2" style="font-size: clamp(0.8rem, 1vw, 1rem);">Sort By:</label>
+                                        <select id="sortFilter" class="form-select" style="font-size: clamp(0.8rem, 1vw, 1rem); width: 210px;">
+                                            <option value="name-asc">Name (A-Z)</option>
+                                            <option value="name-desc">Name (Z-A)</option>
+                                        </select>
+                                    </div>
                                 </div>
                                 <div class="card-body">
                                     <div class="table-responsive">
                                         <table class="table table-hover">
                                             <thead class="table-light">
                                                 <tr>
-                                                    <th>Rank</th>
                                                     <th>Care Worker</th>
                                                     <th>Hours Worked</th>
                                                     <th>Clients Served</th>
@@ -170,28 +283,24 @@
                                             </thead>
                                             <tbody>
                                                 <tr>
-                                                    <td>1</td>
                                                     <td>Sarah Johnson</td>
                                                     <td>42</td>
                                                     <td>5</td>
                                                     <td>28</td>
                                                 </tr>
                                                 <tr>
-                                                    <td>2</td>
                                                     <td>Michael Chen</td>
                                                     <td>38</td>
                                                     <td>4</td>
                                                     <td>25</td>
                                                 </tr>
                                                 <tr>
-                                                    <td>3</td>
                                                     <td>David Wilson</td>
                                                     <td>35</td>
                                                     <td>4</td>
                                                     <td>23</td>
                                                 </tr>
                                                 <tr>
-                                                    <td>4</td>
                                                     <td>Emily Rodriguez</td>
                                                     <td>32</td>
                                                     <td>3</td>

@@ -202,7 +202,7 @@
                         </div>
                         
                         <!-- Beneficiary Details Row -->
-                        <div class="row mb-1 d-none" id="beneficiaryDetailsRow">
+                        <div class="row mb-3 d-none" id="beneficiaryDetailsRow">
                             <div class="col-12">
                                 <div class="card shadow-sm">
                                     <div class="card-header">
@@ -244,254 +244,9 @@
                                             </div>
                                         </div>
                                     </div>
-                                <hr>
-                                <!-- Replace the existing Care Services Summary section with this code -->
-                                <div class="row">
-                                    <div class="col-12">
-                                        <h6 class="text-center">Care Services Summary</h6>
-                                        <div id="careServicesCarousel" class="carousel slide" data-bs-interval="false">
-                                            <div class="carousel-inner">
-                                                <!-- Mobility Table -->
-                                                <div class="carousel-item active">
-                                                    <table class="table table-bordered table-sm">
-                                                        <thead>
-                                                            <tr>
-                                                                <th colspan="2" class="text-center bg-light position-relative">
-                                                                    <button class="btn btn-sm btn-outline-secondary position-absolute start-0" data-bs-target="#careServicesCarousel" data-bs-slide="prev">
-                                                                        <i class="bi bi-chevron-left"></i>
-                                                                    </button>
-                                                                    Mobility
-                                                                    <button class="btn btn-sm btn-outline-secondary position-absolute end-0" data-bs-target="#careServicesCarousel" data-bs-slide="next">
-                                                                        <i class="bi bi-chevron-right"></i>
-                                                                    </button>
-                                                                </th>
-                                                            </tr>
-                                                            <tr>
-                                                                <th>Intervention Implemented</th>
-                                                                <th class="text-center">Frequency</th>
-                                                            </tr>
-                                                        </thead>
-                                                        <tbody>
-                                                            <tr>
-                                                                <td>Provided walker and physical therapy</td>
-                                                                <td class="text-center">3x/week</td>
-                                                            </tr>
-                                                            <tr>
-                                                                <td>Installed stair lift</td>
-                                                                <td class="text-center">Daily</td>
-                                                            </tr>
-                                                            <tr>
-                                                                <td>Caregiver-assisted transfers</td>
-                                                                <td class="text-center">As needed</td>
-                                                            </tr>
-                                                        </tbody>
-                                                    </table>
-                                                </div>
-
-                                                <!-- Cognitive/Communication Table -->
-                                                <div class="carousel-item">
-                                                    <table class="table table-bordered table-sm">
-                                                        <thead>
-                                                            <tr>
-                                                                <th colspan="2" class="text-center bg-light position-relative">
-                                                                    <button class="btn btn-sm btn-outline-secondary position-absolute start-0" data-bs-target="#careServicesCarousel" data-bs-slide="prev">
-                                                                        <i class="bi bi-chevron-left"></i>
-                                                                    </button>
-                                                                    Cognitive / Communication
-                                                                    <button class="btn btn-sm btn-outline-secondary position-absolute end-0" data-bs-target="#careServicesCarousel" data-bs-slide="next">
-                                                                        <i class="bi bi-chevron-right"></i>
-                                                                    </button>
-                                                                </th>
-                                                            </tr>
-                                                            <tr>
-                                                                <th>Intervention Implemented</th>
-                                                                <th class="text-center">Frequency</th>
-                                                            </tr>
-                                                        </thead>
-                                                        <tbody>
-                                                            <tr>
-                                                                <td>Memory exercises and reminders</td>
-                                                                <td class="text-center">Daily</td>
-                                                            </tr>
-                                                            <tr>
-                                                                <td>Speech therapy sessions</td>
-                                                                <td class="text-center">2x/week</td>
-                                                            </tr>
-                                                        </tbody>
-                                                    </table>
-                                                </div>
-
-                                                <!-- Self-sustainability Table -->
-                                                <div class="carousel-item">
-                                                    <table class="table table-bordered table-sm">
-                                                        <thead>
-                                                            <tr>
-                                                                <th colspan="2" class="text-center bg-light position-relative">
-                                                                    <button class="btn btn-sm btn-outline-secondary position-absolute start-0" data-bs-target="#careServicesCarousel" data-bs-slide="prev">
-                                                                        <i class="bi bi-chevron-left"></i>
-                                                                    </button>
-                                                                    Self-sustainability
-                                                                    <button class="btn btn-sm btn-outline-secondary position-absolute end-0" data-bs-target="#careServicesCarousel" data-bs-slide="next">
-                                                                        <i class="bi bi-chevron-right"></i>
-                                                                    </button>
-                                                                </th>
-                                                            </tr>
-                                                            <tr>
-                                                                <th>Intervention Implemented</th>
-                                                                <th class="text-center">Frequency</th>
-                                                            </tr>
-                                                        </thead>
-                                                        <tbody>
-                                                            <tr>
-                                                                <td>Assistance with bathing and grooming</td>
-                                                                <td class="text-center">Daily</td>
-                                                            </tr>
-                                                            <tr>
-                                                                <td>Meal delivery service</td>
-                                                                <td class="text-center">3x/day</td>
-                                                            </tr>
-                                                        </tbody>
-                                                    </table>
-                                                </div>
-
-                                                <!-- Disease/Therapy Table -->
-                                                <div class="carousel-item">
-                                                    <table class="table table-bordered table-sm">
-                                                        <thead>
-                                                            <tr>
-                                                                <th colspan="2" class="text-center bg-light position-relative">
-                                                                    <button class="btn btn-sm btn-outline-secondary position-absolute start-0" data-bs-target="#careServicesCarousel" data-bs-slide="prev">
-                                                                        <i class="bi bi-chevron-left"></i>
-                                                                    </button>
-                                                                    Disease / Therapy
-                                                                    <button class="btn btn-sm btn-outline-secondary position-absolute end-0" data-bs-target="#careServicesCarousel" data-bs-slide="next">
-                                                                        <i class="bi bi-chevron-right"></i>
-                                                                    </button>
-                                                                </th>
-                                                            </tr>
-                                                            <tr>
-                                                                <th>Intervention Implemented</th>
-                                                                <th class="text-center">Frequency</th>
-                                                            </tr>
-                                                        </thead>
-                                                        <tbody>
-                                                            <tr>
-                                                                <td>Memory exercises and reminders</td>
-                                                                <td class="text-center">Daily</td>
-                                                            </tr>
-                                                            <tr>
-                                                                <td>Speech therapy sessions</td>
-                                                                <td class="text-center">2x/week</td>
-                                                            </tr>
-                                                        </tbody>
-                                                    </table>
-                                                </div>
-
-                                                <!-- Social Contact Table -->
-                                                <div class="carousel-item">
-                                                    <table class="table table-bordered table-sm">
-                                                        <thead>
-                                                            <tr>
-                                                                <th colspan="2" class="text-center bg-light position-relative">
-                                                                    <button class="btn btn-sm btn-outline-secondary position-absolute start-0" data-bs-target="#careServicesCarousel" data-bs-slide="prev">
-                                                                        <i class="bi bi-chevron-left"></i>
-                                                                    </button>
-                                                                    Social Contact
-                                                                    <button class="btn btn-sm btn-outline-secondary position-absolute end-0" data-bs-target="#careServicesCarousel" data-bs-slide="next">
-                                                                        <i class="bi bi-chevron-right"></i>
-                                                                    </button>
-                                                                </th>
-                                                            </tr>
-                                                            <tr>
-                                                                <th>Intervention Implemented</th>
-                                                                <th class="text-center">Frequency</th>
-                                                            </tr>
-                                                        </thead>
-                                                        <tbody>
-                                                            <tr>
-                                                                <td>Weekly visits from social worker</td>
-                                                                <td class="text-center">1x/week</td>
-                                                            </tr>
-                                                            <tr>
-                                                                <td>Video call setup assistance</td>
-                                                                <td class="text-center">3x/week</td>
-                                                            </tr>
-                                                        </tbody>
-                                                    </table>
-                                                </div>
-
-                                                <!-- Outdoor Activities Table -->
-                                                <div class="carousel-item">
-                                                    <table class="table table-bordered table-sm">
-                                                        <thead>
-                                                            <tr>
-                                                                <th colspan="2" class="text-center bg-light position-relative">
-                                                                    <button class="btn btn-sm btn-outline-secondary position-absolute start-0" data-bs-target="#careServicesCarousel" data-bs-slide="prev">
-                                                                        <i class="bi bi-chevron-left"></i>
-                                                                    </button>
-                                                                    Outdoor Activities
-                                                                    <button class="btn btn-sm btn-outline-secondary position-absolute end-0" data-bs-target="#careServicesCarousel" data-bs-slide="next">
-                                                                        <i class="bi bi-chevron-right"></i>
-                                                                    </button>
-                                                                </th>
-                                                            </tr>
-                                                            <tr>
-                                                                <th>Intervention Implemented</th>
-                                                                <th class="text-center">Frequency</th>
-                                                            </tr>
-                                                        </thead>
-                                                        <tbody>
-                                                            <tr>
-                                                                <td>Medical transport service</td>
-                                                                <td class="text-center">1x/week</td>
-                                                            </tr>
-                                                            <tr>
-                                                                <td>Accompanied walks in park</td>
-                                                                <td class="text-center">2x/week</td>
-                                                            </tr>
-                                                        </tbody>
-                                                    </table>
-                                                </div>
-
-                                                <!-- Household Keeping Table -->
-                                                <div class="carousel-item">
-                                                    <table class="table table-bordered table-sm">
-                                                        <thead>
-                                                            <tr>
-                                                                <th colspan="2" class="text-center bg-light position-relative">
-                                                                    <button class="btn btn-sm btn-outline-secondary position-absolute start-0" data-bs-target="#careServicesCarousel" data-bs-slide="prev">
-                                                                        <i class="bi bi-chevron-left"></i>
-                                                                    </button>
-                                                                    Household Keeping
-                                                                    <button class="btn btn-sm btn-outline-secondary position-absolute end-0" data-bs-target="#careServicesCarousel" data-bs-slide="next">
-                                                                        <i class="bi bi-chevron-right"></i>
-                                                                    </button>
-                                                                </th>
-                                                            </tr>
-                                                            <tr>
-                                                                <th>Intervention Implemented</th>
-                                                                <th class="text-center">Frequency</th>
-                                                            </tr>
-                                                        </thead>
-                                                        <tbody>
-                                                            <tr>
-                                                                <td>Weekly housekeeping service</td>
-                                                                <td class="text-center">1x/week</td>
-                                                            </tr>
-                                                            <tr>
-                                                                <td>Laundry pickup and delivery</td>
-                                                                <td class="text-center">2x/week</td>
-                                                            </tr>
-                                                        </tbody>
-                                                    </table>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
               
                         
                         <!-- Statistics Table Row -->
@@ -640,6 +395,126 @@
                                         </tbody>
                                     </table>
                                 </div>
+                            </div>
+                        </div>
+
+                        <!-- Care Services Summary Section -->
+                        <div class="row mt-3 mb-3" id="careServicesSummaryRow">
+                            <div class="col-12">
+                                <div class="card shadow-sm">
+                                    <div class="card-header text-center">
+                                        <strong>Care Services Summary</strong>
+                                    </div>
+                                    <div class="card-body p-2">
+                                        <div id="careServicesCarousel" class="carousel slide" data-bs-interval="false">
+                                            <div class="carousel-inner">
+                                                <!-- Mobility Table -->
+                                                <div class="carousel-item active">
+                                                    <table class="table table-bordered table-sm">
+                                                        <thead>
+                                                            <tr>
+                                                                <th colspan="2" class="text-center bg-light position-relative">
+                                                                    <button class="btn btn-sm btn-outline-secondary position-absolute start-0" data-bs-target="#careServicesCarousel" data-bs-slide="prev">
+                                                                        <i class="bi bi-chevron-left"></i>
+                                                                    </button>
+                                                                    Mobility
+                                                                    <button class="btn btn-sm btn-outline-secondary position-absolute end-0" data-bs-target="#careServicesCarousel" data-bs-slide="next">
+                                                                        <i class="bi bi-chevron-right"></i>
+                                                                    </button>
+                                                                </th>
+                                                            </tr>
+                                                            <tr>
+                                                                <th>Intervention Implemented</th>
+                                                                <th class="text-center">Frequency</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            <tr>
+                                                                <td>Provided walker and physical therapy</td>
+                                                                <td class="text-center">3x/week</td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td>Installed stair lift</td>
+                                                                <td class="text-center">Daily</td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td>Caregiver-assisted transfers</td>
+                                                                <td class="text-center">As needed</td>
+                                                            </tr>
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+
+                                                <!-- Cognitive/Communication Table -->
+                                                <div class="carousel-item">
+                                                    <table class="table table-bordered table-sm">
+                                                        <thead>
+                                                            <tr>
+                                                                <th colspan="2" class="text-center bg-light position-relative">
+                                                                    <button class="btn btn-sm btn-outline-secondary position-absolute start-0" data-bs-target="#careServicesCarousel" data-bs-slide="prev">
+                                                                        <i class="bi bi-chevron-left"></i>
+                                                                    </button>
+                                                                    Cognitive / Communication
+                                                                    <button class="btn btn-sm btn-outline-secondary position-absolute end-0" data-bs-target="#careServicesCarousel" data-bs-slide="next">
+                                                                        <i class="bi bi-chevron-right"></i>
+                                                                    </button>
+                                                                </th>
+                                                            </tr>
+                                                            <tr>
+                                                                <th>Intervention Implemented</th>
+                                                                <th class="text-center">Frequency</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            <tr>
+                                                                <td>Memory exercises and reminders</td>
+                                                                <td class="text-center">Daily</td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td>Speech therapy sessions</td>
+                                                                <td class="text-center">2x/week</td>
+                                                            </tr>
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+
+                                                <!-- Self-sustainability Table -->
+                                                <div class="carousel-item">
+                                                    <table class="table table-bordered table-sm">
+                                                        <thead>
+                                                            <tr>
+                                                                <th colspan="2" class="text-center bg-light position-relative">
+                                                                    <button class="btn btn-sm btn-outline-secondary position-absolute start-0" data-bs-target="#careServicesCarousel" data-bs-slide="prev">
+                                                                        <i class="bi bi-chevron-left"></i>
+                                                                    </button>
+                                                                    Self-sustainability
+                                                                    <button class="btn btn-sm btn-outline-secondary position-absolute end-0" data-bs-target="#careServicesCarousel" data-bs-slide="next">
+                                                                        <i class="bi bi-chevron-right"></i>
+                                                                    </button>
+                                                                </th>
+                                                            </tr>
+                                                            <tr>
+                                                                <th>Intervention Implemented</th>
+                                                                <th class="text-center">Frequency</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            <tr>
+                                                                <td>Assistance with bathing and grooming</td>
+                                                                <td class="text-center">Daily</td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td>Meal delivery service</td>
+                                                                <td class="text-center">3x/day</td>
+                                                            </tr>
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+
+                                                <!-- Additional tables (Disease/Therapy, Social Contact, etc.) -->
+                                                <!-- Add other carousel items here as needed -->
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
