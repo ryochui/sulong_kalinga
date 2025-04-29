@@ -104,10 +104,12 @@
                             <div class="mb-3">
                                 <label for="recipientType" class="form-label">Recipient Type</label>
                                 <select class="form-select" id="recipientType" name="recipient_type">
-                                    <option value="cose_staff" selected>Care Manager</option>
+                                    <option value="cose_staff" selected>Staff Member</option>
                                 </select>
-                                <small class="form-text text-muted">Administrators can only message Care Managers.</small>
+                                <small class="form-text text-muted">Administrators can only message Care Managers and other Admins.</small>
                             </div>
+
+                            <div id="existingConversationFeedback" class="mb-3 d-none"></div>
                             
                             <div class="mb-3">
                                 <label for="recipientId" class="form-label">Select Recipient</label>
@@ -172,52 +174,7 @@
                                         </div>
                                     </div>
                                 </div>
-                                
-                                <div class="participant-section mb-3">
-                                    <div class="d-flex justify-content-between align-items-center mb-2">
-                                        <h6 class="m-0">Beneficiaries</h6>
-                                        <button type="button" class="btn btn-sm btn-outline-primary toggle-section" data-section="beneficiaries">
-                                            <i class="bi bi-plus"></i> Add
-                                        </button>
-                                    </div>
-                                    <div class="participant-list beneficiaries-list" style="display: none;">
-                                        <div class="input-group mb-2">
-                                            <span class="input-group-text"><i class="bi bi-search"></i></span>
-                                            <input type="text" class="form-control user-search" data-type="beneficiary" placeholder="Search beneficiaries...">
-                                        </div>
-                                        <div class="user-checkboxes beneficiary-users scrollable-checklist">
-                                            <!-- Beneficiary checkboxes will be added here -->
-                                            <div class="text-center p-2">
-                                                <div class="spinner-border spinner-border-sm text-primary" role="status">
-                                                    <span class="visually-hidden">Loading...</span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <div class="participant-section mb-3">
-                                    <div class="d-flex justify-content-between align-items-center mb-2">
-                                        <h6 class="m-0">Family Members</h6>
-                                        <button type="button" class="btn btn-sm btn-outline-primary toggle-section" data-section="family">
-                                            <i class="bi bi-plus"></i> Add
-                                        </button>
-                                    </div>
-                                    <div class="participant-list family-list" style="display: none;">
-                                        <div class="input-group mb-2">
-                                            <span class="input-group-text"><i class="bi bi-search"></i></span>
-                                            <input type="text" class="form-control user-search" data-type="family_member" placeholder="Search family members...">
-                                        </div>
-                                        <div class="user-checkboxes family_member-users scrollable-checklist">
-                                            <!-- Family member checkboxes will be added here -->
-                                            <div class="text-center p-2">
-                                                <div class="spinner-border spinner-border-sm text-primary" role="status">
-                                                    <span class="visually-hidden">Loading...</span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
+                            
                             </div>
                             
                             <div class="mb-3">
@@ -306,9 +263,9 @@
                         <div class="mb-3">
                             <label for="memberType" class="form-label">Member Type</label>
                             <select class="form-select" id="memberType" name="member_type">
-                                <option value="cose_staff" selected>Care Manager</option>
+                                <option value="cose_staff" selected>Staff Member</option>
                             </select>
-                            <small class="form-text text-muted">Administrators can only add Care Managers.</small>
+                            <small class="form-text text-muted">Administrators can only message Care Managers and other Admins.</small>
                         </div>
                         
                         <div class="mb-3">
@@ -946,7 +903,7 @@
         }
 
         // Function to load conversation
-        function loadConversation(conversationId) {
+        /*function loadConversation(conversationId) {
             console.log('Loading conversation:', conversationId);
             
             if (!conversationId) {
@@ -1080,6 +1037,90 @@
                     </div>
                 `;
             });
+        }*/
+
+        function loadConversation(conversationId) {
+            // Show loading state
+            const conversationContent = document.getElementById('conversationContent');
+            if (!conversationContent) return;
+            
+            conversationContent.innerHTML = `
+                <div class="d-flex justify-content-center align-items-center h-100">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+            `;
+            
+            // Change the active conversation class
+            const conversationItems = document.querySelectorAll('.conversation-item');
+            conversationItems.forEach(item => {
+                item.classList.remove('active');
+                if (item.dataset.conversationId === conversationId) {
+                    item.classList.add('active');
+                }
+            });
+            
+            // Add debug logging for request
+            console.log('Fetching conversation:', conversationId);
+            
+            fetch(`/${rolePrefix}/messaging/get-conversation?id=${conversationId}`)
+                .then(response => {
+                    console.log('Response status:', response.status);
+                    if (!response.ok) {
+                        throw new Error(`HTTP error: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('Received conversation data successfully', data);
+                    
+                    // Validate data structure before proceeding
+                    if (!data) {
+                        throw new Error('Response data is empty or null');
+                    }
+                    
+                    if (!data.html) {
+                        throw new Error('Response missing required html property');
+                    }
+                    
+                    // Update the conversation content
+                    conversationContent.innerHTML = data.html;
+                    
+                    // Store current conversation ID in input field for sending messages
+                    const conversationIdInput = document.querySelector('input[name="conversation_id"]');
+                    if (conversationIdInput) {
+                        conversationIdInput.value = conversationId;
+                    } else {
+                        console.error('Could not find conversation_id input field');
+                    }
+                    
+                    // Scroll to bottom of messages
+                    const messagesContainer = document.getElementById('messagesContainer');
+                    if (messagesContainer) {
+                        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                    }
+                    
+                    // Initialize message actions (for unsend buttons, etc.)
+                    if (typeof initializeMessageActions === 'function') {
+                        initializeMessageActions();
+                    }
+                    
+                    // Mark conversation as read
+                    markConversationAsRead(conversationId);
+                })
+                .catch(error => {
+                    console.error('Failed to load conversation:', error.message || 'Unknown error');
+                    conversationContent.innerHTML = `
+                        <div class="alert alert-danger m-3">
+                            <h5>Error Loading Conversation</h5>
+                            <p>${error.message || 'An unknown error occurred while loading the conversation.'}</p>
+                            <button class="btn btn-outline-danger btn-sm" onclick="loadConversation('${conversationId}')">
+                                <i class="bi bi-arrow-clockwise me-1"></i> Try Again
+                            </button>
+                        </div>
+                    `;
+                });
         }
 
         // ============= MESSAGE FORM HANDLING =============
@@ -2083,6 +2124,21 @@
             document.getElementById('newConversationForm')?.addEventListener('submit', function(e) {
                 e.preventDefault();
                 
+                const submitButton = document.getElementById('startConversationBtn');
+                
+                // If we're going to an existing conversation, redirect instead of submitting
+                if (submitButton && submitButton.dataset.conversationId) {
+                    console.log('Redirecting to existing conversation:', submitButton.dataset.conversationId);
+                    
+                    // Close the modal
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('newConversationModal'));
+                    if (modal) modal.hide();
+                    
+                    // Redirect to the existing conversation
+                    window.location.href = `/${rolePrefix}/messaging?conversation=${submitButton.dataset.conversationId}`;
+                    return;
+                }
+                
                 const formData = new FormData(this);
                 
                 fetch(getRouteUrl(route_prefix + '.create-conversation'), {
@@ -2604,74 +2660,98 @@
             newConversationForm?.addEventListener('submit', function(e) {
                 e.preventDefault();
                 
+                // Improved validation with visual feedback
+                const userType = document.getElementById('recipientType')?.value;
+                const userId = document.getElementById('recipientId')?.value;
+                const initialMessage = document.getElementById('initialMessage')?.value || '';
+                
+                console.log('Form submission values:', {
+                    userType: userType,
+                    userId: userId,
+                    initialMessage: initialMessage
+                });
+                
+                // Better validation with more specific feedback
+                if (!userType) {
+                    alert('Please select a recipient type');
+                    document.getElementById('recipientType')?.classList.add('is-invalid');
+                    return;
+                }
+                
+                if (!userId) {
+                    alert('Please select a recipient from the dropdown');
+                    document.getElementById('recipientId')?.classList.add('is-invalid');
+                    return;
+                }
+                
+                // Show loading state
                 const submitButton = document.getElementById('startConversationBtn');
                 if (submitButton) {
                     submitButton.disabled = true;
                     submitButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Creating...';
                 }
                 
-                // Get form data
-                const userType = userTypeSelect?.value;
-                const userId = recipientSelect?.value;
-                const initialMessage = document.getElementById('initialMessage')?.value;
-                
-                // Validate required fields
-                if (!userType || !userId) {
-                    alert('Please select both user type and recipient');
-                    if (submitButton) {
-                        submitButton.disabled = false;
-                        submitButton.textContent = 'Start Conversation';
-                    }
-                    return;
-                }
-                
-                // Create FormData object
+                // Create FormData with explicit values
                 const formData = new FormData();
-                formData.append('participant_type', userType);
-                formData.append('participant_id', userId);
-                formData.append('initial_message', initialMessage || '');
+                formData.append('recipient_type', userType);
+                formData.append('recipient_id', userId);
+                formData.append('initial_message', initialMessage);
                 formData.append('_token', document.querySelector('meta[name="csrf-token"]').getAttribute('content'));
                 
-                // Submit the form
-                fetch(`${window.location.origin}/${rolePrefix}/messaging/create-conversation`, {
+                // Log form data
+                for (let pair of formData.entries()) {
+                    console.log(pair[0] + ': ' + pair[1]);
+                }
+                
+                // Submit with improved error handling and specific URL
+                const url = `${window.location.origin}/${rolePrefix}/messaging/create-conversation`;
+                console.log('Submitting to URL:', url);
+                
+                fetch(url, {
                     method: 'POST',
                     body: formData,
                     headers: {
-                        'X-Requested-With': 'XMLHttpRequest', // Add this line to ensure proper AJAX handling
-                        'Accept': 'application/json'          // Add this line to request JSON response
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
                     }
                 })
                 .then(response => {
-                    if (!response.ok) {
-                        if (response.headers.get('content-type')?.includes('text/html')) {
-                            // Handle HTML error response
-                            return response.text().then(text => {
-                                throw new Error('Server returned HTML error page instead of JSON');
-                            });
-                        }
-                        throw new Error('Network response was not ok');
+                    console.log('Response status:', response.status);
+                    console.log('Response type:', response.headers.get('content-type'));
+                    
+                    // Handle non-JSON responses
+                    const contentType = response.headers.get('content-type');
+                    if (contentType && contentType.includes('text/html')) {
+                        return response.text().then(html => {
+                            console.error('Received HTML response instead of JSON:', html.substring(0, 500));
+                            throw new Error('Server returned an HTML error page instead of JSON');
+                        });
                     }
+                    
                     return response.json();
                 })
                 .then(data => {
+                    console.log('Response data:', data);
                     if (data.success) {
                         // Close modal
                         const modal = bootstrap.Modal.getInstance(document.getElementById('newConversationModal'));
                         if (modal) modal.hide();
                         
-                        // Redirect to the new conversation
-                        window.location.href = `${window.location.origin}/${rolePrefix}/messaging/conversation/${data.conversation_id}`;
+                        // Redirect to the conversation
+                        window.location.href = `/${rolePrefix}/messaging?conversation=${data.conversation_id}`;
                     } else {
-                        throw new Error(data.message || 'Failed to create conversation');
+                        throw new Error(data.message || 'Unknown error creating conversation');
                     }
                 })
                 .catch(error => {
                     console.error('Error creating conversation:', error);
-                    alert('Failed to create conversation: ' + error.message);
+                    alert('Could not create conversation: ' + error.message);
                     
+                    // Reset button
                     if (submitButton) {
                         submitButton.disabled = false;
-                        submitButton.textContent = 'Start Conversation';
+                        submitButton.innerHTML = 'Start Conversation';
                     }
                 });
             });
@@ -2689,78 +2769,7 @@
                 modalBody.appendChild(feedbackContainer);
             }
 
-            // Add event listener to recipient select to check for existing conversations
-            recipientSelect?.addEventListener('change', function() {
-                const userId = this.value;
-                const userType = userTypeSelect?.value;
-                
-                if (!userId || !userType) return;
-                
-                // Show loading state
-                feedbackContainer.classList.remove('d-none');
-                feedbackContainer.innerHTML = `
-                    <div class="alert alert-info mb-0 d-flex align-items-center">
-                        <div class="spinner-border spinner-border-sm me-2" role="status"></div>
-                        <div>Checking for existing conversations...</div>
-                    </div>
-                `;
-                
-                // Perform check by attempting to find conversations with this user
-                fetch(`${window.location.origin}/${rolePrefix}/messaging/get-conversations-with-recipient`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                        'X-Requested-With': 'XMLHttpRequest',
-                        'Accept': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        participant_type: userType,
-                        participant_id: userId
-                    })
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.exists) {
-                        // Show "conversation exists" message
-                        feedbackContainer.innerHTML = `
-                            <div class="alert alert-info mb-0">
-                                <i class="bi bi-info-circle me-2"></i>
-                                A conversation with this recipient already exists.
-                                <a href="${window.location.origin}/${rolePrefix}/messaging?conversation=${data.conversation_id}" 
-                                class="alert-link ms-2" id="goToExistingConversation">
-                                Go to conversation
-                                </a>
-                            </div>
-                        `;
-                        
-                        // Change button text to indicate going to existing conversation
-                        const submitButton = document.getElementById('startConversationBtn');
-                        if (submitButton) {
-                            submitButton.textContent = 'Go to Existing Conversation';
-                            submitButton.dataset.conversationId = data.conversation_id;
-                            submitButton.classList.remove('btn-primary');
-                            submitButton.classList.add('btn-info');
-                        }
-                    } else {
-                        // Hide feedback if no existing conversation
-                        feedbackContainer.classList.add('d-none');
-                        
-                        // Reset button
-                        const submitButton = document.getElementById('startConversationBtn');
-                        if (submitButton) {
-                            submitButton.textContent = 'Start Conversation';
-                            delete submitButton.dataset.conversationId;
-                            submitButton.classList.remove('btn-info');
-                            submitButton.classList.add('btn-primary');
-                        }
-                    }
-                })
-                .catch(error => {
-                    console.error('Error checking for existing conversation:', error);
-                    feedbackContainer.classList.add('d-none');
-                });
-            });
+            
 
             // Update the form submission handler to handle existing conversations
             const originalSubmitHandler = newConversationForm.onsubmit;
@@ -4401,67 +4410,304 @@
             }
         });
 
-
         document.addEventListener('DOMContentLoaded', function() {
-            // Handle recipient type change
+            // Get references to the select elements
             const recipientTypeSelect = document.getElementById('recipientType');
             const recipientIdSelect = document.getElementById('recipientId');
             
-            if (recipientTypeSelect && recipientIdSelect) {
-                // Load initial recipients
-                loadRecipients(recipientTypeSelect.value);
-                
-                // Update recipients when type changes
+            // Add change event listener to recipientType dropdown
+            if (recipientTypeSelect) {
                 recipientTypeSelect.addEventListener('change', function() {
-                    loadRecipients(this.value);
-                });
-            }
-            
-            // Function to load recipients based on type
-            function loadRecipients(type) {
-                if (!recipientIdSelect) return;
-                
-                // Show loading state
-                recipientIdSelect.innerHTML = '<option value="">Loading recipients...</option>';
-                recipientIdSelect.disabled = true;
-                
-                // Fetch recipients
-                fetch(`/${rolePrefix}/messaging/get-users?type=${type}`)
-                    .then(response => response.json())
-                    .then(data => {
-                        recipientIdSelect.innerHTML = '';
-                        
-                        if (data.users && data.users.length > 0) {
-                            // Add recipients to select
-                            data.users.forEach(user => {
-                                const option = document.createElement('option');
-                                option.value = user.id;
-                                option.textContent = user.name;
-                                
-                                // Add role label for staff members
-                                if (user.role) {
-                                    option.textContent += ` (${user.role})`;
-                                }
-                                
-                                recipientIdSelect.appendChild(option);
-                            });
-                        } else {
-                            // No recipients found
-                            const option = document.createElement('option');
-                            option.value = '';
-                            option.textContent = 'No recipients available';
-                            recipientIdSelect.appendChild(option);
+                    const selectedType = this.value;
+                    
+                    // Show loading state
+                    if (recipientIdSelect) {
+                        recipientIdSelect.innerHTML = '<option value="" selected disabled>Loading recipients...</option>';
+                        recipientIdSelect.disabled = true;
+                    }
+                    
+                    // Log the request for debugging
+                    console.log('Fetching recipients of type:', selectedType);
+                    
+                    // Fetch users from server with explicit URL
+                    fetch(`/${rolePrefix}/messaging/get-users?type=${selectedType}`, {
+                        method: 'GET',
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Accept': 'application/json'
                         }
+                    })
+                    .then(response => {
+                        console.log('User fetch response status:', response.status);
+                        return response.json();
+                    })
+                    .then(data => {
+                        console.log('Received users data:', data);
                         
-                        recipientIdSelect.disabled = false;
+                        // Clear and populate the recipients dropdown
+                        if (recipientIdSelect) {
+                            recipientIdSelect.innerHTML = '<option value="" selected disabled>Select a recipient</option>';
+                            
+                            if (data.users && data.users.length > 0) {
+                                data.users.forEach(user => {
+                                    const option = document.createElement('option');
+                                    option.value = user.id;
+                                    option.textContent = user.name;
+                                    recipientIdSelect.appendChild(option);
+                                });
+                                recipientIdSelect.disabled = false;
+                            } else {
+                                recipientIdSelect.innerHTML = '<option value="" selected disabled>No users found</option>';
+                            }
+                        }
                     })
                     .catch(error => {
                         console.error('Error loading recipients:', error);
-                        recipientIdSelect.innerHTML = '<option value="">Error loading recipients</option>';
-                        recipientIdSelect.disabled = false;
+                        if (recipientIdSelect) {
+                            recipientIdSelect.innerHTML = '<option value="" selected disabled>Error loading recipients</option>';
+                        }
                     });
+
+                    // Add event listener to recipient select to check for existing conversations
+                    recipientIdSelect?.addEventListener('change', function() {
+                        const userId = this.value;
+                        const userType = recipientTypeSelect?.value;
+                        const feedbackContainer = document.getElementById('existingConversationFeedback');
+                        const submitButton = document.getElementById('startConversationBtn');
+                        
+                        console.log('Recipient selection changed:', { userId, userType });
+                        console.log('Submit button found:', !!submitButton);
+                        
+                        if (!userId || !userType || !feedbackContainer) return;
+                        
+                        // Show loading state
+                        feedbackContainer.classList.remove('d-none');
+                        feedbackContainer.innerHTML = `
+                            <div class="alert alert-info mb-0 d-flex align-items-center">
+                                <div class="spinner-border spinner-border-sm me-2" role="status"></div>
+                                <div>Checking for existing conversations...</div>
+                            </div>
+                        `;
+                        
+                        // Disable button during check
+                        if (submitButton) {
+                            submitButton.disabled = true;
+                            submitButton.textContent = 'Checking...';
+                        }
+                        
+                        // Perform check by attempting to find conversations with this user
+                        fetch(`/${rolePrefix}/messaging/get-conversations-with-recipient`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                                'Accept': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                recipient_type: userType,
+                                participant_id: userId,
+                                participant_type: userType
+                            })
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            console.log('Existing conversation check result:', data);
+                            
+                            if (data.exists) {
+                                // Show "conversation exists" message
+                                feedbackContainer.innerHTML = `
+                                    <div class="alert alert-info mb-0">
+                                        <i class="bi bi-info-circle me-2"></i>
+                                        A conversation with this recipient already exists.
+                                        <a href="/${rolePrefix}/messaging?conversation=${data.conversation_id}" 
+                                        class="alert-link ms-2" id="goToExistingConversation">
+                                        Go to conversation
+                                        </a>
+                                    </div>
+                                `;
+                                
+                                // Change button text to indicate going to existing conversation
+                                if (submitButton) {
+                                    submitButton.disabled = false;
+                                    submitButton.textContent = 'Go to Existing Conversation';
+                                    submitButton.dataset.conversationId = data.conversation_id;
+                                    submitButton.classList.remove('btn-primary');
+                                    submitButton.classList.add('btn-info');
+                                    
+                                    // Force button to be the "go to conversation" type
+                                    submitButton.setAttribute('type', 'button');
+                                    submitButton.onclick = function(e) {
+                                        e.preventDefault();
+                                        window.location.href = `/${rolePrefix}/messaging?conversation=${data.conversation_id}`;
+                                        return false;
+                                    };
+                                }
+                            } else {
+                                // Hide feedback if no existing conversation
+                                feedbackContainer.classList.add('d-none');
+                                
+                                // Reset button
+                                if (submitButton) {
+                                    submitButton.disabled = false;
+                                    submitButton.textContent = 'Start Conversation';
+                                    delete submitButton.dataset.conversationId;
+                                    submitButton.classList.remove('btn-info');
+                                    submitButton.classList.add('btn-primary');
+                                    
+                                    // Reset to normal submit behavior
+                                    submitButton.setAttribute('type', 'submit');
+                                    submitButton.onclick = null;
+                                }
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error checking for existing conversation:', error);
+                            feedbackContainer.classList.add('d-none');
+                            
+                            // Always re-enable button on error
+                            if (submitButton) {
+                                submitButton.disabled = false;
+                                submitButton.textContent = 'Start Conversation';
+                            }
+                        });
+                    });
+                });
+                
+                // Trigger change event initially to load the default type's users
+                if (recipientTypeSelect.value) {
+                    const event = new Event('change');
+                    recipientTypeSelect.dispatchEvent(event);
+                }
             }
         });
+
+        // Add this after your DOMContentLoaded event handler
+        document.addEventListener('DOMContentLoaded', function() {
+            // Monitor checkboxes for staff members
+            document.addEventListener('change', function(e) {
+                if (e.target.matches('input[type="checkbox"][data-user-type="cose_staff"]')) {
+                    // User checkbox was changed
+                    const checkbox = e.target;
+                    const userId = checkbox.value;
+                    const roleText = checkbox.getAttribute('data-role') || '';
+                    const isAdmin = roleText.includes('Admin');
+                    const isCareWorker = roleText.includes('Care Worker');
+                    
+                    // When a checkbox is checked
+                    if (checkbox.checked) {
+                        // Validate role compatibility
+                        if (isAdmin && selectedCareWorkers.length > 0) {
+                            // Trying to add Admin when Care Workers exist
+                            alert('You cannot add Administrators to a group with Care Workers');
+                            checkbox.checked = false; // Uncheck it
+                            return false;
+                        }
+                        
+                        if (isCareWorker && selectedAdmins.length > 0) {
+                            // Trying to add Care Worker when Admins exist
+                            alert('You cannot add Care Workers to a group with Administrators');
+                            checkbox.checked = false; // Uncheck it
+                            return false;
+                        }
+                        
+                        // Add to tracking arrays if accepted
+                        if (isAdmin) {
+                            selectedAdmins.push(userId);
+                        } else if (isCareWorker) {
+                            selectedCareWorkers.push(userId);
+                        }
+                    } else {
+                        // When a checkbox is unchecked, remove from tracking arrays
+                        if (isAdmin) {
+                            selectedAdmins = selectedAdmins.filter(id => id !== userId);
+                        } else if (isCareWorker) {
+                            selectedCareWorkers = selectedCareWorkers.filter(id => id !== userId);
+                        }
+                    }
+                    
+                    // Update the UI to reflect the current selection status
+                    updateRoleWarnings();
+                }
+            });
+            
+            // Reset tracking arrays when modal is hidden
+            const newGroupModal = document.getElementById('newGroupModal');
+            if (newGroupModal) {
+                newGroupModal.addEventListener('hidden.bs.modal', function() {
+                    selectedAdmins = [];
+                    selectedCareWorkers = [];
+                });
+            }
+            
+            // Add form submission validation
+            const newGroupForm = document.getElementById('newGroupForm');
+            if (newGroupForm) {
+                newGroupForm.addEventListener('submit', function(e) {
+                    if (selectedAdmins.length > 0 && selectedCareWorkers.length > 0) {
+                        e.preventDefault();
+                        alert('Cannot create a group with both Administrators and Care Workers');
+                        return false;
+                    }
+                });
+            }
+        });
+
+        // Function to update UI based on current selections
+        function updateRoleWarnings() {
+            const warningDiv = document.getElementById('roleWarningAlert');
+            if (!warningDiv) return;
+            
+            if (selectedAdmins.length > 0) {
+                warningDiv.innerHTML = '<i class="bi bi-exclamation-triangle-fill me-2"></i><strong>Note:</strong> Group contains Administrators. Cannot add Care Workers.';
+                warningDiv.style.display = 'block';
+            } else if (selectedCareWorkers.length > 0) {
+                warningDiv.innerHTML = '<i class="bi bi-exclamation-triangle-fill me-2"></i><strong>Note:</strong> Group contains Care Workers. Cannot add Administrators.';
+                warningDiv.style.display = 'block';
+            } else {
+                warningDiv.style.display = 'none';
+            }
+        }
+
+        // Find the code where user checkboxes are generated
+        function generateUserCheckboxes(users, container) {
+            container.innerHTML = '';
+            
+            if (users.length === 0) {
+                container.innerHTML = '<div class="text-center p-2">No users found</div>';
+                return;
+            }
+            
+            users.forEach(user => {
+                const checkboxDiv = document.createElement('div');
+                checkboxDiv.className = 'form-check';
+                
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.className = 'form-check-input';
+                checkbox.value = user.id;
+                checkbox.name = 'participants[]';
+                checkbox.id = `user-${user.id}`;
+                checkbox.setAttribute('data-user-type', user.type);
+                
+                // Add role info for staff members
+                if (user.type === 'cose_staff' && user.name) {
+                    // Extract role from name if it contains it in parentheses
+                    const roleMatch = user.name.match(/\((.*?)\)/);
+                    if (roleMatch && roleMatch[1]) {
+                        checkbox.setAttribute('data-role', roleMatch[1]);
+                    }
+                }
+                
+                const label = document.createElement('label');
+                label.className = 'form-check-label';
+                label.htmlFor = `user-${user.id}`;
+                label.textContent = user.name;
+                
+                checkboxDiv.appendChild(checkbox);
+                checkboxDiv.appendChild(label);
+                container.appendChild(checkboxDiv);
+            });
+        }
 
     </script>
 </body>
