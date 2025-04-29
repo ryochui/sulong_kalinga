@@ -17,6 +17,7 @@ use App\Models\FamilyMember;
 
 class MessageController extends Controller
 {
+
     /**
      * Display the messaging interface based on user role.
      */
@@ -382,15 +383,34 @@ class MessageController extends Controller
             $rolePrefix = $this->getRoleRoutePrefix();
             
             $request->validate([
-                'participant_type' => 'required|in:cose_staff,beneficiary,family_member',
-                'participant_id' => 'required',
+                'recipient_id' => 'required',
+                'recipient_type' => 'required|in:cose_staff,beneficiary,family_member',
                 'initial_message' => 'nullable|string',
             ]);
             
-            // Check if conversation already exists
+            // Check permissions based on user roles
+            if ($request->recipient_type === 'cose_staff') {
+                $recipient = User::findOrFail($request->recipient_id);
+                
+                // Apply role-based permission checks
+                if (
+                    ($user->role_id == 1 && $recipient->role_id != 2) || // Admin can only message Care Managers
+                    ($user->role_id == 2 && !in_array($recipient->role_id, [1, 3])) || // Care Manager can message Admin and Care Workers
+                    ($user->role_id == 3 && $recipient->role_id != 2) // Care Worker can only message Care Managers
+                ) {
+                    return $this->jsonResponse(false, 'You do not have permission to message this user.', 403);
+                }
+            } elseif (in_array($request->recipient_type, ['beneficiary', 'family_member'])) {
+                // Only Care Workers can message beneficiaries and family members
+                if ($user->role_id != 3) {
+                    return $this->jsonResponse(false, 'Only Care Workers can message beneficiaries and family members.', 403);
+                }
+            }
+            
+            // Check if conversation already exists - keep your existing code here
             $existingConversation = $this->findExistingPrivateConversation(
                 $user->id, 'cose_staff',
-                $request->participant_id, $request->participant_type
+                $request->recipient_id, $request->recipient_type
             );
             
             if ($existingConversation) {
@@ -504,6 +524,27 @@ class MessageController extends Controller
                 'participants.*.type' => 'required|in:cose_staff,beneficiary,family_member',
                 'initial_message' => 'nullable|string',
             ]);
+            
+            // Check if current user has permission to add all participants
+            foreach ($request->participants as $participant) {
+                if ($participant['type'] === 'cose_staff') {
+                    $recipientUser = User::findOrFail($participant['id']);
+                    
+                    // Apply role-based permission checks for staff
+                    if (
+                        ($user->role_id == 1 && $recipientUser->role_id != 2) || // Admin can only add Care Managers
+                        ($user->role_id == 2 && !in_array($recipientUser->role_id, [1, 3])) || // Care Manager can add Admin and Care Workers
+                        ($user->role_id == 3 && $recipientUser->role_id != 2) // Care Worker can only add Care Managers
+                    ) {
+                        return $this->jsonResponse(false, 'You do not have permission to add some users to this group.', 403);
+                    }
+                } elseif (in_array($participant['type'], ['beneficiary', 'family_member'])) {
+                    // Only Care Workers can add beneficiaries and family members
+                    if ($user->role_id != 3) {
+                        return $this->jsonResponse(false, 'Only Care Workers can add beneficiaries and family members.', 403);
+                    }
+                }
+            }
             
             // Log the participants for debugging
             Log::info('Creating group conversation with participants:', [
@@ -1015,13 +1056,28 @@ class MessageController extends Controller
     {
         $type = $request->input('type', 'cose_staff');
         $users = [];
+        $currentUser = Auth::user();
         
         try {
             if ($type == 'cose_staff') {
-                // Get all staff
-                $staffUsers = User::where('status', 'Active')
-                    ->orderBy('first_name')
-                    ->get(['id', 'first_name', 'last_name', 'email', 'mobile', 'role_id']);
+                // Get staff based on role permissions
+                $staffQuery = User::where('status', 'Active')
+                    ->where('id', '!=', $currentUser->id)  // Exclude current user
+                    ->orderBy('first_name');
+                
+                // Apply role-based filtering
+                if ($currentUser->role_id == 1) { // Administrator
+                    // Admins can only message Care Managers
+                    $staffQuery->where('role_id', 2);
+                } elseif ($currentUser->role_id == 2) { // Care Manager
+                    // Care Managers can message Admins and Care Workers
+                    $staffQuery->whereIn('role_id', [1, 3]);
+                } elseif ($currentUser->role_id == 3) { // Care Worker
+                    // Care Workers can only message Care Managers
+                    $staffQuery->where('role_id', 2);
+                }
+                
+                $staffUsers = $staffQuery->get(['id', 'first_name', 'last_name', 'email', 'mobile', 'role_id']);
                 
                 foreach ($staffUsers as $user) {
                     $roleLabel = '';
@@ -1038,31 +1094,35 @@ class MessageController extends Controller
                 }
             } 
             else if ($type == 'beneficiary') {
-                // Get all active beneficiaries
-                $beneficiaries = Beneficiary::where('beneficiary_status_id', 1) // Active status
-                    ->orderBy('first_name')
-                    ->get(['beneficiary_id', 'first_name', 'last_name', 'mobile']);
-                
-                foreach ($beneficiaries as $beneficiary) {
-                    $users[] = [
-                        'id' => $beneficiary->beneficiary_id,
-                        'name' => $beneficiary->first_name . ' ' . $beneficiary->last_name . ' (Beneficiary)',
-                        'mobile' => $beneficiary->mobile
-                    ];
+                // Only Care Workers can message Beneficiaries
+                if ($currentUser->role_id == 3) {
+                    $beneficiaries = Beneficiary::where('beneficiary_status_id', 1) // Active status
+                        ->orderBy('first_name')
+                        ->get(['beneficiary_id', 'first_name', 'last_name', 'mobile']);
+                    
+                    foreach ($beneficiaries as $beneficiary) {
+                        $users[] = [
+                            'id' => $beneficiary->beneficiary_id,
+                            'name' => $beneficiary->first_name . ' ' . $beneficiary->last_name . ' (Beneficiary)',
+                            'mobile' => $beneficiary->mobile
+                        ];
+                    }
                 }
             } 
             else if ($type == 'family_member') {
-                // Get all family members
-                $familyMembers = FamilyMember::orderBy('first_name')
-                    ->get(['family_member_id', 'first_name', 'last_name', 'mobile', 'email']);
-                
-                foreach ($familyMembers as $member) {
-                    $users[] = [
-                        'id' => $member->family_member_id,
-                        'name' => $member->first_name . ' ' . $member->last_name . ' (Family Member)',
-                        'email' => $member->email,
-                        'mobile' => $member->mobile
-                    ];
+                // Only Care Workers can message Family Members
+                if ($currentUser->role_id == 3) {
+                    $familyMembers = FamilyMember::orderBy('first_name')
+                        ->get(['family_member_id', 'first_name', 'last_name', 'mobile', 'email']);
+                    
+                    foreach ($familyMembers as $member) {
+                        $users[] = [
+                            'id' => $member->family_member_id,
+                            'name' => $member->first_name . ' ' . $member->last_name . ' (Family Member)',
+                            'email' => $member->email,
+                            'mobile' => $member->mobile
+                        ];
+                    }
                 }
             }
             
