@@ -95,47 +95,40 @@
             <div class="modal-dialog">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title" id="newConversationModalLabel">New Private Conversation</h5>
+                        <h5 class="modal-title" id="newConversationModalLabel">New Message</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
-                    <form id="newConversationForm">
-                        @csrf
-                        <div class="modal-body">
+                    <div class="modal-body">
+                        <form id="newConversationForm" action="{{ route('care-worker.messaging.create') }}" method="POST">
+                            @csrf
                             <div class="mb-3">
-                                <label for="userType" class="form-label">Recipient Type</label>
-                                <select class="form-select" id="userType" name="participant_type" required>
-                                    <option value="" selected disabled>Select recipient type</option>
-                                    <option value="cose_staff">Staff Member</option>
+                                <label for="recipientType" class="form-label">Recipient Type</label>
+                                <select class="form-select" id="recipientType" name="recipient_type">
+                                    <option value="cose_staff" selected>Care Manager</option>
                                     <option value="beneficiary">Beneficiary</option>
                                     <option value="family_member">Family Member</option>
                                 </select>
+                                <small class="form-text text-muted">Care Workers can message Care Managers, Beneficiaries, and Family Members.</small>
                             </div>
                             
                             <div class="mb-3">
-                                <label for="userSearch" class="form-label">Search for recipient</label>
-                                <div class="input-group">
-                                    <span class="input-group-text"><i class="bi bi-search"></i></span>
-                                    <input type="text" class="form-control" id="userSearch" placeholder="Type to search...">
-                                </div>
-                            </div>
-                            
-                            <div class="mb-3">
-                                <label for="recipientSelect" class="form-label">Select Recipient</label>
-                                <select class="form-select" id="recipientSelect" name="participant_id" required disabled>
-                                    <option value="" selected disabled>First select a user type</option>
+                                <label for="recipientId" class="form-label">Select Recipient</label>
+                                <select class="form-select" id="recipientId" name="recipient_id" required>
+                                    <option value="">Loading recipients...</option>
                                 </select>
                             </div>
                             
                             <div class="mb-3">
-                                <label for="initialMessage" class="form-label">Initial Message (Optional)</label>
-                                <textarea class="form-control" id="initialMessage" name="initial_message" rows="3" placeholder="Write an initial message..."></textarea>
+                                <label for="initialMessage" class="form-label">Message</label>
+                                <textarea class="form-control" id="initialMessage" name="initial_message" rows="3" placeholder="Type your message here..."></textarea>
                             </div>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                            <button type="submit" class="btn btn-primary" id="startConversationBtn">Start Conversation</button>
-                        </div>
-                    </form>
+                            
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                <button type="submit" class="btn btn-primary">Send Message</button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
             </div>
         </div>
@@ -303,38 +296,32 @@
     <div class="modal fade" id="addMemberModal" tabindex="-1" aria-labelledby="addMemberModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="addMemberModalLabel">Add Member to Group</h5>
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="addMemberModalLabel">Add Group Member</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <form id="addMemberForm">
+                    @csrf
                     <div class="modal-body">
-                        <input type="hidden" id="groupConversationId" name="conversation_id" value="">
+                        <input type="hidden" name="conversation_id" id="addMemberConversationId">
                         
                         <div class="mb-3">
-                            <label for="memberUserType" class="form-label">Member Type</label>
-                            <select class="form-select" id="memberUserType" name="participant_type" required>
-                                <option value="" selected disabled>Select member type</option>
-                                <option value="cose_staff">Staff Member</option>
+                            <label for="memberType" class="form-label">Member Type</label>
+                            <select class="form-select" id="memberType" name="member_type">
+                                <option value="cose_staff" selected>Care Manager</option>
                                 <option value="beneficiary">Beneficiary</option>
                                 <option value="family_member">Family Member</option>
                             </select>
+                            <small class="form-text text-muted">Care Workers can add Care Managers, Beneficiaries, and Family Members.</small>
                         </div>
                         
                         <div class="mb-3">
-                            <label for="memberSearch" class="form-label">Search for member</label>
-                            <div class="input-group">
-                                <span class="input-group-text"><i class="bi bi-search"></i></span>
-                                <input type="text" class="form-control" id="memberSearch" placeholder="Type to search...">
-                            </div>
-                        </div>
-                        
-                        <div class="mb-3">
-                            <label for="memberSelect" class="form-label">Select Member</label>
-                            <select class="form-select" id="memberSelect" name="participant_id" required disabled>
-                                <option value="" selected disabled>First select a user type</option>
+                            <label for="memberId" class="form-label">Select Member</label>
+                            <select class="form-select" id="memberId" name="member_id" required>
+                                <option value="">Loading members...</option>
                             </select>
                         </div>
+                        
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
@@ -3352,7 +3339,7 @@
                     e.preventDefault();
                     const btn = e.target.closest('.add-member-btn');
                     const conversationId = btn.getAttribute('data-conversation-id');
-                    document.getElementById('groupConversationId').value = conversationId;
+                    document.getElementById('addMemberConversationId').value = conversationId;
                     addMemberModal.show();
                 }
             });
@@ -4271,6 +4258,213 @@
                 unsendMessage(messageId);
             }
         }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const addMemberForm = document.getElementById('addMemberForm');
+            
+            if (addMemberForm) {
+                addMemberForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    
+                    // Get the correct field IDs
+                    const conversationId = document.getElementById('addMemberConversationId').value;
+                    const memberId = document.getElementById('memberId').value;
+                    const memberType = document.getElementById('memberType').value;
+                    
+                    if (!conversationId || !memberId || !memberType) {
+                        alert('Please select a member to add to the group');
+                        return;
+                    }
+                    
+                    const submitBtn = document.getElementById('addMemberBtn');
+                    submitBtn.disabled = true;
+                    submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Adding...';
+                    
+                    // Send request to add member
+                    fetch(`/${rolePrefix}/messaging/add-group-member`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                            'Accept': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        },
+                        body: JSON.stringify({
+                            conversation_id: conversationId,
+                            participant_id: memberId,
+                            participant_type: memberType
+                        })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            // Close modal and reset form
+                            const modal = bootstrap.Modal.getInstance(document.getElementById('addMemberModal'));
+                            modal.hide();
+                            this.reset();
+                            
+                            // Create success notification
+                            const notificationDiv = document.createElement('div');
+                            notificationDiv.className = 'alert alert-success position-fixed top-0 end-0 m-3';
+                            notificationDiv.style.zIndex = "9999";
+                            notificationDiv.innerHTML = `
+                                <strong>Success!</strong> New member has been added to the group. Refreshing...
+                            `;
+                            document.body.appendChild(notificationDiv);
+                            
+                            // Store success flag in sessionStorage
+                            sessionStorage.setItem('memberAdded', 'true');
+                            sessionStorage.setItem('memberAddedTime', Date.now());
+                            
+                            // Force refresh the conversation
+                            setTimeout(() => {
+                                const cacheBuster = Date.now();
+                                window.location.href = `/${rolePrefix}/messaging?conversation=${conversationId}&refresh=${cacheBuster}`;
+                            }, 500);
+                        } else {
+                            throw new Error(data.message || 'Failed to add member');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error adding member:', error);
+                        alert('Failed to add member: ' + error.message);
+                        
+                        // Reset button state
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = 'Add to Group';
+                    });
+                });
+            }
+        });
+
+        // Handle memberType select change in the Add Member modal
+        document.addEventListener('DOMContentLoaded', function() {
+            const memberType = document.getElementById('memberType');
+            const memberId = document.getElementById('memberId');
+            
+            if (memberType && memberId) {
+                // Load initial members when modal is opened
+                memberType.addEventListener('change', function() {
+                    const type = this.value;
+                    console.log('Selected member type:', type);
+                    
+                    // Show loading state
+                    memberId.innerHTML = '<option value="" selected disabled>Loading members...</option>';
+                    memberId.disabled = true;
+                    
+                    // Fetch members of selected type
+                    fetch(`/${rolePrefix}/messaging/get-users?type=${type}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            // Clear existing options
+                            memberId.innerHTML = '';
+                            
+                            // Add default option
+                            const defaultOption = document.createElement('option');
+                            defaultOption.value = '';
+                            defaultOption.textContent = 'Select a member';
+                            defaultOption.selected = true;
+                            defaultOption.disabled = true;
+                            memberId.appendChild(defaultOption);
+                            
+                            // Add users to dropdown
+                            if (data.users && data.users.length > 0) {
+                                data.users.forEach(user => {
+                                    const option = document.createElement('option');
+                                    option.value = user.id;
+                                    option.textContent = user.name;
+                                    
+                                    // Add role label for staff members if available
+                                    if (user.role) {
+                                        option.textContent += ` (${user.role})`;
+                                    }
+                                    
+                                    memberId.appendChild(option);
+                                });
+                                memberId.disabled = false;
+                            } else {
+                                // No users found
+                                const noUsersOption = document.createElement('option');
+                                noUsersOption.value = '';
+                                noUsersOption.textContent = 'No members available';
+                                noUsersOption.disabled = true;
+                                memberId.appendChild(noUsersOption);
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error loading members:', error);
+                            memberId.innerHTML = '<option value="" disabled>Error loading members</option>';
+                            memberId.disabled = true;
+                        });
+                });
+                
+                // Trigger change event to load members immediately when the modal is shown
+                document.getElementById('addMemberModal').addEventListener('shown.bs.modal', function() {
+                    memberType.dispatchEvent(new Event('change'));
+                });
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Handle recipient type change
+            const recipientTypeSelect = document.getElementById('recipientType');
+            const recipientIdSelect = document.getElementById('recipientId');
+            
+            if (recipientTypeSelect && recipientIdSelect) {
+                // Load initial recipients
+                loadRecipients(recipientTypeSelect.value);
+                
+                // Update recipients when type changes
+                recipientTypeSelect.addEventListener('change', function() {
+                    loadRecipients(this.value);
+                });
+            }
+            
+            // Function to load recipients based on type
+            function loadRecipients(type) {
+                if (!recipientIdSelect) return;
+                
+                // Show loading state
+                recipientIdSelect.innerHTML = '<option value="">Loading recipients...</option>';
+                recipientIdSelect.disabled = true;
+                
+                // Fetch recipients
+                fetch(`/${rolePrefix}/messaging/get-users?type=${type}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        recipientIdSelect.innerHTML = '';
+                        
+                        if (data.users && data.users.length > 0) {
+                            // Add recipients to select
+                            data.users.forEach(user => {
+                                const option = document.createElement('option');
+                                option.value = user.id;
+                                option.textContent = user.name;
+                                
+                                // Add role label for staff members
+                                if (user.role) {
+                                    option.textContent += ` (${user.role})`;
+                                }
+                                
+                                recipientIdSelect.appendChild(option);
+                            });
+                        } else {
+                            // No recipients found
+                            const option = document.createElement('option');
+                            option.value = '';
+                            option.textContent = 'No recipients available';
+                            recipientIdSelect.appendChild(option);
+                        }
+                        
+                        recipientIdSelect.disabled = false;
+                    })
+                    .catch(error => {
+                        console.error('Error loading recipients:', error);
+                        recipientIdSelect.innerHTML = '<option value="">Error loading recipients</option>';
+                        recipientIdSelect.disabled = false;
+                    });
+            }
+        });
 
     </script>
 </body>
