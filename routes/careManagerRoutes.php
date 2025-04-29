@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\AdminController;
 use App\Http\Controllers\BeneficiaryController;
 use App\Http\Controllers\FamilyMemberController;
 use App\Http\Controllers\CareWorkerController;
@@ -10,8 +11,16 @@ use App\Http\Controllers\ReportsController;
 use App\Http\Controllers\ExportController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\MunicipalityController;
-use App\Http\Controllers\NotificationsController;
+use App\Http\Controllers\CareWorkerPerformanceController;
+use App\Http\Controllers\SchedulesAndAppointmentsController;
+use App\Http\Controllers\BeneficiaryMapController;
+use App\Http\Controllers\DonorAcknowledgementController;
+use App\Http\Controllers\HighlightsAndEventsController;
 use App\Http\Controllers\ViewAccountProfileController;
+use App\Http\Controllers\NotificationsController;
+use App\Http\Controllers\MessageController;
+use App\Http\Controllers\HealthMonitoringController;
+
 
 require_once __DIR__.'/routeHelpers.php';
 
@@ -104,16 +113,26 @@ Route::middleware(['auth', '\App\Http\Middleware\CheckRole:care_manager'])->pref
     Route::post('/update-email', [CareManagerController::class, 'updateCareManagerEmail'])->name('update.email');
     Route::post('/update-password', [CareManagerController::class, 'updateCareManagerPassword'])->name('update.password');
 
-    // Messaging Routes 
+    // Messaging system
     Route::prefix('messaging')->name('messaging.')->group(function () {
         Route::get('/', [MessageController::class, 'index'])->name('index');
         Route::get('/conversation/{id}', [MessageController::class, 'viewConversation'])->name('conversation');
         Route::post('/send-message', [MessageController::class, 'sendMessage'])->name('send');
         Route::post('/create-conversation', [MessageController::class, 'createConversation'])->name('create');
         Route::post('/create-group', [MessageController::class, 'createGroupConversation'])->name('create-group');
-        Route::post('/mark-as-read', [MessageController::class, 'markAsRead'])->name('read');
         Route::get('/unread-count', [MessageController::class, 'getUnreadCount'])->name('unread-count');
         Route::get('/recent-messages', [MessageController::class, 'getRecentMessages'])->name('recent');
+        Route::post('/read-all', [MessageController::class, 'markAllAsRead'])->name('read-all');
+        Route::get('/get-users', [MessageController::class, 'getUsers'])->name('get-users');
+        Route::get('/get-conversation', [MessageController::class, 'getConversation'])->name('get-conversation');
+        Route::post('/mark-as-read', [MessageController::class, 'markConversationAsRead'])->name('mark-as-read');
+        Route::get('/get-conversations', [MessageController::class, 'getConversationsList'])->name('get-conversations');
+        Route::post('/get-conversations-with-recipient', [MessageController::class, 'getConversationsWithRecipient'])->name('messaging.get-conversations-with-recipient');
+        Route::get('check-last-participant/{id}', [MessageController::class, 'checkLastParticipant'])->name('check-last-participant');
+        Route::post('leave-conversation', [MessageController::class, 'leaveConversation'])->name('leave-conversation');
+        Route::get('group-members/{id}', [MessageController::class, 'getGroupMembers'])->name('group-members');
+        Route::post('add-group-member', [MessageController::class, 'addGroupMember'])->name('add-group-member');
+        Route::post('unsend-message/{id}', [MessageController::class, 'unsendMessage'])->name('unsend');
     });
     
 });

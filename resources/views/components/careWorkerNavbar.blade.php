@@ -18,24 +18,22 @@
 
         <div class="collapse navbar-collapse justify-content-end bg-light" id="navbarNav">
             <ul class="navbar-nav">
+                <!-- Messages Link with Dropdown -->
                 <li class="nav-item dropdown me-2">
-                    <a class="nav-link position-relative {{ Request::routeIs('care-worker.messaging.*') ? 'active' : '' }}" href="#" id="messagesDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        <div class="d-flex align-items-center">
-                            <i class="bi bi-chat-dots-fill"></i>
-                            <span class="ms-1">Messages</span>
-                            <span class="badge bg-danger rounded-pill message-count ms-1" style="display: none;"></span>
-                        </div>
+                    <a class="nav-link nav-message-link {{ Request::routeIs('care-worker.messaging.*') ? 'active' : '' }}" href="#" id="messagesDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-chat-dots-fill"></i>
+                        <span class="d-none d-md-inline">Messages</span>
+                        <span class="badge bg-danger rounded-pill message-count" style="display: none;"></span>
                     </a>
                     <ul class="dropdown-menu dropdown-menu-end message-dropdown p-0" aria-labelledby="messagesDropdown">
                         <li class="dropdown-header">
                             <div class="d-flex justify-content-between align-items-center">
-                                <span>Messages</span>
-                                <a href="{{ route('care-worker.messaging.index') }}" class="text-decoration-none">
-                                    <small>View All</small>
+                            <h6 class="m-0">Messages</h6>
+                                <a href="javascript:void(0)" class="mark-all-read text-decoration-none">
+                                <small class="mark-all-read">Mark all as read</small>
                                 </a>
                             </div>
                         </li>
-                        <li><hr class="dropdown-divider m-0"></li>
                         
                         <!-- Messages will be loaded dynamically here -->
                         <div id="message-preview-container">
@@ -45,6 +43,12 @@
                                 </div>
                             </li>
                         </div>
+                        
+                        <li class="dropdown-footer">
+                            <a href="{{ route('care-worker.messaging.index') }}" class="text-decoration-none text-primary">
+                                See all messages
+                            </a>
+                        </li>
                     </ul>
                 </li>
                 <li class="nav-item dropdown">
@@ -129,123 +133,3 @@
         </div>
     </div>
 </div>
-
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Load unread message count
-    function loadUnreadMessageCount() {
-        fetch('{{ route("care-worker.messaging.unread-count") }}') // Change from care-manager to care-worker
-            .then(response => response.json())
-            .then(data => {
-                // ...rest of the code
-            })
-            .catch(error => console.error('Error loading unread message count:', error));
-    }
-    
-    // Load recent messages for dropdown
-    function loadRecentMessages() {
-        fetch('{{ route("care-worker.messaging.recent") }}') // Change from care-manager to care-worker
-            .then(response => response.json())
-            .then(data => {
-                const container = document.getElementById('message-preview-container');
-                container.innerHTML = '';
-                
-                if (!data.conversations || data.conversations.length === 0) {
-                    container.innerHTML = `
-                        <li class="text-center py-3">
-                            <span class="text-muted">No new messages</span>
-                        </li>
-                    `;
-                    return;
-                }
-                
-                data.conversations.forEach(conversation => {
-                    const lastMessage = conversation.last_message;
-                    const senderName = lastMessage && lastMessage.sender ? 
-                        (lastMessage.sender.first_name + ' ' + lastMessage.sender.last_name) : 
-                        'Unknown';
-                    
-                    const previewHtml = `
-                        <li>
-                            <a class="dropdown-item message-preview unread" href="{{ url('/${data.route_prefix}/messaging/conversation') }}/${conversation.conversation_id}">
-                                <div class="d-flex">
-                                    <div class="flex-shrink-0">
-                                        ${conversation.is_group_chat ?
-                                            `<div class="rounded-circle profile-img-sm d-flex justify-content-center align-items-center bg-primary text-white">
-                                                <span>${conversation.name ? conversation.name.charAt(0) : 'G'}</span>
-                                            </div>` :
-                                            `<img src="{{ asset('images/defaultProfile.png') }}" class="rounded-circle profile-img-sm" alt="User">`
-                                        }
-                                    </div>
-                                    <div class="flex-grow-1 ms-2 overflow-hidden">
-                                        <p class="mb-0 fw-bold">${conversation.is_group_chat ? conversation.name : senderName}</p>
-                                        <p class="small text-truncate mb-0">${conversation.is_group_chat && lastMessage ? senderName + ': ' : ''}${lastMessage ? lastMessage.content : 'No messages'}</p>
-                                        <p class="text-muted small mb-0">${lastMessage ? timeSince(new Date(lastMessage.message_timestamp)) : 'No date'}</p>
-                                    </div>
-                                </div>
-                            </a>
-                        </li>
-                        <li><hr class="dropdown-divider m-0"></li>
-                    `;
-                    
-                    container.innerHTML += previewHtml;
-                });
-            })
-            .catch(error => {
-                console.error('Error loading recent messages:', error);
-                document.getElementById('message-preview-container').innerHTML = `
-                    <li class="text-center py-3">
-                        <span class="text-muted">No new messages</span>
-                    </li>
-                `;
-            });
-    }
-    
-    // Helper function to format time
-    function timeSince(date) {
-        const seconds = Math.floor((new Date() - date) / 1000);
-        
-        let interval = seconds / 31536000;
-        if (interval > 1) return Math.floor(interval) + " years ago";
-        
-        interval = seconds / 2592000;
-        if (interval > 1) return Math.floor(interval) + " months ago";
-        
-        interval = seconds / 86400;
-        if (interval > 1) return Math.floor(interval) + " days ago";
-        
-        interval = seconds / 3600;
-        if (interval > 1) return Math.floor(interval) + " hours ago";
-        
-        interval = seconds / 60;
-        if (interval > 1) return Math.floor(interval) + " minutes ago";
-        
-        return "Just now";
-    }
-    
-    // Load on page load
-    try {
-        loadUnreadMessageCount();
-    } catch (e) {
-        console.error('Could not load message count:', e);
-    }
-    
-    // Load messages when dropdown is opened
-    document.getElementById('messagesDropdown').addEventListener('click', function() {
-        try {
-            loadRecentMessages();
-        } catch (e) {
-            console.error('Could not load recent messages:', e);
-        }
-    });
-    
-    // Refresh counts periodically
-    setInterval(function() {
-        try {
-            loadUnreadMessageCount(); 
-        } catch (e) {
-            console.error('Could not refresh message count:', e);
-        }
-    }, 60000); // Every minute
-});
-</script>

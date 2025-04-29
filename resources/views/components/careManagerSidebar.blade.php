@@ -1,4 +1,6 @@
 <link rel="stylesheet" href="{{ asset('css/sidebar.css') }}">
+<link rel="stylesheet" href="{{ asset('css/boxicons.min.css') }}">
+
 
 <div class="sidebar">
   <div class="logo-details" id="logoToggle">
