@@ -11,7 +11,7 @@
   padding: 10px;
   justify-content: center;
   align-items: center;
-  text-align: center;
+  text-align: left;
   top: 0;
   left: 0;
   height: 100%;
@@ -137,7 +137,7 @@
   text-align: center;
   line-height: 50px;
   color: #161111;
-  font-size: 20px;
+  font-size: 16px;
   cursor: pointer;
   transition: all 0.2s ease;
 }
@@ -330,16 +330,22 @@
   height: calc(100vh - 56px);
 }
 
+.sidebar .nav-links li.active {
+  background-color: #5a595d;
+  color: #fff;
+  border-radius: 8px;
+}
+
 .sidebar .nav-links li a.active {
   background-color: #5a595d;
   color: #fff;
   border-radius: 8px;
 }
 
-.sidebar .nav-links li a.active .link_name {
+.sidebar .nav-links li.active .link_name {
   color: #fff;
 }
 
-.sidebar .nav-links li a.active i {
+.sidebar .nav-links li.active i {
   color: #fff;
 }
