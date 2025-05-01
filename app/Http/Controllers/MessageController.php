@@ -1123,7 +1123,7 @@ class MessageController extends Controller
                         ->join('general_care_plans AS gcp', 'b.general_care_plan_id', '=', 'gcp.general_care_plan_id')
                         ->where('gcp.care_worker_id', $currentUser->id)
                         // Use proper column name from the migration
-                        // ->where('b.beneficiary_status_id', '=', 1) // Uncomment if you want to filter by status ID
+                        ->where('b.beneficiary_status_id', '=', 1) // Uncomment if you want to filter by status ID
                         ->select('b.*')  // Select all beneficiary fields
                         ->get();
                     
