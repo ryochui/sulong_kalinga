@@ -125,7 +125,7 @@
                             
                             <div class="modal-footer">
                                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                                <button type="submit" class="btn btn-primary">Send Message</button>
+                                <button type="submit" id="startConversationBtn" class="btn btn-primary">Send Message</button>
                             </div>
                         </form>
                     </div>

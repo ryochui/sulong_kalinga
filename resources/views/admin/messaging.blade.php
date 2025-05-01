@@ -125,7 +125,7 @@
                             
                             <div class="modal-footer">
                                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                                <button type="submit" class="btn btn-primary">Send Message</button>
+                                <button type="submit" id="startConversationBtn" class="btn btn-primary">Send Message</button>
                             </div>
                         </form>
                     </div>
@@ -2619,8 +2619,6 @@
                 }
             }
 
-            // Add this new code directly after the updateRecipientOptions function:
-
             // Ensure recipientSelect handles click events properly
             if (recipientSelect) {
                 recipientSelect.addEventListener('click', function(e) {
@@ -2756,6 +2754,25 @@
                 });
             });
 
+            document.getElementById('newConversationForm')?.addEventListener('submit', function(event) {
+                const submitButton = document.getElementById('startConversationBtn');
+                
+                if (submitButton && submitButton.dataset.conversationId) {
+                    // If this is a "Go to existing conversation" button, follow the link instead
+                    event.preventDefault();
+                    
+                    // Disable the button to prevent multiple clicks
+                    submitButton.disabled = true;
+                    submitButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Redirecting...';
+                    
+                    // Redirect after a brief delay to show loading state
+                    setTimeout(() => {
+                        window.location.href = `/${rolePrefix}/messaging?conversation=${submitButton.dataset.conversationId}`;
+                    }, 300);
+                    return false;
+                }
+            });
+
             // Create container for feedback messages in the modal
             const feedbackContainer = document.createElement('div');
             feedbackContainer.id = 'conversationFormFeedback';
@@ -2769,30 +2786,6 @@
                 modalBody.appendChild(feedbackContainer);
             }
 
-            
-
-            // Update the form submission handler to handle existing conversations
-            const originalSubmitHandler = newConversationForm.onsubmit;
-            newConversationForm.onsubmit = function(e) {
-                e.preventDefault();
-                
-                const submitButton = document.getElementById('startConversationBtn');
-                
-                // If we're going to an existing conversation, redirect instead of submitting
-                if (submitButton && submitButton.dataset.conversationId) {
-                    const modal = bootstrap.Modal.getInstance(document.getElementById('newConversationModal'));
-                    if (modal) modal.hide();
-                    
-                    // Navigate to existing conversation
-                    window.location.href = `${window.location.origin}/${rolePrefix}/messaging?conversation=${submitButton.dataset.conversationId}`;
-                    return;
-                }
-                
-                // Otherwise proceed with normal form submission
-                if (originalSubmitHandler) {
-                    originalSubmitHandler.call(this, e);
-                }
-            };
         });
 
         // Group Conversation Modal Functionality
@@ -4528,16 +4521,22 @@
                                 
                                 // Change button text to indicate going to existing conversation
                                 if (submitButton) {
-                                    submitButton.disabled = false;
                                     submitButton.textContent = 'Go to Existing Conversation';
                                     submitButton.dataset.conversationId = data.conversation_id;
                                     submitButton.classList.remove('btn-primary');
                                     submitButton.classList.add('btn-info');
                                     
-                                    // Force button to be the "go to conversation" type
+                                    // Set button type to button
                                     submitButton.setAttribute('type', 'button');
+                                    
+                                    // Most importantly - DISABLE the button
+                                    submitButton.disabled = true;
+                                    
+                                    // Add a direct click handler to navigate to existing conversation
                                     submitButton.onclick = function(e) {
                                         e.preventDefault();
+                                        submitButton.disabled = true;
+                                        submitButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Redirecting...';
                                         window.location.href = `/${rolePrefix}/messaging?conversation=${data.conversation_id}`;
                                         return false;
                                     };
@@ -4580,6 +4579,8 @@
                 }
             }
         });
+
+
 
         // Add this after your DOMContentLoaded event handler
         document.addEventListener('DOMContentLoaded', function() {
