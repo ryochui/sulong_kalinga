@@ -108,7 +108,7 @@
                                     <option value="beneficiary">Beneficiary</option>
                                     <option value="family_member">Family Member</option>
                                 </select>
-                                <small class="form-text text-muted">Care Workers can message Care Managers, Beneficiaries, and Family Members.</small>
+                                <small class="form-text text-muted">Care Workers can message Care Managers, Beneficiaries assigned to them, and their Family Members.</small>
                             </div>
 
                             <div id="existingConversationFeedback" class="mb-3 d-none"></div>
@@ -127,7 +127,7 @@
                             
                             <div class="modal-footer">
                                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                                <button type="submit" class="btn btn-primary">Send Message</button>
+                                <button type="submit" id="startConversationBtn" class="btn btn-primary">Send Message</button>
                             </div>
                         </form>
                     </div>
@@ -4806,6 +4806,63 @@
                 container.appendChild(checkboxDiv);
             });
         }
+        
+        // Add this to the DOMContentLoaded event handler
+        document.addEventListener('DOMContentLoaded', function() {
+            // Reference the elements
+            const recipientTypeSelect = document.getElementById('recipientType');
+            const recipientIdSelect = document.getElementById('recipientId');
+            
+            if (recipientTypeSelect && recipientIdSelect) {
+                console.log('Setting up recipient type change handler');
+                
+                recipientTypeSelect.addEventListener('change', function() {
+                    const selectedType = this.value;
+                    console.log('Recipient type changed to:', selectedType);
+                    
+                    // Show loading state
+                    recipientIdSelect.innerHTML = '<option value="" selected disabled>Loading recipients...</option>';
+                    recipientIdSelect.disabled = true;
+                    
+                    // Fetch users from server
+                    fetch(`/${rolePrefix}/messaging/get-users?type=${selectedType}`, {
+                        method: 'GET',
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Accept': 'application/json'
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        console.log('Got users:', data);
+                        
+                        // Clear and populate the recipients dropdown
+                        recipientIdSelect.innerHTML = '<option value="" selected disabled>Select a recipient</option>';
+                        
+                        if (data.users && data.users.length > 0) {
+                            data.users.forEach(user => {
+                                const option = document.createElement('option');
+                                option.value = user.id;
+                                option.textContent = user.name;
+                                recipientIdSelect.appendChild(option);
+                            });
+                            recipientIdSelect.disabled = false;
+                        } else {
+                            recipientIdSelect.innerHTML = '<option value="" selected disabled>No users found</option>';
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error loading recipients:', error);
+                        recipientIdSelect.innerHTML = '<option value="" selected disabled>Error loading recipients</option>';
+                    });
+                });
+                
+                // Trigger initial load if a type is preselected
+                if (recipientTypeSelect.value) {
+                    recipientTypeSelect.dispatchEvent(new Event('change'));
+                }
+            }
+        });
 
     </script>
 </body>

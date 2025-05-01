@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use App\Models\Conversation;
 use App\Models\Message;
@@ -1063,6 +1064,7 @@ class MessageController extends Controller
     /**
      * Get users for messaging based on type.
      * 
+     * @param Request $request
      * @return \Illuminate\Http\JsonResponse
      */
     public function getUsers(Request $request)
@@ -1072,21 +1074,25 @@ class MessageController extends Controller
         $currentUser = Auth::user();
         
         try {
+            // Log the request for debugging
+            Log::info('GetUsers request', [
+                'type' => $type,
+                'user_id' => $currentUser->id,
+                'role_id' => $currentUser->role_id
+            ]);
+            
             if ($type == 'cose_staff') {
-                // Get staff based on role permissions
+                // This part was working correctly - COSE staff
                 $staffQuery = User::where('status', 'Active')
-                    ->where('id', '!=', $currentUser->id)  // Exclude current user
+                    ->where('id', '!=', $currentUser->id)
                     ->orderBy('first_name');
                 
-                // Apply role-based filtering
-                if ($currentUser->role_id == 1) { // Administrator
-                    // Admins can message Care Managers AND other Admins
+                // Apply role filtering...
+                if ($currentUser->role_id == 1) {
                     $staffQuery->whereIn('role_id', [1, 2]);
-                } elseif ($currentUser->role_id == 2) { // Care Manager
-                    // Care Managers can message Admins, Care Workers AND other Care Managers
+                } elseif ($currentUser->role_id == 2) {
                     $staffQuery->whereIn('role_id', [1, 2, 3]);
-                } elseif ($currentUser->role_id == 3) { // Care Worker
-                    // Care Workers can only message Care Managers
+                } elseif ($currentUser->role_id == 3) {
                     $staffQuery->where('role_id', 2);
                 }
                 
@@ -1107,22 +1113,80 @@ class MessageController extends Controller
                 }
             } 
             else if ($type == 'beneficiary') {
-                // Only Care Workers can message Beneficiaries
+                // For care workers only - only they should message beneficiaries
                 if ($currentUser->role_id == 3) {
-                    // Existing beneficiary handling code...
+                    Log::info('Fetching beneficiaries for care worker ID: ' . $currentUser->id);
+                    
+                    // FIXED: Query that joins beneficiaries with general_care_plans 
+                    // Removed the "status" filter since that column doesn't exist
+                    $beneficiaries = DB::table('beneficiaries AS b')
+                        ->join('general_care_plans AS gcp', 'b.general_care_plan_id', '=', 'gcp.general_care_plan_id')
+                        ->where('gcp.care_worker_id', $currentUser->id)
+                        // Use proper column name from the migration
+                        // ->where('b.beneficiary_status_id', '=', 1) // Uncomment if you want to filter by status ID
+                        ->select('b.*')  // Select all beneficiary fields
+                        ->get();
+                    
+                    Log::info('Found ' . count($beneficiaries) . ' beneficiaries through care plan relationship');
+                    
+                    foreach ($beneficiaries as $beneficiary) {
+                        $users[] = [
+                            'id' => $beneficiary->beneficiary_id,
+                            'name' => $beneficiary->first_name . ' ' . $beneficiary->last_name . ' (Beneficiary)',
+                            'email' => $beneficiary->email ?? '',
+                            'mobile' => $beneficiary->phone_number ?? $beneficiary->mobile ?? ''
+                        ];
+                    }
                 }
             } 
             else if ($type == 'family_member') {
-                // Only Care Workers can message Family Members
+                // For care workers only - only they should message family members
                 if ($currentUser->role_id == 3) {
-                    // Existing family member handling code...
+                    Log::info('Fetching family members for care worker ID: ' . $currentUser->id);
+                    
+                    // FIXED: First get beneficiary IDs through general care plans
+                    // Removed the "status" filter since that column doesn't exist
+                    $beneficiaryIds = DB::table('beneficiaries AS b')
+                        ->join('general_care_plans AS gcp', 'b.general_care_plan_id', '=', 'gcp.general_care_plan_id')
+                        ->where('gcp.care_worker_id', $currentUser->id)
+                        ->pluck('b.beneficiary_id');
+                    
+                    Log::info('Found ' . count($beneficiaryIds) . ' beneficiary IDs through care plans');
+                    
+                    // Now get family members linked to these beneficiaries
+                    // Using the correct column name from the migration: 'related_beneficiary_id'
+                    if (count($beneficiaryIds) > 0) {
+                        $familyMembers = DB::table('family_members')
+                            ->whereIn('related_beneficiary_id', $beneficiaryIds)  // Use correct column from migration
+                            ->get();
+                        
+                        Log::info('Found ' . count($familyMembers) . ' family members');
+                        
+                        foreach ($familyMembers as $familyMember) {
+                            $users[] = [
+                                'id' => $familyMember->family_member_id,
+                                'name' => $familyMember->first_name . ' ' . $familyMember->last_name . ' (Family Member)',
+                                'email' => $familyMember->email ?? '',
+                                'mobile' => $familyMember->phone_number ?? $familyMember->mobile ?? ''
+                            ];
+                        }
+                    }
                 }
             }
             
+            // Always return a valid response even if empty
+            Log::info('Returning ' . count($users) . ' users');
             return response()->json(['users' => $users]);
+            
         } catch (\Exception $e) {
-            Log::error('Error fetching users: ' . $e->getMessage());
-            return response()->json(['users' => [], 'error' => 'Failed to fetch users'], 500);
+            Log::error('Error fetching users: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString(),
+                'type' => $type,
+                'user_id' => $currentUser->id
+            ]);
+            
+            // Make sure we always return a valid response with the expected structure
+            return response()->json(['users' => [], 'error' => 'Failed to fetch users: ' . $e->getMessage()], 500);
         }
     }
 
