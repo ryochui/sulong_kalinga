@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use Illuminate\Database\Seeder;
 use App\Models\Beneficiary;
 use App\Models\User;
+use App\Models\MobileUser;
 use App\Models\FamilyMember;
 use App\Models\PortalAccount;
 use App\Models\GeneralCarePlan;
@@ -184,6 +185,9 @@ class DatabaseSeeder extends Seeder
 
         // 8. Generate conversations and messages
         $this->generateConversations();
+
+        // 9. Generate users table consolidated
+        $this->populateConsolidatedUsersTable();
     }
 
     private function generateNotifications()
@@ -499,5 +503,114 @@ class DatabaseSeeder extends Seeder
         $totalAttachments = MessageAttachment::count();
         
         \Log::info("Generated {$totalConversations} conversations with {$totalMessages} messages and {$totalAttachments} attachments.");
+    
+    }
+
+    /**
+     * Populate the consolidated users table after all other data has been seeded
+     */
+    private function populateConsolidatedUsersTable()
+    {
+        // First, ensure the users table is empty to avoid duplicates
+        \DB::table('users_consolidated')->truncate();
+        
+        $this->command->info('Populating consolidated users table...');
+        
+        // 1. Add COSE staff users
+        $coseStaff = \App\Models\User::all();
+        $this->command->info("Adding {$coseStaff->count()} COSE staff users");
+        
+        foreach ($coseStaff as $staff) {
+            \DB::table('users_consolidated')->insert([
+                'email' => $staff->email,
+                'password' => $staff->password, // Already hashed
+                'first_name' => $staff->first_name,
+                'last_name' => $staff->last_name,
+                'mobile' => $staff->mobile,
+                'role_id' => $staff->role_id,
+                'status' => $staff->status ?? 'Active',
+                'user_type' => 'cose',
+                'cose_user_id' => $staff->id,
+                'portal_account_id' => null,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        }
+        
+        // 2. Add beneficiaries
+        $beneficiaries = \App\Models\Beneficiary::all();
+        $this->command->info("Adding {$beneficiaries->count()} beneficiaries");
+        
+        foreach ($beneficiaries as $beneficiary) {
+            // Get portal account information
+            $portalAccount = \App\Models\PortalAccount::find($beneficiary->portal_account_id);
+            
+            if (!$portalAccount) {
+                $this->command->warn("Portal account not found for beneficiary ID: {$beneficiary->beneficiary_id}. Skipping.");
+                continue;
+            }
+            
+            // Determine status based on beneficiary_status_id
+            $status = $beneficiary->beneficiary_status_id == 1 ? 'Active' : 'Inactive';
+            
+            \DB::table('users_consolidated')->insert([
+                'email' => $portalAccount->portal_email,
+                'password' => $portalAccount->portal_password, // Already hashed
+                'first_name' => $beneficiary->first_name,
+                'last_name' => $beneficiary->last_name,
+                'mobile' => $beneficiary->mobile,
+                'role_id' => 4, // Beneficiary role
+                'status' => $status,
+                'user_type' => 'portal',
+                'cose_user_id' => null,
+                'portal_account_id' => $beneficiary->portal_account_id,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        }
+        
+        // 3. Add family members
+        $familyMembers = \App\Models\FamilyMember::all();
+        $this->command->info("Adding {$familyMembers->count()} family members");
+        
+        foreach ($familyMembers as $familyMember) {
+            // Get related beneficiary to determine status
+            $relatedBeneficiary = \App\Models\Beneficiary::find($familyMember->related_beneficiary_id);
+            
+            if (!$relatedBeneficiary) {
+                $this->command->warn("Related beneficiary not found for family member ID: {$familyMember->family_member_id}. Skipping.");
+                continue;
+            }
+            
+            // Get portal account information
+            $portalAccount = \App\Models\PortalAccount::find($familyMember->portal_account_id);
+            
+            if (!$portalAccount) {
+                $this->command->warn("Portal account not found for family member ID: {$familyMember->family_member_id}. Skipping.");
+                continue;
+            }
+            
+            // Determine status based on related beneficiary
+            $status = $relatedBeneficiary->beneficiary_status_id == 1 ? 'Active' : 'Inactive';
+            
+            \DB::table('users_consolidated')->insert([
+                'email' => $portalAccount->portal_email,
+                'password' => $portalAccount->portal_password, // Already hashed
+                'first_name' => $familyMember->first_name,
+                'last_name' => $familyMember->last_name,
+                'mobile' => $familyMember->mobile,
+                'role_id' => 5, // Family member role
+                'status' => $status,
+                'user_type' => 'portal',
+                'cose_user_id' => null,
+                'portal_account_id' => $familyMember->portal_account_id,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        }
+        
+        // Count and report the results
+        $totalConsolidatedUsers = \DB::table('users_consolidated')->count();
+        $this->command->info("Successfully added {$totalConsolidatedUsers} users to the consolidated table");
     }
 }

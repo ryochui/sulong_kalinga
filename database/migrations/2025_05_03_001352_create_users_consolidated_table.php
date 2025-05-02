@@ -11,15 +11,15 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('users', function (Blueprint $table) {
-            $table->id();
+        Schema::create('users_consolidated', function (Blueprint $table) {
+            $table->increments('id');
             $table->string('email');
-            $table->unique('email', 'unified_users_email_unique'); // Explicit unique constraint name
+            //$table->unique('email', 'unified_users_email_unique'); // Explicit unique constraint name
             $table->string('password');
             $table->string('first_name')->nullable();
             $table->string('last_name')->nullable();
             $table->string('mobile')->nullable();
-            $table->unsignedTinyInteger('role_id');
+            $table->unsignedTinyInteger('role_id'); // 1 = admin, 2 = cm, 3 = cw, 4 = beneficiary, 5 = fm
             $table->string('status')->nullable();
             $table->string('user_type'); // 'cose' or 'portal'
             $table->unsignedBigInteger('cose_user_id')->nullable();
