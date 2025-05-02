@@ -378,7 +378,7 @@ class MessageController extends Controller
      * Create a new private conversation
      * 
      * @param Request $request
-     * @return \Illuminate\Http\JsonResponse
+     * @return \Illuminate\Http\JsonResponse|\Illuminate\Http\RedirectResponse
      */
     public function createConversation(Request $request)
     {
@@ -387,28 +387,44 @@ class MessageController extends Controller
             Log::info('Create conversation request', [
                 'input' => $request->all(),
                 'user_id' => Auth::id(),
-                'user_role' => Auth::user()->role_id
+                'user_role' => Auth::user()->role_id,
+                'is_ajax' => $request->ajax(),
+                'wants_json' => $request->wantsJson(),
+                'accept_header' => $request->header('Accept')
             ]);
 
-            // Validate request data
+            // Validate request data - accept both parameter formats for compatibility
             $validatedData = $request->validate([
-                'recipient_type' => 'required|in:cose_staff,beneficiary,family_member',
-                'recipient_id' => 'required',
+                'recipient_type' => 'required_without:participant_type|in:cose_staff,beneficiary,family_member',
+                'recipient_id' => 'required_without:participant_id',
+                'participant_type' => 'required_without:recipient_type|in:cose_staff,beneficiary,family_member',
+                'participant_id' => 'required_without:recipient_id',
                 'initial_message' => 'nullable|string'
             ]);
 
+            // Normalize parameter names for flexibility
+            $recipientType = $request->input('recipient_type', $request->input('participant_type'));
+            $recipientId = $request->input('recipient_id', $request->input('participant_id'));
+            $initialMessage = $request->input('initial_message');
+
             $user = Auth::user();
-            $recipientId = $validatedData['recipient_id'];
-            $recipientType = $validatedData['recipient_type'];
             
             // Check if conversation already exists
             $existingConversation = $this->findExistingConversation($user->id, $recipientId, $recipientType);
             if ($existingConversation) {
-                return response()->json([
-                    'success' => true,
-                    'exists' => true,
-                    'conversation_id' => $existingConversation->conversation_id
-                ]);
+                // For AJAX requests
+                if ($request->ajax() || $request->wantsJson() || $request->header('Accept') == 'application/json') {
+                    return response()->json([
+                        'success' => true,
+                        'exists' => true,
+                        'conversation_id' => $existingConversation->conversation_id
+                    ]);
+                }
+                
+                // For regular form submissions
+                return redirect()->route($this->getRoleRoutePrefix() . '.messaging.index', [
+                    'conversation' => $existingConversation->conversation_id
+                ])->with('success', 'Conversation already exists');
             }
             
             // Check permission based on user role
@@ -419,41 +435,26 @@ class MessageController extends Controller
                     // Apply role-based permission checks
                     if ($user->role_id == 1 && !in_array($recipient->role_id, [1, 2])) { 
                         // Admin can message other Admins and Care Managers
-                        return response()->json([
-                            'success' => false,
-                            'message' => 'Administrators can only message other Administrators and Care Managers.'
-                        ], 403);
+                        return $this->respondWithError('Administrators can only message other Administrators and Care Managers.', 403, $request);
                     }
                     
                     if ($user->role_id == 2 && !in_array($recipient->role_id, [1, 2, 3])) {
                         // Care Manager can message Admin, other Care Managers, and Care Workers
-                        return response()->json([
-                            'success' => false,
-                            'message' => 'Care Managers can only message Administrators, other Care Managers, and Care Workers.'
-                        ], 403);
+                        return $this->respondWithError('Care Managers can only message Administrators, other Care Managers, and Care Workers.', 403, $request);
                     }
                     
                     if ($user->role_id == 3 && $recipient->role_id != 2) {
                         // Care Worker can only message Care Managers
-                        return response()->json([
-                            'success' => false,
-                            'message' => 'Care Workers can only message Care Managers.'
-                        ], 403);
+                        return $this->respondWithError('Care Workers can only message Care Managers.', 403, $request);
                     }
                 } catch (\Exception $e) {
                     Log::error('Error finding recipient user: ' . $e->getMessage());
-                    return response()->json([
-                        'success' => false,
-                        'message' => 'Could not find the specified recipient.'
-                    ], 404);
+                    return $this->respondWithError('Could not find the specified recipient.', 404, $request);
                 }
             } else if ($recipientType === 'beneficiary' || $recipientType === 'family_member') {
                 // Only Care Workers can message beneficiaries and family members
                 if ($user->role_id != 3) {
-                    return response()->json([
-                        'success' => false,
-                        'message' => 'Only Care Workers can message Beneficiaries and Family Members.'
-                    ], 403);
+                    return $this->respondWithError('Only Care Workers can message Beneficiaries and Family Members.', 403, $request);
                 }
             }
             
@@ -479,12 +480,12 @@ class MessageController extends Controller
             $recipientParticipant->save();
             
             // Create initial message if provided
-            if (!empty($validatedData['initial_message'])) {
+            if (!empty($initialMessage)) {
                 $message = new Message();
                 $message->conversation_id = $conversation->conversation_id;
                 $message->sender_id = $user->id;
                 $message->sender_type = 'cose_staff';
-                $message->content = $validatedData['initial_message'];
+                $message->content = $initialMessage;
                 $message->message_timestamp = now();
                 $message->save();
                 
@@ -493,17 +494,43 @@ class MessageController extends Controller
                 $conversation->save();
             }
             
-            return response()->json([
-                'success' => true,
-                'conversation_id' => $conversation->conversation_id
-            ]);
+            // For AJAX/JSON requests
+            if ($request->ajax() || $request->wantsJson() || $request->header('Accept') == 'application/json') {
+                return response()->json([
+                    'success' => true,
+                    'conversation_id' => $conversation->conversation_id,
+                    'message' => 'Conversation created successfully'
+                ]);
+            } 
+            
+            // For regular form submissions
+            return redirect()->route($this->getRoleRoutePrefix() . '.messaging.index', [
+                'conversation' => $conversation->conversation_id
+            ])->with('success', 'Conversation created successfully');
+            
         } catch (\Exception $e) {
             Log::error('Error creating conversation: ' . $e->getMessage() . "\n" . $e->getTraceAsString());
+            return $this->respondWithError('An error occurred while creating the conversation: ' . $e->getMessage(), 500, $request);
+        }
+    }
+
+    /**
+     * Helper method to respond with appropriate error format based on request type
+     */
+    private function respondWithError($message, $status = 400, $request = null)
+    {
+        if (!$request) $request = request();
+        
+        // For AJAX/JSON requests
+        if ($request->ajax() || $request->wantsJson() || $request->header('Accept') == 'application/json') {
             return response()->json([
                 'success' => false,
-                'message' => 'An error occurred while creating the conversation: ' . $e->getMessage()
-            ], 500);
+                'message' => $message
+            ], $status);
         }
+        
+        // For regular form submissions
+        return back()->with('error', $message)->withInput();
     }
     
     /**
