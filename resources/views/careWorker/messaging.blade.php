@@ -95,42 +95,48 @@
             <div class="modal-dialog">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title" id="newConversationModalLabel">New Message</h5>
+                        <h5 class="modal-title" id="newConversationModalLabel">New Private Conversation</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
-                    <div class="modal-body">
-                        <form id="newConversationForm" action="{{ route('care-worker.messaging.create') }}" method="POST">
-                            @csrf
+                    <form id="newConversationForm">
+                        @csrf
+                        <div class="modal-body">
                             <div class="mb-3">
-                                <label for="recipientType" class="form-label">Recipient Type</label>
-                                <select class="form-select" id="recipientType" name="recipient_type">
-                                    <option value="cose_staff" selected>Care Manager</option>
+                                <label for="userType" class="form-label">Recipient Type</label>
+                                <select class="form-select" id="userType" name="participant_type" required>
+                                    <option value="" selected disabled>Select recipient type</option>
+                                    <option value="cose_staff">Staff Member</option>
                                     <option value="beneficiary">Beneficiary</option>
                                     <option value="family_member">Family Member</option>
                                 </select>
                                 <small class="form-text text-muted">Care Workers can message Care Managers, Beneficiaries assigned to them, and their Family Members.</small>
                             </div>
-
-                            <div id="existingConversationFeedback" class="mb-3 d-none"></div>
                             
                             <div class="mb-3">
-                                <label for="recipientId" class="form-label">Select Recipient</label>
-                                <select class="form-select" id="recipientId" name="recipient_id" required>
-                                    <option value="">Loading recipients...</option>
+                                <label for="userSearch" class="form-label">Search for recipient</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="bi bi-search"></i></span>
+                                    <input type="text" class="form-control" id="userSearch" placeholder="Type to search...">
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="recipientSelect" class="form-label">Select Recipient</label>
+                                <select class="form-select" id="recipientSelect" name="participant_id" required disabled>
+                                    <option value="" selected disabled>First select a user type</option>
                                 </select>
                             </div>
                             
                             <div class="mb-3">
-                                <label for="initialMessage" class="form-label">Message</label>
-                                <textarea class="form-control" id="initialMessage" name="initial_message" rows="3" placeholder="Type your message here..."></textarea>
+                                <label for="initialMessage" class="form-label">Initial Message (Optional)</label>
+                                <textarea class="form-control" id="initialMessage" name="initial_message" rows="3" placeholder="Write an initial message..."></textarea>
                             </div>
-                            
-                            <div class="modal-footer">
-                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                                <button type="submit" id="startConversationBtn" class="btn btn-primary">Send Message</button>
-                            </div>
-                        </form>
-                    </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <button type="submit" class="btn btn-primary" id="startConversationBtn">Start Conversation</button>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>
@@ -139,22 +145,17 @@
         <div class="modal fade" id="newGroupModal" tabindex="-1" aria-labelledby="newGroupModalLabel" aria-hidden="true">
             <div class="modal-dialog modal-lg">
                 <div class="modal-content">
-                    <div class="modal-header bg-primary text-white">
-                        <h5 class="modal-title" id="newGroupModalLabel">Create Group Conversation</h5>
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="newGroupModalLabel">Create Group Chat</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <form id="newGroupForm">
                         @csrf
                         <div class="modal-body">
-                            <!-- Notice About Group Creation -->
-                            <div class="alert alert-info">
-                                <i class="bi bi-info-circle-fill me-2"></i>
-                                <strong>Note:</strong> As a Care Worker, you can create group conversations with Care Managers, Beneficiaries, and Family Members.
-                                <div id="roleWarningAlert" class="alert alert-warning mb-3" style="display: none;"></div>
-                            </div>
                             <div class="mb-3">
                                 <label for="groupName" class="form-label">Group Name</label>
                                 <input type="text" class="form-control" id="groupName" name="name" required placeholder="Enter a name for this group">
+                                <small class="form-text text-muted">Care Workers can message Care Managers, Beneficiaries assigned to them, and their Family Members.</small>
                             </div>
                             
                             <div class="mb-3">
@@ -304,32 +305,39 @@
     <div class="modal fade" id="addMemberModal" tabindex="-1" aria-labelledby="addMemberModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
-                <div class="modal-header bg-primary text-white">
-                    <h5 class="modal-title" id="addMemberModalLabel">Add Group Member</h5>
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addMemberModalLabel">Add Member to Group</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <form id="addMemberForm">
-                    @csrf
                     <div class="modal-body">
-                        <input type="hidden" name="conversation_id" id="addMemberConversationId">
+                        <input type="hidden" id="groupConversationId" name="conversation_id" value="">
                         
                         <div class="mb-3">
-                            <label for="memberType" class="form-label">Member Type</label>
-                            <select class="form-select" id="memberType" name="member_type">
-                                <option value="cose_staff" selected>Care Manager</option>
+                            <label for="memberUserType" class="form-label">Member Type</label>
+                            <select class="form-select" id="memberUserType" name="participant_type" required>
+                                <option value="" selected disabled>Select member type</option>
+                                <option value="cose_staff">Staff Member</option>
                                 <option value="beneficiary">Beneficiary</option>
                                 <option value="family_member">Family Member</option>
                             </select>
-                            <small class="form-text text-muted">Care Workers can add Care Managers, Beneficiaries, and Family Members.</small>
+                            <small class="form-text text-muted">Care Workers can message Care Managers, Beneficiaries assigned to them, and their Family Members.</small>
                         </div>
                         
                         <div class="mb-3">
-                            <label for="memberId" class="form-label">Select Member</label>
-                            <select class="form-select" id="memberId" name="member_id" required>
-                                <option value="">Loading members...</option>
-                            </select>
+                            <label for="memberSearch" class="form-label">Search for member</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-search"></i></span>
+                                <input type="text" class="form-control" id="memberSearch" placeholder="Type to search...">
+                            </div>
                         </div>
                         
+                        <div class="mb-3">
+                            <label for="memberSelect" class="form-label">Select Member</label>
+                            <select class="form-select" id="memberSelect" name="participant_id" required disabled>
+                                <option value="" selected disabled>First select a user type</option>
+                            </select>
+                        </div>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
@@ -386,9 +394,6 @@
         const DEBUG = true;
         let currentLeaveGroupId = null;
         window.intentionalClear = false;
-
-        let selectedAdmins = [];
-        let selectedCareWorkers = [];
 
         // Timing variables to prevent conflicts
         window.lastRefreshTimestamp = 0;
@@ -961,7 +966,8 @@
         }
 
         // Function to load conversation
-        /*function loadConversation(conversationId) {
+        // Fix for loadConversation function
+        function loadConversation(conversationId) {
             console.log('Loading conversation:', conversationId);
             
             if (!conversationId) {
@@ -990,24 +996,28 @@
             
             // Fetch conversation content via AJAX
             fetch(url, {
-                method: 'GET',
                 headers: {
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                    'Accept': 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest'
-                }
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                },
+                credentials: 'same-origin'
             })
             .then(response => {
-                console.log('Response status:', response.status);
                 if (!response.ok) {
-                    throw new Error(`HTTP error! Status: ${response.status}`);
+                    throw new Error('Network response was not ok: ' + response.status);
                 }
                 return response.json();
             })
             .then(data => {
                 console.log('Received conversation data successfully');
+
+                // First, check if we have the required HTML content
+                if (!data || !data.html) {
+                    throw new Error('Invalid response format: Missing HTML content');
+                }
                 
-                if (data.success) {
+                // If we have HTML and there's no explicit failure message, proceed
+                if (!data.hasOwnProperty('success') || data.success !== false) {
                     // Update the message area with the conversation
                     messageArea.innerHTML = data.html;
                     
@@ -1015,10 +1025,12 @@
                     window.messageFormInitialized = false;
                     initializeMessageForm(conversationId);
                     
-                   // Initialize the search button with a specific delay to ensure DOM is ready
+                    // Initialize the search button with a specific delay to ensure DOM is ready
                     setTimeout(() => {
                         console.log('Initializing search after conversation load');
-                        window.initializeSearchButton();
+                        if (typeof window.initializeSearchButton === 'function') {
+                            window.initializeSearchButton();
+                        }
                     }, 500);
                     
                     // Scroll to bottom of messages container
@@ -1062,7 +1074,7 @@
                         }
                     }
 
-                     // Reset search UI after loading a new conversation
+                    // Reset search UI after loading a new conversation
                     if (typeof window.resetSearchAfterConversationLoad === 'function') {
                         window.resetSearchAfterConversationLoad();
                     }
@@ -1070,8 +1082,8 @@
                     setTimeout(() => {
                         initializeMessageActions();
                     }, 500);
-
                 } else {
+                    // Only show error if there's an explicit failure
                     messageArea.innerHTML = `
                         <div class="empty-state">
                             <i class="bi bi-exclamation-triangle-fill empty-icon"></i>
@@ -1082,7 +1094,7 @@
                     console.error('Failed to load conversation:', data.message);
                 }
 
-                // Mark conversation as read
+                // Mark conversation as read regardless of success/failure
                 markConversationAsRead(conversationId);
             })
             .catch(error => {
@@ -1091,94 +1103,13 @@
                     <div class="empty-state">
                         <i class="bi bi-exclamation-triangle-fill empty-icon"></i>
                         <h4>Error Loading Conversation</h4>
-                        <p>Could not load conversation. Please try again.</p>
+                        <p>Could not load conversation: ${error.message}. Please try again.</p>
+                        <button class="btn btn-primary mt-3" onclick="loadConversation('${conversationId}')">
+                            <i class="bi bi-arrow-repeat me-2"></i>Try Again
+                        </button>
                     </div>
                 `;
             });
-        }*/
-
-        function loadConversation(conversationId) {
-            // Show loading state
-            const conversationContent = document.getElementById('conversationContent');
-            if (!conversationContent) return;
-            
-            conversationContent.innerHTML = `
-                <div class="d-flex justify-content-center align-items-center h-100">
-                    <div class="spinner-border text-primary" role="status">
-                        <span class="visually-hidden">Loading...</span>
-                    </div>
-                </div>
-            `;
-            
-            // Change the active conversation class
-            const conversationItems = document.querySelectorAll('.conversation-item');
-            conversationItems.forEach(item => {
-                item.classList.remove('active');
-                if (item.dataset.conversationId === conversationId) {
-                    item.classList.add('active');
-                }
-            });
-            
-            // Add debug logging for request
-            console.log('Fetching conversation:', conversationId);
-            
-            fetch(`/${rolePrefix}/messaging/get-conversation?id=${conversationId}`)
-                .then(response => {
-                    console.log('Response status:', response.status);
-                    if (!response.ok) {
-                        throw new Error(`HTTP error: ${response.status}`);
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    console.log('Received conversation data successfully', data);
-                    
-                    // Validate data structure before proceeding
-                    if (!data) {
-                        throw new Error('Response data is empty or null');
-                    }
-                    
-                    if (!data.html) {
-                        throw new Error('Response missing required html property');
-                    }
-                    
-                    // Update the conversation content
-                    conversationContent.innerHTML = data.html;
-                    
-                    // Store current conversation ID in input field for sending messages
-                    const conversationIdInput = document.querySelector('input[name="conversation_id"]');
-                    if (conversationIdInput) {
-                        conversationIdInput.value = conversationId;
-                    } else {
-                        console.error('Could not find conversation_id input field');
-                    }
-                    
-                    // Scroll to bottom of messages
-                    const messagesContainer = document.getElementById('messagesContainer');
-                    if (messagesContainer) {
-                        messagesContainer.scrollTop = messagesContainer.scrollHeight;
-                    }
-                    
-                    // Initialize message actions (for unsend buttons, etc.)
-                    if (typeof initializeMessageActions === 'function') {
-                        initializeMessageActions();
-                    }
-                    
-                    // Mark conversation as read
-                    markConversationAsRead(conversationId);
-                })
-                .catch(error => {
-                    console.error('Failed to load conversation:', error.message || 'Unknown error');
-                    conversationContent.innerHTML = `
-                        <div class="alert alert-danger m-3">
-                            <h5>Error Loading Conversation</h5>
-                            <p>${error.message || 'An unknown error occurred while loading the conversation.'}</p>
-                            <button class="btn btn-outline-danger btn-sm" onclick="loadConversation('${conversationId}')">
-                                <i class="bi bi-arrow-clockwise me-1"></i> Try Again
-                            </button>
-                        </div>
-                    `;
-                });
         }
 
         // ============= MESSAGE FORM HANDLING =============
@@ -2183,37 +2114,133 @@
                 e.preventDefault();
                 
                 const submitButton = document.getElementById('startConversationBtn');
+                if (submitButton) {
+                    submitButton.disabled = true;
+                    submitButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Creating...';
+                }
                 
-                // If we're going to an existing conversation, redirect instead of submitting
-                if (submitButton && submitButton.dataset.conversationId) {
-                    console.log('Redirecting to existing conversation:', submitButton.dataset.conversationId);
-                    
-                    // Close the modal
-                    const modal = bootstrap.Modal.getInstance(document.getElementById('newConversationModal'));
-                    if (modal) modal.hide();
-                    
-                    // Redirect to the existing conversation
-                    window.location.href = `/${rolePrefix}/messaging?conversation=${submitButton.dataset.conversationId}`;
+                // Get form data with CORRECTED names
+                const userType = document.getElementById('userType').value;
+                const userId = document.getElementById('recipientSelect').value;
+                const initialMessage = document.getElementById('initialMessage')?.value || '';
+                
+                if (!userType || !userId) {
+                    alert('Please select both user type and recipient');
+                    if (submitButton) {
+                        submitButton.disabled = false;
+                        submitButton.textContent = 'Start Conversation';
+                    }
                     return;
                 }
                 
-                const formData = new FormData(this);
+                // Create FormData with CORRECTED parameter names
+                const formData = new FormData();
+                formData.append('recipient_type', userType);  // CORRECTED from participant_type
+                formData.append('recipient_id', userId);      // CORRECTED from participant_id
+                formData.append('initial_message', initialMessage);
+                formData.append('_token', document.querySelector('meta[name="csrf-token"]').getAttribute('content'));
                 
-                fetch(getRouteUrl(route_prefix + '.create-conversation'), {
+                // Create overlay for visual feedback
+                const loadingOverlay = document.createElement('div');
+                loadingOverlay.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(255,255,255,0.7);z-index:9999;display:flex;justify-content:center;align-items:center;';
+                loadingOverlay.innerHTML = '<div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div>';
+                document.body.appendChild(loadingOverlay);
+                
+                // Flag to track if we're already redirecting
+                let isRedirecting = false;
+                
+                fetch(`/${rolePrefix}/messaging/create-conversation`, {
                     method: 'POST',
                     body: formData,
                     headers: {
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                    }
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json'
+                    },
+                    redirect: 'follow'
                 })
-                .then(response => response.json())
+                .then(response => {
+                    console.log('Response status:', response.status, 'Redirected:', response.redirected);
+                    
+                    if (response.redirected) {
+                        isRedirecting = true;
+                        window.location.href = response.url;
+                        return null;
+                    }
+                    
+                    // Success case
+                    if (response.ok) {
+                        return response.json();
+                    }
+                    
+                    // Even for error responses, try to parse the response
+                    return response.text().then(text => {
+                        // Try to find a conversation ID in the response even if it's an error
+                        const match = text.match(/conversation=(\d+)/i);
+                        if (match && match[1]) {
+                            isRedirecting = true;
+                            window.location.href = `/${rolePrefix}/messaging?conversation=${match[1]}`;
+                            return null;
+                        }
+                        
+                        try {
+                            return JSON.parse(text);
+                        } catch {
+                            throw new Error(`Server error (${response.status}): ${text.substring(0, 100)}...`);
+                        }
+                    });
+                })
                 .then(data => {
-                    if (data.success) {
-                        window.location.href = role_base_url + '/messaging?conversation=' + data.conversation_id;
+                    // Skip processing if already redirecting
+                    if (isRedirecting || data === null) return;
+                    
+                    if (data && (data.success || data.conversation_id)) {
+                        // Close modal
+                        const modal = bootstrap.Modal.getInstance(document.getElementById('newConversationModal'));
+                        if (modal) modal.hide();
+                        
+                        // Navigate to conversation
+                        const conversationId = data.conversation_id || data.exists_id;
+                        if (conversationId) {
+                            window.location.href = `/${rolePrefix}/messaging?conversation=${conversationId}`;
+                        } else {
+                            window.location.reload();
+                        }
+                    } else {
+                        throw new Error(data?.message || 'Unknown error occurred');
                     }
                 })
                 .catch(error => {
                     console.error('Error creating conversation:', error);
+                    
+                    // Don't show error if redirecting
+                    if (isRedirecting) return;
+                    
+                    // Check if URL already has conversation ID (success case)
+                    const urlParams = new URLSearchParams(window.location.search);
+                    if (urlParams.has('conversation')) {
+                        console.log('Found conversation in URL, ignoring error');
+                        return;
+                    }
+                    
+                    // Remove overlay
+                    if (document.contains(loadingOverlay)) {
+                        document.body.removeChild(loadingOverlay);
+                    }
+                    
+                    // Reset button
+                    if (submitButton) {
+                        submitButton.disabled = false;
+                        submitButton.textContent = 'Start Conversation';
+                    }
+                })
+                .finally(() => {
+                    // Clean up overlay after 3 seconds in any case
+                    setTimeout(() => {
+                        if (document.contains(loadingOverlay)) {
+                            document.body.removeChild(loadingOverlay);
+                        }
+                    }, 3000);
                 });
             });
             
@@ -2222,6 +2249,30 @@
                 e.preventDefault();
                 
                 const formData = new FormData(this);
+
+                 // Flag to track if navigation has started
+                 let navigationStarted = false;
+                
+                // Show a loading overlay to prevent multiple clicks
+                const loadingOverlay = document.createElement('div');
+                loadingOverlay.style.cssText = `
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    right: 0;
+                    bottom: 0;
+                    background-color: rgba(255,255,255,0.7);
+                    z-index: 9999;
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                `;
+                loadingOverlay.innerHTML = `
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                `;
+                document.body.appendChild(loadingOverlay);
                 
                 fetch(getRouteUrl(route_prefix + '.create-group'), {
                     method: 'POST',
@@ -2718,102 +2769,77 @@
             newConversationForm?.addEventListener('submit', function(e) {
                 e.preventDefault();
                 
-                // Improved validation with visual feedback
-                const userType = document.getElementById('recipientType')?.value;
-                const userId = document.getElementById('recipientId')?.value;
-                const initialMessage = document.getElementById('initialMessage')?.value || '';
-                
-                console.log('Form submission values:', {
-                    userType: userType,
-                    userId: userId,
-                    initialMessage: initialMessage
-                });
-                
-                // Better validation with more specific feedback
-                if (!userType) {
-                    alert('Please select a recipient type');
-                    document.getElementById('recipientType')?.classList.add('is-invalid');
-                    return;
-                }
-                
-                if (!userId) {
-                    alert('Please select a recipient from the dropdown');
-                    document.getElementById('recipientId')?.classList.add('is-invalid');
-                    return;
-                }
-                
-                // Show loading state
                 const submitButton = document.getElementById('startConversationBtn');
                 if (submitButton) {
                     submitButton.disabled = true;
                     submitButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Creating...';
                 }
                 
-                // Create FormData with explicit values
-                const formData = new FormData();
-                formData.append('recipient_type', userType);
-                formData.append('recipient_id', userId);
-                formData.append('initial_message', initialMessage);
-                formData.append('_token', document.querySelector('meta[name="csrf-token"]').getAttribute('content'));
+                // Get form data
+                const userType = userTypeSelect?.value;
+                const userId = recipientSelect?.value;
+                const initialMessage = document.getElementById('initialMessage')?.value;
                 
-                // Log form data
-                for (let pair of formData.entries()) {
-                    console.log(pair[0] + ': ' + pair[1]);
+                // Validate required fields
+                if (!userType || !userId) {
+                    alert('Please select both user type and recipient');
+                    if (submitButton) {
+                        submitButton.disabled = false;
+                        submitButton.textContent = 'Start Conversation';
+                    }
+                    return;
                 }
                 
-                // Submit with improved error handling and specific URL
-                const url = `${window.location.origin}/${rolePrefix}/messaging/create-conversation`;
-                console.log('Submitting to URL:', url);
+                // Create FormData object
+                const formData = new FormData();
+                formData.append('participant_type', userType);
+                formData.append('participant_id', userId);
+                formData.append('initial_message', initialMessage || '');
+                formData.append('_token', document.querySelector('meta[name="csrf-token"]').getAttribute('content'));
                 
-                fetch(url, {
+                // Submit the form
+                fetch(`${window.location.origin}/${rolePrefix}/messaging/create-conversation`, {
                     method: 'POST',
                     body: formData,
                     headers: {
-                        'X-Requested-With': 'XMLHttpRequest',
-                        'Accept': 'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                        'X-Requested-With': 'XMLHttpRequest', // Add this line to ensure proper AJAX handling
+                        'Accept': 'application/json'          // Add this line to request JSON response
                     }
                 })
                 .then(response => {
-                    console.log('Response status:', response.status);
-                    console.log('Response type:', response.headers.get('content-type'));
-                    
-                    // Handle non-JSON responses
-                    const contentType = response.headers.get('content-type');
-                    if (contentType && contentType.includes('text/html')) {
-                        return response.text().then(html => {
-                            console.error('Received HTML response instead of JSON:', html.substring(0, 500));
-                            throw new Error('Server returned an HTML error page instead of JSON');
-                        });
+                    if (!response.ok) {
+                        if (response.headers.get('content-type')?.includes('text/html')) {
+                            // Handle HTML error response
+                            return response.text().then(text => {
+                                throw new Error('Server returned HTML error page instead of JSON');
+                            });
+                        }
+                        throw new Error('Network response was not ok');
                     }
-                    
                     return response.json();
                 })
                 .then(data => {
-                    console.log('Response data:', data);
                     if (data.success) {
                         // Close modal
                         const modal = bootstrap.Modal.getInstance(document.getElementById('newConversationModal'));
                         if (modal) modal.hide();
                         
-                        // Redirect to the conversation
-                        window.location.href = `/${rolePrefix}/messaging?conversation=${data.conversation_id}`;
+                        // Redirect to the new conversation
+                        window.location.href = `${window.location.origin}/${rolePrefix}/messaging/conversation/${data.conversation_id}`;
                     } else {
-                        throw new Error(data.message || 'Unknown error creating conversation');
+                        throw new Error(data.message || 'Failed to create conversation');
                     }
                 })
                 .catch(error => {
                     console.error('Error creating conversation:', error);
-                    alert('Could not create conversation: ' + error.message);
+                    alert('Failed to create conversation: ' + error.message);
                     
-                    // Reset button
                     if (submitButton) {
                         submitButton.disabled = false;
-                        submitButton.innerHTML = 'Start Conversation';
+                        submitButton.textContent = 'Start Conversation';
                     }
                 });
             });
-
 
             // Create container for feedback messages in the modal
             const feedbackContainer = document.createElement('div');
@@ -2829,12 +2855,11 @@
             }
 
             // Add event listener to recipient select to check for existing conversations
-            recipientIdSelect?.addEventListener('change', function() {
+            recipientSelect?.addEventListener('change', function() {
                 const userId = this.value;
-                const userType = recipientTypeSelect?.value;
-                const feedbackContainer = document.getElementById('existingConversationFeedback');
+                const userType = userTypeSelect?.value;
                 
-                if (!userId || !userType || !feedbackContainer) return;
+                if (!userId || !userType) return;
                 
                 // Show loading state
                 feedbackContainer.classList.remove('d-none');
@@ -2846,11 +2871,12 @@
                 `;
                 
                 // Perform check by attempting to find conversations with this user
-                fetch(`/${rolePrefix}/messaging/get-conversations-with-recipient`, {
+                fetch(`${window.location.origin}/${rolePrefix}/messaging/get-conversations-with-recipient`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                         'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                        'X-Requested-With': 'XMLHttpRequest',
                         'Accept': 'application/json'
                     },
                     body: JSON.stringify({
@@ -2866,7 +2892,7 @@
                             <div class="alert alert-info mb-0">
                                 <i class="bi bi-info-circle me-2"></i>
                                 A conversation with this recipient already exists.
-                                <a href="/${rolePrefix}/messaging?conversation=${data.conversation_id}" 
+                                <a href="${window.location.origin}/${rolePrefix}/messaging?conversation=${data.conversation_id}" 
                                 class="alert-link ms-2" id="goToExistingConversation">
                                 Go to conversation
                                 </a>
@@ -3474,7 +3500,7 @@
                     e.preventDefault();
                     const btn = e.target.closest('.add-member-btn');
                     const conversationId = btn.getAttribute('data-conversation-id');
-                    document.getElementById('addMemberConversationId').value = conversationId;
+                    document.getElementById('groupConversationId').value = conversationId;
                     addMemberModal.show();
                 }
             });
@@ -4393,476 +4419,6 @@
                 unsendMessage(messageId);
             }
         }
-
-        document.addEventListener('DOMContentLoaded', function() {
-            const addMemberForm = document.getElementById('addMemberForm');
-            
-            if (addMemberForm) {
-                addMemberForm.addEventListener('submit', function(e) {
-                    e.preventDefault();
-                    
-                    // Get the correct field IDs
-                    const conversationId = document.getElementById('addMemberConversationId').value;
-                    const memberId = document.getElementById('memberId').value;
-                    const memberType = document.getElementById('memberType').value;
-                    
-                    if (!conversationId || !memberId || !memberType) {
-                        alert('Please select a member to add to the group');
-                        return;
-                    }
-                    
-                    const submitBtn = document.getElementById('addMemberBtn');
-                    submitBtn.disabled = true;
-                    submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Adding...';
-                    
-                    // Send request to add member
-                    fetch(`/${rolePrefix}/messaging/add-group-member`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                            'Accept': 'application/json',
-                            'X-Requested-With': 'XMLHttpRequest'
-                        },
-                        body: JSON.stringify({
-                            conversation_id: conversationId,
-                            participant_id: memberId,
-                            participant_type: memberType
-                        })
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            // Close modal and reset form
-                            const modal = bootstrap.Modal.getInstance(document.getElementById('addMemberModal'));
-                            modal.hide();
-                            this.reset();
-                            
-                            // Create success notification
-                            const notificationDiv = document.createElement('div');
-                            notificationDiv.className = 'alert alert-success position-fixed top-0 end-0 m-3';
-                            notificationDiv.style.zIndex = "9999";
-                            notificationDiv.innerHTML = `
-                                <strong>Success!</strong> New member has been added to the group. Refreshing...
-                            `;
-                            document.body.appendChild(notificationDiv);
-                            
-                            // Store success flag in sessionStorage
-                            sessionStorage.setItem('memberAdded', 'true');
-                            sessionStorage.setItem('memberAddedTime', Date.now());
-                            
-                            // Force refresh the conversation
-                            setTimeout(() => {
-                                const cacheBuster = Date.now();
-                                window.location.href = `/${rolePrefix}/messaging?conversation=${conversationId}&refresh=${cacheBuster}`;
-                            }, 500);
-                        } else {
-                            throw new Error(data.message || 'Failed to add member');
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error adding member:', error);
-                        alert('Failed to add member: ' + error.message);
-                        
-                        // Reset button state
-                        submitBtn.disabled = false;
-                        submitBtn.innerHTML = 'Add to Group';
-                    });
-                });
-            }
-        });
-
-        // Handle memberType select change in the Add Member modal
-        document.addEventListener('DOMContentLoaded', function() {
-            const memberType = document.getElementById('memberType');
-            const memberId = document.getElementById('memberId');
-            
-            if (memberType && memberId) {
-                // Load initial members when modal is opened
-                memberType.addEventListener('change', function() {
-                    const type = this.value;
-                    console.log('Selected member type:', type);
-                    
-                    // Show loading state
-                    memberId.innerHTML = '<option value="" selected disabled>Loading members...</option>';
-                    memberId.disabled = true;
-                    
-                    // Fetch members of selected type
-                    fetch(`/${rolePrefix}/messaging/get-users?type=${type}`)
-                        .then(response => response.json())
-                        .then(data => {
-                            // Clear existing options
-                            memberId.innerHTML = '';
-                            
-                            // Add default option
-                            const defaultOption = document.createElement('option');
-                            defaultOption.value = '';
-                            defaultOption.textContent = 'Select a member';
-                            defaultOption.selected = true;
-                            defaultOption.disabled = true;
-                            memberId.appendChild(defaultOption);
-                            
-                            // Add users to dropdown
-                            if (data.users && data.users.length > 0) {
-                                data.users.forEach(user => {
-                                    const option = document.createElement('option');
-                                    option.value = user.id;
-                                    option.textContent = user.name;
-                                    
-                                    // Add role label for staff members if available
-                                    if (user.role) {
-                                        option.textContent += ` (${user.role})`;
-                                    }
-                                    
-                                    memberId.appendChild(option);
-                                });
-                                memberId.disabled = false;
-                            } else {
-                                // No users found
-                                const noUsersOption = document.createElement('option');
-                                noUsersOption.value = '';
-                                noUsersOption.textContent = 'No members available';
-                                noUsersOption.disabled = true;
-                                memberId.appendChild(noUsersOption);
-                            }
-                        })
-                        .catch(error => {
-                            console.error('Error loading members:', error);
-                            memberId.innerHTML = '<option value="" disabled>Error loading members</option>';
-                            memberId.disabled = true;
-                        });
-                });
-                
-                // Trigger change event to load members immediately when the modal is shown
-                document.getElementById('addMemberModal').addEventListener('shown.bs.modal', function() {
-                    memberType.dispatchEvent(new Event('change'));
-                });
-            }
-        });
-
-        document.addEventListener('DOMContentLoaded', function() {
-            // Get references to the select elements
-            const recipientTypeSelect = document.getElementById('recipientType');
-            const recipientIdSelect = document.getElementById('recipientId');
-            
-            // Add change event listener to recipientType dropdown
-            if (recipientTypeSelect) {
-                recipientTypeSelect.addEventListener('change', function() {
-                    const selectedType = this.value;
-                    
-                    // Show loading state
-                    if (recipientIdSelect) {
-                        recipientIdSelect.innerHTML = '<option value="" selected disabled>Loading recipients...</option>';
-                        recipientIdSelect.disabled = true;
-                    }
-                    
-                    // Log the request for debugging
-                    console.log('Fetching recipients of type:', selectedType);
-                    
-                    // Fetch users from server with explicit URL
-                    fetch(`/${rolePrefix}/messaging/get-users?type=${selectedType}`, {
-                        method: 'GET',
-                        headers: {
-                            'X-Requested-With': 'XMLHttpRequest',
-                            'Accept': 'application/json'
-                        }
-                    })
-                    .then(response => {
-                        console.log('User fetch response status:', response.status);
-                        return response.json();
-                    })
-                    .then(data => {
-                        console.log('Received users data:', data);
-                        
-                        // Clear and populate the recipients dropdown
-                        if (recipientIdSelect) {
-                            recipientIdSelect.innerHTML = '<option value="" selected disabled>Select a recipient</option>';
-                            
-                            if (data.users && data.users.length > 0) {
-                                data.users.forEach(user => {
-                                    const option = document.createElement('option');
-                                    option.value = user.id;
-                                    option.textContent = user.name;
-                                    recipientIdSelect.appendChild(option);
-                                });
-                                recipientIdSelect.disabled = false;
-                            } else {
-                                recipientIdSelect.innerHTML = '<option value="" selected disabled>No users found</option>';
-                            }
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error loading recipients:', error);
-                        if (recipientIdSelect) {
-                            recipientIdSelect.innerHTML = '<option value="" selected disabled>Error loading recipients</option>';
-                        }
-                    });
-
-                    recipientIdSelect?.addEventListener('change', function() {
-                        const userId = this.value;
-                        const userType = recipientTypeSelect?.value;
-                        const feedbackContainer = document.getElementById('existingConversationFeedback');
-                        
-                        if (!userId || !userType || !feedbackContainer) return;
-                        
-                        // Show loading state
-                        feedbackContainer.classList.remove('d-none');
-                        feedbackContainer.innerHTML = `
-                            <div class="alert alert-info mb-0 d-flex align-items-center">
-                                <div class="spinner-border spinner-border-sm me-2" role="status"></div>
-                                <div>Checking for existing conversations...</div>
-                            </div>
-                        `;
-                        
-                        // Perform check by attempting to find conversations with this user
-                        fetch(`/${rolePrefix}/messaging/get-conversations-with-recipient`, {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                                'Accept': 'application/json'
-                            },
-                            body: JSON.stringify({
-                                participant_type: userType,
-                                participant_id: userId
-                            })
-                        })
-                        .then(response => response.json())
-                        .then(data => {
-                            if (data.exists) {
-                                // Show "conversation exists" message
-                                feedbackContainer.innerHTML = `
-                                    <div class="alert alert-info mb-0">
-                                        <i class="bi bi-info-circle me-2"></i>
-                                        A conversation with this recipient already exists.
-                                        <a href="/${rolePrefix}/messaging?conversation=${data.conversation_id}" 
-                                        class="alert-link ms-2" id="goToExistingConversation">
-                                        Go to conversation
-                                        </a>
-                                    </div>
-                                `;
-                                
-                                // Change button text to indicate going to existing conversation
-                                const submitButton = document.getElementById('startConversationBtn');
-                                if (submitButton) {
-                                    submitButton.textContent = 'Go to Existing Conversation';
-                                    submitButton.dataset.conversationId = data.conversation_id;
-                                    submitButton.classList.remove('btn-primary');
-                                    submitButton.classList.add('btn-info');
-                                }
-                            } else {
-                                // Hide feedback if no existing conversation
-                                feedbackContainer.classList.add('d-none');
-                                
-                                // Reset button
-                                const submitButton = document.getElementById('startConversationBtn');
-                                if (submitButton) {
-                                    submitButton.textContent = 'Start Conversation';
-                                    delete submitButton.dataset.conversationId;
-                                    submitButton.classList.remove('btn-info');
-                                    submitButton.classList.add('btn-primary');
-                                }
-                            }
-                        })
-                        .catch(error => {
-                            console.error('Error checking for existing conversation:', error);
-                            feedbackContainer.classList.add('d-none');
-                        });
-                    });
-                });
-                
-                // Trigger change event initially to load the default type's users
-                if (recipientTypeSelect.value) {
-                    const event = new Event('change');
-                    recipientTypeSelect.dispatchEvent(event);
-                }
-            }
-        });
-
-        // Add this after your DOMContentLoaded event handler
-        document.addEventListener('DOMContentLoaded', function() {
-            // Monitor checkboxes for staff members
-            document.addEventListener('change', function(e) {
-                if (e.target.matches('input[type="checkbox"][data-user-type="cose_staff"]')) {
-                    // User checkbox was changed
-                    const checkbox = e.target;
-                    const userId = checkbox.value;
-                    const roleText = checkbox.getAttribute('data-role') || '';
-                    const isAdmin = roleText.includes('Admin');
-                    const isCareWorker = roleText.includes('Care Worker');
-                    
-                    // When a checkbox is checked
-                    if (checkbox.checked) {
-                        // Validate role compatibility
-                        if (isAdmin && selectedCareWorkers.length > 0) {
-                            // Trying to add Admin when Care Workers exist
-                            alert('You cannot add Administrators to a group with Care Workers');
-                            checkbox.checked = false; // Uncheck it
-                            return false;
-                        }
-                        
-                        if (isCareWorker && selectedAdmins.length > 0) {
-                            // Trying to add Care Worker when Admins exist
-                            alert('You cannot add Care Workers to a group with Administrators');
-                            checkbox.checked = false; // Uncheck it
-                            return false;
-                        }
-                        
-                        // Add to tracking arrays if accepted
-                        if (isAdmin) {
-                            selectedAdmins.push(userId);
-                        } else if (isCareWorker) {
-                            selectedCareWorkers.push(userId);
-                        }
-                    } else {
-                        // When a checkbox is unchecked, remove from tracking arrays
-                        if (isAdmin) {
-                            selectedAdmins = selectedAdmins.filter(id => id !== userId);
-                        } else if (isCareWorker) {
-                            selectedCareWorkers = selectedCareWorkers.filter(id => id !== userId);
-                        }
-                    }
-                    
-                    // Update the UI to reflect the current selection status
-                    updateRoleWarnings();
-                }
-            });
-            
-            // Reset tracking arrays when modal is hidden
-            const newGroupModal = document.getElementById('newGroupModal');
-            if (newGroupModal) {
-                newGroupModal.addEventListener('hidden.bs.modal', function() {
-                    selectedAdmins = [];
-                    selectedCareWorkers = [];
-                });
-            }
-            
-            // Add form submission validation
-            const newGroupForm = document.getElementById('newGroupForm');
-            if (newGroupForm) {
-                newGroupForm.addEventListener('submit', function(e) {
-                    if (selectedAdmins.length > 0 && selectedCareWorkers.length > 0) {
-                        e.preventDefault();
-                        alert('Cannot create a group with both Administrators and Care Workers');
-                        return false;
-                    }
-                });
-            }
-        });
-
-        // Function to update UI based on current selections
-        function updateRoleWarnings() {
-            const warningDiv = document.getElementById('roleWarningAlert');
-            if (!warningDiv) return;
-            
-            if (selectedAdmins.length > 0) {
-                warningDiv.innerHTML = '<i class="bi bi-exclamation-triangle-fill me-2"></i><strong>Note:</strong> Group contains Administrators. Cannot add Care Workers.';
-                warningDiv.style.display = 'block';
-            } else if (selectedCareWorkers.length > 0) {
-                warningDiv.innerHTML = '<i class="bi bi-exclamation-triangle-fill me-2"></i><strong>Note:</strong> Group contains Care Workers. Cannot add Administrators.';
-                warningDiv.style.display = 'block';
-            } else {
-                warningDiv.style.display = 'none';
-            }
-        }
-
-        // Find the code where user checkboxes are generated
-        function generateUserCheckboxes(users, container) {
-            container.innerHTML = '';
-            
-            if (users.length === 0) {
-                container.innerHTML = '<div class="text-center p-2">No users found</div>';
-                return;
-            }
-            
-            users.forEach(user => {
-                const checkboxDiv = document.createElement('div');
-                checkboxDiv.className = 'form-check';
-                
-                const checkbox = document.createElement('input');
-                checkbox.type = 'checkbox';
-                checkbox.className = 'form-check-input';
-                checkbox.value = user.id;
-                checkbox.name = 'participants[]';
-                checkbox.id = `user-${user.id}`;
-                checkbox.setAttribute('data-user-type', user.type);
-                
-                // Add role info for staff members
-                if (user.type === 'cose_staff' && user.name) {
-                    // Extract role from name if it contains it in parentheses
-                    const roleMatch = user.name.match(/\((.*?)\)/);
-                    if (roleMatch && roleMatch[1]) {
-                        checkbox.setAttribute('data-role', roleMatch[1]);
-                    }
-                }
-                
-                const label = document.createElement('label');
-                label.className = 'form-check-label';
-                label.htmlFor = `user-${user.id}`;
-                label.textContent = user.name;
-                
-                checkboxDiv.appendChild(checkbox);
-                checkboxDiv.appendChild(label);
-                container.appendChild(checkboxDiv);
-            });
-        }
-        
-        // Add this to the DOMContentLoaded event handler
-        document.addEventListener('DOMContentLoaded', function() {
-            // Reference the elements
-            const recipientTypeSelect = document.getElementById('recipientType');
-            const recipientIdSelect = document.getElementById('recipientId');
-            
-            if (recipientTypeSelect && recipientIdSelect) {
-                console.log('Setting up recipient type change handler');
-                
-                recipientTypeSelect.addEventListener('change', function() {
-                    const selectedType = this.value;
-                    console.log('Recipient type changed to:', selectedType);
-                    
-                    // Show loading state
-                    recipientIdSelect.innerHTML = '<option value="" selected disabled>Loading recipients...</option>';
-                    recipientIdSelect.disabled = true;
-                    
-                    // Fetch users from server
-                    fetch(`/${rolePrefix}/messaging/get-users?type=${selectedType}`, {
-                        method: 'GET',
-                        headers: {
-                            'X-Requested-With': 'XMLHttpRequest',
-                            'Accept': 'application/json'
-                        }
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        console.log('Got users:', data);
-                        
-                        // Clear and populate the recipients dropdown
-                        recipientIdSelect.innerHTML = '<option value="" selected disabled>Select a recipient</option>';
-                        
-                        if (data.users && data.users.length > 0) {
-                            data.users.forEach(user => {
-                                const option = document.createElement('option');
-                                option.value = user.id;
-                                option.textContent = user.name;
-                                recipientIdSelect.appendChild(option);
-                            });
-                            recipientIdSelect.disabled = false;
-                        } else {
-                            recipientIdSelect.innerHTML = '<option value="" selected disabled>No users found</option>';
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error loading recipients:', error);
-                        recipientIdSelect.innerHTML = '<option value="" selected disabled>Error loading recipients</option>';
-                    });
-                });
-                
-                // Trigger initial load if a type is preselected
-                if (recipientTypeSelect.value) {
-                    recipientTypeSelect.dispatchEvent(new Event('change'));
-                }
-            }
-        });
 
     </script>
 </body>
