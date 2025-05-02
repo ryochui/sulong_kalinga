@@ -6,6 +6,7 @@ use Illuminate\Database\Seeder;
 use Faker\Factory;
 use App\Models\Beneficiary;
 use App\Models\User;
+use App\Models\MobileUser;
 use App\Models\FamilyMember;
 use App\Models\PortalAccount;
 use App\Models\GeneralCarePlan;
