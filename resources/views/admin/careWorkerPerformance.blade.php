@@ -36,6 +36,63 @@
         .table-responsive {
             overflow-x: auto;
         }
+        
+        tbody td{
+            vertical-align: middle;
+        }
+        th button{
+            transform: translateY(-3px);
+        }
+
+        tbody td {
+        vertical-align: middle;
+        }
+
+        th button {
+            transform: translateY(-3px);
+        }
+
+        #home-content {
+            font-size: clamp(0.8rem, 1vw, 1rem);
+        }
+
+        #home-content th,
+        #home-content td {
+            font-size: clamp(0.7rem, 0.9vw, 0.9rem);
+        }
+
+        #home-content .card-header,
+        #home-content .form-label {
+            font-size: clamp(0.9rem, 1.1vw, 1.1rem);
+        }
+
+        #home-content .btn {
+            font-size: 0.8rem;
+            padding: 0.25rem 0.5rem;
+        }
+
+        #home-content .form-select,
+        #home-content .form-control {
+            font-size: 0.8rem;
+            padding: 0.25rem 0.5rem;
+        }
+
+        #home-content .table {
+            font-size: 0.8rem;
+        }
+
+        #beneficiaryDetailsRow .form-label {
+            font-size: clamp(0.8rem, 1vw, 1rem);
+        }
+
+        #beneficiaryDetailsRow .form-control {
+            font-size: clamp(0.8rem, 1vw, 1rem);
+            padding: 0.3rem 0.5rem;
+        }
+
+        #beneficiaryDetailsRow .card-header {
+            font-size: clamp(1rem, 1.2vw, 1.2rem);
+        }
     </style>
 </head>
 <body>
@@ -66,7 +123,7 @@
                             <div class="row g-2">
                                 <!-- Beneficiary Select -->
                                 <div class="col">
-                                    <label for="beneficiarySelect" class="form-label">Select Beneficiary:</label>
+                                    <label for="beneficiarySelect" class="form-label">Select Care Worker:</label>
                                     <select class="form-select" id="beneficiarySelect" name="beneficiary_id">
                                         <option value="">All Beneficiaries</option>
                                         <option value="1">Doe, John</option>
@@ -188,6 +245,125 @@
                                     <h5 class="card-title" style="font-size: clamp(1rem, 1.5vw, 1.2rem);">Avg. Rating</h5>
                                     <h2 class="text-warning" style="font-size: clamp(1.5rem, 2vw, 2rem);">4.7 <small class="text-muted" style="font-size: clamp(0.8rem, 1vw, 1rem);">/5</small></h2>
                                     <p class="text-muted" style="font-size: clamp(0.8rem, 1vw, 1rem);">Client satisfaction</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Care Services Summary Section -->
+                    <div class="row mb-3" id="careServicesSummaryRow">
+                        <div class="col-12">
+                            <div class="card shadow-sm">
+                                <div class="card-header text-center">
+                                    <strong>Care Services Summary</strong>
+                                </div>
+                                <div class="card-body p-2">
+                                    <div id="careServicesCarousel" class="carousel slide" data-bs-interval="false">
+                                        <div class="carousel-inner">
+                                            <!-- Mobility Table -->
+                                            <div class="carousel-item active">
+                                                <table class="table table-bordered table-sm">
+                                                    <thead>
+                                                        <tr>
+                                                            <th colspan="2" class="text-center bg-light position-relative">
+                                                                <button class="btn btn-sm btn-outline-secondary position-absolute start-0" data-bs-target="#careServicesCarousel" data-bs-slide="prev">
+                                                                    <i class="bi bi-chevron-left"></i>
+                                                                </button>
+                                                                Mobility
+                                                                <button class="btn btn-sm btn-outline-secondary position-absolute end-0" data-bs-target="#careServicesCarousel" data-bs-slide="next">
+                                                                    <i class="bi bi-chevron-right"></i>
+                                                                </button>
+                                                            </th>
+                                                        </tr>
+                                                        <tr>
+                                                            <th>Intervention Implemented</th>
+                                                            <th class="text-center">Frequency</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        <tr>
+                                                            <td>Provided walker and physical therapy</td>
+                                                            <td class="text-center">3x/week</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>Installed stair lift</td>
+                                                            <td class="text-center">Daily</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>Caregiver-assisted transfers</td>
+                                                            <td class="text-center">As needed</td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+
+                                            <!-- Cognitive/Communication Table -->
+                                            <div class="carousel-item">
+                                                <table class="table table-bordered table-sm">
+                                                    <thead>
+                                                        <tr>
+                                                            <th colspan="2" class="text-center bg-light position-relative">
+                                                                <button class="btn btn-sm btn-outline-secondary position-absolute start-0" data-bs-target="#careServicesCarousel" data-bs-slide="prev">
+                                                                    <i class="bi bi-chevron-left"></i>
+                                                                </button>
+                                                                Cognitive / Communication
+                                                                <button class="btn btn-sm btn-outline-secondary position-absolute end-0" data-bs-target="#careServicesCarousel" data-bs-slide="next">
+                                                                    <i class="bi bi-chevron-right"></i>
+                                                                </button>
+                                                            </th>
+                                                        </tr>
+                                                        <tr>
+                                                            <th>Intervention Implemented</th>
+                                                            <th class="text-center">Frequency</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        <tr>
+                                                            <td>Memory exercises and reminders</td>
+                                                            <td class="text-center">Daily</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>Speech therapy sessions</td>
+                                                            <td class="text-center">2x/week</td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+
+                                            <!-- Self-sustainability Table -->
+                                            <div class="carousel-item">
+                                                <table class="table table-bordered table-sm">
+                                                    <thead>
+                                                        <tr>
+                                                            <th colspan="2" class="text-center bg-light position-relative">
+                                                                <button class="btn btn-sm btn-outline-secondary position-absolute start-0" data-bs-target="#careServicesCarousel" data-bs-slide="prev">
+                                                                    <i class="bi bi-chevron-left"></i>
+                                                                </button>
+                                                                Self-sustainability
+                                                                <button class="btn btn-sm btn-outline-secondary position-absolute end-0" data-bs-target="#careServicesCarousel" data-bs-slide="next">
+                                                                    <i class="bi bi-chevron-right"></i>
+                                                                </button>
+                                                            </th>
+                                                        </tr>
+                                                        <tr>
+                                                            <th>Intervention Implemented</th>
+                                                            <th class="text-center">Frequency</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        <tr>
+                                                            <td>Assistance with bathing and grooming</td>
+                                                            <td class="text-center">Daily</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>Meal delivery service</td>
+                                                            <td class="text-center">3x/day</td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -320,6 +496,70 @@
    
     <script src="{{ asset('js/toggleSideBar.js') }}"></script>
     <script src="{{ asset('js/bootstrap.bundle.min.js') }}"></script>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Toggle visibility of filters based on the selected time range
+        function updateTimeFilters() {
+            const timeRange = document.getElementById('timeRange').value;
+
+            // Hide all filters first
+            document.getElementById('weekFilterContainer').classList.add('d-none');
+            document.getElementById('monthRangeFilterContainer').classList.add('d-none');
+            document.getElementById('yearFilterContainer').classList.add('d-none');
+
+            // Show the appropriate filter
+            if (timeRange === 'weeks') {
+                document.getElementById('weekFilterContainer').classList.remove('d-none');
+            } else if (timeRange === 'months') {
+                document.getElementById('monthRangeFilterContainer').classList.remove('d-none');
+            } else if (timeRange === 'year') {
+                document.getElementById('yearFilterContainer').classList.remove('d-none');
+            }
+        }
+
+        // Apply filters and update the page content
+        function applyFilters() {
+            const careWorkerId = document.getElementById('beneficiarySelect').value;
+            const careWorkerName = careWorkerId
+                ? document.getElementById('beneficiarySelect').options[document.getElementById('beneficiarySelect').selectedIndex].text
+                : "All Care Workers";
+
+            const careWorkerPerformanceTable = document.querySelector('.card:has(table)'); // Care Worker Performance table
+            const chartHeaders = document.querySelectorAll('.card-header h5'); // Chart headers
+
+            if (careWorkerId) {
+                // Hide Care Worker Performance table
+                careWorkerPerformanceTable.classList.add('d-none');
+
+                // Update chart headers with the selected care worker's name
+                chartHeaders.forEach(header => {
+                    header.textContent = `${header.textContent.split('(')[0].trim()} (${careWorkerName})`;
+                });
+            } else {
+                // Show Care Worker Performance table
+                careWorkerPerformanceTable.classList.remove('d-none');
+
+                // Reset chart headers to default
+                chartHeaders.forEach(header => {
+                    header.textContent = header.textContent.split('(')[0].trim();
+                });
+            }
+
+            // Example logic for applying filters (you can replace this with actual data fetching logic)
+            console.log('Filters applied:');
+            console.log('Care Worker ID:', careWorkerId || 'All Care Workers');
+        }
+
+        // Event listeners
+        document.getElementById('timeRange').addEventListener('change', updateTimeFilters);
+        document.getElementById('applyFilterBtn').addEventListener('click', applyFilters);
+
+        // Initial setup
+        updateTimeFilters();
+    });
+</script>
+
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
     <script>
