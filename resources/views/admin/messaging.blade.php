@@ -272,7 +272,6 @@
                                 <option value="" selected disabled>Select member type</option>
                                 <option value="cose_staff">Staff Member</option>
                             </select>
-                            <small class="form-text text-muted">Administrators can only message Care Managers and other Admins.</small>
                         </div>
                         
                         <div class="mb-3">
