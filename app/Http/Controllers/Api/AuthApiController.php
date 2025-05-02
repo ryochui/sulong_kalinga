@@ -69,16 +69,27 @@ class AuthApiController extends Controller
     public function user(Request $request)
     {
         $user = $request->user();
-        
+
+        // Example: Map role_id to role name
+        $roleNames = [
+            1 => 'admin',
+            2 => 'care_manager',
+            3 => 'care_worker',
+            4 => 'family',
+            5 => 'beneficiary',
+        ];
+        $role = $roleNames[$user->role_id] ?? 'unknown';
+
         return response()->json([
             'success' => true,
             'user' => [
                 'id' => $user->id,
+                'role' => $role,
                 'first_name' => $user->first_name,
                 'last_name' => $user->last_name,
                 'email' => $user->email,
                 'mobile' => $user->mobile,
-                'role_id' => $user->role_id,
+                'status' => $user->status ?? null,
                 'photo' => $user->photo ? asset('storage/' . $user->photo) : null
             ]
         ]);

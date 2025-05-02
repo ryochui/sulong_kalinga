@@ -40,6 +40,10 @@ return [
             'driver' => 'session',
             'provider' => 'users',
         ],
+        'unified_api' => [
+            'driver' => 'sanctum', // or 'token' or 'passport' if you use those
+            'provider' => 'unified_users',
+        ],
     ],
 
     /*
@@ -70,6 +74,12 @@ return [
         //     'driver' => 'database',
         //     'table' => 'users',
         // ],
+
+        'unified_users' => [
+            'driver' => 'eloquent',
+            'model' => App\Models\UnifiedUser::class,
+            'table' => 'users'
+        ],
     ],
 
     /*
