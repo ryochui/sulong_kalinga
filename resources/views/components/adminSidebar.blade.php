@@ -65,7 +65,7 @@
       </ul>
     </li>
     
-    <li class="{{ Request::routeIs('admin.schedules.appointments.*') ? 'active' : '' }}">
+    <li class="{{ Request::routeIs('admin.careworker.appointments.*') || Request::routeIs('admin.internal.appointments.*') || Request::routeIs('admin.medication.schedule.*')? 'active' : '' }}">
       <div class="icon-link">
         <a>
           <i class="bi bi-calendar-week"></i>
@@ -75,9 +75,9 @@
       </div>
       <ul class="sub-menu m-auto">
         <li><a class="link_name">Schedules & Appointments</a></li>
-        <li><a href="#" class="">Care Worker Appointments</a></li>
-        <li><a href="#" class="">Internal Appointments</a></li>
-        <li><a href="#" class="">Medication Schedule</a></li>
+        <li><a href="{{ route('admin.careworker.appointments.index') }}" class="{{ Request::routeIs('admin.careworker.appointments.*') ? 'active' : '' }}">Care Worker Appointments</a></li>
+        <li><a href="{{ route('admin.internal.appointments.index') }}" class="{{ Request::routeIs('admin.internal.appointments.*') ? 'active' : '' }}">Internal Appointments</a></li>
+        <li><a href="{{ route('admin.medication.schedule.index') }}" class="{{ Request::routeIs('admin.medication.schedule.*') ? 'active' : '' }}">Medication Schedule</a></li>
       </ul>
     </li>
     

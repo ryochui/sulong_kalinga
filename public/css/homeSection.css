@@ -18,6 +18,7 @@
   left: 342px;
   width: calc(100% - 345px);
   transition: all 0.5s ease;
+  overflow-x: hidden;
 }
 
 .home-section .home-content .bx-menu,
@@ -55,6 +56,7 @@ font-weight: 600;
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  max-width: 100%;
 }
 
 /* Ensure the table is scrollable if content overflows */

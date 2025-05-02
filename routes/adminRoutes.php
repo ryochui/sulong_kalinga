@@ -20,6 +20,10 @@ use App\Http\Controllers\ViewAccountProfileController;
 use App\Http\Controllers\NotificationsController;
 use App\Http\Controllers\MessageController;
 use App\Http\Controllers\HealthMonitoringController;
+use App\Http\Controllers\CareWorkerAppointmentController;
+use App\Http\Controllers\InternalAppointmentsController;
+use App\Http\Controllers\MedicationScheduleController;
+
 
 // All routes with administrator role check
 
@@ -178,6 +182,21 @@ Route::middleware(['auth', '\App\Http\Middleware\CheckRole:administrator'])->pre
     // Health Monitoring
     Route::prefix('health-monitoring')->name('health.monitoring.')->group(function () {
         Route::get('/', [HealthMonitoringController::class, 'index'])->name('index');
+    });
+
+    // Care worker appointments
+    Route::prefix('careworker-appointments')->name('careworker.appointments.')->group(function () {
+        Route::get('/', [CareWorkerAppointmentController::class, 'index'])->name('index');
+    });
+
+    // Internal appointments
+    Route::prefix('internal-appointments')->name('internal.appointments.')->group(function () {
+        Route::get('/', [InternalAppointmentsController::class, 'index'])->name('index');
+    });
+
+    // Medication Schedule
+    Route::prefix('medication-schedule')->name('medication.schedule.')->group(function () {
+        Route::get('/', [MedicationScheduleController::class, 'index'])->name('index');
     });
 
     // Update email and password
