@@ -61,7 +61,7 @@ class DatabaseSeeder extends Seeder
 
         // 3. Create general care plans with all related data
         $generalCarePlans = [];
-        for ($i = 1; $i <= 15; $i++) {
+        for ($i = 1; $i <= 15; $i++) {  // Use condition +1 for testing. Reset back when done with testing with the portal account and beneficiary seeding way below
             // Get a random care worker
             $careWorkerId = $careWorkers[array_rand($careWorkers)]->id;
             
@@ -184,6 +184,43 @@ class DatabaseSeeder extends Seeder
 
         // 8. Generate conversations and messages
         $this->generateConversations();
+
+        // // This is way below, please adjust gcp ID in the loop above
+        // // 9. Manually create a portal account and a beneficiary linked to it for testing
+        // $testPortal = \App\Models\PortalAccount::create([
+        //     'portal_email' => 'test.portal@example.com',
+        //     'portal_password' => '$2a$12$ukKcTdRuiedybx.jLcsfLew1ZiWUhy0b/x1lsb.f6NNQvs2SpjJau', // already hashed
+        //     'created_at' => now(),
+        //     'updated_at' => now(),
+        // ]);
+
+        // \App\Models\Beneficiary::create([
+        //     'first_name' => 'Test',
+        //     'last_name' => 'Beneficiary',
+        //     'civil_status' => 'Single',
+        //     'gender' => 'Male',
+        //     'birthday' => '1950-01-01',
+        //     'primary_caregiver' => 'Jane Doe',
+        //     'mobile' => '+639123456789',
+        //     'landline' => '1234567',
+        //     'street_address' => '123 Test St',
+        //     'barangay_id' => 1,
+        //     'municipality_id' => 1,
+        //     'category_id' => 1,
+        //     'emergency_contact_name' => 'John Doe',
+        //     'emergency_contact_relation' => 'Brother',
+        //     'emergency_contact_mobile' => '+639987654321',
+        //     'emergency_contact_email' => 'emergency@example.com',
+        //     'emergency_procedure' => 'Call 911',
+        //     'beneficiary_status_id' => 1,
+        //     'status_reason' => 'N/A',
+        //     'general_care_plan_id' => 16, // hard coded ID from the last gcp id from above
+        //     'portal_account_id' => $testPortal->id,
+        //     'created_by' => 1,
+        //     'updated_by' => 1,
+        //     'created_at' => now(),
+        //     'updated_at' => now(),
+        // ]);
     }
 
     private function generateNotifications()

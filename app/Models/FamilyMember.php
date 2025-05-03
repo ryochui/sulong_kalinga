@@ -23,6 +23,11 @@ class FamilyMember extends Model
     {
         return $this->belongsTo(Beneficiary::class, 'related_beneficiary_id');
     }
+    
+    public function portalAccount()
+    {
+        return $this->belongsTo(PortalAccount::class, 'portal_account_id');
+    }
 
     public function sentMessages()
     {
