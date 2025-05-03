@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard</title>
+    <title>Care Worker Performance</title>
     <link rel="stylesheet" href="{{ asset('css/bootstrap.min.css') }}">
     <link rel="stylesheet" href="{{ asset('css/homeSection.css') }}">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.0/font/bootstrap-icons.css">
@@ -96,7 +96,6 @@
     </style>
 </head>
 <body>
-
     @include('components.adminNavbar')
     @include('components.adminSidebar')
 
@@ -117,134 +116,145 @@
                             <div class="d-flex align-items-center">
                                 <strong class="me-3">Filters</strong>
                             </div>
-                            <button class="btn btn-primary btn-sm" id="applyFilterBtn">Apply Filters</button>
-                        </div>
-                        <div class="card-body p-2">
-                            <div class="row g-2">
-                                <!-- Beneficiary Select -->
-                                <div class="col">
-                                    <label for="beneficiarySelect" class="form-label">Select Care Worker:</label>
-                                    <select class="form-select" id="beneficiarySelect" name="beneficiary_id">
-                                        <option value="">All Beneficiaries</option>
-                                        <option value="1">Doe, John</option>
-                                        <option value="2">Smith, Jane</option>
-                                        <option value="3">Brown, Alice</option>
-                                        <option value="4">Johnson, Bob</option>
-                                    </select>
-                                </div>
-                                <!-- Municipalities Select -->
-                                <div class="col">
-                                    <label for="municipalitySelect" class="form-label">Select Municipality:</label>
-                                    <select class="form-select" id="municipalitySelect">
-                                        <option value="">All Municipalities</option>
-                                        <option value="Mondragon">Mondragon</option>
-                                        <option value="San Roque">San Roque</option>
-                                    </select>
-                                </div>
-                                <!-- Time Range Select -->
-                                <div class="col">
-                                    <label for="timeRange" class="form-label">Time Range:</label>
-                                    <select class="form-select" id="timeRange">
-                                        <option value="weeks">Weeks</option>
-                                        <option value="months">Months</option>
-                                        <option value="year">Year</option>
-                                    </select>
-                                </div>
-                                <!-- Week Filter (visible by default) -->
-                                <div class="col d-none" id="weekFilterContainer">
-                                    <label for="monthSelect" class="form-label">Select Month:</label>
-                                    <select class="form-select" id="monthSelect">
-                                        <option value="1">January</option>
-                                        <option value="2">February</option>
-                                        <option value="3">March</option>
-                                        <option value="4">April</option>
-                                        <option value="5">May</option>
-                                        <option value="6">June</option>
-                                        <option value="7">July</option>
-                                        <option value="8">August</option>
-                                        <option value="9">September</option>
-                                        <option value="10">October</option>
-                                        <option value="11">November</option>
-                                        <option value="12">December</option>
-                                    </select>
-                                </div>
-                                <!-- Month Range Filter (hidden by default) -->
-                                <div class="col d-none" id="monthRangeFilterContainer">
-                                    <div class="row g-2">
-                                        <div class="col">
-                                            <label for="startMonth" class="form-label">Start Month:</label>
-                                            <select class="form-select" id="startMonth">
-                                                <option value="1">January</option>
-                                                <option value="2">February</option>
-                                                <option value="3">March</option>
-                                                <option value="4">April</option>
-                                                <option value="5">May</option>
-                                                <option value="6">June</option>
-                                                <option value="7">July</option>
-                                                <option value="8">August</option>
-                                                <option value="9">September</option>
-                                                <option value="10">October</option>
-                                                <option value="11">November</option>
-                                                <option value="12">December</option>
-                                            </select>
-                                        </div>
-                                        <div class="col">
-                                            <label for="endMonth" class="form-label">End Month:</label>
-                                            <select class="form-select" id="endMonth">
-                                                <option value="1">January</option>
-                                                <option value="2">February</option>
-                                                <option value="3">March</option>
-                                                <option value="4">April</option>
-                                                <option value="5">May</option>
-                                                <option value="6">June</option>
-                                                <option value="7">July</option>
-                                                <option value="8">August</option>
-                                                <option value="9">September</option>
-                                                <option value="10">October</option>
-                                                <option value="11">November</option>
-                                                <option value="12">December</option>
-                                            </select>
-                                        </div>
-                                    </div>
-                                </div>
-                                <!-- Year Filter (hidden by default) -->
-                                <div class="col d-none" id="yearFilterContainer">
-                                    <label for="yearSelect" class="form-label">Select Year:</label>
-                                    <select class="form-select" id="yearSelect">
-                                        <option value="2023">2023</option>
-                                        <option value="2024">2024</option>
-                                        <option value="2025">2025</option>
-                                    </select>
-                                </div>
+                            <div>
+                                <button class="btn btn-outline-secondary btn-sm me-2" id="resetFilterBtn" style="display: none;">
+                                    <i class="bi bi-arrow-counterclockwise"></i> Reset
+                                </button>
+                                <button class="btn btn-primary btn-sm" id="applyFilterBtn">Apply Filters</button>
                             </div>
                         </div>
+                        <div class="card-body p-2">
+                            <form id="filterForm" action="{{ route('admin.careworker.performance.index') }}" method="GET">
+                                <div class="row g-2">
+                                    <!-- Care Worker Select -->
+                                    <div class="col">
+                                        <label for="careWorkerSelect" class="form-label">Select Care Worker:</label>
+                                        <select class="form-select" id="careWorkerSelect" name="care_worker_id">
+                                            <option value="">All Care Workers</option>
+                                            @foreach($careWorkers as $worker)
+                                                <option value="{{ $worker->id }}" {{ $selectedCareWorkerId == $worker->id ? 'selected' : '' }}>
+                                                    {{ $worker->last_name }}, {{ $worker->first_name }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    
+                                    <!-- Municipalities Select -->
+                                    <div class="col">
+                                        <label for="municipalitySelect" class="form-label">Select Municipality:</label>
+                                        <select class="form-select" id="municipalitySelect" name="municipality_id" {{ $selectedCareWorkerId ? 'disabled' : '' }}>
+                                            <option value="">All Municipalities</option>
+                                            @foreach($municipalities as $municipality)
+                                                <option value="{{ $municipality->municipality_id }}" {{ $selectedMunicipalityId == $municipality->municipality_id ? 'selected' : '' }}>
+                                                    {{ $municipality->municipality_name }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    
+                                    <!-- Time Range Select -->
+                                    <div class="col">
+                                        <label for="timeRange" class="form-label">Time Range:</label>
+                                        <select class="form-select" id="timeRange" name="time_range">
+                                            <option value="weeks" {{ $selectedTimeRange == 'weeks' ? 'selected' : '' }}>Weeks</option>
+                                            <option value="months" {{ $selectedTimeRange == 'months' ? 'selected' : '' }}>Months</option>
+                                            <option value="year" {{ $selectedTimeRange == 'year' ? 'selected' : '' }}>Year</option>
+                                        </select>
+                                    </div>
+                                    
+                                    <!-- Week Filter (visible when weeks selected) -->
+                                    <div class="col {{ $selectedTimeRange == 'weeks' ? '' : 'd-none' }}" id="weekFilterContainer">
+                                        <label for="monthSelect" class="form-label">Select Month:</label>
+                                        <select class="form-select" id="monthSelect" name="month">
+                                            @for($i = 1; $i <= 12; $i++)
+                                                <option value="{{ $i }}" {{ $selectedMonth == $i ? 'selected' : '' }}>
+                                                    {{ date('F', mktime(0, 0, 0, $i, 1)) }}
+                                                </option>
+                                            @endfor
+                                        </select>
+                                    </div>
+                                    
+                                    <!-- Month Range Filter (hidden by default) -->
+                                    <div class="col {{ $selectedTimeRange == 'months' ? '' : 'd-none' }}" id="monthRangeFilterContainer">
+                                        <div class="row g-2">
+                                            <div class="col-6">
+                                                <label for="startMonth" class="form-label">Start Month:</label>
+                                                <select class="form-select" id="startMonth" name="start_month">
+                                                    @for($i = 1; $i <= 12; $i++)
+                                                        <option value="{{ $i }}" {{ $selectedStartMonth == $i ? 'selected' : '' }}>
+                                                            {{ date('F', mktime(0, 0, 0, $i, 1)) }}
+                                                        </option>
+                                                    @endfor
+                                                </select>
+                                            </div>
+                                            <div class="col-6">
+                                                <label for="endMonth" class="form-label">End Month:</label>
+                                                <select class="form-select" id="endMonth" name="end_month">
+                                                    @for($i = 1; $i <= 12; $i++)
+                                                        <option value="{{ $i }}" {{ $selectedEndMonth == $i ? 'selected' : '' }}>
+                                                            {{ date('F', mktime(0, 0, 0, $i, 1)) }}
+                                                        </option>
+                                                    @endfor
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Year Filter (hidden by default) -->
+                                    <div class="col {{ $selectedTimeRange == 'year' ? '' : 'd-none' }}" id="yearFilterContainer">
+                                        <label for="yearSelect" class="form-label">Select Year:</label>
+                                        <select class="form-select" id="yearSelect" name="year">
+                                            @foreach($availableYears as $year)
+                                                <option value="{{ $year }}" {{ $selectedYear == $year ? 'selected' : '' }}>
+                                                    {{ $year }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
                     </div>
+                    
+                    @if(!$hasRecords)
+                        <div class="alert alert-info">
+                            No records found for the selected filters. Please try different filters.
+                        </div>
+                    @endif
+                    
                     <!-- Summary Cards -->
                     <div class="row mb-2">
+                        <!-- Total Care Hours -->
                         <div class="col-md-4 mb-2">
                             <div class="card h-100">
                                 <div class="card-body">
                                     <h5 class="card-title" style="font-size: clamp(1rem, 1.5vw, 1.2rem);">Total Care Hours</h5>
-                                    <h2 class="text-primary" style="font-size: clamp(1.5rem, 2vw, 2rem);">248 hrs</h2>
-                                    <p class="text-muted" style="font-size: clamp(0.8rem, 1vw, 1rem);">This month</p>
+                                    <h2 class="text-primary" style="font-size: clamp(1.5rem, 2vw, 2rem);">
+                                        {{ $formattedCareTime['hours'] }} hrs {{ $formattedCareTime['minutes'] > 0 ? $formattedCareTime['minutes'] . ' min' : '' }}
+                                    </h2>
+                                    <p class="text-muted" style="font-size: clamp(0.8rem, 1vw, 1rem);">{{ $dateRangeLabel }}</p>
                                 </div>
                             </div>
                         </div>
+                        
+                        <!-- Active Care Workers -->
                         <div class="col-md-4 mb-2">
                             <div class="card h-100">
                                 <div class="card-body">
                                     <h5 class="card-title" style="font-size: clamp(1rem, 1.5vw, 1.2rem);">Active Care Workers</h5>
-                                    <h2 class="text-success" style="font-size: clamp(1.5rem, 2vw, 2rem);">12</h2>
-                                    <p class="text-muted" style="font-size: clamp(0.8rem, 1vw, 1rem);">Currently assigned</p>
+                                    <h2 class="text-success" style="font-size: clamp(1.5rem, 2vw, 2rem);">{{ $activeCareWorkersCount }}</h2>
+                                    <p class="text-muted" style="font-size: clamp(0.8rem, 1vw, 1rem);">Currently active</p>
                                 </div>
                             </div>
                         </div>
+                        
+                        <!-- Total Care Services -->
                         <div class="col-md-4 mb-2">
                             <div class="card h-100">
                                 <div class="card-body">
-                                    <h5 class="card-title" style="font-size: clamp(1rem, 1.5vw, 1.2rem);">Avg. Rating</h5>
-                                    <h2 class="text-warning" style="font-size: clamp(1.5rem, 2vw, 2rem);">4.7 <small class="text-muted" style="font-size: clamp(0.8rem, 1vw, 1rem);">/5</small></h2>
-                                    <p class="text-muted" style="font-size: clamp(0.8rem, 1vw, 1rem);">Client satisfaction</p>
+                                    <h5 class="card-title" style="font-size: clamp(1rem, 1.5vw, 1.2rem);">Total Care Services</h5>
+                                    <h2 class="text-warning" style="font-size: clamp(1.5rem, 2vw, 2rem);">{{ $totalInterventions }}</h2>
+                                    <p class="text-muted" style="font-size: clamp(0.8rem, 1vw, 1rem);">{{ $dateRangeLabel }}</p>
                                 </div>
                             </div>
                         </div>
@@ -371,7 +381,7 @@
 
                     <!-- Main Charts Row -->
                     <div class="row mb-2">
-                        <!-- Most Implemented Interventions (Now Bar Chart) -->
+                        <!-- Most Implemented Interventions -->
                         <div class="col-lg-6 mb-2">
                             <div class="card h-100">
                                 <div class="card-header bg-white">
@@ -398,11 +408,11 @@
 
                     <!-- Second Charts Row -->
                     <div class="row mb-2">
-                        <!-- Avg. Time/Care Need Category (Now Doughnut Chart) -->
+                        <!-- Time/Care Need Category Chart -->
                         <div class="col-lg-6 mb-2">
                             <div class="card h-100">
                                 <div class="card-header bg-white">
-                                    <h5 class="mb-0" style="font-size: clamp(1rem, 1.5vw, 1.2rem);">Avg. Time/Care Need Category</h5>
+                                    <h5 class="mb-0" style="font-size: clamp(1rem, 1.5vw, 1.2rem);">Time Per Care Category</h5>
                                 </div>
                                 <div class="card-body">
                                     <canvas id="timePerCategoryChart" height="200" width="400"></canvas>
@@ -413,17 +423,8 @@
                         <!-- Intervention Time Breakdown -->
                         <div class="col-lg-6 mb-2">
                             <div class="card h-100">
-                                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                                <div class="card-header bg-white">
                                     <h5 class="mb-0" style="font-size: clamp(1rem, 1.5vw, 1.2rem);">Intervention Time Breakdown</h5>
-                                    <select id="chartDataSelector" class="form-select dropdown-menu-end" style="font-size: clamp(0.8rem, 1vw, 1rem); width: 180px;">
-                                        <option value="set1">Set 1: Mobility</option>
-                                        <option value="set2">Set 2: Cognitive/Communication</option>
-                                        <option value="set3">Set 3: Self-Sustainability</option>
-                                        <option value="set4">Set 4: Disease/Therapy</option>
-                                        <option value="set5">Set 5: Socical Contact</option>
-                                        <option value="set6">Set 6: Outdoor Activities</option>
-                                        <option value="set7">Set 7: Household Activities</option>
-                                    </select>
                                 </div>
                                 <div class="card-body">
                                     <canvas id="interventionTimeChart" height="200" width="400"></canvas>
@@ -557,12 +558,72 @@
 
         // Initial setup
         updateTimeFilters();
+
+        // Add reset button functionality
+        const resetFilterBtn = document.getElementById('resetFilterBtn');
+        resetFilterBtn.addEventListener('click', function() {
+            // Reset all filters to default and submit form
+            document.getElementById('careWorkerSelect').value = '';
+            document.getElementById('municipalitySelect').value = '';
+            document.getElementById('timeRange').value = 'weeks';
+            document.getElementById('monthSelect').value = new Date().getMonth() + 1;
+            document.getElementById('startMonth').value = 1;
+            document.getElementById('endMonth').value = 12;
+            document.getElementById('yearSelect').value = new Date().getFullYear();
+            
+            // Update visibility of time range filters
+            updateTimeFilters();
+            
+            // Submit the form
+            document.getElementById('filterForm').submit();
+        });
+
+        // Check if any filter is non-default and show/hide reset button accordingly
+        function checkFiltersModified() {
+            const careWorkerSelect = document.getElementById('careWorkerSelect');
+            const municipalitySelect = document.getElementById('municipalitySelect');
+            const timeRange = document.getElementById('timeRange');
+            const monthSelect = document.getElementById('monthSelect');
+            const startMonth = document.getElementById('startMonth');
+            const endMonth = document.getElementById('endMonth');
+            const yearSelect = document.getElementById('yearSelect');
+            
+            const currentMonth = new Date().getMonth() + 1;
+            const currentYear = new Date().getFullYear();
+            
+            // Check if any filter is non-default
+            const isModified = 
+                careWorkerSelect.value !== '' ||
+                municipalitySelect.value !== '' ||
+                timeRange.value !== 'weeks' ||
+                (timeRange.value === 'weeks' && parseInt(monthSelect.value) !== currentMonth) ||
+                (timeRange.value === 'months' && (parseInt(startMonth.value) !== 1 || parseInt(endMonth.value) !== 12)) ||
+                (timeRange.value === 'year' && yearSelect.value != currentYear);
+            
+            // Show/hide reset button based on whether filters are modified
+            resetFilterBtn.style.display = isModified ? 'inline-block' : 'none';
+        }
+
+        // Add event listeners to all filter controls to check if they've been modified
+        const filterControls = document.querySelectorAll('#filterForm select');
+        filterControls.forEach(control => {
+            control.addEventListener('change', checkFiltersModified);
+        });
+        
+        // Initial check for filter modifications
+        checkFiltersModified();
+        
     });
 </script>
 
+    <script src="{{ asset('js/toggleSideBar.js') }}"></script>
+    <script src="{{ asset('js/bootstrap.bundle.min.js') }}"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    
+
     <script>
+        // CHART CONFIGURATION
+        // Base chart configuration with responsive settings
+
         document.addEventListener('DOMContentLoaded', function() {
             // Base chart configuration
             const baseChartOptions = {
@@ -635,15 +696,17 @@
                 }
             };
 
-            // Most Implemented Interventions (Bar Chart)
-            const mostImplementedCtx = document.getElementById('mostImplementedChart').getContext('2d');
-            new Chart(mostImplementedCtx, {
+            // Most Implemented Interventions Chart
+            const mostImplementedLabels = @json(array_column($mostImplementedInterventions, 'intervention_description') ?? []);
+            const mostImplementedData = @json(array_column($mostImplementedInterventions, 'count') ?? []);
+
+            new Chart(document.getElementById('mostImplementedChart').getContext('2d'), {
                 type: 'bar',
                 data: {
-                    labels: ['Assist in Sitting', 'Bathing', 'Light Exercise', 'Gardening'],
+                    labels: mostImplementedLabels.length > 0 ? mostImplementedLabels : ['No data available'],
                     datasets: [{
                         label: 'Times Implemented',
-                        data: [120, 95, 80, 65],
+                        data: mostImplementedData.length > 0 ? mostImplementedData : [0],
                         backgroundColor: 'rgba(54, 162, 235, 0.7)',
                         borderColor: 'rgba(54, 162, 235, 1)',
                         borderWidth: 1
@@ -652,9 +715,7 @@
                 options: {
                     ...barChartOptions,
                     plugins: {
-                        legend: {
-                            display: false
-                        }
+                        legend: { display: false }
                     }
                 }
             });
@@ -694,15 +755,17 @@
                 }
             });
 
-            // Hours per Client (Horizontal Bar Chart)
-            const clientHoursCtx = document.getElementById('clientHoursChart').getContext('2d');
-            new Chart(clientHoursCtx, {
+            // Hours per Client Chart
+            const clientLabels = @json(array_column($hoursPerClient, 'beneficiary_name') ?? []);
+            const clientData = @json(array_column($hoursPerClient, 'hours') ?? []);
+
+            new Chart(document.getElementById('clientHoursChart').getContext('2d'), {
                 type: 'bar',
                 data: {
-                    labels: ['R. Smith', 'M. Johnson', 'T. Williams', 'J. Brown', 'R. Davis'],
+                    labels: clientLabels.length > 0 ? clientLabels : ['No data available'],
                     datasets: [{
                         label: 'Hours',
-                        data: [56, 48, 42, 38, 35],
+                        data: clientData.length > 0 ? clientData : [0],
                         backgroundColor: 'rgba(75, 192, 192, 0.7)',
                         borderColor: 'rgba(75, 192, 192, 1)',
                         borderWidth: 1
@@ -712,9 +775,7 @@
                     ...barChartOptions,
                     indexAxis: 'y',
                     plugins: {
-                        legend: {
-                            display: false
-                        }
+                        legend: { display: false }
                     }
                 }
             });
@@ -752,5 +813,195 @@
             });
         });
     </script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Toggle visibility of filters based on the selected time range
+            function updateTimeFilters() {
+                const timeRange = document.getElementById('timeRange').value;
+
+                // Hide all filters first
+                document.getElementById('weekFilterContainer').classList.add('d-none');
+                document.getElementById('monthRangeFilterContainer').classList.add('d-none');
+                document.getElementById('yearFilterContainer').classList.add('d-none');
+
+                // Show the appropriate filter
+                if (timeRange === 'weeks') {
+                    document.getElementById('weekFilterContainer').classList.remove('d-none');
+                } else if (timeRange === 'months') {
+                    document.getElementById('monthRangeFilterContainer').classList.remove('d-none');
+                } else if (timeRange === 'year') {
+                    document.getElementById('yearFilterContainer').classList.remove('d-none');
+                }
+            }
+
+            // Handle care worker selection
+            function handleCareWorkerSelection() {
+                const careWorkerSelect = document.getElementById('careWorkerSelect');
+                const municipalitySelect = document.getElementById('municipalitySelect');
+                
+                if (careWorkerSelect.value) {
+                    municipalitySelect.disabled = true;
+                } else {
+                    municipalitySelect.disabled = false;
+                }
+            }
+
+            // Submit form when Apply button is clicked
+            function applyFilters() {
+                document.getElementById('filterForm').submit();
+            }
+
+            // Event listeners
+            document.getElementById('timeRange').addEventListener('change', updateTimeFilters);
+            document.getElementById('careWorkerSelect').addEventListener('change', handleCareWorkerSelection);
+            document.getElementById('applyFilterBtn').addEventListener('click', applyFilters);
+            
+            // Initial setup
+            updateTimeFilters();
+            handleCareWorkerSelection();
+            
+            // CHART CONFIGURATION
+            // Base chart configuration with responsive settings
+            const baseChartOptions = {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'right',
+                        labels: {
+                            boxWidth: 10,
+                            font: { size: 10 }
+                        }
+                    }
+                }
+            };
+
+            // Configuration for bar charts
+            const barChartOptions = {
+                ...baseChartOptions,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: { display: true },
+                        ticks: { font: { size: 9 } },
+                        title: {
+                            display: true,
+                            text: 'Count',
+                            font: { size: 10 }
+                        }
+                    },
+                    x: {
+                        grid: { display: false },
+                        ticks: { font: { size: 9 } }
+                    }
+                }
+            };
+
+            // Configuration for doughnut/pie charts
+            const circularChartOptions = {
+                ...baseChartOptions,
+                plugins: {
+                    legend: {
+                        position: 'right',
+                        labels: {
+                            boxWidth: 10,
+                            font: { size: 10 }
+                        }
+                    }
+                },
+                cutout: '50%'
+            };
+
+            // Most Implemented Interventions Chart (placeholder data)
+            new Chart(document.getElementById('mostImplementedChart').getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: ['Assist in Sitting', 'Bathing', 'Light Exercise', 'Gardening'],
+                    datasets: [{
+                        label: 'Times Implemented',
+                        data: [120, 95, 80, 65],
+                        backgroundColor: 'rgba(54, 162, 235, 0.7)',
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    ...barChartOptions,
+                    plugins: {
+                        legend: { display: false }
+                    }
+                }
+            });
+
+            // Hours per Client Chart (placeholder data)
+            new Chart(document.getElementById('clientHoursChart').getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: ['R. Smith', 'M. Johnson', 'T. Williams', 'J. Brown', 'R. Davis'],
+                    datasets: [{
+                        label: 'Hours',
+                        data: [56, 48, 42, 38, 35],
+                        backgroundColor: 'rgba(75, 192, 192, 0.7)',
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    ...barChartOptions,
+                    indexAxis: 'y',
+                    plugins: {
+                        legend: { display: false }
+                    }
+                }
+            });
+
+            // Time Per Care Category Chart (placeholder data)
+            new Chart(document.getElementById('timePerCategoryChart').getContext('2d'), {
+                type: 'doughnut',
+                data: {
+                    labels: ['Mobility', 'Cognitive', 'Self-Sustainability', 'Disease Therapy', 'Social Contact'],
+                    datasets: [{
+                        data: [45, 30, 35, 25, 20],
+                        backgroundColor: [
+                            'rgba(255, 99, 132, 0.7)',
+                            'rgba(54, 162, 235, 0.7)',
+                            'rgba(255, 206, 86, 0.7)',
+                            'rgba(75, 192, 192, 0.7)',
+                            'rgba(153, 102, 255, 0.7)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: circularChartOptions
+            });
+
+            // Intervention Time Breakdown Chart (placeholder data)
+            new Chart(document.getElementById('interventionTimeChart').getContext('2d'), {
+                type: 'pie',
+                data: {
+                    labels: ['Personal Care', 'Medication', 'Meal Prep', 'Mobility', 'Companionship'],
+                    datasets: [{
+                        data: [45, 15, 30, 20, 60],
+                        backgroundColor: [
+                            'rgba(255, 99, 132, 0.7)',
+                            'rgba(54, 162, 235, 0.7)',
+                            'rgba(255, 206, 86, 0.7)',
+                            'rgba(75, 192, 192, 0.7)',
+                            'rgba(153, 102, 255, 0.7)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: circularChartOptions
+            });
+
+            // Handle PDF export button
+            document.getElementById('exportPdfBtn').addEventListener('click', function() {
+                alert('Export to PDF functionality will be implemented here');
+                // You can implement PDF export functionality here
+            });
+        });
+        </script>
 </body>
 </html>

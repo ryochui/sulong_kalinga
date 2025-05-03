@@ -229,6 +229,13 @@ Route::middleware(['auth', '\App\Http\Middleware\CheckRole:administrator'])->pre
         Route::post('add-group-member', [MessageController::class, 'addGroupMember'])->name('add-group-member');
         Route::post('unsend-message/{id}', [MessageController::class, 'unsendMessage'])->name('unsend');
     });
+
+    // Care Worker Performance
+    Route::prefix('care-worker-performance')->name('careworker.performance.')->group(function () {
+        Route::get('/', [CareWorkerPerformanceController::class, 'index'])->name('index');
+    });
+
+    
 });
 
 // Route::get('/admin/viewProfile', function () {
