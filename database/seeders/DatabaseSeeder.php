@@ -79,7 +79,7 @@ class DatabaseSeeder extends Seeder
 
         // 3. Create general care plans with all related data
         $generalCarePlans = [];
-        for ($i = 1; $i <= 15; $i++) {
+        for ($i = 1; $i <= 15; $i++) {  // Use condition +1 for testing. Reset back when done with testing with the portal account and beneficiary seeding way below
             // Get a random care worker
             $careWorkerId = $careWorkers[array_rand($careWorkers)]->id;
             
