@@ -26,6 +26,27 @@ return new class extends Migration
             $table->unsignedBigInteger('portal_account_id')->nullable();
             $table->timestamps();
         });
+
+        // Copy all cose_users into users table
+        if (\Schema::hasTable('cose_users')) {
+            $coseUsers = \DB::table('cose_users')->get();
+            foreach ($coseUsers as $coseUser) {
+                \DB::table('users')->insert([
+                    'email' => $coseUser->email,
+                    'password' => $coseUser->password,
+                    'first_name' => $coseUser->first_name,
+                    'last_name' => $coseUser->last_name,
+                    'mobile' => $coseUser->mobile,
+                    'role_id' => $coseUser->role_id,
+                    'status' => $coseUser->status,
+                    'user_type' => 'cose',
+                    'cose_user_id' => $coseUser->id,
+                    'portal_account_id' => null,
+                    'created_at' => $coseUser->created_at,
+                    'updated_at' => $coseUser->updated_at,
+                ]);
+            }
+        }
     }
 
     /**
