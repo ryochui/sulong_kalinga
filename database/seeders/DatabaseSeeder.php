@@ -172,8 +172,8 @@ class DatabaseSeeder extends Seeder
     {
         // Fetch all care categories
         $careCategories = CareCategory::all();
-        $interventionsByCategoryId = [];
-        
+        $interventionsByCategoryId = []; // Initialize the array
+
         // Get all interventions by category
         foreach ($careCategories as $category) {
             $interventions = Intervention::where('care_category_id', $category->care_category_id)->get();
@@ -181,11 +181,21 @@ class DatabaseSeeder extends Seeder
                 $interventionsByCategoryId[$category->care_category_id] = $interventions->pluck('intervention_id')->toArray();
             }
         }
+            
+        // FIXED DATE GENERATION - Use explicit arrays of valid dates instead of Carbon calculations
+        $validYears = [2024, 2025];
+        $validMonths = range(1, 12);
+        $validDates = [];
         
-        // Distribution of care plans throughout 2024-2025
-        $startDate = Carbon::createFromDate(2024, 1, 1);
-        $endDate = Carbon::createFromDate(2025, 12, 31);
-        $dateRange = $endDate->diffInDays($startDate);
+        // Generate an array of valid dates in 2024-2025 format
+        foreach ($validYears as $year) {
+            foreach ($validMonths as $month) {
+                $daysInMonth = cal_days_in_month(CAL_GREGORIAN, $month, $year);
+                for ($day = 1; $day <= $daysInMonth; $day++) {
+                    $validDates[] = sprintf('%04d-%02d-%02d', $year, $month, $day);
+                }
+            }
+        }
         
         // Create 50 weekly care plans
         for ($i = 0; $i < 50; $i++) {
@@ -198,17 +208,23 @@ class DatabaseSeeder extends Seeder
                 'created_by' => $careWorker->id,
             ]);
             
-            // Create weekly care plan with a date in 2024-2025
-            $planDate = $startDate->copy()->addDays(rand(0, $dateRange));
+            // Pick a random date from our valid dates array
+            $planDate = $validDates[array_rand($validDates)];
             
-            $weeklyCarePlan = WeeklyCarePlan::factory()->create([
-                'beneficiary_id' => $beneficiary->beneficiary_id,
-                'care_worker_id' => $careWorker->id,
-                'vital_signs_id' => $vitalSigns->vital_signs_id,
-                'date' => $planDate,
-                'created_by' => $careWorker->id,
-                'updated_by' => $careWorker->id
-            ]);
+            // Log the date we're using to verify
+            \Log::info("Creating weekly care plan with date: {$planDate}");
+            
+            // Create the weekly care plan without using factory
+            $weeklyCarePlan = new WeeklyCarePlan();
+            $weeklyCarePlan->beneficiary_id = $beneficiary->beneficiary_id;
+            $weeklyCarePlan->care_worker_id = $careWorker->id;
+            $weeklyCarePlan->vital_signs_id = $vitalSigns->vital_signs_id;
+            $weeklyCarePlan->date = $planDate; // Set the date directly as a string
+            $weeklyCarePlan->assessment = $this->getRandomAssessment();
+            $weeklyCarePlan->evaluation_recommendations = $this->getRandomRecommendation();
+            $weeklyCarePlan->created_by = $careWorker->id;
+            $weeklyCarePlan->updated_by = $careWorker->id;
+            $weeklyCarePlan->save();
             
             // Add 3-8 interventions from different categories
             $numInterventions = rand(3, 8);
@@ -261,12 +277,11 @@ class DatabaseSeeder extends Seeder
             }
         }
         
-        // Create overlapping plans for specific care workers for better testing
-        $selectedCareWorker = $careWorkers[0]; // First care worker
+        // Create overlapping plans with fixed dates
         $overlappingDates = [
-            $startDate->copy()->addMonths(3)->format('Y-m-d'),
-            $startDate->copy()->addMonths(4)->format('Y-m-d'),
-            $startDate->copy()->addMonths(5)->format('Y-m-d')
+            '2024-03-15',
+            '2024-04-15',
+            '2024-05-15'
         ];
         
         foreach ($overlappingDates as $date) {
@@ -280,15 +295,20 @@ class DatabaseSeeder extends Seeder
                     'created_by' => $careWorker->id,
                 ]);
                 
-                $weeklyCarePlan = WeeklyCarePlan::factory()->create([
-                    'beneficiary_id' => $beneficiary->beneficiary_id,
-                    'care_worker_id' => $careWorker->id,
-                    'vital_signs_id' => $vitalSigns->vital_signs_id,
-                    'date' => $date,
-                    'created_by' => $careWorker->id,
-                    'updated_by' => $careWorker->id
-                ]);
+                // Log the overlapping date we're using
+                \Log::info("Creating overlapping weekly care plan with date: {$date}");
                 
+                $weeklyCarePlan = new WeeklyCarePlan();
+                $weeklyCarePlan->beneficiary_id = $beneficiary->beneficiary_id;
+                $weeklyCarePlan->care_worker_id = $careWorker->id;
+                $weeklyCarePlan->vital_signs_id = $vitalSigns->vital_signs_id;
+                $weeklyCarePlan->date = $date; // String date format
+                $weeklyCarePlan->assessment = $this->getRandomAssessment();
+                $weeklyCarePlan->evaluation_recommendations = $this->getRandomRecommendation();
+                $weeklyCarePlan->created_by = $careWorker->id;
+                $weeklyCarePlan->updated_by = $careWorker->id;
+                $weeklyCarePlan->save();
+                                
                 // Add interventions from all categories for these overlapping plans
                 foreach ($careCategories as $category) {
                     $categoryId = $category->care_category_id;
@@ -871,4 +891,41 @@ class DatabaseSeeder extends Seeder
             }
         }
     }
+
+    private function getRandomAssessment()
+    {
+        $assessments = [
+            "Beneficiary shows improved mobility compared to last week. Maintains good spirits and is engaging well with care activities.",
+            "Cognitive function stable; some memory issues persist but responds well to memory exercises. Appetite has improved.",
+            "Sleep patterns remain disrupted. Requires additional assistance with ADLs. Pain levels manageable with current medication.",
+            "Mood fluctuations noted this week. Physical strength improving gradually with exercise regimen. Social engagement increased.",
+            "Beneficiary experienced mild respiratory difficulties but recovered well. Hydration and nutrition intake adequate.",
+            "Notable progress in self-care abilities. Beneficiary participated actively in all therapy sessions. Family reports satisfaction with care.",
+            "Some anxiety observed when discussing medical appointments. Mobility has improved with the new assistive device.",
+            "Beneficiary appears more energetic this week. Completed all recommended exercises. Medication compliance has improved.",
+            "Blood pressure readings slightly elevated. Will monitor closely. Otherwise, beneficiary is engaging well in daily activities.",
+            "Beneficiary expressed interest in community activities. Physical condition stable. Requires ongoing support with meal preparation."
+        ];
+        
+        return $assessments[array_rand($assessments)];
+    }
+
+    private function getRandomRecommendation()
+    {
+        $recommendations = [
+            "Continue current mobility exercises and gradually increase intensity. Follow up on referral to physical therapy.",
+            "Maintain memory exercises daily. Consider adding new cognitive activities to prevent boredom. Review medication schedule with doctor.",
+            "Implement suggested sleep hygiene practices. Consider adjusting evening routine to improve sleep quality. Follow up on pain management.",
+            "Encourage participation in social group activities twice weekly. Continue monitoring mood and report significant changes.",
+            "Monitor respiratory function closely. Ensure proper hydration and nutrition intake. Follow up with pulmonary specialist as scheduled.",
+            "Continue current self-care regimen. Celebrate progress with beneficiary. Schedule follow-up with family to discuss ongoing support.",
+            "Provide additional emotional support before medical appointments. Continue with current mobility assistance devices.",
+            "Maintain current exercise regimen. Provide positive reinforcement for medication compliance. Consider adding new activities.",
+            "Schedule follow-up to monitor blood pressure. Review dietary recommendations. Continue with current social activities.",
+            "Support interest in community activities by providing transportation options. Continue meal preparation support while encouraging participation."
+        ];
+        
+        return $recommendations[array_rand($recommendations)];
+    }
+
 }
