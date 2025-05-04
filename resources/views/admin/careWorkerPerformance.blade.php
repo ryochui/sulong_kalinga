@@ -921,12 +921,6 @@
             });
             @endif
 
-            // Handle PDF export button
-            document.getElementById('exportPdfBtn').addEventListener('click', function() {
-                alert('Export to PDF functionality will be implemented here');
-                // You can implement PDF export functionality here
-            });
-
             // Sorting functions for the performance table
             const sortButtons = document.querySelectorAll('.sort-btn');
             if (sortButtons) {
@@ -972,6 +966,38 @@
             // Sort table alphabetically (A-Z) by default on page load
             sortTable('asc');
                     
+        });
+
+        // Handle PDF export button - replace the existing event listener
+        document.getElementById('exportPdfBtn').addEventListener('click', function() {
+            // Create a form to submit the current filter values
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '{{ route("admin.export.careworker.performance.pdf") }}';
+            form.style.display = 'none';
+            
+            // Add CSRF token
+            const csrfToken = document.createElement('input');
+            csrfToken.type = 'hidden';
+            csrfToken.name = '_token';
+            csrfToken.value = '{{ csrf_token() }}';
+            form.appendChild(csrfToken);
+            
+            // Copy all filter values from the filter form
+            const filterForm = document.getElementById('filterForm');
+            const filterInputs = filterForm.querySelectorAll('select, input');
+            
+            filterInputs.forEach(input => {
+                const hiddenField = document.createElement('input');
+                hiddenField.type = 'hidden';
+                hiddenField.name = input.name;
+                hiddenField.value = input.value;
+                form.appendChild(hiddenField);
+            });
+            
+            // Append form to body and submit
+            document.body.appendChild(form);
+            form.submit();
         });
 
         </script>

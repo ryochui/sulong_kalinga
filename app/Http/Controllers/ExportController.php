@@ -399,4 +399,84 @@ class ExportController extends Controller
         // Return the Excel download
         return Excel::download(new AdministratorsExport($administratorIds), $filename);
     }
+
+    public function exportCareWorkerPerformanceToPdf(Request $request)
+    {
+        // Get the same filters that were used in the view
+        $careWorkerId = $request->input('care_worker_id');
+        $municipalityId = $request->input('municipality_id');
+        $timeRange = $request->input('time_range', 'weeks');
+        $month = $request->input('month');
+        $startMonth = $request->input('start_month');
+        $endMonth = $request->input('end_month');
+        $year = $request->input('year');
+
+        // Create a new request with these parameters
+        $performanceRequest = new Request();
+        $performanceRequest->merge([
+            'care_worker_id' => $careWorkerId,
+            'municipality_id' => $municipalityId,
+            'time_range' => $timeRange,
+            'month' => $month,
+            'start_month' => $startMonth,
+            'end_month' => $endMonth,
+            'year' => $year
+        ]);
+
+        // Use the CareWorkerPerformanceController to get the same data
+        $performanceController = new CareWorkerPerformanceController();
+        
+        // This is a trick to get the data without rendering the view
+        $response = $performanceController->index($performanceRequest);
+        
+        // Extract the data from the response
+        $data = $response->getData();
+        
+        // Convert chart data to images using Chart.js server-side rendering or placeholder images
+        // For simplicity, we'll use a PDF-optimized version without interactive charts
+        
+        // Get specific data needed for the PDF
+        $selectedCareWorker = null;
+        if ($careWorkerId) {
+            $selectedCareWorker = User::find($careWorkerId);
+        }
+        
+        $selectedMunicipality = null;
+        if ($municipalityId) {
+            $selectedMunicipality = Municipality::find($municipalityId);
+        }
+        
+        // Format the date for the PDF
+        $filterDescription = "";
+        if ($selectedCareWorker) {
+            $filterDescription .= "Care Worker: " . $selectedCareWorker->first_name . " " . $selectedCareWorker->last_name . " | ";
+        } else {
+            $filterDescription .= "Care Worker: All | ";
+        }
+        
+        if ($selectedMunicipality) {
+            $filterDescription .= "Municipality: " . $selectedMunicipality->municipality_name . " | ";
+        } else {
+            $filterDescription .= "Municipality: All | ";
+        }
+        
+        $filterDescription .= "Time Range: " . ucfirst($timeRange) . " | ";
+        $filterDescription .= "Date: " . $data['dateRangeLabel'];
+        
+        // Generate the PDF using the extracted data
+        $pdf = PDF::loadView('exports.careworker-performance-pdf', [
+            'data' => $data,
+            'filterDescription' => $filterDescription,
+            'exportDate' => now()->format('F d, Y h:i A'),
+        ]);
+
+        // Set paper size to landscape for better layout
+        $pdf->setPaper('a4', 'landscape');
+        
+        // Generate a filename with date and time
+        $filename = 'CareWorker_Performance_' . now()->format('Y-m-d_H-i-s') . '.pdf';
+        
+        // Return the PDF as a download
+        return $pdf->download($filename);
+    }
 }
