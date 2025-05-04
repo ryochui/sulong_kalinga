@@ -230,6 +230,117 @@ class CareWorkerPerformanceController extends Controller
                 'interventions' => $interventionStats
             ];
         }
+
+        // Time Per Category Chart Data
+        $categoryTimeBreakdown = [];
+        if ($hasRecords) {
+            $categoryData = DB::table('weekly_care_plan_interventions as wpi')
+                ->leftJoin('weekly_care_plans as wcp', 'wpi.weekly_care_plan_id', '=', 'wcp.weekly_care_plan_id')
+                ->leftJoin('interventions as i', 'wpi.intervention_id', '=', 'i.intervention_id')
+                ->leftJoin('care_categories as cc', function($join) {
+                    $join->on('i.care_category_id', '=', 'cc.care_category_id')
+                        ->orOn('wpi.care_category_id', '=', 'cc.care_category_id');
+                })
+                ->whereIn('wpi.weekly_care_plan_id', $weeklyCarePlanIds)
+                ->select(
+                    'cc.care_category_name',
+                    'cc.care_category_id',
+                    DB::raw('SUM(wpi.duration_minutes) as total_minutes')
+                )
+                ->groupBy('cc.care_category_id', 'cc.care_category_name')
+                ->orderBy('total_minutes', 'desc')
+                ->get();
+            
+            foreach ($categoryData as $category) {
+                if ($category->care_category_name) {
+                    $hours = floor($category->total_minutes / 60);
+                    $minutes = $category->total_minutes % 60;
+                    
+                    $categoryTimeBreakdown[] = [
+                        'category_name' => $category->care_category_name,
+                        'total_minutes' => $category->total_minutes,
+                        'hours' => $hours,
+                        'minutes' => $minutes,
+                        'formatted_time' => $hours . ' hrs ' . ($minutes > 0 ? $minutes . ' min' : '')
+                    ];
+                }
+            }
+        }
+
+        // Client Care Breakdown - only when care worker is selected
+        $clientCareBreakdown = [];
+        if ($hasRecords && $selectedCareWorkerId) {
+            $clientData = DB::table('weekly_care_plan_interventions as wpi')
+                ->join('weekly_care_plans as wcp', 'wpi.weekly_care_plan_id', '=', 'wcp.weekly_care_plan_id')
+                ->join('beneficiaries as b', 'wcp.beneficiary_id', '=', 'b.beneficiary_id')
+                ->whereIn('wpi.weekly_care_plan_id', $weeklyCarePlanIds)
+                ->select(
+                    'b.beneficiary_id',
+                    DB::raw("CONCAT(b.last_name, ', ', LEFT(b.first_name, 1), '.') as beneficiary_name"),
+                    DB::raw('SUM(wpi.duration_minutes) as total_minutes')
+                )
+                ->groupBy('b.beneficiary_id', 'b.last_name', 'b.first_name')
+                ->orderBy('total_minutes', 'desc')
+                ->limit(10)
+                ->get();
+            
+            foreach ($clientData as $client) {
+                $hours = floor($client->total_minutes / 60);
+                $minutes = $client->total_minutes % 60;
+                
+                $clientCareBreakdown[] = [
+                    'beneficiary_name' => $client->beneficiary_name,
+                    'total_minutes' => $client->total_minutes,
+                    'hours' => $hours,
+                    'minutes' => $minutes,
+                    'formatted_time' => $hours . ' hrs ' . ($minutes > 0 ? $minutes . ' min' : '')
+                ];
+            }
+        }
+
+        // Care Worker Performance table data
+        $careWorkerPerformance = [];
+        $performanceData = DB::table('cose_users as cu')
+            ->leftJoin('weekly_care_plans as wcp', function($join) use ($startDate, $endDate) {
+                $join->on('cu.id', '=', 'wcp.care_worker_id')
+                    ->whereBetween('wcp.date', [$startDate, $endDate]);
+            })
+            ->leftJoin('weekly_care_plan_interventions as wpi', 'wcp.weekly_care_plan_id', '=', 'wpi.weekly_care_plan_id')
+            ->where('cu.role_id', 3) // Care workers only
+            ->when($selectedMunicipalityId, function($query) use ($selectedMunicipalityId) {
+                return $query->where('cu.assigned_municipality_id', $selectedMunicipalityId);
+            })
+            ->select(
+                'cu.id as care_worker_id',
+                'cu.first_name',
+                'cu.last_name',
+                DB::raw('COUNT(DISTINCT wcp.weekly_care_plan_id) as beneficiary_visits'),
+                DB::raw('COUNT(wpi.wcp_intervention_id) as interventions_performed'),
+                DB::raw('SUM(COALESCE(wpi.duration_minutes, 0)) as total_minutes')
+            )
+            ->groupBy('cu.id', 'cu.first_name', 'cu.last_name')
+            ->orderBy('cu.last_name')
+            ->get();
+
+        foreach ($performanceData as $worker) {
+            $hours = floor($worker->total_minutes / 60);
+            $minutes = $worker->total_minutes % 60;
+            
+            $careWorkerPerformance[] = [
+                'id' => $worker->care_worker_id,
+                'name' => $worker->last_name . ', ' . $worker->first_name,
+                'hours_worked' => [
+                    'hours' => $hours,
+                    'minutes' => $minutes,
+                    'formatted_time' => $hours . ' hrs ' . ($minutes > 0 ? $minutes . ' min' : '')
+                ],
+                'beneficiary_visits' => $worker->beneficiary_visits ?: 0,
+                'interventions_performed' => $worker->interventions_performed ?: 0,
+                'is_selected' => $selectedCareWorkerId == $worker->care_worker_id
+            ];
+        }
+
+
         
         return view('admin.careWorkerPerformance', compact(
             'careWorkers',
@@ -250,7 +361,10 @@ class CareWorkerPerformanceController extends Controller
             'mostImplementedInterventions',
             'hoursPerClient',
             'careCategories',
-            'categorySummaries'
+            'categorySummaries',
+            'categoryTimeBreakdown',
+            'clientCareBreakdown',
+            'careWorkerPerformance'
         ));
 
     }

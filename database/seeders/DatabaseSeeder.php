@@ -152,39 +152,226 @@ class DatabaseSeeder extends Seeder
                 
             $additionalBeneficiaries[] = $beneficiary;
         }
-
-        // 6. Generate vital signs and weekly care plans
-        foreach (range(1, 10) as $index) {
-            // Get a random care worker to be the creator of both records
-            $careWorkerId = $careWorkers[array_rand($careWorkers)]->id;
-            
-            // Create vital signs with the care worker as creator
-            $vitalSigns = VitalSigns::factory()->create([
-                'created_by' => $careWorkerId,
-            ]);
-            
-            // Create weekly care plan with the same care worker as creator and reference the vital signs
-            $weeklyCarePlan = WeeklyCarePlan::factory()->create([
-                'care_worker_id' => $careWorkerId,
-                'vital_signs_id' => $vitalSigns->vital_signs_id,
-                'created_by' => $careWorkerId,
-            ]);
-            
-            // Create weekly care plan interventions for each category
-            foreach (range(1, 7) as $careCategoryId) {
-                WeeklyCarePlanInterventions::factory()->create([
-                    'weekly_care_plan_id' => $weeklyCarePlan->weekly_care_plan_id,
-                    'intervention_id' => $careCategoryId,
-                ]);
-            }
-        }
+        
+         // 6. Generate weekly care plans with realistic intervention data
+         $this->generateRealisticWeeklyCarePlans($careWorkers, $beneficiaries);
 
         // 7. Generate notifications
         $this->generateNotifications();
 
         // 8. Generate conversations and messages
         $this->generateConversations();
+
     }
+
+    /**
+     * Generate realistic weekly care plans with diverse interventions
+     * Using existing interventions from the database
+     */
+    private function generateRealisticWeeklyCarePlans($careWorkers, $beneficiaries)
+    {
+        // Fetch all care categories
+        $careCategories = CareCategory::all();
+        $interventionsByCategoryId = [];
+        
+        // Get all interventions by category
+        foreach ($careCategories as $category) {
+            $interventions = Intervention::where('care_category_id', $category->care_category_id)->get();
+            if ($interventions->count() > 0) {
+                $interventionsByCategoryId[$category->care_category_id] = $interventions->pluck('intervention_id')->toArray();
+            }
+        }
+        
+        // Distribution of care plans throughout 2024-2025
+        $startDate = Carbon::createFromDate(2024, 1, 1);
+        $endDate = Carbon::createFromDate(2025, 12, 31);
+        $dateRange = $endDate->diffInDays($startDate);
+        
+        // Create 50 weekly care plans
+        for ($i = 0; $i < 50; $i++) {
+            // Select a random care worker and beneficiary
+            $careWorker = $careWorkers[array_rand($careWorkers)];
+            $beneficiary = $beneficiaries[array_rand($beneficiaries)];
+            
+            // Create vital signs
+            $vitalSigns = VitalSigns::factory()->create([
+                'created_by' => $careWorker->id,
+            ]);
+            
+            // Create weekly care plan with a date in 2024-2025
+            $planDate = $startDate->copy()->addDays(rand(0, $dateRange));
+            
+            $weeklyCarePlan = WeeklyCarePlan::factory()->create([
+                'beneficiary_id' => $beneficiary->beneficiary_id,
+                'care_worker_id' => $careWorker->id,
+                'vital_signs_id' => $vitalSigns->vital_signs_id,
+                'date' => $planDate,
+                'created_by' => $careWorker->id,
+                'updated_by' => $careWorker->id
+            ]);
+            
+            // Add 3-8 interventions from different categories
+            $numInterventions = rand(3, 8);
+            
+            // Ensure we pick interventions from different categories
+            $usedCategoryIds = [];
+            
+            for ($j = 0; $j < $numInterventions; $j++) {
+                // Pick a category (prioritize unused ones)
+                $availableCategoryIds = array_diff(array_keys($interventionsByCategoryId), $usedCategoryIds);
+                
+                if (empty($availableCategoryIds)) {
+                    // If we've used all categories, reset and pick randomly
+                    $categoryId = array_rand($interventionsByCategoryId);
+                } else {
+                    // Pick from unused categories
+                    $categoryId = $availableCategoryIds[array_rand($availableCategoryIds)];
+                    $usedCategoryIds[] = $categoryId;
+                }
+                
+                // Get interventions for this category
+                $categoryInterventions = $interventionsByCategoryId[$categoryId];
+                
+                if (!empty($categoryInterventions)) {
+                    // Pick a random intervention from this category
+                    $interventionId = $categoryInterventions[array_rand($categoryInterventions)];
+                    
+                    // Determine if this should be a custom intervention (20% chance)
+                    $isCustom = (rand(1, 5) === 1);
+                    
+                    if ($isCustom) {
+                        // Custom intervention - no intervention_id, only category_id and description
+                        WeeklyCarePlanInterventions::create([
+                            'weekly_care_plan_id' => $weeklyCarePlan->weekly_care_plan_id,
+                            'care_category_id' => $categoryId,
+                            'intervention_description' => 'Custom: ' . $this->getRandomCustomIntervention($categoryId),
+                            'duration_minutes' => rand(15, 120),
+                            'implemented' => (rand(1, 10) > 2) // 80% chance of being implemented
+                        ]);
+                    } else {
+                        // Standard intervention
+                        WeeklyCarePlanInterventions::create([
+                            'weekly_care_plan_id' => $weeklyCarePlan->weekly_care_plan_id,
+                            'intervention_id' => $interventionId,
+                            'duration_minutes' => rand(15, 120),
+                            'implemented' => (rand(1, 10) > 2) // 80% chance of being implemented
+                        ]);
+                    }
+                }
+            }
+        }
+        
+        // Create overlapping plans for specific care workers for better testing
+        $selectedCareWorker = $careWorkers[0]; // First care worker
+        $overlappingDates = [
+            $startDate->copy()->addMonths(3)->format('Y-m-d'),
+            $startDate->copy()->addMonths(4)->format('Y-m-d'),
+            $startDate->copy()->addMonths(5)->format('Y-m-d')
+        ];
+        
+        foreach ($overlappingDates as $date) {
+            // Create 3 plans on the same date by different care workers
+            for ($i = 0; $i < 3; $i++) {
+                $careWorker = $careWorkers[$i]; // Use first 3 care workers
+                $beneficiary = $beneficiaries[array_rand($beneficiaries)];
+                
+                // Create vital signs
+                $vitalSigns = VitalSigns::factory()->create([
+                    'created_by' => $careWorker->id,
+                ]);
+                
+                $weeklyCarePlan = WeeklyCarePlan::factory()->create([
+                    'beneficiary_id' => $beneficiary->beneficiary_id,
+                    'care_worker_id' => $careWorker->id,
+                    'vital_signs_id' => $vitalSigns->vital_signs_id,
+                    'date' => $date,
+                    'created_by' => $careWorker->id,
+                    'updated_by' => $careWorker->id
+                ]);
+                
+                // Add interventions from all categories for these overlapping plans
+                foreach ($careCategories as $category) {
+                    $categoryId = $category->care_category_id;
+                    if (isset($interventionsByCategoryId[$categoryId]) && !empty($interventionsByCategoryId[$categoryId])) {
+                        $interventionId = $interventionsByCategoryId[$categoryId][array_rand($interventionsByCategoryId[$categoryId])];
+                        
+                        WeeklyCarePlanInterventions::create([
+                            'weekly_care_plan_id' => $weeklyCarePlan->weekly_care_plan_id,
+                            'intervention_id' => $interventionId,
+                            'duration_minutes' => rand(15, 120),
+                            'implemented' => true
+                        ]);
+                    }
+                }
+            }
+        }
+    }
+    
+    /**
+     * Get a random custom intervention description based on category
+     */
+    private function getRandomCustomIntervention($categoryId)
+    {
+        $customInterventions = [
+            1 => [ // Mobility
+                'Specialized wheelchair transfer technique',
+                'Custom mobility exercise program',
+                'Beach walk assistance',
+                'Garden pathway navigation',
+                'Stair climbing with modified technique'
+            ],
+            2 => [ // Cognitive/Communication
+                'Personalized memory card games',
+                'Digital communication device training',
+                'Native language practice sessions',
+                'Custom flash card exercises',
+                'Family photo recognition practice'
+            ],
+            3 => [ // Self-Sustainability
+                'Modified clothing fastener technique',
+                'Customized eating utensil training',
+                'Specialized shower chair instruction',
+                'Personal hygiene adapted routine',
+                'Medication organization system training'
+            ],
+            4 => [ // Daily life/Social contact
+                'Virtual family reunion setup',
+                'Religious service accompaniment',
+                'Community garden participation',
+                'Senior center special event attendance',
+                'Neighborhood walking group participation'
+            ],
+            5 => [ // Disease/Therapy Handling
+                'Specialized diabetic foot care',
+                'Custom cardiac rehabilitation exercises',
+                'Modified stroke recovery techniques',
+                'Personalized pain management approach',
+                'Adaptive arthritis management'
+            ],
+            6 => [ // Outdoor Activities
+                'Modified outdoor exercise routine',
+                'Nature observation activity',
+                'Community garden participation',
+                'Outdoor social interaction support',
+                'Supervised neighborhood walking'
+            ],
+            7 => [ // Household Keeping
+                'Modified kitchen organization system',
+                'Adaptive cooking technique instruction',
+                'Energy-conserving housework approach',
+                'Specialized laundry management',
+                'Safety-focused home organization'
+            ]
+        ];
+        
+        // Default to first category if the requested one doesn't exist
+        if (!isset($customInterventions[$categoryId])) {
+            $categoryId = 1;
+        }
+        
+        return $customInterventions[$categoryId][array_rand($customInterventions[$categoryId])];
+    }
+
 
     private function generateNotifications()
     {

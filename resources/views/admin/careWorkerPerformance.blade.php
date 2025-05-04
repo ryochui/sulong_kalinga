@@ -357,80 +357,73 @@
                     <!-- Second Charts Row -->
                     <div class="row mb-2">
                         <!-- Time/Care Need Category Chart -->
-                        <div class="col-lg-6 mb-2">
+                        <div class="{{ $selectedCareWorkerId ? 'col-lg-6' : 'col-12' }} mb-2">
                             <div class="card h-100">
                                 <div class="card-header bg-white">
                                     <h5 class="mb-0" style="font-size: clamp(1rem, 1.5vw, 1.2rem);">Time Per Care Category</h5>
                                 </div>
                                 <div class="card-body">
-                                    <canvas id="timePerCategoryChart" height="200" width="400"></canvas>
+                                    <canvas id="timePerCategoryChart" height="{{ $selectedCareWorkerId ? '250' : '300' }}"></canvas>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Intervention Time Breakdown -->
+                        <!-- Client Care Breakdown - Only shown when a care worker is selected -->
+                        @if($selectedCareWorkerId)
                         <div class="col-lg-6 mb-2">
                             <div class="card h-100">
                                 <div class="card-header bg-white">
-                                    <h5 class="mb-0" style="font-size: clamp(1rem, 1.5vw, 1.2rem);">Intervention Time Breakdown</h5>
+                                    <h5 class="mb-0" style="font-size: clamp(1rem, 1.5vw, 1.2rem);">Client Care Breakdown</h5>
                                 </div>
                                 <div class="card-body">
-                                    <canvas id="interventionTimeChart" height="200" width="400"></canvas>
+                                    <canvas id="clientCareChart" height="250"></canvas>
                                 </div>
                             </div>
                         </div>
+                        @endif
                     </div>
 
-                    <!-- Top Performing Care Worker -->
-                    <div class="row">
+                    <!-- Care Worker Performance Table -->
+                    <div class="row mb-3">
                         <div class="col-12">
-                            <div class="card">
-                                <div class="card-header bg-white d-flex justify-content-between align-items-center">
-                                    <h5 class="mb-0" style="font-size: clamp(1rem, 1.5vw, 1.2rem);">Care Worker Performance</h5>
-                                    <div class="d-flex align-items-center">
-                                        <label for="sortFilter" class="me-2" style="font-size: clamp(0.8rem, 1vw, 1rem);">Sort By:</label>
-                                        <select id="sortFilter" class="form-select" style="font-size: clamp(0.8rem, 1vw, 1rem); width: 210px;">
-                                            <option value="name-asc">Name (A-Z)</option>
-                                            <option value="name-desc">Name (Z-A)</option>
-                                        </select>
+                            <div class="card shadow-sm">
+                                <div class="card-header bg-white">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <h5 class="mb-0" style="font-size: clamp(1rem, 1.5vw, 1.2rem);">Care Worker Performance</h5>
+                                        <div>
+                                            <button class="btn btn-sm btn-outline-secondary sort-btn" data-sort="asc">
+                                                <i class="bi bi-sort-alpha-down"></i> A-Z
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-secondary sort-btn" data-sort="desc">
+                                                <i class="bi bi-sort-alpha-up"></i> Z-A
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
-                                <div class="card-body">
+                                <div class="card-body p-2">
                                     <div class="table-responsive">
-                                        <table class="table table-hover">
+                                        <table class="table table-bordered table-sm">
                                             <thead class="table-light">
                                                 <tr>
                                                     <th>Care Worker</th>
-                                                    <th>Hours Worked</th>
-                                                    <th>Clients Served</th>
-                                                    <th>Interventions</th>
+                                                    <th class="text-center">Hours Worked</th>
+                                                    <th class="text-center">Beneficiary Visits</th>
+                                                    <th class="text-center">Interventions Performed</th>
                                                 </tr>
                                             </thead>
-                                            <tbody>
-                                                <tr>
-                                                    <td>Sarah Johnson</td>
-                                                    <td>42</td>
-                                                    <td>5</td>
-                                                    <td>28</td>
-                                                </tr>
-                                                <tr>
-                                                    <td>Michael Chen</td>
-                                                    <td>38</td>
-                                                    <td>4</td>
-                                                    <td>25</td>
-                                                </tr>
-                                                <tr>
-                                                    <td>David Wilson</td>
-                                                    <td>35</td>
-                                                    <td>4</td>
-                                                    <td>23</td>
-                                                </tr>
-                                                <tr>
-                                                    <td>Emily Rodriguez</td>
-                                                    <td>32</td>
-                                                    <td>3</td>
-                                                    <td>20</td>
-                                                </tr>
+                                            <tbody id="performanceTableBody">
+                                                @forelse($careWorkerPerformance as $worker)
+                                                    <tr @if($worker['is_selected']) class="table-primary" @endif>
+                                                        <td>{{ $worker['name'] }}</td>
+                                                        <td class="text-center">{{ $worker['hours_worked']['formatted_time'] }}</td>
+                                                        <td class="text-center">{{ $worker['beneficiary_visits'] }}</td>
+                                                        <td class="text-center">{{ $worker['interventions_performed'] }}</td>
+                                                    </tr>
+                                                @empty
+                                                    <tr>
+                                                        <td colspan="4" class="text-center">No performance data available</td>
+                                                    </tr>
+                                                @endforelse
                                             </tbody>
                                         </table>
                                     </div>
@@ -498,7 +491,6 @@
             // Example logic for applying filters (you can replace this with actual data fetching logic)
             console.log('Filters applied:');
             console.log('Care Worker ID:', careWorkerId || 'All Care Workers');
-        }
 
         // Event listeners
         document.getElementById('timeRange').addEventListener('change', updateTimeFilters);
@@ -737,73 +729,6 @@
                     }
                 }
             });
-
-            // Avg. Time/Care Need Category (Doughnut Chart)
-            const timePerCategoryCtx = document.getElementById('timePerCategoryChart').getContext('2d');
-            new Chart(timePerCategoryCtx, {
-                type: 'doughnut',
-                data: {
-                    labels: ['Mobility', 'Cognitive', 'Self-Sustainability', 'Disease Therapy', 'Social Contact', 'Outdoor', 'Housekeeping'],
-                    datasets: [{
-                        data: [45, 30, 35, 25, 20, 15, 40],
-                        backgroundColor: [
-                            'rgba(255, 99, 132, 0.7)',
-                            'rgba(54, 162, 235, 0.7)',
-                            'rgba(255, 206, 86, 0.7)',
-                            'rgba(75, 192, 192, 0.7)',
-                            'rgba(153, 102, 255, 0.7)',
-                            'rgba(255, 159, 64, 0.7)',
-                            'rgba(199, 199, 199, 0.7)'
-                        ],
-                        borderWidth: 1
-                    }]
-                },
-                options: {
-                    ...circularChartOptions,
-                    plugins: {
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    return `${context.label}: ${context.raw} min`;
-                                }
-                            }
-                        }
-                    },
-                    cutout: '65%'
-                }
-            });
-
-            // Intervention Time Breakdown (Pie Chart)
-            const interventionTimeCtx = document.getElementById('interventionTimeChart').getContext('2d');
-            new Chart(interventionTimeCtx, {
-                type: 'pie',
-                data: {
-                    labels: ['Personal Care', 'Medication', 'Meal Prep', 'Mobility', 'Companionship'],
-                    datasets: [{
-                        data: [45, 15, 30, 20, 60],
-                        backgroundColor: [
-                            'rgba(255, 99, 132, 0.7)',
-                            'rgba(54, 162, 235, 0.7)',
-                            'rgba(255, 206, 86, 0.7)',
-                            'rgba(75, 192, 192, 0.7)',
-                            'rgba(153, 102, 255, 0.7)'
-                        ],
-                        borderWidth: 1
-                    }]
-                },
-                options: {
-                    ...circularChartOptions,
-                    plugins: {
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    return `${context.label}: ${context.raw} min`;
-                                }
-                            }
-                        }
-                    }
-                }
-            });
         });
     </script>
 
@@ -906,95 +831,149 @@
                 cutout: '50%'
             };
 
-            // Most Implemented Interventions Chart (placeholder data)
-            new Chart(document.getElementById('mostImplementedChart').getContext('2d'), {
-                type: 'bar',
-                data: {
-                    labels: ['Assist in Sitting', 'Bathing', 'Light Exercise', 'Gardening'],
-                    datasets: [{
-                        label: 'Times Implemented',
-                        data: [120, 95, 80, 65],
-                        backgroundColor: 'rgba(54, 162, 235, 0.7)',
-                        borderColor: 'rgba(54, 162, 235, 1)',
-                        borderWidth: 1
-                    }]
-                },
-                options: {
-                    ...barChartOptions,
-                    plugins: {
-                        legend: { display: false }
-                    }
-                }
-            });
+            // Time Per Category Chart
+            const categoryLabels = @json(array_column($categoryTimeBreakdown, 'category_name') ?? []);
+            const categoryMinutes = @json(array_column($categoryTimeBreakdown, 'total_minutes') ?? []);
+            const categoryFormattedTimes = @json(array_column($categoryTimeBreakdown, 'formatted_time') ?? []);
 
-            // Hours per Client Chart (placeholder data)
-            new Chart(document.getElementById('clientHoursChart').getContext('2d'), {
-                type: 'bar',
-                data: {
-                    labels: ['R. Smith', 'M. Johnson', 'T. Williams', 'J. Brown', 'R. Davis'],
-                    datasets: [{
-                        label: 'Hours',
-                        data: [56, 48, 42, 38, 35],
-                        backgroundColor: 'rgba(75, 192, 192, 0.7)',
-                        borderColor: 'rgba(75, 192, 192, 1)',
-                        borderWidth: 1
-                    }]
-                },
-                options: {
-                    ...barChartOptions,
-                    indexAxis: 'y',
-                    plugins: {
-                        legend: { display: false }
-                    }
-                }
-            });
-
-            // Time Per Care Category Chart (placeholder data)
             new Chart(document.getElementById('timePerCategoryChart').getContext('2d'), {
                 type: 'doughnut',
                 data: {
-                    labels: ['Mobility', 'Cognitive', 'Self-Sustainability', 'Disease Therapy', 'Social Contact'],
+                    labels: categoryLabels.length > 0 ? categoryLabels : ['No data available'],
                     datasets: [{
-                        data: [45, 30, 35, 25, 20],
+                        data: categoryMinutes.length > 0 ? categoryMinutes : [0],
                         backgroundColor: [
                             'rgba(255, 99, 132, 0.7)',
                             'rgba(54, 162, 235, 0.7)',
                             'rgba(255, 206, 86, 0.7)',
                             'rgba(75, 192, 192, 0.7)',
-                            'rgba(153, 102, 255, 0.7)'
+                            'rgba(153, 102, 255, 0.7)',
+                            'rgba(255, 159, 64, 0.7)',
+                            'rgba(201, 203, 207, 0.7)'
                         ],
                         borderWidth: 1
                     }]
                 },
-                options: circularChartOptions
+                options: {
+                    ...circularChartOptions,
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                            labels: {
+                                boxWidth: 12,
+                                font: { size: 11 }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return categoryFormattedTimes[context.dataIndex];
+                                }
+                            }
+                        }
+                    }
+                }
             });
 
-            // Intervention Time Breakdown Chart (placeholder data)
-            new Chart(document.getElementById('interventionTimeChart').getContext('2d'), {
+            @if($selectedCareWorkerId)
+            // Client Care Breakdown Chart
+            const clientLabels = @json(array_column($clientCareBreakdown, 'beneficiary_name') ?? []);
+            const clientMinutes = @json(array_column($clientCareBreakdown, 'total_minutes') ?? []);
+            const clientFormattedTimes = @json(array_column($clientCareBreakdown, 'formatted_time') ?? []);
+
+            new Chart(document.getElementById('clientCareChart').getContext('2d'), {
                 type: 'pie',
                 data: {
-                    labels: ['Personal Care', 'Medication', 'Meal Prep', 'Mobility', 'Companionship'],
+                    labels: clientLabels.length > 0 ? clientLabels : ['No data available'],
                     datasets: [{
-                        data: [45, 15, 30, 20, 60],
+                        data: clientMinutes.length > 0 ? clientMinutes : [0],
                         backgroundColor: [
                             'rgba(255, 99, 132, 0.7)',
                             'rgba(54, 162, 235, 0.7)',
                             'rgba(255, 206, 86, 0.7)',
                             'rgba(75, 192, 192, 0.7)',
-                            'rgba(153, 102, 255, 0.7)'
+                            'rgba(153, 102, 255, 0.7)',
+                            'rgba(255, 159, 64, 0.7)',
+                            'rgba(201, 203, 207, 0.7)'
                         ],
                         borderWidth: 1
                     }]
                 },
-                options: circularChartOptions
+                options: {
+                    ...circularChartOptions,
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                            labels: {
+                                boxWidth: 12,
+                                font: { size: 11 }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return clientFormattedTimes[context.dataIndex];
+                                }
+                            }
+                        }
+                    }
+                }
             });
+            @endif
 
             // Handle PDF export button
             document.getElementById('exportPdfBtn').addEventListener('click', function() {
                 alert('Export to PDF functionality will be implemented here');
                 // You can implement PDF export functionality here
             });
+
+            // Sorting functions for the performance table
+            const sortButtons = document.querySelectorAll('.sort-btn');
+            if (sortButtons) {
+                sortButtons.forEach(button => {
+                    button.addEventListener('click', function() {
+                        const sortDirection = this.getAttribute('data-sort');
+                        sortTable(sortDirection);
+                    });
+                });
+            }
+            
+            function sortTable(direction) {
+                const tableBody = document.getElementById('performanceTableBody');
+                if (!tableBody) return; // Safety check
+                
+                const rows = Array.from(tableBody.querySelectorAll('tr'));
+                if (rows.length <= 1) return; // Don't sort if only one or zero rows
+                
+                // Sort the rows
+                rows.sort((a, b) => {
+                    // Skip empty rows or rows with less than 1 cell
+                    if (!a.cells[0] || !b.cells[0]) return 0;
+                    
+                    const nameA = a.cells[0].textContent.trim().toLowerCase();
+                    const nameB = b.cells[0].textContent.trim().toLowerCase();
+                    
+                    if (direction === 'asc') {
+                        return nameA.localeCompare(nameB);
+                    } else {
+                        return nameB.localeCompare(nameA);
+                    }
+                });
+                
+                // Remove existing rows
+                while (tableBody.firstChild) {
+                    tableBody.removeChild(tableBody.firstChild);
+                }
+                
+                // Append sorted rows
+                rows.forEach(row => tableBody.appendChild(row));
+            }
+            
+            // Sort table alphabetically (A-Z) by default on page load
+            sortTable('asc');
+                    
         });
+
         </script>
 </body>
 </html>
