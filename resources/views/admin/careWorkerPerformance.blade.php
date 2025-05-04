@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Care Worker Performance</title>
     <link rel="stylesheet" href="{{ asset('css/bootstrap.min.css') }}">
     <link rel="stylesheet" href="{{ asset('css/homeSection.css') }}">
@@ -68,7 +69,6 @@
 
         #home-content .btn {
             font-size: 0.8rem;
-            padding: 0.25rem 0.5rem;
         }
 
         #home-content .form-select,
@@ -92,6 +92,25 @@
 
         #beneficiaryDetailsRow .card-header {
             font-size: clamp(1rem, 1.2vw, 1.2rem);
+        }
+
+        .carousel-item table {
+            margin-bottom: 0;
+        }
+        
+        .carousel-control-prev,
+        .carousel-control-next {
+            display: none; /* Hide default carousel controls since we're using custom buttons */
+        }
+        
+        .position-relative .btn-outline-secondary {
+            margin-top: 0px;
+            padding: 0.1rem 0.4rem;
+        }
+        
+        /* Make intervention names bold in the table */
+        .table tbody td:first-child {
+            font-weight: 500;
         }
     </style>
 </head>
@@ -270,108 +289,46 @@
                                 <div class="card-body p-2">
                                     <div id="careServicesCarousel" class="carousel slide" data-bs-interval="false">
                                         <div class="carousel-inner">
-                                            <!-- Mobility Table -->
-                                            <div class="carousel-item active">
-                                                <table class="table table-bordered table-sm">
-                                                    <thead>
-                                                        <tr>
-                                                            <th colspan="2" class="text-center bg-light position-relative">
-                                                                <button class="btn btn-sm btn-outline-secondary position-absolute start-0" data-bs-target="#careServicesCarousel" data-bs-slide="prev">
-                                                                    <i class="bi bi-chevron-left"></i>
-                                                                </button>
-                                                                Mobility
-                                                                <button class="btn btn-sm btn-outline-secondary position-absolute end-0" data-bs-target="#careServicesCarousel" data-bs-slide="next">
-                                                                    <i class="bi bi-chevron-right"></i>
-                                                                </button>
-                                                            </th>
-                                                        </tr>
-                                                        <tr>
-                                                            <th>Intervention Implemented</th>
-                                                            <th class="text-center">Frequency</th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody>
-                                                        <tr>
-                                                            <td>Provided walker and physical therapy</td>
-                                                            <td class="text-center">3x/week</td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td>Installed stair lift</td>
-                                                            <td class="text-center">Daily</td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td>Caregiver-assisted transfers</td>
-                                                            <td class="text-center">As needed</td>
-                                                        </tr>
-                                                    </tbody>
-                                                </table>
-                                            </div>
-
-                                            <!-- Cognitive/Communication Table -->
-                                            <div class="carousel-item">
-                                                <table class="table table-bordered table-sm">
-                                                    <thead>
-                                                        <tr>
-                                                            <th colspan="2" class="text-center bg-light position-relative">
-                                                                <button class="btn btn-sm btn-outline-secondary position-absolute start-0" data-bs-target="#careServicesCarousel" data-bs-slide="prev">
-                                                                    <i class="bi bi-chevron-left"></i>
-                                                                </button>
-                                                                Cognitive / Communication
-                                                                <button class="btn btn-sm btn-outline-secondary position-absolute end-0" data-bs-target="#careServicesCarousel" data-bs-slide="next">
-                                                                    <i class="bi bi-chevron-right"></i>
-                                                                </button>
-                                                            </th>
-                                                        </tr>
-                                                        <tr>
-                                                            <th>Intervention Implemented</th>
-                                                            <th class="text-center">Frequency</th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody>
-                                                        <tr>
-                                                            <td>Memory exercises and reminders</td>
-                                                            <td class="text-center">Daily</td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td>Speech therapy sessions</td>
-                                                            <td class="text-center">2x/week</td>
-                                                        </tr>
-                                                    </tbody>
-                                                </table>
-                                            </div>
-
-                                            <!-- Self-sustainability Table -->
-                                            <div class="carousel-item">
-                                                <table class="table table-bordered table-sm">
-                                                    <thead>
-                                                        <tr>
-                                                            <th colspan="2" class="text-center bg-light position-relative">
-                                                                <button class="btn btn-sm btn-outline-secondary position-absolute start-0" data-bs-target="#careServicesCarousel" data-bs-slide="prev">
-                                                                    <i class="bi bi-chevron-left"></i>
-                                                                </button>
-                                                                Self-sustainability
-                                                                <button class="btn btn-sm btn-outline-secondary position-absolute end-0" data-bs-target="#careServicesCarousel" data-bs-slide="next">
-                                                                    <i class="bi bi-chevron-right"></i>
-                                                                </button>
-                                                            </th>
-                                                        </tr>
-                                                        <tr>
-                                                            <th>Intervention Implemented</th>
-                                                            <th class="text-center">Frequency</th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody>
-                                                        <tr>
-                                                            <td>Assistance with bathing and grooming</td>
-                                                            <td class="text-center">Daily</td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td>Meal delivery service</td>
-                                                            <td class="text-center">3x/day</td>
-                                                        </tr>
-                                                    </tbody>
-                                                </table>
-                                            </div>
+                                            @foreach($careCategories as $index => $category)
+                                                <div class="carousel-item {{ $index === 0 ? 'active' : '' }}">
+                                                    <table class="table table-bordered table-sm">
+                                                        <thead>
+                                                            <tr>
+                                                                <th colspan="3" class="text-center bg-light position-relative">
+                                                                    <button class="btn btn-sm btn-outline-secondary position-absolute start-0" data-bs-target="#careServicesCarousel" data-bs-slide="prev">
+                                                                        <i class="bi bi-chevron-left"></i>
+                                                                    </button>
+                                                                    {{ $category->care_category_name }}
+                                                                    <button class="btn btn-sm btn-outline-secondary position-absolute end-0" data-bs-target="#careServicesCarousel" data-bs-slide="next">
+                                                                        <i class="bi bi-chevron-right"></i>
+                                                                    </button>
+                                                                </th>
+                                                            </tr>
+                                                            <tr>
+                                                                <th>Intervention Implemented</th>
+                                                                <th class="text-center">Times Implemented</th>
+                                                                <th>Total Hours</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            @if(isset($categorySummaries[$category->care_category_id]) && 
+                                                                !empty($categorySummaries[$category->care_category_id]['interventions']))
+                                                                @foreach($categorySummaries[$category->care_category_id]['interventions'] as $intervention)
+                                                                    <tr>
+                                                                        <td>{{ $intervention['description'] }}</td>
+                                                                        <td class="text-center">{{ $intervention['times_implemented'] }}</td>
+                                                                        <td>{{ $intervention['total_hours'] }} hrs {{ $intervention['total_minutes'] > 0 ? $intervention['total_minutes'] . ' min' : '' }}</td>
+                                                                    </tr>
+                                                                @endforeach
+                                                            @else
+                                                                <tr>
+                                                                    <td colspan="3" class="text-center">None</td>
+                                                                </tr>
+                                                            @endif
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            @endforeach
                                         </div>
                                     </div>
                                 </div>
@@ -381,26 +338,17 @@
 
                     <!-- Main Charts Row -->
                     <div class="row mb-2">
-                        <!-- Most Implemented Interventions -->
-                        <div class="col-lg-6 mb-2">
+                        <!-- Most Implemented Interventions (half width, taller) -->
+                        <div class="col-md-12 mb-2 mx-auto"> <!-- Using col-md-6 and mx-auto for centering -->
                             <div class="card h-100">
                                 <div class="card-header bg-white">
                                     <h5 class="mb-0" style="font-size: clamp(1rem, 1.5vw, 1.2rem);">Most Implemented Interventions</h5>
                                 </div>
                                 <div class="card-body">
-                                    <canvas id="mostImplementedChart" height="200" width="400"></canvas>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Hours per Client -->
-                        <div class="col-lg-6 mb-2">
-                            <div class="card h-100">
-                                <div class="card-header bg-white">
-                                    <h5 class="mb-0" style="font-size: clamp(1rem, 1.5vw, 1.2rem);">Hours of Care Services by Client</h5>
-                                </div>
-                                <div class="card-body">
-                                    <canvas id="clientHoursChart" height="200" width="400"></canvas>
+                                    <!-- Increase the height to make the chart taller -->
+                                    <div style="height: 300px;"> <!-- Taller height for better readability -->
+                                        <canvas id="mostImplementedChart"></canvas>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -703,19 +651,89 @@
             new Chart(document.getElementById('mostImplementedChart').getContext('2d'), {
                 type: 'bar',
                 data: {
-                    labels: mostImplementedLabels.length > 0 ? mostImplementedLabels : ['No data available'],
+                    labels: mostImplementedLabels.length > 0 ? mostImplementedLabels.slice(0, 7) : ['No data available'],
                     datasets: [{
                         label: 'Times Implemented',
-                        data: mostImplementedData.length > 0 ? mostImplementedData : [0],
-                        backgroundColor: 'rgba(54, 162, 235, 0.7)',
-                        borderColor: 'rgba(54, 162, 235, 1)',
+                        data: mostImplementedData.length > 0 ? mostImplementedData.slice(0, 7) : [0],
+                        backgroundColor: [
+                            'rgba(54, 162, 235, 0.8)',
+                            'rgba(75, 192, 192, 0.8)',
+                            'rgba(255, 206, 86, 0.8)',
+                            'rgba(255, 99, 132, 0.8)',
+                            'rgba(153, 102, 255, 0.8)',
+                            'rgba(255, 159, 64, 0.8)',
+                            'rgba(201, 203, 207, 0.8)'
+                        ],
+                        borderColor: [
+                            'rgb(54, 162, 235)',
+                            'rgb(75, 192, 192)',
+                            'rgb(255, 206, 86)',
+                            'rgb(255, 99, 132)',
+                            'rgb(153, 102, 255)',
+                            'rgb(255, 159, 64)',
+                            'rgb(201, 203, 207)'
+                        ],
                         borderWidth: 1
                     }]
                 },
                 options: {
-                    ...barChartOptions,
+                    indexAxis: 'y', // Horizontal bar chart
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            beginAtZero: true,
+                            grid: { 
+                                display: true,
+                                color: 'rgba(0, 0, 0, 0.05)'
+                            },
+                            ticks: {
+                                precision: 0, // Show only whole numbers
+                                font: {
+                                    size: 12 // Larger font for x axis
+                                }
+                            }
+                        },
+                        y: {
+                            grid: {
+                                display: false
+                            },
+                            ticks: {
+                                font: {
+                                    size: 15, // Larger font size for intervention names
+                                },
+                                callback: function(value, index, values) {
+                                    // Truncate long labels
+                                    const label = this.getLabelForValue(value);
+                                    if (label.length > 50) {
+                                        return label.substring(0, 50) + '...';
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
+                    },
                     plugins: {
-                        legend: { display: false }
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            titleFont: {
+                                size: 14
+                            },
+                            bodyFont: {
+                                size: 13
+                            },
+                            callbacks: {
+                                title: function(tooltipItems) {
+                                    return tooltipItems[0].label; // Show full intervention name
+                                },
+                                label: function(context) {
+                                    return `${context.parsed.x} times implemented`;
+                                }
+                            }
+                        }
                     }
                 }
             });
@@ -752,31 +770,6 @@
                         }
                     },
                     cutout: '65%'
-                }
-            });
-
-            // Hours per Client Chart
-            const clientLabels = @json(array_column($hoursPerClient, 'beneficiary_name') ?? []);
-            const clientData = @json(array_column($hoursPerClient, 'hours') ?? []);
-
-            new Chart(document.getElementById('clientHoursChart').getContext('2d'), {
-                type: 'bar',
-                data: {
-                    labels: clientLabels.length > 0 ? clientLabels : ['No data available'],
-                    datasets: [{
-                        label: 'Hours',
-                        data: clientData.length > 0 ? clientData : [0],
-                        backgroundColor: 'rgba(75, 192, 192, 0.7)',
-                        borderColor: 'rgba(75, 192, 192, 1)',
-                        borderWidth: 1
-                    }]
-                },
-                options: {
-                    ...barChartOptions,
-                    indexAxis: 'y',
-                    plugins: {
-                        legend: { display: false }
-                    }
                 }
             });
 

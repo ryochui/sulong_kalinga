@@ -8,6 +8,9 @@ use App\Models\Municipality;
 use App\Models\WeeklyCarePlan;
 use App\Models\WeeklyCarePlanInterventions;
 use App\Models\Beneficiary;
+use App\Models\CareCategory;
+use App\Models\Intervention;
+use App\Models\CareNeed;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
@@ -128,24 +131,36 @@ class CareWorkerPerformanceController extends Controller
         $totalInterventions = WeeklyCarePlanInterventions::whereIn('weekly_care_plan_id', $weeklyCarePlanIds)
             ->count();
 
+        // Initialize variables before the conditional blocks
+        $mostImplementedInterventions = [];
+        $hoursPerClient = [];
+
         // Check if any records exist for the selected filters
         $hasRecords = !empty($weeklyCarePlanIds);
-        
-        // Get most implemented interventions
-        $mostImplementedInterventions = [];
+
+        // Get most implemented interventions 
         if ($hasRecords) {
-            $mostImplementedInterventions = WeeklyCarePlanInterventions::whereIn('weekly_care_plan_id', $weeklyCarePlanIds)
-                ->select('intervention_description', DB::raw('COUNT(*) as count'))
-                ->groupBy('intervention_description')
+            // Query that includes both predefined and custom interventions
+            $interventionCounts = DB::table('weekly_care_plan_interventions as wpi')
+                ->leftJoin('interventions as i', 'wpi.intervention_id', '=', 'i.intervention_id')
+                ->whereIn('wpi.weekly_care_plan_id', $weeklyCarePlanIds)
+                ->select(
+                    DB::raw('COALESCE(i.intervention_description, wpi.intervention_description) as intervention_name'),
+                    DB::raw('COUNT(*) as count')
+                )
+                ->groupBy('intervention_name')
                 ->orderBy('count', 'desc')
-                ->limit(5)
-                ->get()
-                ->toArray();
-        }
-        
-        // Get hours per client
-        $hoursPerClient = [];
-        if ($hasRecords) {
+                ->limit(7) // Changed from 10 to 7 to match requirements
+                ->get();
+            
+            foreach ($interventionCounts as $intervention) {
+                $mostImplementedInterventions[] = [
+                    'intervention_description' => $intervention->intervention_name,
+                    'count' => $intervention->count
+                ];
+            }
+
+            // Get hours per client
             $hoursPerClient = DB::table('weekly_care_plan_interventions')
                 ->join('weekly_care_plans', 'weekly_care_plan_interventions.weekly_care_plan_id', '=', 'weekly_care_plans.weekly_care_plan_id')
                 ->join('beneficiaries', 'weekly_care_plans.beneficiary_id', '=', 'beneficiaries.beneficiary_id')
@@ -160,6 +175,61 @@ class CareWorkerPerformanceController extends Controller
                 ->get()
                 ->toArray();
         }
+
+        $careCategories = CareCategory::with('interventions')->get();
+    
+        // For each care category, calculate intervention statistics based on filters
+        $categorySummaries = [];
+        
+        foreach ($careCategories as $category) {
+            $interventionStats = [];
+            
+            // Get all interventions in this category (both from interventions table and custom ones)
+            $interventionsInCategory = WeeklyCarePlanInterventions::whereIn('weekly_care_plan_id', $weeklyCarePlanIds)
+                ->where(function ($query) use ($category) {
+                    // Either match by intervention_id + care_category_id
+                    $query->whereHas('intervention', function($q) use ($category) {
+                        $q->where('care_category_id', $category->care_category_id);
+                    })
+                    // Or match by direct care_category_id for custom interventions
+                    ->orWhere('care_category_id', $category->care_category_id);
+                })
+                ->select(
+                    'intervention_id', 
+                    'care_category_id', 
+                    'intervention_description', 
+                    DB::raw('COUNT(*) as times_implemented'),
+                    DB::raw('SUM(duration_minutes) as total_minutes')
+                )
+                ->groupBy('intervention_id', 'care_category_id', 'intervention_description')
+                ->get();
+            
+            foreach ($interventionsInCategory as $intervention) {
+                // Format hours and minutes
+                $hours = floor($intervention->total_minutes / 60);
+                $minutes = $intervention->total_minutes % 60;
+                
+                $description = $intervention->intervention_description;
+                if (!$description && $intervention->intervention_id) {
+                    // If description is empty but we have an intervention_id, get from interventions table
+                    $interventionRecord = Intervention::find($intervention->intervention_id);
+                    $description = $interventionRecord ? $interventionRecord->intervention_description : 'Unknown';
+                }
+                
+                $interventionStats[] = [
+                    'id' => $intervention->intervention_id,
+                    'description' => $description,
+                    'times_implemented' => $intervention->times_implemented,
+                    'total_hours' => $hours,
+                    'total_minutes' => $minutes
+                ];
+            }
+            
+            $categorySummaries[$category->care_category_id] = [
+                'category_name' => $category->care_category_name,
+                'interventions' => $interventionStats
+            ];
+        }
         
         return view('admin.careWorkerPerformance', compact(
             'careWorkers',
@@ -172,13 +242,16 @@ class CareWorkerPerformanceController extends Controller
             'selectedStartMonth',
             'selectedEndMonth',
             'selectedYear',
-            'formattedCareTime',  // New variable
+            'formattedCareTime',
             'activeCareWorkersCount',
             'totalInterventions',
             'dateRangeLabel',
             'hasRecords',
             'mostImplementedInterventions',
-            'hoursPerClient'
+            'hoursPerClient',
+            'careCategories',
+            'categorySummaries'
         ));
+
     }
 }
