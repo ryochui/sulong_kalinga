@@ -236,6 +236,10 @@ Route::middleware(['auth', '\App\Http\Middleware\CheckRole:administrator'])->pre
         Route::get('/', [CareWorkerPerformanceController::class, 'index'])->name('index');
     });
 
+    //Health Monitoring
+    Route::prefix('health-monitoring')->name('health.monitoring.')->group(function () {
+        Route::get('/', [HealthMonitoringController::class, 'index'])->name('index');
+    });
     
 });
 

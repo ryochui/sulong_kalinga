@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+    <link rel="stylesheet" href="{{ asset('css/bootstrap.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/homeSection.css') }}">
+
+    <style>
+        tbody td{
+            vertical-align: middle;
+        }
+        th button{
+            transform: translateY(-3px);
+        }
+
+        tbody td {
+        vertical-align: middle;
+        }
+
+        th button {
+            transform: translateY(-3px);
+        }
+
+        #home-content {
+            font-size: clamp(0.8rem, 1vw, 1rem);
+        }
+
+        #home-content th,
+        #home-content td {
+            font-size: clamp(0.7rem, 0.9vw, 0.9rem);
+        }
+
+        #home-content .card-header,
+        #home-content .form-label {
+            font-size: clamp(0.9rem, 1.1vw, 1.1rem);
+        }
+
+        #home-content .btn {
+            font-size: 0.8rem;
+            padding: 0.25rem 0.5rem;
+        }
+
+        #home-content .form-select,
+        #home-content .form-control {
+            font-size: 0.8rem;
+            padding: 0.25rem 0.5rem;
+        }
+
+        #home-content .table {
+            font-size: 0.8rem;
+        }
+
+        #beneficiaryDetailsRow .form-label {
+            font-size: clamp(0.8rem, 1vw, 1rem);
+        }
+
+        #beneficiaryDetailsRow .form-control {
+            font-size: clamp(0.8rem, 1vw, 1rem);
+            padding: 0.3rem 0.5rem;
+        }
+
+        #beneficiaryDetailsRow .card-header {
+            font-size: clamp(1rem, 1.2vw, 1.2rem);
+        }
+    </style>
+</head>
+<body>
+
+    @include('components.adminNavbar')
+    @include('components.adminSidebar')
+
+    <div class="home-section">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <div class="text-left">
+                <strong>HEALTH MONITORING</strong>
+            </div>
+            <button class="btn btn-danger btn-md" id="exportPdfBtn">
+                <i class="bi bi-file-earmark-pdf"></i> Export to PDF
+            </button>
+        </div>
+        <div class="container-fluid">
+            <div class="row" id="home-content">
+                <div class="col-12 mb-2">
+                    <!-- Combined Beneficiary Select and Time Range Filter -->
+                    <form id="filterForm" action="{{ route('admin.health.monitoring.index') }}" method="GET">
+                        <div class="row mb-3 mt-1 justify-content-center">
+                            <div class="col-lg-12 col-md-12 col-sm-12">
+                                <div class="card shadow-sm">
+                                    <div class="card-header d-flex justify-content-between align-items-center">
+                                        <div class="d-flex align-items-center">
+                                            <strong class="me-3">Filters</strong>
+                                        </div>
+                                        <button type="submit" class="btn btn-primary btn-sm" id="applyFilterBtn">Apply Filters</button>
+                                    </div>
+                                    <div class="card-body p-2">
+                                        <div class="row g-2">
+                                            <!-- Beneficiary Select -->
+                                            <div class="col">
+                                                <label for="beneficiarySelect" class="form-label">Select Beneficiary:</label>
+                                                <select class="form-select" id="beneficiarySelect" name="beneficiary_id">
+                                                    <option value="">All Beneficiaries</option>
+                                                    @foreach($beneficiaries as $beneficiary)
+                                                        <option value="{{ $beneficiary->beneficiary_id }}" {{ $selectedBeneficiaryId == $beneficiary->beneficiary_id ? 'selected' : '' }}>
+                                                            {{ $beneficiary->last_name }}, {{ $beneficiary->first_name }}
+                                                        </option>
+                                                    @endforeach
+                                                </select>
+                                            </div>
+
+                                            <!-- Municipalities Select -->
+                                            <div class="col">
+                                                <label for="municipalitySelect" class="form-label">Select Municipality:</label>
+                                                <select class="form-select" id="municipalitySelect" name="municipality_id">
+                                                    <option value="">All Municipalities</option>
+                                                    @foreach($municipalities as $municipality)
+                                                        <option value="{{ $municipality->municipality_id }}" {{ $selectedMunicipalityId == $municipality->municipality_id ? 'selected' : '' }}>
+                                                            {{ $municipality->municipality_name }}
+                                                        </option>
+                                                    @endforeach
+                                                </select>
+                                            </div>
+
+                                            <!-- Time Range Select -->
+                                            <div class="col">
+                                                <label for="timeRange" class="form-label">Time Range:</label>
+                                                <select class="form-select" id="timeRange" name="time_range">
+                                                    <option value="weeks" {{ $selectedTimeRange == 'weeks' ? 'selected' : '' }}>Monthly</option>
+                                                    <option value="months" {{ $selectedTimeRange == 'months' ? 'selected' : '' }}>Range of Months</option>
+                                                    <option value="year" {{ $selectedTimeRange == 'year' ? 'selected' : '' }}>Yearly</option>
+                                                </select>
+                                            </div>
+
+                                            <!-- Week Filter (visible by default) -->
+                                            <div class="col {{ $selectedTimeRange != 'weeks' ? 'd-none' : '' }}" id="weekFilterContainer">
+                                                <label for="monthSelect" class="form-label">Select Month:</label>
+                                                <div class="d-flex">
+                                                    <select class="form-select" id="monthSelect" name="month" style="width: 60%;">
+                                                        @for($i = 1; $i <= 12; $i++)
+                                                            <option value="{{ $i }}" {{ $selectedMonth == $i ? 'selected' : '' }}>
+                                                                {{ date('F', mktime(0, 0, 0, $i, 1)) }}
+                                                            </option>
+                                                        @endfor
+                                                    </select>
+                                                    <select class="form-select ms-2" id="yearSelect" name="year" style="width: 40%;">
+                                                        @foreach($availableYears as $year)
+                                                            <option value="{{ $year }}" {{ $selectedYear == $year ? 'selected' : '' }}>
+                                                                {{ $year }}
+                                                            </option>
+                                                        @endforeach
+                                                    </select>
+                                                </div>
+                                            </div>
+
+                                            <!-- Month Range Filter (hidden by default) -->
+                                            <div class="col {{ $selectedTimeRange != 'months' ? 'd-none' : '' }}" id="monthRangeFilterContainer">
+                                                <div class="row g-2">
+                                                    <div class="col">
+                                                        <label for="startMonth" class="form-label">Start Month:</label>
+                                                        <select class="form-select" id="startMonth" name="start_month">
+                                                            @for($i = 1; $i <= 12; $i++)
+                                                                <option value="{{ $i }}" {{ $selectedStartMonth == $i ? 'selected' : '' }}>
+                                                                    {{ date('F', mktime(0, 0, 0, $i, 1)) }}
+                                                                </option>
+                                                            @endfor
+                                                        </select>
+                                                    </div>
+                                                    <div class="col">
+                                                        <label for="endMonth" class="form-label">End Month:</label>
+                                                        <select class="form-select" id="endMonth" name="end_month">
+                                                            @for($i = 1; $i <= 12; $i++)
+                                                                <option value="{{ $i }}" {{ $selectedEndMonth == $i ? 'selected' : '' }}>
+                                                                    {{ date('F', mktime(0, 0, 0, $i, 1)) }}
+                                                                </option>
+                                                            @endfor
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <!-- Year Filter (hidden by default) -->
+                                            <div class="col {{ $selectedTimeRange != 'year' ? 'd-none' : '' }}" id="yearFilterContainer">
+                                                <label for="yearOnlySelect" class="form-label">Select Year:</label>
+                                                <select class="form-select" id="yearOnlySelect" name="year">
+                                                    @foreach($availableYears as $year)
+                                                        <option value="{{ $year }}" {{ $selectedYear == $year ? 'selected' : '' }}>
+                                                            {{ $year }}
+                                                        </option>
+                                                    @endforeach
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                    
+                    <!-- Beneficiary Details Row -->
+                    <div class="row mb-3 {{ !$selectedBeneficiary ? 'd-none' : '' }}" id="beneficiaryDetailsRow">
+                        <div class="col-12">
+                            <div class="card shadow-sm">
+                                <div class="card-header">
+                                    <strong class="text-center d-block">Beneficiary Details</strong>
+                                </div>
+                                <div class="card-body p-2">
+                                    <div class="row mb-1">
+                                        <div class="col-md-4 col-sm-9 position-relative">
+                                            <label for="beneficiaryName" class="form-label">Beneficiary Name</label>
+                                            <input type="text" class="form-control" id="beneficiaryName" 
+                                                value="{{ $selectedBeneficiary ? $selectedBeneficiary->first_name . ' ' . $selectedBeneficiary->last_name : '' }}" 
+                                                readonly data-bs-toggle="tooltip" title="Edit in General Care Plan">    
+                                        </div>
+                                        <div class="col-md-2 col-sm-3">
+                                            <label for="age" class="form-label">Age</label>
+                                            <input type="text" class="form-control" id="age" 
+                                                value="{{ $selectedBeneficiary ? \Carbon\Carbon::parse($selectedBeneficiary->birthday)->age : '' }}" 
+                                                readonly data-bs-toggle="tooltip" title="Edit in General Care Plan">                                          
+                                        </div>
+                                        <div class="col-md-3 col-sm-6">
+                                            <label for="birthDate" class="form-label">Birthdate</label>
+                                            <input type="text" class="form-control" id="birthDate" 
+                                                value="{{ $selectedBeneficiary ? \Carbon\Carbon::parse($selectedBeneficiary->birthday)->format('F j, Y') : '' }}" 
+                                                readonly data-bs-toggle="tooltip" title="Edit in General Care Plan">                                          
+                                        </div>
+                                        <div class="col-md-3 col-sm-6 position-relative">
+                                            <label for="gender" class="form-label">Gender</label>
+                                            <input type="text" class="form-control" id="gender" 
+                                                value="{{ $selectedBeneficiary ? $selectedBeneficiary->gender : '' }}" 
+                                                readonly data-bs-toggle="tooltip" title="Edit in General Care Plan">
+                                        </div>
+                                    </div>
+                                    <div class="row mb-1">
+                                        <div class="col-md-3 col-sm-4 position-relative">
+                                            <label for="civilStatus" class="form-label">Civil Status</label>
+                                            <input type="text" class="form-control" id="civilStatus" 
+                                                value="{{ $selectedBeneficiary ? $selectedBeneficiary->civil_status : '' }}" 
+                                                readonly data-bs-toggle="tooltip" title="Edit in General Care Plan">
+                                        </div>
+                                        <div class="col-md-6 col-sm-8">
+                                            <label for="address" class="form-label">Address</label>
+                                            <input type="text" class="form-control" id="address" 
+                                                value="{{ $selectedBeneficiary ? $selectedBeneficiary->street_address . ', ' . ($selectedBeneficiary->barangay->barangay_name ?? 'N/A') . ', ' . ($selectedBeneficiary->municipality->municipality_name ?? 'N/A') : '' }}" 
+                                                readonly data-bs-toggle="tooltip" title="Edit in General Care Plan">
+                                        </div>
+                                        <div class="col-md-3 col-sm-12">
+                                            <label for="category" class="form-label">Category</label>
+                                            <input type="text" class="form-control" id="category" 
+                                                value="{{ $selectedBeneficiary ? ($selectedBeneficiary->category->category_name ?? 'N/A') : '' }}"
+                                                readonly data-bs-toggle="tooltip" title="Edit in General Care Plan">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+      
+                    <!-- Statistics Table Row -->
+                    <div class="row mb-3" id="reportsTableRow" {{ $selectedBeneficiary ? 'style=display:none;' : '' }}>
+                        <div class="col-12">
+                            <div class="card shadow-sm" id="healthStatistics">
+                                <div class="card-header">
+                                    <strong class="text-center d-block">Health Statistics</strong>
+                                </div>
+                                <div class="card-body p-0 pb-1">
+                                    <div class="table-responsive">
+                                        <table class="table table-striped">
+                                            <thead>
+                                                <tr>
+                                                    <th>Category</th>
+                                                    <th class="text-center">Age 60-69</th>
+                                                    <th class="text-center">Age 70-79</th>
+                                                    <th class="text-center">Age 80-89</th>
+                                                    <th class="text-center">Age 90+</th>
+                                                    <th class="text-center">Male</th>
+                                                    <th class="text-center">Female</th>
+                                                    <th class="text-center">Single</th>
+                                                    <th class="text-center">Married</th>
+                                                    <th class="text-center">Widowed</th>
+                                                    <th class="text-center">Percentage</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="reportsTableBody">
+                                                @if(count($healthStatistics) > 0)
+                                                    @foreach($healthStatistics as $category => $stats)
+                                                        <tr>
+                                                            <td>{{ $category }}</td>
+                                                            <td class="text-center">{{ $stats['age_60_69'] ?? 0 }}</td>
+                                                            <td class="text-center">{{ $stats['age_70_79'] ?? 0 }}</td>
+                                                            <td class="text-center">{{ $stats['age_80_89'] ?? 0 }}</td>
+                                                            <td class="text-center">{{ $stats['age_90_plus'] ?? 0 }}</td>
+                                                            <td class="text-center">{{ $stats['male'] ?? 0 }}</td>
+                                                            <td class="text-center">{{ $stats['female'] ?? 0 }}</td>
+                                                            <td class="text-center">{{ $stats['single'] ?? 0 }}</td>
+                                                            <td class="text-center">{{ $stats['married'] ?? 0 }}</td>
+                                                            <td class="text-center">{{ $stats['widowed'] ?? 0 }}</td>
+                                                            <td class="text-center">{{ $stats['percentage'] }}%</td>
+                                                        </tr>
+                                                    @endforeach
+                                                    <tr>
+                                                        <td><strong>Total</strong></td>
+                                                        <td class="text-center"><strong>{{ $totals['age_60_69'] ?? 0 }}</strong></td>
+                                                        <td class="text-center"><strong>{{ $totals['age_70_79'] ?? 0 }}</strong></td>
+                                                        <td class="text-center"><strong>{{ $totals['age_80_89'] ?? 0 }}</strong></td>
+                                                        <td class="text-center"><strong>{{ $totals['age_90_plus'] ?? 0 }}</strong></td>
+                                                        <td class="text-center"><strong>{{ $totals['male'] ?? 0 }}</strong></td>
+                                                        <td class="text-center"><strong>{{ $totals['female'] ?? 0 }}</strong></td>
+                                                        <td class="text-center"><strong>{{ $totals['single'] ?? 0 }}</strong></td>
+                                                        <td class="text-center"><strong>{{ $totals['married'] ?? 0 }}</strong></td>
+                                                        <td class="text-center"><strong>{{ $totals['widowed'] ?? 0 }}</strong></td>
+                                                        <td class="text-center"><strong>100%</strong></td>
+                                                    </tr>
+                                                @else
+                                                    <tr>
+                                                        <td colspan="11" class="text-center">No data available</td>
+                                                    </tr>
+                                                @endif
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Care Services Summary Section - KEEPING AS IS PER REQUEST -->
+                    <div class="row mt-3 mb-3" id="careServicesSummaryRow">
+                        <div class="col-12">
+                            <div class="card shadow-sm">
+                                <div class="card-header text-center">
+                                    <strong>Care Services Summary</strong>
+                                </div>
+                                <div class="card-body p-2">
+                                    <div id="careServicesCarousel" class="carousel slide" data-bs-interval="false">
+                                        <div class="carousel-inner">
+                                            <!-- Mobility Table -->
+                                            <div class="carousel-item active">
+                                                <table class="table table-bordered table-sm">
+                                                    <thead>
+                                                        <tr>
+                                                            <th colspan="2" class="text-center bg-light position-relative">
+                                                                <button class="btn btn-sm btn-outline-secondary position-absolute start-0" data-bs-target="#careServicesCarousel" data-bs-slide="prev">
+                                                                    <i class="bi bi-chevron-left"></i>
+                                                                </button>
+                                                                Mobility
+                                                                <button class="btn btn-sm btn-outline-secondary position-absolute end-0" data-bs-target="#careServicesCarousel" data-bs-slide="next">
+                                                                    <i class="bi bi-chevron-right"></i>
+                                                                </button>
+                                                            </th>
+                                                        </tr>
+                                                        <tr>
+                                                            <th>Intervention Implemented</th>
+                                                            <th class="text-center">Frequency</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        <tr>
+                                                            <td>Provided walker and physical therapy</td>
+                                                            <td class="text-center">3x/week</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>Installed stair lift</td>
+                                                            <td class="text-center">Daily</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>Caregiver-assisted transfers</td>
+                                                            <td class="text-center">As needed</td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+
+                                            <!-- Cognitive/Communication Table -->
+                                            <div class="carousel-item">
+                                                <table class="table table-bordered table-sm">
+                                                    <thead>
+                                                        <tr>
+                                                            <th colspan="2" class="text-center bg-light position-relative">
+                                                                <button class="btn btn-sm btn-outline-secondary position-absolute start-0" data-bs-target="#careServicesCarousel" data-bs-slide="prev">
+                                                                    <i class="bi bi-chevron-left"></i>
+                                                                </button>
+                                                                Cognitive / Communication
+                                                                <button class="btn btn-sm btn-outline-secondary position-absolute end-0" data-bs-target="#careServicesCarousel" data-bs-slide="next">
+                                                                    <i class="bi bi-chevron-right"></i>
+                                                                </button>
+                                                            </th>
+                                                        </tr>
+                                                        <tr>
+                                                            <th>Intervention Implemented</th>
+                                                            <th class="text-center">Frequency</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        <tr>
+                                                            <td>Memory exercises and reminders</td>
+                                                            <td class="text-center">Daily</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>Speech therapy sessions</td>
+                                                            <td class="text-center">2x/week</td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+
+                                            <!-- Self-sustainability Table -->
+                                            <div class="carousel-item">
+                                                <table class="table table-bordered table-sm">
+                                                    <thead>
+                                                        <tr>
+                                                            <th colspan="2" class="text-center bg-light position-relative">
+                                                                <button class="btn btn-sm btn-outline-secondary position-absolute start-0" data-bs-target="#careServicesCarousel" data-bs-slide="prev">
+                                                                    <i class="bi bi-chevron-left"></i>
+                                                                </button>
+                                                                Self-sustainability
+                                                                <button class="btn btn-sm btn-outline-secondary position-absolute end-0" data-bs-target="#careServicesCarousel" data-bs-slide="next">
+                                                                    <i class="bi bi-chevron-right"></i>
+                                                                </button>
+                                                            </th>
+                                                        </tr>
+                                                        <tr>
+                                                            <th>Intervention Implemented</th>
+                                                            <th class="text-center">Frequency</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        <tr>
+                                                            <td>Assistance with bathing and grooming</td>
+                                                            <td class="text-center">Daily</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>Meal delivery service</td>
+                                                            <td class="text-center">3x/day</td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Charts Section - KEEPING AS IS PER REQUEST -->
+                    <div class="row align-items-center justify-content-center">
+                        <!-- Row 1 -->
+                        <div class="row mb-3">
+                            <!-- Blood Pressure Chart -->
+                            <div class="col-lg-6 col-md-6 col-sm-12">
+                                <div class="card shadow-sm">
+                                    <div class="card-header text-center">
+                                        <strong>Blood Pressure</strong>
+                                    </div>
+                                    <div class="card-body">
+                                        <canvas id="bloodPressureChart"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Heart Rate Chart -->
+                            <div class="col-lg-6 col-md-6 col-sm-12">
+                                <div class="card shadow-sm">
+                                    <div class="card-header text-center">
+                                        <strong>Heart Rate</strong>
+                                    </div>
+                                    <div class="card-body">
+                                        <canvas id="heartRateChart"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Row 2 -->
+                        <div class="row mb-3">
+                            <!-- Respiratory Rate Chart -->
+                            <div class="col-lg-6 col-md-6 col-sm-12">
+                                <div class="card shadow-sm">
+                                    <div class="card-header text-center">
+                                        <strong>Respiratory Rate</strong>
+                                    </div>
+                                    <div class="card-body">
+                                        <canvas id="respiratoryRateChart"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Temperature Chart -->
+                            <div class="col-lg-6 col-md-6 col-sm-12">
+                                <div class="card shadow-sm">
+                                    <div class="card-header text-center">
+                                        <strong>Temperature</strong>
+                                    </div>
+                                    <div class="card-body">
+                                        <canvas id="temperatureChart"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Row 3 -->
+                        <div class="row mb-3 justify-content-center" id="medicalConditionRow">
+                            <!-- Medical Condition Pie Chart Section -->
+                                <div class="col-lg-6 col-md-6 col-sm-12">
+                                    <div class="card shadow-sm">
+                                        <div class="card-header text-center">
+                                            <strong>Medical Condition</strong>
+                                        </div>
+                                        <div class="card-body">
+                                            <canvas id="medicalConditionChart"></canvas>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+   
+    <script src="{{ asset('js/toggleSideBar.js') }}"></script>
+    <script src="{{ asset('js/bootstrap.bundle.min.js') }}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <script>
+    // Chart variables
+    let bloodPressureChart, heartRateChart, respiratoryRateChart, temperatureChart, medicalConditionChart;
+    let currentBeneficiaryName = "All Beneficiaries";
+
+    // Initialize charts
+    function initCharts() {
+        const weekLabels = ['Week 1', 'Week 2', 'Week 3', 'Week 4'];
+
+        // Blood Pressure Chart
+        const bloodPressureCtx = document.getElementById('bloodPressureChart').getContext('2d');
+        bloodPressureChart = createChart(
+            bloodPressureCtx,
+            'Blood Pressure (mmHg)',
+            weekLabels,
+            [120, 125, 130, 128],
+            'rgba(255, 99, 132, 1)',
+            'rgba(255, 99, 132, 0.2)'
+        );
+
+        // Heart Rate Chart
+        const heartRateCtx = document.getElementById('heartRateChart').getContext('2d');
+        heartRateChart = createChart(
+            heartRateCtx,
+            'Heart Rate (bpm)',
+            weekLabels,
+            [72, 75, 78, 76],
+            'rgba(54, 162, 235, 1)',
+            'rgba(54, 162, 235, 0.2)'
+        );
+
+        // Respiratory Rate Chart
+        const respiratoryRateCtx = document.getElementById('respiratoryRateChart').getContext('2d');
+        respiratoryRateChart = createChart(
+            respiratoryRateCtx,
+            'Respiratory Rate (breaths/min)',
+            weekLabels,
+            [16, 18, 17, 16],
+            'rgba(255, 206, 86, 1)',
+            'rgba(255, 206, 86, 0.2)'
+        );
+
+        // Temperature Chart
+        const temperatureCtx = document.getElementById('temperatureChart').getContext('2d');
+        temperatureChart = createChart(
+            temperatureCtx,
+            'Temperature (°C)',
+            weekLabels,
+            [36.5, 36.7, 36.8, 36.6],
+            'rgba(75, 192, 192, 1)',
+            'rgba(75, 192, 192, 0.2)'
+        );
+
+        // Medical Condition Pie Chart
+        initMedicalConditionChart();
+    }
+
+    // Create a chart
+    function createChart(ctx, label, labels, data, borderColor, backgroundColor) {
+        return new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: label,
+                    data: data,
+                    borderColor: borderColor,
+                    backgroundColor: backgroundColor,
+                    fill: true,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+            }
+        });
+    }
+
+    // Initialize the Medical Condition Pie Chart
+    function initMedicalConditionChart() {
+        const ctx = document.getElementById('medicalConditionChart').getContext('2d');
+        medicalConditionChart = new Chart(ctx, {
+            type: 'pie',
+            data: {
+                labels: ['Frail', 'Bedridden', 'Disabled', 'Chronic Illness'],
+                datasets: [{
+                    data: [40, 30, 20, 10], // Example data
+                    backgroundColor: [
+                        'rgba(255, 99, 132, 0.6)',
+                        'rgba(54, 162, 235, 0.6)',
+                        'rgba(255, 206, 86, 0.6)',
+                        'rgba(75, 192, 192, 0.6)'
+                    ],
+                    borderColor: [
+                        'rgba(255, 99, 132, 1)',
+                        'rgba(54, 162, 235, 1)',
+                        'rgba(255, 206, 86, 1)',
+                        'rgba(75, 192, 192, 1)'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'top'
+                    }
+                }
+            }
+        });
+    }
+
+    // Update time range filters visibility
+    document.addEventListener('DOMContentLoaded', function() {
+        // Time range change handler
+        document.getElementById('timeRange').addEventListener('change', function() {
+            const selectedRange = this.value;
+            
+            // Hide all time range filters
+            document.getElementById('weekFilterContainer').classList.add('d-none');
+            document.getElementById('monthRangeFilterContainer').classList.add('d-none');
+            document.getElementById('yearFilterContainer').classList.add('d-none');
+            
+            // Show the appropriate filter based on selection
+            if (selectedRange === 'weeks') {
+                document.getElementById('weekFilterContainer').classList.remove('d-none');
+            } else if (selectedRange === 'months') {
+                document.getElementById('monthRangeFilterContainer').classList.remove('d-none');
+            } else if (selectedRange === 'year') {
+                document.getElementById('yearFilterContainer').classList.remove('d-none');
+            }
+        });
+
+        // PDF export button
+        // document.getElementById('exportPdfBtn').addEventListener('click', function() {
+        //     // Create a form to submit the current filter values for PDF export
+        //     const form = document.createElement('form');
+        //     form.method = 'POST';
+        
+        //     form.style.display = 'none';
+            
+        //     // Add CSRF token
+        //     const csrfToken = document.createElement('input');
+        //     csrfToken.type = 'hidden';
+        //     csrfToken.name = '_token';
+        //     csrfToken.value = '{{ csrf_token() }}';
+        //     form.appendChild(csrfToken);
+            
+        //     // Copy all filter values from the filter form
+        //     const filterForm = document.getElementById('filterForm');
+        //     const filterInputs = filterForm.querySelectorAll('select, input');
+            
+        //     filterInputs.forEach(input => {
+        //         const hiddenField = document.createElement('input');
+        //         hiddenField.type = 'hidden';
+        //         hiddenField.name = input.name;
+        //         hiddenField.value = input.value;
+        //         form.appendChild(hiddenField);
+        //     });
+            
+        //     // Append form to body and submit
+        //     document.body.appendChild(form);
+        //     form.submit();
+        // });
+        
+        // Initialize charts
+        initCharts();
+    });
+</script>
+
+</body>
+</html>
