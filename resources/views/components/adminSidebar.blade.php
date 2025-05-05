@@ -1,5 +1,4 @@
 <link rel="stylesheet" href="{{ asset('css/sidebar.css') }}">
-<link rel="stylesheet" href="{{ asset('css/boxicons.min.css') }}">
 
 <div class="sidebar">
   <div class="logo-details" id="logoToggle">
@@ -75,16 +74,16 @@
       </div>
       <ul class="sub-menu m-auto">
         <li><a class="link_name">Schedules & Appointments</a></li>
-        <li><a href="{{ route('admin.careworker.appointments.index') }}" class="{{ Request::routeIs('admin.careworker.appointments.*') ? 'active' : '' }}">Care Worker Appointments</a></li>
-        <li><a href="{{ route('admin.internal.appointments.index') }}" class="{{ Request::routeIs('admin.internal.appointments.*') ? 'active' : '' }}">Internal Appointments</a></li>
+        <li><a href="{{ route('admin.careworker.appointments.index') }}" class="{{ Request::routeIs('admin.careworker.appointments.*') ? 'active' : '' }}">Care Worker Appointment</a></li>
+        <li><a href="{{ route('admin.internal.appointments.index') }}" class="{{ Request::routeIs('admin.internal.appointments.*') ? 'active' : '' }}">Internal Appointment</a></li>
         <li><a href="{{ route('admin.medication.schedule.index') }}" class="{{ Request::routeIs('admin.medication.schedule.*') ? 'active' : '' }}">Medication Schedule</a></li>
       </ul>
     </li>
     
-    <li class="{{ Request::routeIs('admin.beneficiary.map.*') || Request::routeIs('admin.locations.*') ? 'active' : '' }}">
+    <li class="{{ Request::routeIs('admin.beneficiary.map.*') ? 'active' : '' }}">
       <div class="icon-link">
         <a>
-          <i class="bi bi-map"></i>
+          <i class="bi bi-geo-alt"></i>
           <span class="link_name">Location Tracking</span>
         </a>
           <i class='bi bi-chevron-down arrow dropdown-arrow'></i>
@@ -96,6 +95,16 @@
       </ul>
     </li>
     
+    <li class="{{ Request::routeIs('admin.locations.*') ? 'active' : '' }}">
+      <a href="{{ route('admin.locations.index') }}">
+        <i class="bi bi-map"></i>
+        <span class="link_name">Municipality Management</span>
+      </a>
+      <ul class="sub-menu blank">
+        <li><a class="link_name" href="{{ route('admin.locations.index') }}">Municipality Management</a></li>
+      </ul>
+    </li>
+
     <li>
       <a href="#" class="">
         <i class="bi bi-cash-stack"></i>

@@ -15,8 +15,8 @@
   top: 0;
   left: 0;
   height: 100%;
-  min-width: 260px;
-  max-width: 345px;
+  min-width: 210px;
+  max-width: 310px;
   background: #f1f0fe;
   z-index: 100;
   transition: all 0.2s ease;
@@ -45,7 +45,7 @@
 .sidebar .logo-details {
   height: auto;
   width: 100%;
-  font-size: 24px;
+  font-size: 20px;
   text-align: center;
   display: flex;
   align-items: center;
@@ -54,13 +54,13 @@
 }
 
 .logo-details i {
-  font-size: 24px;
+  font-size: 20px;
   font-weight: bold;
   color: #161111;
 }
 
 .sidebar .logo-details .logo_name {
-  font-size: 18px;
+  font-size: 16px;
   color: #161111;
   font-weight: 600;
   transition: 0.2s ease;
@@ -157,7 +157,7 @@
 }
 
 .sidebar .nav-links li a .link_name {
-  font-size: 18px;
+  font-size: 14px;
   font-weight: 400;
   color: #161111;
   transition: all 0.2s ease;
