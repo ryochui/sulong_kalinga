@@ -64,6 +64,42 @@
         #beneficiaryDetailsRow .card-header {
             font-size: clamp(1rem, 1.2vw, 1.2rem);
         }
+
+        .carousel-control-prev,
+        .carousel-control-next {
+            display: none; /* Hide default carousel controls since we're using custom buttons */
+        }
+        
+        .position-relative .btn-outline-secondary {
+            margin-top: 0px;
+            padding: 0.1rem 0.4rem;
+        }
+
+        .care-services-table td {
+            height: auto !important;
+            vertical-align: top;
+            white-space: normal;
+        }
+
+        .care-services-table td.text-center {
+            vertical-align: middle;
+        }
+
+        .care-services-table th:nth-child(2),
+        .care-services-table th:nth-child(3) {
+            width: 20%;
+        }
+
+        .care-services-table td:nth-child(1) {
+            overflow-wrap: break-word;
+            word-wrap: break-word;
+            max-width: 60%;
+        }
+
+        .care-services-table td:nth-child(2),
+        .care-services-table td:nth-child(3) {
+            width: 20%;
+        }
     </style>
 </head>
 <body>
@@ -324,7 +360,7 @@
                         </div>
                     </div>
 
-                    <!-- Care Services Summary Section - KEEPING AS IS PER REQUEST -->
+                    <!-- Care Services Summary Section -->
                     <div class="row mt-3 mb-3" id="careServicesSummaryRow">
                         <div class="col-12">
                             <div class="card shadow-sm">
@@ -334,108 +370,46 @@
                                 <div class="card-body p-2">
                                     <div id="careServicesCarousel" class="carousel slide" data-bs-interval="false">
                                         <div class="carousel-inner">
-                                            <!-- Mobility Table -->
-                                            <div class="carousel-item active">
-                                                <table class="table table-bordered table-sm">
-                                                    <thead>
-                                                        <tr>
-                                                            <th colspan="2" class="text-center bg-light position-relative">
-                                                                <button class="btn btn-sm btn-outline-secondary position-absolute start-0" data-bs-target="#careServicesCarousel" data-bs-slide="prev">
-                                                                    <i class="bi bi-chevron-left"></i>
-                                                                </button>
-                                                                Mobility
-                                                                <button class="btn btn-sm btn-outline-secondary position-absolute end-0" data-bs-target="#careServicesCarousel" data-bs-slide="next">
-                                                                    <i class="bi bi-chevron-right"></i>
-                                                                </button>
-                                                            </th>
-                                                        </tr>
-                                                        <tr>
-                                                            <th>Intervention Implemented</th>
-                                                            <th class="text-center">Frequency</th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody>
-                                                        <tr>
-                                                            <td>Provided walker and physical therapy</td>
-                                                            <td class="text-center">3x/week</td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td>Installed stair lift</td>
-                                                            <td class="text-center">Daily</td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td>Caregiver-assisted transfers</td>
-                                                            <td class="text-center">As needed</td>
-                                                        </tr>
-                                                    </tbody>
-                                                </table>
-                                            </div>
-
-                                            <!-- Cognitive/Communication Table -->
-                                            <div class="carousel-item">
-                                                <table class="table table-bordered table-sm">
-                                                    <thead>
-                                                        <tr>
-                                                            <th colspan="2" class="text-center bg-light position-relative">
-                                                                <button class="btn btn-sm btn-outline-secondary position-absolute start-0" data-bs-target="#careServicesCarousel" data-bs-slide="prev">
-                                                                    <i class="bi bi-chevron-left"></i>
-                                                                </button>
-                                                                Cognitive / Communication
-                                                                <button class="btn btn-sm btn-outline-secondary position-absolute end-0" data-bs-target="#careServicesCarousel" data-bs-slide="next">
-                                                                    <i class="bi bi-chevron-right"></i>
-                                                                </button>
-                                                            </th>
-                                                        </tr>
-                                                        <tr>
-                                                            <th>Intervention Implemented</th>
-                                                            <th class="text-center">Frequency</th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody>
-                                                        <tr>
-                                                            <td>Memory exercises and reminders</td>
-                                                            <td class="text-center">Daily</td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td>Speech therapy sessions</td>
-                                                            <td class="text-center">2x/week</td>
-                                                        </tr>
-                                                    </tbody>
-                                                </table>
-                                            </div>
-
-                                            <!-- Self-sustainability Table -->
-                                            <div class="carousel-item">
-                                                <table class="table table-bordered table-sm">
-                                                    <thead>
-                                                        <tr>
-                                                            <th colspan="2" class="text-center bg-light position-relative">
-                                                                <button class="btn btn-sm btn-outline-secondary position-absolute start-0" data-bs-target="#careServicesCarousel" data-bs-slide="prev">
-                                                                    <i class="bi bi-chevron-left"></i>
-                                                                </button>
-                                                                Self-sustainability
-                                                                <button class="btn btn-sm btn-outline-secondary position-absolute end-0" data-bs-target="#careServicesCarousel" data-bs-slide="next">
-                                                                    <i class="bi bi-chevron-right"></i>
-                                                                </button>
-                                                            </th>
-                                                        </tr>
-                                                        <tr>
-                                                            <th>Intervention Implemented</th>
-                                                            <th class="text-center">Frequency</th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody>
-                                                        <tr>
-                                                            <td>Assistance with bathing and grooming</td>
-                                                            <td class="text-center">Daily</td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td>Meal delivery service</td>
-                                                            <td class="text-center">3x/day</td>
-                                                        </tr>
-                                                    </tbody>
-                                                </table>
-                                            </div>
+                                            @foreach($careCategories as $index => $category)
+                                                <div class="carousel-item {{ $index === 0 ? 'active' : '' }}">
+                                                    <table class="table table-bordered table-sm care-services-table">
+                                                        <thead>
+                                                            <tr>
+                                                                <th colspan="3" class="text-center bg-light position-relative">
+                                                                    <button class="btn btn-sm btn-outline-secondary position-absolute start-0" data-bs-target="#careServicesCarousel" data-bs-slide="prev">
+                                                                        <i class="bi bi-chevron-left"></i>
+                                                                    </button>
+                                                                    {{ $category->care_category_name }}
+                                                                    <button class="btn btn-sm btn-outline-secondary position-absolute end-0" data-bs-target="#careServicesCarousel" data-bs-slide="next">
+                                                                        <i class="bi bi-chevron-right"></i>
+                                                                    </button>
+                                                                </th>
+                                                            </tr>
+                                                            <tr>
+                                                                <th>Intervention Implemented</th>
+                                                                <th class="text-center" style="width: 20%;">Times Implemented</th>
+                                                                <th class="text-center" style="width: 20%;">Total Hours</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            @if(isset($careServicesSummary[$category->care_category_id]) && 
+                                                                $careServicesSummary[$category->care_category_id]['has_interventions'])
+                                                                @foreach($careServicesSummary[$category->care_category_id]['interventions'] as $intervention)
+                                                                    <tr>
+                                                                        <td class="align-top">{{ $intervention['description'] }}</td>
+                                                                        <td class="text-center align-middle">{{ $intervention['implementations'] }}</td>
+                                                                        <td class="text-center align-middle">{{ $intervention['formatted_duration'] }}</td>
+                                                                    </tr>
+                                                                @endforeach
+                                                            @else
+                                                                <tr>
+                                                                    <td colspan="3" class="text-center">No interventions implemented for this category</td>
+                                                                </tr>
+                                                            @endif
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            @endforeach
                                         </div>
                                     </div>
                                 </div>
@@ -653,6 +627,10 @@
             } else if (selectedRange === 'year') {
                 document.getElementById('yearFilterContainer').classList.remove('d-none');
             }
+
+            const careServicesCarousel = new bootstrap.Carousel(document.getElementById('careServicesCarousel'), {
+                interval: false // Don't auto-rotate
+            });
         });
 
         // PDF export button

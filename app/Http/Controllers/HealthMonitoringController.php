@@ -6,6 +6,10 @@ use Illuminate\Http\Request;
 use App\Models\Beneficiary;
 use App\Models\Municipality;
 use App\Models\BeneficiaryCategory;
+use App\Models\CareCategory;
+use App\Models\Intervention;
+use App\Models\CareNeed;
+use App\Models\BeneficiaryStatus;
 use App\Models\WeeklyCarePlan;
 use App\Models\VitalSigns;
 use Illuminate\Support\Facades\DB;
@@ -304,6 +308,70 @@ class HealthMonitoringController extends Controller
                 }
             }
         }
+        $careCategories = CareCategory::orderBy('care_category_name')->get();
+        $careServicesSummary = [];
+        
+        // Query base - weekly care plans filtered by date range
+        $wcpQuery = WeeklyCarePlan::whereBetween('date', [$startDate, $endDate]);
+        
+        // Filter by municipality if selected
+        if ($selectedMunicipalityId) {
+            $wcpQuery->whereHas('beneficiary', function($query) use ($selectedMunicipalityId) {
+                $query->where('municipality_id', $selectedMunicipalityId);
+            });
+        }
+        
+        // Filter by beneficiary if selected
+        if ($selectedBeneficiaryId) {
+            $wcpQuery->where('beneficiary_id', $selectedBeneficiaryId);
+        }
+        
+        // Get the filtered weekly care plan IDs
+        $filteredWcpIds = $wcpQuery->pluck('weekly_care_plan_id')->toArray();
+        
+        // Prepare care services summary data
+        foreach ($careCategories as $category) {
+            $interventions = Intervention::where('care_category_id', $category->care_category_id)->get();
+            $interventionData = [];
+            $hasInterventions = false;
+            
+            foreach ($interventions as $intervention) {
+                // Get implementation data for this intervention
+                $implementations = DB::table('weekly_care_plan_interventions')
+                    ->whereIn('weekly_care_plan_id', $filteredWcpIds)
+                    ->where('intervention_id', $intervention->intervention_id)
+                    ->count();
+                    
+                // Get total duration in minutes
+                $totalMinutes = DB::table('weekly_care_plan_interventions')
+                    ->whereIn('weekly_care_plan_id', $filteredWcpIds)
+                    ->where('intervention_id', $intervention->intervention_id)
+                    ->sum('duration_minutes');
+                    
+                // Only include interventions that were actually implemented
+                if ($implementations > 0) {
+                    $hours = floor($totalMinutes / 60);
+                    $minutes = $totalMinutes % 60;
+                    
+                    $interventionData[] = [
+                        'description' => $intervention->intervention_description,
+                        'implementations' => $implementations,
+                        'hours' => $hours,
+                        'minutes' => $minutes,
+                        'formatted_duration' => $hours . ' hrs ' . ($minutes > 0 ? $minutes . ' min' : '')
+                    ];
+                    
+                    $hasInterventions = true;
+                }
+            }
+            
+            // Add to care services summary
+            $careServicesSummary[$category->care_category_id] = [
+                'category_name' => $category->care_category_name,
+                'interventions' => $interventionData,
+                'has_interventions' => $hasInterventions
+            ];
+        }
 
         return view('admin.healthMonitoring', compact(
             'beneficiaries',
@@ -321,7 +389,9 @@ class HealthMonitoringController extends Controller
             'healthStatistics',
             'totalPopulation',
             'vitalSignsHistory',
-            'totals' // Added totals to the view data
+            'totals',
+            'careCategories',
+            'careServicesSummary'
         ));
     }
 }
