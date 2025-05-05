@@ -373,6 +373,106 @@ class HealthMonitoringController extends Controller
             ];
         }
 
+        // Vital Signs Charts Data - Fix for PostgreSQL
+        $bloodPressureData = [];
+        $heartRateData = [];
+        $respiratoryRateData = [];
+        $temperatureData = [];
+        $chartLabels = [];
+
+        // Get vital signs based on filters (date range, municipality, beneficiary)
+        $vitalSignsQuery = DB::table('vital_signs as vs')
+            ->join('weekly_care_plans as wcp', 'vs.vital_signs_id', '=', 'wcp.vital_signs_id')
+            ->whereBetween('wcp.date', [$startDate, $endDate]);
+
+        // Apply municipality filter if selected
+        if ($selectedMunicipalityId) {
+            $vitalSignsQuery->join('beneficiaries as b', 'wcp.beneficiary_id', '=', 'b.beneficiary_id')
+                        ->where('b.municipality_id', $selectedMunicipalityId);
+        }
+
+        // Apply beneficiary filter if selected
+        if ($selectedBeneficiaryId) {
+            $vitalSignsQuery->where('wcp.beneficiary_id', $selectedBeneficiaryId);
+            // For individual beneficiary, order by date
+            $vitalSigns = $vitalSignsQuery->select(
+                            'wcp.date',
+                            'vs.blood_pressure',
+                            'vs.body_temperature',
+                            'vs.pulse_rate',
+                            'vs.respiratory_rate'
+                        )
+                        ->orderBy('wcp.date')
+                        ->get();
+                                            
+            // Process for individual beneficiary charts
+            foreach ($vitalSigns as $reading) {
+                $chartLabels[] = Carbon::parse($reading->date)->format('M d');
+                
+                // Extract systolic value from blood pressure (format: "120/80")
+                $bpParts = explode('/', $reading->blood_pressure);
+                $systolic = isset($bpParts[0]) ? (int)$bpParts[0] : 0;
+                
+                $bloodPressureData[] = $systolic;
+                $heartRateData[] = $reading->pulse_rate;
+                $respiratoryRateData[] = $reading->respiratory_rate;
+                $temperatureData[] = $reading->body_temperature;
+            }
+        } else {
+            // For aggregate view (all beneficiaries or municipality filter)
+            // Format the date based on selected time range
+            switch ($selectedTimeRange) {
+                case 'weeks':
+                    $vitalSignsQuery->select(
+                        DB::raw('wcp.date::date as date'), // PostgreSQL casting to date
+                        DB::raw('AVG(CAST(SPLIT_PART(vs.blood_pressure, \'/\', 1) AS INTEGER)) as avg_systolic'),
+                        DB::raw('AVG(vs.body_temperature) as avg_temperature'),
+                        DB::raw('AVG(vs.pulse_rate) as avg_pulse_rate'),
+                        DB::raw('AVG(vs.respiratory_rate) as avg_respiratory_rate')
+                    )
+                    ->groupBy('date')
+                    ->orderBy('date');
+                    break;
+                    
+                case 'months':
+                    $vitalSignsQuery->select(
+                        DB::raw('CONCAT(EXTRACT(YEAR FROM wcp.date), \'-\', EXTRACT(MONTH FROM wcp.date)) as date_key'),
+                        DB::raw('TO_CHAR(wcp.date, \'Mon YYYY\') as date'),
+                        DB::raw('AVG(CAST(SPLIT_PART(vs.blood_pressure, \'/\', 1) AS INTEGER)) as avg_systolic'),
+                        DB::raw('AVG(vs.body_temperature) as avg_temperature'),
+                        DB::raw('AVG(vs.pulse_rate) as avg_pulse_rate'),
+                        DB::raw('AVG(vs.respiratory_rate) as avg_respiratory_rate')
+                    )
+                    ->groupBy('date_key', 'date')
+                    ->orderBy('date_key');
+                    break;
+                    
+                case 'year':
+                    $vitalSignsQuery->select(
+                        DB::raw('EXTRACT(YEAR FROM wcp.date) as date_key'),
+                        DB::raw('EXTRACT(YEAR FROM wcp.date)::text as date'),
+                        DB::raw('AVG(CAST(SPLIT_PART(vs.blood_pressure, \'/\', 1) AS INTEGER)) as avg_systolic'),
+                        DB::raw('AVG(vs.body_temperature) as avg_temperature'),
+                        DB::raw('AVG(vs.pulse_rate) as avg_pulse_rate'),
+                        DB::raw('AVG(vs.respiratory_rate) as avg_respiratory_rate')
+                    )
+                    ->groupBy('date_key')
+                    ->orderBy('date_key');
+                    break;
+            }
+            
+            $vitalSigns = $vitalSignsQuery->get();
+            
+            // Process for aggregated charts
+            foreach ($vitalSigns as $reading) {
+                $chartLabels[] = $reading->date;
+                $bloodPressureData[] = round($reading->avg_systolic, 1);
+                $heartRateData[] = round($reading->avg_pulse_rate, 1);
+                $respiratoryRateData[] = round($reading->avg_respiratory_rate, 1);
+                $temperatureData[] = round($reading->avg_temperature, 1);
+            }
+        }
+
         return view('admin.healthMonitoring', compact(
             'beneficiaries',
             'municipalities',
@@ -391,7 +491,12 @@ class HealthMonitoringController extends Controller
             'vitalSignsHistory',
             'totals',
             'careCategories',
-            'careServicesSummary'
+            'careServicesSummary',
+            'chartLabels',
+            'bloodPressureData',
+            'heartRateData',
+            'respiratoryRateData',
+            'temperatureData',
         ));
     }
 }

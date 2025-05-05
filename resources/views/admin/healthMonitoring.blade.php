@@ -499,79 +499,6 @@
     let bloodPressureChart, heartRateChart, respiratoryRateChart, temperatureChart, medicalConditionChart;
     let currentBeneficiaryName = "All Beneficiaries";
 
-    // Initialize charts
-    function initCharts() {
-        const weekLabels = ['Week 1', 'Week 2', 'Week 3', 'Week 4'];
-
-        // Blood Pressure Chart
-        const bloodPressureCtx = document.getElementById('bloodPressureChart').getContext('2d');
-        bloodPressureChart = createChart(
-            bloodPressureCtx,
-            'Blood Pressure (mmHg)',
-            weekLabels,
-            [120, 125, 130, 128],
-            'rgba(255, 99, 132, 1)',
-            'rgba(255, 99, 132, 0.2)'
-        );
-
-        // Heart Rate Chart
-        const heartRateCtx = document.getElementById('heartRateChart').getContext('2d');
-        heartRateChart = createChart(
-            heartRateCtx,
-            'Heart Rate (bpm)',
-            weekLabels,
-            [72, 75, 78, 76],
-            'rgba(54, 162, 235, 1)',
-            'rgba(54, 162, 235, 0.2)'
-        );
-
-        // Respiratory Rate Chart
-        const respiratoryRateCtx = document.getElementById('respiratoryRateChart').getContext('2d');
-        respiratoryRateChart = createChart(
-            respiratoryRateCtx,
-            'Respiratory Rate (breaths/min)',
-            weekLabels,
-            [16, 18, 17, 16],
-            'rgba(255, 206, 86, 1)',
-            'rgba(255, 206, 86, 0.2)'
-        );
-
-        // Temperature Chart
-        const temperatureCtx = document.getElementById('temperatureChart').getContext('2d');
-        temperatureChart = createChart(
-            temperatureCtx,
-            'Temperature (°C)',
-            weekLabels,
-            [36.5, 36.7, 36.8, 36.6],
-            'rgba(75, 192, 192, 1)',
-            'rgba(75, 192, 192, 0.2)'
-        );
-
-        // Medical Condition Pie Chart
-        initMedicalConditionChart();
-    }
-
-    // Create a chart
-    function createChart(ctx, label, labels, data, borderColor, backgroundColor) {
-        return new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: labels,
-                datasets: [{
-                    label: label,
-                    data: data,
-                    borderColor: borderColor,
-                    backgroundColor: backgroundColor,
-                    fill: true,
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-            }
-        });
-    }
-
     // Initialize the Medical Condition Pie Chart
     function initMedicalConditionChart() {
         const ctx = document.getElementById('medicalConditionChart').getContext('2d');
@@ -627,11 +554,15 @@
             } else if (selectedRange === 'year') {
                 document.getElementById('yearFilterContainer').classList.remove('d-none');
             }
-
-            const careServicesCarousel = new bootstrap.Carousel(document.getElementById('careServicesCarousel'), {
-                interval: false // Don't auto-rotate
-            });
         });
+        
+        // Initialize carousel
+        const careServicesCarousel = new bootstrap.Carousel(document.getElementById('careServicesCarousel'), {
+            interval: false // Don't auto-rotate
+        });
+
+        // Initialize charts with data or default values
+        initializeCharts();
 
         // PDF export button
         // document.getElementById('exportPdfBtn').addEventListener('click', function() {
@@ -664,10 +595,147 @@
         //     document.body.appendChild(form);
         //     form.submit();
         // });
-        
-        // Initialize charts
-        initCharts();
     });
+
+     // Initialize all charts
+     function initializeCharts() {
+        // Chart data from controller - use empty arrays as fallbacks if undefined
+        const chartLabels = @json($chartLabels ?? []);
+        const bloodPressureData = @json($bloodPressureData ?? []);
+        const heartRateData = @json($heartRateData ?? []);
+        const respiratoryRateData = @json($respiratoryRateData ?? []);
+        const temperatureData = @json($temperatureData ?? []);
+        const chartTitle = @json($chartTitle ?? 'Vital Signs');
+        
+        // Use default data if empty
+        const defaultLabels = chartLabels.length > 0 ? chartLabels : ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
+        const defaultBP = bloodPressureData.length > 0 ? bloodPressureData : [120, 118, 122, 125, 119, 121];
+        const defaultHR = heartRateData.length > 0 ? heartRateData : [72, 75, 73, 70, 74, 76];
+        const defaultRR = respiratoryRateData.length > 0 ? respiratoryRateData : [16, 17, 15, 16, 18, 17];
+        const defaultTemp = temperatureData.length > 0 ? temperatureData : [36.5, 36.6, 36.4, 36.7, 36.5, 36.8];
+        
+        // Blood Pressure Chart
+        const bloodPressureCtx = document.getElementById('bloodPressureChart').getContext('2d');
+        new Chart(bloodPressureCtx, {
+            type: 'line',
+            data: {
+                labels: defaultLabels,
+                datasets: [{
+                    label: 'Blood Pressure (Systolic mmHg)',
+                    data: defaultBP,
+                    borderColor: 'rgba(255, 99, 132, 1)',
+                    backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                    fill: true,
+                    tension: 0.3
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                },
+                scales: {
+                    y: {
+                        suggestedMin: 100,
+                        suggestedMax: 160
+                    }
+                }
+            }
+        });
+
+        // Heart Rate Chart
+        const heartRateCtx = document.getElementById('heartRateChart').getContext('2d');
+        new Chart(heartRateCtx, {
+            type: 'line',
+            data: {
+                labels: defaultLabels,
+                datasets: [{
+                    label: 'Heart Rate (bpm)',
+                    data: defaultHR,
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                    fill: true,
+                    tension: 0.3
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                },
+                scales: {
+                    y: {
+                        suggestedMin: 60,
+                        suggestedMax: 100
+                    }
+                }
+            }
+        });
+
+        // Respiratory Rate Chart
+        const respiratoryRateCtx = document.getElementById('respiratoryRateChart').getContext('2d');
+        new Chart(respiratoryRateCtx, {
+            type: 'line',
+            data: {
+                labels: defaultLabels,
+                datasets: [{
+                    label: 'Respiratory Rate (breaths/min)',
+                    data: defaultRR,
+                    borderColor: 'rgba(255, 206, 86, 1)',
+                    backgroundColor: 'rgba(255, 206, 86, 0.2)',
+                    fill: true,
+                    tension: 0.3
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                },
+                scales: {
+                    y: {
+                        suggestedMin: 10,
+                        suggestedMax: 25
+                    }
+                }
+            }
+        });
+
+        // Temperature Chart
+        const temperatureCtx = document.getElementById('temperatureChart').getContext('2d');
+        new Chart(temperatureCtx, {
+            type: 'line',
+            data: {
+                labels: defaultLabels,
+                datasets: [{
+                    label: 'Temperature (°C)',
+                    data: defaultTemp,
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                    fill: true,
+                    tension: 0.3
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+    
+                },
+                scales: {
+                    y: {
+                        suggestedMin: 35.5,
+                        suggestedMax: 38
+                    }
+                }
+            }
+        });
+        
+        // Medical Condition Chart (if needed)
+        if (document.getElementById('medicalConditionChart')) {
+            initMedicalConditionChart();
+        }
+    }
 </script>
 
 </body>
