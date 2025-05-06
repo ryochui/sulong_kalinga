@@ -73,6 +73,30 @@ class CareWorkerPerformanceController extends Controller
         $endDate = null;
         $dateRangeLabel = '';
         
+        // Get initial year selection based on available years (keep your existing code)
+        $currentYear = Carbon::now()->year;
+        if (!empty($availableYears) && max($availableYears) >= ($currentYear - 5)) {
+            $selectedYear = $request->input('year', max($availableYears));
+        } else {
+            $selectedYear = $request->input('year', $currentYear);
+            
+            if (!in_array($currentYear, $availableYears)) {
+                $availableYears[] = $currentYear;
+                sort($availableYears);
+            }
+        }
+
+        // IMPORTANT: Update the year value based on the time range
+        if ($selectedTimeRange === 'weeks') {
+            // For Monthly view, look for monthly_year specifically
+            $selectedYear = $request->input('monthly_year', $selectedYear);
+        } elseif ($selectedTimeRange === 'months') {
+            // For Range of Months, look for range_year specifically
+            $selectedYear = $request->input('range_year', $selectedYear);
+        }
+        // For 'year' time range, we already have the correct year from the initial selection
+
+        // Now continue with your switch statement for the date ranges
         switch ($selectedTimeRange) {
             case 'weeks':
                 $startDate = Carbon::createFromDate($selectedYear, $selectedMonth, 1)->startOfMonth();

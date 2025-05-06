@@ -174,28 +174,37 @@
                                     <div class="col">
                                         <label for="timeRange" class="form-label">Time Range:</label>
                                         <select class="form-select" id="timeRange" name="time_range">
-                                            <option value="weeks" {{ $selectedTimeRange == 'weeks' ? 'selected' : '' }}>Weeks</option>
-                                            <option value="months" {{ $selectedTimeRange == 'months' ? 'selected' : '' }}>Months</option>
-                                            <option value="year" {{ $selectedTimeRange == 'year' ? 'selected' : '' }}>Year</option>
+                                            <option value="weeks" {{ $selectedTimeRange == 'weeks' ? 'selected' : '' }}>Monthly</option>
+                                            <option value="months" {{ $selectedTimeRange == 'months' ? 'selected' : '' }}>Range of Months</option>
+                                            <option value="year" {{ $selectedTimeRange == 'year' ? 'selected' : '' }}>Yearly</option>
                                         </select>
                                     </div>
-                                    
-                                    <!-- Week Filter (visible when weeks selected) -->
-                                    <div class="col {{ $selectedTimeRange == 'weeks' ? '' : 'd-none' }}" id="weekFilterContainer">
+
+                                    <!-- Week Filter (visible by default) -->
+                                    <div class="col {{ $selectedTimeRange != 'weeks' ? 'd-none' : '' }}" id="weekFilterContainer">
                                         <label for="monthSelect" class="form-label">Select Month:</label>
-                                        <select class="form-select" id="monthSelect" name="month">
-                                            @for($i = 1; $i <= 12; $i++)
-                                                <option value="{{ $i }}" {{ $selectedMonth == $i ? 'selected' : '' }}>
-                                                    {{ date('F', mktime(0, 0, 0, $i, 1)) }}
-                                                </option>
-                                            @endfor
-                                        </select>
+                                        <div class="d-flex">
+                                            <select class="form-select" id="monthSelect" name="month" style="width: 60%;">
+                                                @for($i = 1; $i <= 12; $i++)
+                                                    <option value="{{ $i }}" {{ $selectedMonth == $i ? 'selected' : '' }}>
+                                                        {{ date('F', mktime(0, 0, 0, $i, 1)) }}
+                                                    </option>
+                                                @endfor
+                                            </select>
+                                            <select class="form-select ms-2" id="yearSelect" name="monthly_year" style="width: 40%;">
+                                                @foreach($availableYears as $year)
+                                                    <option value="{{ $year }}" {{ $selectedYear == $year ? 'selected' : '' }}>
+                                                        {{ $year }}
+                                                    </option>
+                                                @endforeach
+                                            </select>
+                                        </div>
                                     </div>
-                                    
+
                                     <!-- Month Range Filter (hidden by default) -->
-                                    <div class="col {{ $selectedTimeRange == 'months' ? '' : 'd-none' }}" id="monthRangeFilterContainer">
+                                    <div class="col {{ $selectedTimeRange != 'months' ? 'd-none' : '' }}" id="monthRangeFilterContainer">
                                         <div class="row g-2">
-                                            <div class="col-6">
+                                            <div class="col-5">
                                                 <label for="startMonth" class="form-label">Start Month:</label>
                                                 <select class="form-select" id="startMonth" name="start_month">
                                                     @for($i = 1; $i <= 12; $i++)
@@ -205,7 +214,7 @@
                                                     @endfor
                                                 </select>
                                             </div>
-                                            <div class="col-6">
+                                            <div class="col-5">
                                                 <label for="endMonth" class="form-label">End Month:</label>
                                                 <select class="form-select" id="endMonth" name="end_month">
                                                     @for($i = 1; $i <= 12; $i++)
@@ -215,13 +224,23 @@
                                                     @endfor
                                                 </select>
                                             </div>
+                                            <div class="col-2">
+                                                <label for="rangeYearSelect" class="form-label">Year:</label>
+                                                <select class="form-select" id="rangeYearSelect" name="range_year">
+                                                    @foreach($availableYears as $year)
+                                                        <option value="{{ $year }}" {{ $selectedYear == $year ? 'selected' : '' }}>
+                                                            {{ $year }}
+                                                        </option>
+                                                    @endforeach
+                                                </select>
+                                            </div>
                                         </div>
                                     </div>
-                                    
+
                                     <!-- Year Filter (hidden by default) -->
-                                    <div class="col {{ $selectedTimeRange == 'year' ? '' : 'd-none' }}" id="yearFilterContainer">
-                                        <label for="yearSelect" class="form-label">Select Year:</label>
-                                        <select class="form-select" id="yearSelect" name="year">
+                                    <div class="col {{ $selectedTimeRange != 'year' ? 'd-none' : '' }}" id="yearFilterContainer">
+                                        <label for="yearOnlySelect" class="form-label">Select Year:</label>
+                                        <select class="form-select" id="yearOnlySelect" name="year">
                                             @foreach($availableYears as $year)
                                                 <option value="{{ $year }}" {{ $selectedYear == $year ? 'selected' : '' }}>
                                                     {{ $year }}
@@ -500,22 +519,24 @@
 
         // Add reset button functionality
         const resetFilterBtn = document.getElementById('resetFilterBtn');
-        resetFilterBtn.addEventListener('click', function() {
-            // Reset all filters to default and submit form
-            document.getElementById('careWorkerSelect').value = '';
-            document.getElementById('municipalitySelect').value = '';
-            document.getElementById('timeRange').value = 'weeks';
-            document.getElementById('monthSelect').value = new Date().getMonth() + 1;
-            document.getElementById('startMonth').value = 1;
-            document.getElementById('endMonth').value = 12;
-            document.getElementById('yearSelect').value = new Date().getFullYear();
-            
-            // Update visibility of time range filters
-            updateTimeFilters();
-            
-            // Submit the form
-            document.getElementById('filterForm').submit();
-        });
+            resetFilterBtn.addEventListener('click', function() {
+                // Reset all filters to default and submit form
+                document.getElementById('careWorkerSelect').value = '';
+                document.getElementById('municipalitySelect').value = '';
+                document.getElementById('timeRange').value = 'weeks';
+                document.getElementById('monthSelect').value = new Date().getMonth() + 1;
+                document.getElementById('startMonth').value = 1;
+                document.getElementById('endMonth').value = 12;
+                document.getElementById('yearSelect').value = new Date().getFullYear();
+                document.getElementById('rangeYearSelect').value = new Date().getFullYear(); // Add this line
+                document.getElementById('yearOnlySelect').value = new Date().getFullYear();
+                
+                // Update visibility of time range filters
+                updateTimeFilters();
+                
+                // Submit the form
+                document.getElementById('filterForm').submit();
+            });
 
         // Check if any filter is non-default and show/hide reset button accordingly
         function checkFiltersModified() {
@@ -526,6 +547,8 @@
             const startMonth = document.getElementById('startMonth');
             const endMonth = document.getElementById('endMonth');
             const yearSelect = document.getElementById('yearSelect');
+            const rangeYearSelect = document.getElementById('rangeYearSelect'); // Add this line
+            const yearOnlySelect = document.getElementById('yearOnlySelect');
             
             const currentMonth = new Date().getMonth() + 1;
             const currentYear = new Date().getFullYear();
@@ -535,9 +558,9 @@
                 careWorkerSelect.value !== '' ||
                 municipalitySelect.value !== '' ||
                 timeRange.value !== 'weeks' ||
-                (timeRange.value === 'weeks' && parseInt(monthSelect.value) !== currentMonth) ||
-                (timeRange.value === 'months' && (parseInt(startMonth.value) !== 1 || parseInt(endMonth.value) !== 12)) ||
-                (timeRange.value === 'year' && yearSelect.value != currentYear);
+                (timeRange.value === 'weeks' && (parseInt(monthSelect.value) !== currentMonth || parseInt(yearSelect.value) !== currentYear)) ||
+                (timeRange.value === 'months' && (parseInt(startMonth.value) !== 1 || parseInt(endMonth.value) !== 12 || parseInt(rangeYearSelect.value) !== currentYear)) || // Updated this line
+                (timeRange.value === 'year' && parseInt(yearOnlySelect.value) !== currentYear);
             
             // Show/hide reset button based on whether filters are modified
             resetFilterBtn.style.display = isModified ? 'inline-block' : 'none';
@@ -551,8 +574,7 @@
         
         // Initial check for filter modifications
         checkFiltersModified();
-        
-    });
+    }});
 </script>
 
     <script src="{{ asset('js/toggleSideBar.js') }}"></script>
