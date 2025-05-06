@@ -287,6 +287,14 @@
                                                 readonly data-bs-toggle="tooltip" title="Edit in General Care Plan">
                                         </div>
                                     </div>
+                                    <div class="row mb-1">
+                                        <div class="col-md-12 col-sm-12">
+                                            <label for="totalCareHours" class="form-label">Total Care Hours Received</label>
+                                            <input type="text" class="form-control" id="totalCareHours" 
+                                            value="{{ $totalCareTime ?? '0 hrs' }}" 
+                                            readonly style="font-weight: bold; background-color: #f8f9fa; color: #0d6efd; border: 1px solid #dee2e6;">
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -469,17 +477,28 @@
                                 </div>
                             </div>
                         </div>
-                        <!-- Row 3 -->
-                        <div class="row mb-3 justify-content-center" id="medicalConditionRow">
+                        <!-- Row 3 - Statistical Charts (only for group view) -->
+                        <div class="row mb-3 justify-content-center" id="statisticalChartsRow" {{ $selectedBeneficiary ? 'style=display:none;' : '' }}>
                             <!-- Medical Condition Pie Chart Section -->
-                                <div class="col-lg-6 col-md-6 col-sm-12">
-                                    <div class="card shadow-sm">
-                                        <div class="card-header text-center">
-                                            <strong>Medical Condition</strong>
-                                        </div>
-                                        <div class="card-body">
-                                            <canvas id="medicalConditionChart"></canvas>
-                                        </div>
+                            <div class="col-lg-6 col-md-6 col-sm-12">
+                                <div class="card shadow-sm">
+                                    <div class="card-header text-center">
+                                        <strong>Medical Conditions</strong>
+                                    </div>
+                                    <div class="card-body">
+                                        <canvas id="medicalConditionChart"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Illnesses Recorded Chart Section -->
+                            <div class="col-lg-6 col-md-6 col-sm-12">
+                                <div class="card shadow-sm">
+                                    <div class="card-header text-center">
+                                        <strong>Illnesses Recorded</strong>
+                                    </div>
+                                    <div class="card-body">
+                                        <canvas id="illnessesChart"></canvas>
                                     </div>
                                 </div>
                             </div>
@@ -563,6 +582,12 @@
 
         // Initialize charts with data or default values
         initializeCharts();
+
+        // Initialize statistical charts (only if not showing a specific beneficiary)
+        if (!document.getElementById('beneficiaryDetailsRow') || 
+            document.getElementById('beneficiaryDetailsRow').classList.contains('d-none')) {
+            initStatisticalCharts();
+        }
 
         // PDF export button
         // document.getElementById('exportPdfBtn').addEventListener('click', function() {
@@ -730,12 +755,142 @@
                 }
             }
         });
+    }
+
+    // Initialize both statistical charts
+    function initStatisticalCharts() {
+        // Medical Condition Pie Chart
+        const medicalConditionCtx = document.getElementById('medicalConditionChart').getContext('2d');
+        const medicalConditionData = @json($medicalConditionStats ?? []);
         
-        // Medical Condition Chart (if needed)
-        if (document.getElementById('medicalConditionChart')) {
-            initMedicalConditionChart();
+        if (Object.keys(medicalConditionData).length > 0) {
+            new Chart(medicalConditionCtx, {
+                type: 'pie',
+                data: {
+                    labels: Object.keys(medicalConditionData),
+                    datasets: [{
+                        data: Object.values(medicalConditionData),
+                        backgroundColor: [
+                            'rgba(255, 99, 132, 0.7)',
+                            'rgba(54, 162, 235, 0.7)',
+                            'rgba(255, 206, 86, 0.7)',
+                            'rgba(75, 192, 192, 0.7)',
+                            'rgba(153, 102, 255, 0.7)',
+                        ],
+                        borderColor: [
+                            'rgba(255, 99, 132, 1)',
+                            'rgba(54, 162, 235, 1)',
+                            'rgba(255, 206, 86, 1)',
+                            'rgba(75, 192, 192, 1)',
+                            'rgba(153, 102, 255, 1)',
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                            labels: {
+                                boxWidth: 15,
+                                font: {
+                                    size: 11
+                                }
+                            }
+                        },
+                        title: {
+                            display: true,
+                            text: 'Top 10 Medical Conditions Distribution',
+                            font: { size: 14 }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const label = context.label || '';
+                                    const value = context.parsed || 0;
+                                    const total = context.dataset.data.reduce((acc, data) => acc + data, 0);
+                                    const percentage = ((value / total) * 100).toFixed(1);
+                                    return `${label}: ${value} (${percentage}%)`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        } else {
+            document.getElementById('medicalConditionChart').parentElement.innerHTML = 
+                '<div class="text-center text-muted pt-5 pb-5">No medical condition data available</div>';
+        }
+        
+        // Illnesses Chart
+        const illnessesCtx = document.getElementById('illnessesChart').getContext('2d');
+        const illnessesData = @json($illnessStats ?? []);
+        
+        if (Object.keys(illnessesData).length > 0) {
+            new Chart(illnessesCtx, {
+                type: 'pie',
+                data: {
+                    labels: Object.keys(illnessesData),
+                    datasets: [{
+                        data: Object.values(illnessesData),
+                        backgroundColor: [
+                            'rgba(255, 159, 64, 0.7)',
+                            'rgba(153, 102, 255, 0.7)',
+                            'rgba(255, 99, 132, 0.7)',
+                            'rgba(54, 162, 235, 0.7)',
+                            'rgba(255, 206, 86, 0.7)'
+                        ],
+                        borderColor: [
+                            'rgba(255, 159, 64, 1)',
+                            'rgba(153, 102, 255, 1)',
+                            'rgba(255, 99, 132, 1)',
+                            'rgba(54, 162, 235, 1)',
+                            'rgba(255, 206, 86, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                            labels: {
+                                boxWidth: 15,
+                                font: {
+                                    size: 11
+                                }
+                            }
+                        },
+                        title: {
+                            display: true,
+                            text: 'Top 10 Reported Illnesses',
+                            font: { size: 14 }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const label = context.label || '';
+                                    const value = context.parsed || 0;
+                                    const total = context.dataset.data.reduce((acc, data) => acc + data, 0);
+                                    const percentage = ((value / total) * 100).toFixed(1);
+                                    return `${label}: ${value} (${percentage}%)`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        } else {
+            document.getElementById('illnessesChart').parentElement.innerHTML = 
+                '<div class="text-center text-muted pt-5 pb-5">No illness data available</div>';
         }
     }
+
+
 </script>
 
 </body>
