@@ -18,7 +18,7 @@
     
     <div class="home-section">
         <div class="container-fluid">
-            <div class="d-flex justify-content-between align-items-center mb-3">
+            <div class="d-flex justify-content-center align-items-center mb-3">
                 <!-- Original Back Button -->
                 <a href="{{ route('care-manager.reports') }}" class="btn btn-secondary original-back-btn">
                     <i class="bx bx-arrow-back"></i> Back
@@ -28,6 +28,9 @@
 
                 <!-- Edit and Delete Buttons -->
                 <div>
+                    <a href="{{ route('admin.reports') }}" class="btn btn-secondary hidden-back-btn">
+                        <i class="bi bi-arrow-bar-left"></i> Back
+                    </a>
                     <!-- Edit Button with Routing -->
                     <a href="{{ route('care-manager.weeklycareplans.edit', $weeklyCareplan->weekly_care_plan_id) }}" title="Edit Weekly Care Plan" class="btn btn-primary">
                         <i class="bx bx-edit"></i> Edit
@@ -52,7 +55,7 @@
                                 <h5>Personal Details</h5>
                             </div>
                         </div>
-                        <div class="row mb-1">
+                        <div class="row mb-2">
                             <div class="col-md-4 col-sm-9 position-relative">
                                 <label for="benficiary" class="form-label">Beneficiary Name</label>
                                 <input type="text" class="form-control" id="beneficiary" value="{{ $weeklyCareplan->beneficiary->first_name }} {{ $weeklyCareplan->beneficiary->last_name }}" readonly data-bs-toggle="tooltip" title="Edit in General Care Plan" readonly>    
@@ -70,21 +73,29 @@
                                 <input type="text" class="form-control" id="gender" value="{{ $weeklyCareplan->beneficiary->gender }}" readonly data-bs-toggle="tooltip" title="Edit in General Care Plan" readonly>
                             </div>
                         </div>
-                        <div class="row mb-3">
+                        <div class="row mb-2">
                             <div class="col-md-3 col-sm-4 position-relative">
                                 <label for="civilStatus" class="form-label">Civil Status</label>
                                 <input type="text" class="form-control" id="civilStatus" value="{{ $weeklyCareplan->beneficiary->civil_status }}" readonly data-bs-toggle="tooltip" title="Edit in General Care Plan" readonly>
-                                </div>
+                            </div>
                             <div class="col-md-6 col-sm-8">
                                 <label for="address" class="form-label">Address</label>
                                 <input type="text" class="form-control" id="address" value="{{ $weeklyCareplan->beneficiary->street_address }}" readonly data-bs-toggle="tooltip" title="Edit in General Care Plan" readonly>
-                                </div>
-                            <div class="col-md-3 col-sm-12">
+                            </div>
+                        </div>
+                        <div class="row mb-2">
+                            <div class="col-md-6 col-sm-12">
                                 <label for="condition" class="form-label">Medical Conditions</label>
                                 <input type="text" class="form-control" id="medicalConditions" 
                                 value="{{ $weeklyCareplan->beneficiary->generalCarePlan->healthHistory->medical_conditions ?? 'No medical conditions recorded' }}" 
                                 readonly data-bs-toggle="tooltip" title="Edit in General Care Plan">
-                                </div>
+                            </div>
+                            <div class="col-md-6 col-sm-12">
+                                    <label for="condition" class="form-label">Illness</label>
+                                    <input type="text" class="form-control" id="illness" 
+                                    value="" 
+                                    readonly data-bs-toggle="tooltip" title="Edit in General Care Plan">
+                            </div>
                         </div>
                         </div>
                     </div>

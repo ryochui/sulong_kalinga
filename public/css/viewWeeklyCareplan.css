@@ -171,7 +171,6 @@ input, textarea, button {
         margin-bottom: 8px; 
         width: 100px;
         text-align: center; 
-        transform: translateY(-4px);
     }
 
     .d-flex {

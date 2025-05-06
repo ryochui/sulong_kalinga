@@ -139,10 +139,14 @@
                                                     </div>
                                             </div>
                                             <div class="row mb-3">
-                                                <div class="col-md-6 col-sm-6">
+                                                <div class="col-md-6 col-sm-12">
                                                     <label for="condition" class="form-label">Medical Conditions</label>
                                                     <input type="text" class="form-control" id="medicalConditions" readonly data-bs-toggle="tooltip" title="Edit in General Care Plan">
-                                                    </div>
+                                                </div>
+                                                <div class="col-md-6 col-sm-12">
+                                                    <label for="illness" class="form-label">Illness</label>
+                                                    <input type="text" class="form-control" id="illness" placeholder="e.g. Cough, Fever">
+                                                </div>
                                             </div>
                                             <hr my-4>
                                             <!-- Assessment, Vital Signs -->

@@ -108,7 +108,7 @@
                                                     <h5>Personal Details</h5>
                                                 </div>
                                             </div>
-                                            <div class="row mb-1">
+                                            <div class="row mb-2">
                                                 <div class="col-md-4 col-sm-9 position-relative">
                                                     <label for="beneficiary_id" class="form-label">Select Beneficiary</label>
                                                     <select class="form-select" id="beneficiary_id" name="beneficiary_id">
@@ -132,7 +132,7 @@
                                                     <input type="text" class="form-control" id="gender" readonly data-bs-toggle="tooltip" title="Edit in General Care Plan">
                                                 </div>
                                             </div>
-                                            <div class="row mb-3">
+                                            <div class="row mb-2">
                                                 <div class="col-md-3 col-sm-4 position-relative">
                                                     <label for="civilStatus" class="form-label">Civil Status</label>
                                                     <input type="text" class="form-control" id="civilStatus" readonly data-bs-toggle="tooltip" title="Edit in General Care Plan">
@@ -142,11 +142,15 @@
                                                     <input type="text" class="form-control" id="address" readonly data-bs-toggle="tooltip" title="Edit in General Care Plan">
                                                     </div>
                                             </div>
-                                            <div class="row mb-3">
+                                            <div class="row mb-2">
                                                 <div class="col-md-6 col-sm-6">
                                                     <label for="condition" class="form-label">Medical Conditions</label>
                                                     <input type="text" class="form-control" id="medicalConditions" readonly data-bs-toggle="tooltip" title="Edit in General Care Plan">
                                                     </div>
+                                                <div class="col-md-6 col-sm-12">
+                                                    <label for="illness" class="form-label">Illness</label>
+                                                    <input type="text" class="form-control" id="illness" placeholder="e.g. Cough, Fever">
+                                                </div>
                                             </div>
                                             <hr my-4>
                                             <!-- Assessment, Vital Signs -->
