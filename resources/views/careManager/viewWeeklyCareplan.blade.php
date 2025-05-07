@@ -87,16 +87,36 @@
                             <div class="col-md-6 col-sm-12">
                                 <label for="condition" class="form-label">Medical Conditions</label>
                                 <input type="text" class="form-control" id="medicalConditions" 
-                                value="{{ $weeklyCareplan->beneficiary->generalCarePlan->healthHistory->medical_conditions ?? 'No medical conditions recorded' }}" 
-                                readonly data-bs-toggle="tooltip" title="Edit in General Care Plan">
-                            </div>
-                            <div class="col-md-6 col-sm-12">
-                                    <label for="condition" class="form-label">Illness</label>
-                                    <input type="text" class="form-control" id="illness" 
-                                    value="" 
+                                    value="@php
+                                        $medicalConditionsText = $weeklyCareplan->beneficiary->generalCarePlan->healthHistory->medical_conditions ?? '';
+                                        if ($medicalConditionsText) {
+                                            try {
+                                                $conditionsArray = json_decode($medicalConditionsText, true);
+                                                if (is_array($conditionsArray)) {
+                                                    echo implode(', ', $conditionsArray);
+                                                } else {
+                                                    echo $medicalConditionsText;
+                                                }
+                                            } catch (\Exception $e) {
+                                                echo $medicalConditionsText;
+                                            }
+                                        }
+                                    @endphp" 
                                     readonly data-bs-toggle="tooltip" title="Edit in General Care Plan">
                             </div>
-                        </div>
+                            <div class="col-md-6 col-sm-12">
+                                <label for="condition" class="form-label">Illness</label>
+                                <input type="text" class="form-control" id="illness" 
+                                    value="@php
+                                        if ($weeklyCareplan->illnesses) {
+                                            $illnessesArray = json_decode($weeklyCareplan->illnesses, true);
+                                            if (is_array($illnessesArray)) {
+                                                echo implode(', ', $illnessesArray);
+                                            }
+                                        }
+                                    @endphp" 
+                                    readonly data-bs-toggle="tooltip" title="Edit in Weekly Care Plan">
+                            </div>
                         </div>
                     </div>
 
@@ -155,9 +175,13 @@
                                     </div>
                                 </div>
                                 <div class="col-lg-12 col-md-12 col-sm-12">
-                                    <label class="form-label">Picture Preview</label>
+                                    <label class="form-label">Picture</label>
                                     <div class="border p-2 d-flex justify-content-center align-items-center" style="height: 200px;">
-                                        <img id="picture_preview" src="#" alt="Preview" class="img-fluid" style="max-height: 100%; display: none;">
+                                        @if($weeklyCareplan->photo_path)
+                                            <img src="{{ asset('storage/' . $weeklyCareplan->photo_path) }}" alt="Weekly Care Plan Photo" class="img-fluid" style="max-height: 100%;">
+                                        @else
+                                            <div class="text-center text-muted">No image available</div>
+                                        @endif
                                     </div>
                                 </div>
                             </div>
