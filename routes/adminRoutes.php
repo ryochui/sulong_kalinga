@@ -136,8 +136,8 @@ Route::middleware(['auth', '\App\Http\Middleware\CheckRole:administrator'])->pre
         Route::post('/careworkers-pdf', [ExportController::class, 'exportCareworkersToPdf'])->name('careworkers.pdf');
         Route::post('/caremanagers-pdf', [ExportController::class, 'exportCaremanagersToPdf'])->name('caremanagers.pdf');
         Route::post('/administrators-pdf', [ExportController::class, 'exportAdministratorsToPdf'])->name('administrators.pdf');
-        Route::post('/careworker-performance-pdf', [ExportController::class, 'exportCareWorkerPerformanceToPdf'])->name('careworker.performance.pdf');
-        Route::post('/health-monitoring-pdf', [ExportController::class, 'exportHealthMonitoringToPdf'])->name('health.monitoring.pdf');
+        Route::post('/export/health-monitoring-pdf', [ExportController::class, 'exportHealthMonitoringToPdfForCareManager'])->name('export.health.monitoring.pdf');
+        Route::post('/export/careworker-performance-pdf', [ExportController::class, 'exportCareWorkerPerformanceToPdfForCareManager'])->name('export.careworker.performance.pdf');
 
         // Excel Exports
         Route::post('/beneficiaries-excel', [ExportController::class, 'exportBeneficiariesToExcel'])->name('beneficiaries.excel');
@@ -232,16 +232,16 @@ Route::middleware(['auth', '\App\Http\Middleware\CheckRole:administrator'])->pre
         Route::post('unsend-message/{id}', [MessageController::class, 'unsendMessage'])->name('unsend');
     });
 
-    // Care Worker Performance
-    Route::prefix('care-worker-performance')->name('careworker.performance.')->group(function () {
-        Route::get('/', [CareWorkerPerformanceController::class, 'index'])->name('index');
+    // Health Monitoring
+    Route::prefix('health-monitoring')->name('health.monitoring.')->group(function () {
+        Route::get('/', [HealthMonitoringController::class, 'careManagerIndex'])->name('index');
     });
 
-    //Health Monitoring
-    Route::prefix('health-monitoring')->name('health.monitoring.')->group(function () {
-        Route::get('/', [HealthMonitoringController::class, 'index'])->name('index');
+    // Care Worker Performance
+    Route::prefix('care-worker-performance')->name('careworker.performance.')->group(function () {
+        Route::get('/', [CareWorkerPerformanceController::class, 'careManagerIndex'])->name('index');
     });
-    
+
 });
 
 // Route::get('/admin/viewProfile', function () {

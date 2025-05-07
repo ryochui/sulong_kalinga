@@ -736,4 +736,16 @@ private function generateLineChartHtml($labels, $data, $title, $unit, $color)
         return $html;
     }
 
+    public function exportHealthMonitoringToPdfForCareManager(Request $request)
+    {
+        // Simply pass through to the original method with no filtering
+        return $this->exportHealthMonitoringToPdf($request);
+    }
+
+    public function exportCareWorkerPerformanceToPdfForCareManager(Request $request)
+    {
+        // Simply pass through to the original method with no filtering
+        return $this->exportCareWorkerPerformanceToPdf($request);
+    }
+
 }

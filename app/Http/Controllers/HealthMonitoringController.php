@@ -714,4 +714,13 @@ class HealthMonitoringController extends Controller
         // Otherwise render the view as usual
         return view('admin.healthMonitoring', $returnData);
     }
+
+    public function careManagerIndex(Request $request)
+    {
+        // Use the exact same implementation as the admin index method
+        $data = $this->index($request);
+        
+        // Just change the view that gets returned
+        return view('careManager.healthMonitoring', $data->getData());
+    }
 }
