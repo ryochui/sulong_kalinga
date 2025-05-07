@@ -180,6 +180,9 @@ class DatabaseSeeder extends Seeder
         // 8. Generate conversations and messages
         $this->generateConversations();
 
+         // 9. Generate scheduling data (appointments, visitations, medication schedules)
+        $this->generateSchedulingData();
+
     }
 
     /**
@@ -1030,6 +1033,408 @@ class DatabaseSeeder extends Seeder
         ];
         
         return $recommendations[array_rand($recommendations)];
+    }
+
+    /**
+     * Generate scheduling system data (appointments, visitations, medication schedules)
+     */
+    private function generateSchedulingData()
+    {
+        \Log::info("Generating scheduling system data...");
+        
+        // Create appointment types
+        $this->createAppointmentTypes();
+        
+        // Generate internal appointments with participants
+        $this->generateInternalAppointments();
+        
+        // Generate care worker visitations
+        $this->generateCareWorkerVisitations();
+        
+        // Generate medication schedules
+        $this->generateMedicationSchedules();
+        
+        \Log::info("Finished generating scheduling system data");
+    }
+
+    /**
+     * Create appointment types
+     */
+    private function createAppointmentTypes()
+    {
+        $appointmentTypes = [
+            ['type_name' => 'Skills Enhancement Training', 'color_code' => '#4e73df', 'description' => 'Training sessions to enhance caregiver skills'],
+            ['type_name' => 'Quarterly Feedback Sessions', 'color_code' => '#1cc88a', 'description' => 'Regular feedback sessions held quarterly'],
+            ['type_name' => 'Municipal Development Council (MDC) Participation', 'color_code' => '#36b9cc', 'description' => 'Participation in MDC meetings'],
+            ['type_name' => 'Municipal Local Health Board Meeting', 'color_code' => '#f6c23e', 'description' => 'Meetings with the Municipal Local Health Board'],
+            ['type_name' => 'LIGA Meeting', 'color_code' => '#e74a3b', 'description' => 'LIGA organization meetings'],
+            ['type_name' => 'Referrals to MHO', 'color_code' => '#6f42c1', 'description' => 'Referral appointments with Municipal Health Officer'],
+            ['type_name' => 'Assessment and Review of Care Needs', 'color_code' => '#fd7e14', 'description' => 'Assessment and review of beneficiary care needs'],
+            ['type_name' => 'General Care Plan Finalization', 'color_code' => '#20c997', 'description' => 'Meetings to finalize general care plans'],
+            ['type_name' => 'Project Team Meeting', 'color_code' => '#5a5c69', 'description' => 'Internal project team meetings'],
+            ['type_name' => 'Mentoring Session', 'color_code' => '#858796', 'description' => 'Mentoring sessions for care workers'],
+            ['type_name' => 'Other Appointment', 'color_code' => '#a435f0', 'description' => 'Other appointment types not covered above'],
+        ];
+        
+        foreach ($appointmentTypes as $type) {
+            \App\Models\AppointmentType::create($type);
+        }
+        
+        \Log::info("Created appointment types");
+    }
+
+    /**
+     * Generate internal appointments and participants
+     */
+    private function generateInternalAppointments()
+    {
+        // Get staff users
+        $admins = \App\Models\User::where('role_id', 1)->get();
+        $careManagers = \App\Models\User::where('role_id', 2)->get();
+        $careWorkers = \App\Models\User::where('role_id', 3)->take(10)->get();
+        $beneficiaries = \App\Models\Beneficiary::take(10)->get();
+        
+        // Get appointment types
+        $appointmentTypes = \App\Models\AppointmentType::all();
+        
+        // Generate 30 appointments spread across past, present and future
+        $startDate = Carbon::now()->subMonths(1);
+        $endDate = Carbon::now()->addMonths(2);
+        
+        for ($i = 0; $i < 30; $i++) {
+            // Random date between start and end
+            $appointmentDate = $this->faker->dateTimeBetween($startDate, $endDate)->format('Y-m-d');
+            
+            // Random appointment type
+            $appointmentType = $appointmentTypes->random();
+            
+            // Determine if this is a flexible time appointment (20% chance)
+            $isFlexibleTime = $this->faker->boolean(20);
+            $startTime = $isFlexibleTime ? null : $this->faker->dateTimeBetween('08:00', '15:00')->format('H:i:s');
+            $endTime = $isFlexibleTime ? null : Carbon::createFromFormat('H:i:s', $startTime)->addHours($this->faker->numberBetween(1, 3))->format('H:i:s');
+            
+            // Create appointment title
+            $title = $appointmentType->type_name;
+            if ($appointmentType->type_name === 'Other Appointment') {
+                $otherTypes = ['Staff Training', 'Program Evaluation', 'Budget Meeting', 'Community Outreach', 'Stakeholder Meeting'];
+                $otherTypeDetails = $otherTypes[array_rand($otherTypes)];
+                $title .= ": " . $otherTypeDetails;
+            } else {
+                $otherTypeDetails = null;
+            }
+            
+            // Create the appointment
+            $appointment = \App\Models\Appointment::create([
+                'appointment_type_id' => $appointmentType->appointment_type_id,
+                'title' => $title,
+                'description' => $this->faker->paragraph(2),
+                'other_type_details' => $otherTypeDetails,
+                'date' => $appointmentDate,
+                'start_time' => $startTime,
+                'end_time' => $endTime,
+                'is_flexible_time' => $isFlexibleTime,
+                'meeting_location' => $this->faker->boolean(70) ? $this->faker->address : 'COSE Office',
+                'status' => $appointmentDate < Carbon::now()->format('Y-m-d') ? 
+                    $this->faker->randomElement(['completed', 'canceled']) : 
+                    'scheduled',
+                'notes' => $this->faker->boolean(60) ? $this->faker->paragraph : null,
+                'created_by' => $admins->merge($careManagers)->random()->id,
+                'updated_by' => $this->faker->boolean(30) ? $admins->merge($careManagers)->random()->id : null,
+                'created_at' => Carbon::parse($appointmentDate)->subDays($this->faker->numberBetween(1, 14)),
+                'updated_at' => Carbon::now(),
+            ]);
+            
+            // Add 3-8 participants to each appointment
+            $participantCount = $this->faker->numberBetween(3, 8);
+            $usedParticipantIds = [];
+            
+            // First participant is always the organizer (from staff)
+            $organizer = $admins->merge($careManagers)->random();
+            \App\Models\AppointmentParticipant::create([
+                'appointment_id' => $appointment->appointment_id,
+                'participant_type' => 'cose_user',
+                'participant_id' => $organizer->id,
+                'is_organizer' => true,
+                'created_at' => $appointment->created_at,
+                'updated_at' => $appointment->created_at,
+            ]);
+            $usedParticipantIds[] = 'cose_user_' . $organizer->id;
+            
+            // Add other participants
+            for ($p = 0; $p < $participantCount - 1; $p++) {
+                // Determine participant type - weighted distribution
+                $rand = $this->faker->numberBetween(1, 100);
+                
+                if ($rand <= 70) {
+                    // Staff participant
+                    $staffPool = $admins->merge($careManagers)->merge($careWorkers);
+                    $participant = $staffPool->random();
+                    $participantType = 'cose_user';
+                    $participantId = $participant->id;
+                    $participantKey = $participantType . '_' . $participantId;
+                    
+                    // Skip if this participant already added
+                    if (in_array($participantKey, $usedParticipantIds)) {
+                        continue;
+                    }
+                    
+                    $usedParticipantIds[] = $participantKey;
+                }
+                elseif ($rand <= 90) {
+                    // Beneficiary participant
+                    $participant = $beneficiaries->random();
+                    $participantType = 'beneficiary';
+                    $participantId = $participant->beneficiary_id;
+                    $participantKey = $participantType . '_' . $participantId;
+                    
+                    // Skip if this participant already added
+                    if (in_array($participantKey, $usedParticipantIds)) {
+                        continue;
+                    }
+                    
+                    $usedParticipantIds[] = $participantKey;
+                }
+                else {
+                    // Family member participant
+                    $beneficiary = $beneficiaries->random();
+                    $familyMember = \App\Models\FamilyMember::where('related_beneficiary_id', $beneficiary->beneficiary_id)->first();
+                    
+                    if (!$familyMember) {
+                        continue;
+                    }
+                    
+                    $participantType = 'family_member';
+                    $participantId = $familyMember->family_member_id;
+                    $participantKey = $participantType . '_' . $participantId;
+                    
+                    // Skip if this participant already added
+                    if (in_array($participantKey, $usedParticipantIds)) {
+                        continue;
+                    }
+                    
+                    $usedParticipantIds[] = $participantKey;
+                }
+                
+                \App\Models\AppointmentParticipant::create([
+                    'appointment_id' => $appointment->appointment_id,
+                    'participant_type' => $participantType,
+                    'participant_id' => $participantId,
+                    'is_organizer' => false,
+                    'created_at' => $appointment->created_at,
+                    'updated_at' => $appointment->created_at,
+                ]);
+            }
+            
+            // Add recurring pattern to 40% of appointments
+            if ($this->faker->boolean(40)) {
+                \App\Models\RecurringPattern::create([
+                    'appointment_id' => $appointment->appointment_id,
+                    'pattern_type' => $this->faker->randomElement(['daily', 'weekly', 'monthly']),
+                    'day_of_week' => $this->faker->randomElement(['weekly', 'monthly']) ? $this->faker->numberBetween(0, 6) : null,
+                    'recurrence_end' => Carbon::parse($appointmentDate)->addMonths($this->faker->numberBetween(1, 6)),
+                    'created_at' => $appointment->created_at,
+                    'updated_at' => $appointment->created_at,
+                ]);
+            }
+        }
+        
+        \Log::info("Created internal appointments with participants");
+    }
+
+    /**
+     * Generate care worker visitations
+     */
+    private function generateCareWorkerVisitations()
+    {
+        // Get care workers and beneficiaries
+        $careWorkers = \App\Models\User::where('role_id', 3)->get();
+        $beneficiaries = \App\Models\Beneficiary::all();
+        $admins = \App\Models\User::where('role_id', 1)->get();
+        $careManagers = \App\Models\User::where('role_id', 2)->get();
+        
+        if ($careWorkers->isEmpty() || $beneficiaries->isEmpty()) {
+            \Log::warning("No care workers or beneficiaries found for visitation schedules");
+            return;
+        }
+        
+        // Generate 50 visitations
+        for ($i = 0; $i < 50; $i++) {
+            $careWorker = $careWorkers->random();
+            $beneficiary = $beneficiaries->random();
+            $assignedBy = $admins->merge($careManagers)->random();
+            
+            // Random date between -1 month and +2 months
+            $visitationDate = $this->faker->dateTimeBetween('-1 month', '+2 months')->format('Y-m-d');
+            $dateAssigned = Carbon::parse($visitationDate)->subDays($this->faker->numberBetween(1, 14))->format('Y-m-d');
+            
+            // Determine if this is a flexible time visitation (30% chance)
+            $isFlexibleTime = $this->faker->boolean(30);
+            
+            $startTime = $isFlexibleTime ? null : $this->faker->dateTimeBetween('08:00', '16:00')->format('H:i:s');
+            $endTime = $isFlexibleTime ? null : Carbon::createFromFormat('H:i:s', $startTime)->addHours($this->faker->numberBetween(1, 2))->format('H:i:s');
+            
+            // Status based on date
+            $status = Carbon::parse($visitationDate)->isPast() ?
+                $this->faker->randomElement(['completed', 'canceled']) : 'scheduled';
+            
+            // Confirmation details for completed visitations
+            $confirmedOn = ($status === 'completed') ? Carbon::parse($visitationDate)->addHours($this->faker->numberBetween(1, 8)) : null;
+            
+            $confirmedByBeneficiary = null;
+            $confirmedByFamily = null;
+            
+            if ($status === 'completed') {
+                // 50% chance of beneficiary confirmation, 30% chance of family confirmation, 20% chance of neither
+                $confirmationType = $this->faker->randomElement(['beneficiary', 'family', 'none', 'beneficiary', 'family', 'beneficiary']);
+                
+                if ($confirmationType === 'beneficiary') {
+                    $confirmedByBeneficiary = $beneficiary->beneficiary_id;
+                } elseif ($confirmationType === 'family') {
+                    $familyMember = \App\Models\FamilyMember::where('related_beneficiary_id', $beneficiary->beneficiary_id)->first();
+                    if ($familyMember) {
+                        $confirmedByFamily = $familyMember->family_member_id;
+                    }
+                }
+            }
+            
+            // Create the visitation
+            $visitation = \App\Models\Visitation::create([
+                'care_worker_id' => $careWorker->id,
+                'beneficiary_id' => $beneficiary->beneficiary_id,
+                'visit_type' => $this->faker->randomElement(['routine_care_visit', 'service_request', 'emergency_visit']),
+                'visitation_date' => $visitationDate,
+                'is_flexible_time' => $isFlexibleTime,
+                'start_time' => $startTime,
+                'end_time' => $endTime,
+                'notes' => $this->faker->boolean(70) ? $this->faker->paragraph : null,
+                'date_assigned' => $dateAssigned,
+                'assigned_by' => $assignedBy->id,
+                'status' => $status,
+                'confirmed_by_beneficiary' => $confirmedByBeneficiary,
+                'confirmed_by_family' => $confirmedByFamily,
+                'confirmed_on' => $confirmedOn,
+                'created_at' => Carbon::parse($dateAssigned),
+                'updated_at' => $confirmedOn ?? Carbon::parse($dateAssigned),
+            ]);
+            
+            // Add recurring pattern to 60% of visitations
+            if ($this->faker->boolean(60)) {
+                \App\Models\RecurringPattern::create([
+                    'visitation_id' => $visitation->visitation_id,
+                    'pattern_type' => $this->faker->randomElement(['daily', 'weekly', 'monthly']),
+                    'day_of_week' => $this->faker->randomElement(['weekly', 'monthly']) ? $this->faker->numberBetween(0, 6) : null,
+                    'recurrence_end' => Carbon::parse($visitationDate)->addMonths($this->faker->numberBetween(1, 6)),
+                    'created_at' => $visitation->created_at,
+                    'updated_at' => $visitation->created_at,
+                ]);
+            }
+        }
+        
+        \Log::info("Created care worker visitations");
+    }
+
+    /**
+     * Generate medication schedules
+     */
+    private function generateMedicationSchedules()
+    {
+        // Get beneficiaries and care staff for created_by field
+        $beneficiaries = \App\Models\Beneficiary::all();
+        $careStaff = \App\Models\User::whereIn('role_id', [1, 2])->get();
+        
+        if ($beneficiaries->isEmpty()) {
+            \Log::warning("No beneficiaries found for medication schedules");
+            return;
+        }
+        
+        $medicationTypes = [
+            'tablet', 'capsule', 'liquid', 'injection', 'inhaler', 'topical', 'drops', 'other'
+        ];
+        
+        $medications = [
+            'Metformin' => ['dosages' => ['500mg', '850mg', '1000mg'], 'for' => 'Diabetes'],
+            'Lisinopril' => ['dosages' => ['5mg', '10mg', '20mg'], 'for' => 'Hypertension'],
+            'Atorvastatin' => ['dosages' => ['10mg', '20mg', '40mg'], 'for' => 'High Cholesterol'],
+            'Levothyroxine' => ['dosages' => ['25mcg', '50mcg', '75mcg', '100mcg'], 'for' => 'Hypothyroidism'],
+            'Albuterol' => ['dosages' => ['2 puffs', '1-2 puffs'], 'for' => 'Asthma/COPD'],
+            'Warfarin' => ['dosages' => ['2mg', '5mg', '7.5mg'], 'for' => 'Blood Thinning'],
+            'Furosemide' => ['dosages' => ['20mg', '40mg', '80mg'], 'for' => 'Edema/Heart Failure'],
+            'Omeprazole' => ['dosages' => ['10mg', '20mg', '40mg'], 'for' => 'Acid Reflux'],
+            'Amlodipine' => ['dosages' => ['2.5mg', '5mg', '10mg'], 'for' => 'Hypertension'],
+            'Metoprolol' => ['dosages' => ['25mg', '50mg', '100mg'], 'for' => 'Hypertension/Heart Failure'],
+            'Sertraline' => ['dosages' => ['25mg', '50mg', '100mg'], 'for' => 'Depression/Anxiety'],
+            'Hydrochlorothiazide' => ['dosages' => ['12.5mg', '25mg'], 'for' => 'Hypertension'],
+        ];
+        
+        // For each beneficiary, create 2-5 medications
+        foreach ($beneficiaries as $beneficiary) {
+            $medicationCount = $this->faker->numberBetween(2, 5);
+            
+            for ($i = 0; $i < $medicationCount; $i++) {
+                // Select a random medication
+                $medicationName = array_keys($medications)[$this->faker->numberBetween(0, count($medications) - 1)];
+                $medicationInfo = $medications[$medicationName];
+                $dosage = $medicationInfo['dosages'][$this->faker->numberBetween(0, count($medicationInfo['dosages']) - 1)];
+                
+                // Medication type
+                $medicationType = $medicationTypes[$this->faker->numberBetween(0, count($medicationTypes) - 1)];
+                
+                // As needed flag
+                $asNeeded = $this->faker->boolean(10); // 10% chance of being as-needed
+                
+                // Schedule times
+                $morningTime = (!$asNeeded && $this->faker->boolean(70)) ? $this->faker->dateTimeBetween('06:00', '09:00')->format('H:i:s') : null;
+                $noonTime = (!$asNeeded && $this->faker->boolean(40)) ? $this->faker->dateTimeBetween('11:00', '13:00')->format('H:i:s') : null;
+                $eveningTime = (!$asNeeded && $this->faker->boolean(60)) ? $this->faker->dateTimeBetween('16:00', '19:00')->format('H:i:s') : null;
+                $nightTime = (!$asNeeded && $this->faker->boolean(30)) ? $this->faker->dateTimeBetween('20:00', '23:00')->format('H:i:s') : null;
+                
+                // Make sure at least one time is set for non-as-needed medications
+                if (!$asNeeded && !$morningTime && !$noonTime && !$eveningTime && !$nightTime) {
+                    $morningTime = '08:00:00';
+                }
+                
+                // Food requirements
+                $withFoodMorning = $morningTime ? $this->faker->boolean(70) : false;
+                $withFoodNoon = $noonTime ? $this->faker->boolean(90) : false;
+                $withFoodEvening = $eveningTime ? $this->faker->boolean(80) : false;
+                $withFoodNight = $nightTime ? $this->faker->boolean(50) : false;
+                
+                // Start and end dates
+                $startDate = $this->faker->dateTimeBetween('-3 months', 'now')->format('Y-m-d');
+                $hasEndDate = $this->faker->boolean(70);
+                $endDate = $hasEndDate ? $this->faker->dateTimeBetween('+1 month', '+6 months')->format('Y-m-d') : null;
+                
+                // Status
+                $status = $hasEndDate && $endDate < now() ? 'completed' : 
+                        ($this->faker->boolean(90) ? 'active' : 'paused');
+                
+                // Create the medication schedule
+                \App\Models\MedicationSchedule::create([
+                    'beneficiary_id' => $beneficiary->beneficiary_id,
+                    'medication_name' => $medicationName,
+                    'dosage' => $dosage,
+                    'medication_type' => $medicationType,
+                    'morning_time' => $morningTime,
+                    'noon_time' => $noonTime,
+                    'evening_time' => $eveningTime,
+                    'night_time' => $nightTime,
+                    'as_needed' => $asNeeded,
+                    'with_food_morning' => $withFoodMorning,
+                    'with_food_noon' => $withFoodNoon,
+                    'with_food_evening' => $withFoodEvening,
+                    'with_food_night' => $withFoodNight,
+                    'special_instructions' => $this->faker->boolean(70) ? $this->faker->sentence : null,
+                    'start_date' => $startDate,
+                    'end_date' => $endDate,
+                    'status' => $status,
+                    'created_by' => $careStaff->random()->id,
+                    'created_at' => Carbon::parse($startDate),
+                    'updated_at' => Carbon::now(),
+                ]);
+            }
+        }
+        
+        \Log::info("Created medication schedules for beneficiaries");
     }
 
 }
