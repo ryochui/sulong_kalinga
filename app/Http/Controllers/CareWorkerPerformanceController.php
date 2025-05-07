@@ -392,4 +392,13 @@ class CareWorkerPerformanceController extends Controller
         ));
 
     }
+
+    public function careManagerIndex(Request $request)
+    {
+        // Get the same data as admin index method
+        $data = $this->index($request);
+        
+        // Return care manager view with the same data
+        return view('careManager.careWorkerPerformance', $data->getData());
+    }
 }

@@ -114,8 +114,8 @@
     </style>
 </head>
 <body>
-    @include('components.adminNavbar')
-    @include('components.adminSidebar')
+    @include('components.careManagerNavbar')
+    @include('components.careManagerSidebar')
 
     <div class="home-section">
         <div class="d-flex justify-content-between align-items-center mb-2">
