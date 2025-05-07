@@ -18,7 +18,7 @@ use Carbon\Carbon;
 
 class HealthMonitoringController extends Controller
 {
-    public function index(Request $request)
+    public function index(Request $request, $forExport = false)
     {
         // Get all active beneficiaries (status_id = 1)
         $beneficiaries = Beneficiary::where('beneficiary_status_id', 1)
@@ -676,7 +676,8 @@ class HealthMonitoringController extends Controller
             $illnessStats = array_slice($illnessStats, 0, 10, true);
         }
 
-        return view('admin.healthMonitoring', compact(
+         // At the end of the method, before the return statements:
+        $returnData = compact(
             'beneficiaries',
             'municipalities',
             'availableYears',
@@ -703,6 +704,14 @@ class HealthMonitoringController extends Controller
             'medicalConditionStats',
             'illnessStats',
             'totalCareTime'
-        ));
+        );
+        
+        // If this is for export, return the data
+        if ($forExport) {
+            return view('admin.healthMonitoring', $returnData);
+        }
+        
+        // Otherwise render the view as usual
+        return view('admin.healthMonitoring', $returnData);
     }
 }

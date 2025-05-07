@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard</title>
+    <title>Health Monitoring</title>
     <link rel="stylesheet" href="{{ asset('css/bootstrap.min.css') }}">
     <link rel="stylesheet" href="{{ asset('css/homeSection.css') }}">
 
@@ -600,47 +600,48 @@
         }
 
         // PDF export button
-        // document.getElementById('exportPdfBtn').addEventListener('click', function() {
-        //     // Create a form to submit the current filter values for PDF export
-        //     const form = document.createElement('form');
-        //     form.method = 'POST';
-        
-        //     form.style.display = 'none';
+        document.getElementById('exportPdfBtn').addEventListener('click', function() {
+            // Create a form to submit the current filter values for PDF export
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '{{ route('admin.export.health.monitoring.pdf') }}';
+            form.style.display = 'none';
             
-        //     // Add CSRF token
-        //     const csrfToken = document.createElement('input');
-        //     csrfToken.type = 'hidden';
-        //     csrfToken.name = '_token';
-        //     csrfToken.value = '{{ csrf_token() }}';
-        //     form.appendChild(csrfToken);
+            // Add CSRF token
+            const csrfToken = document.createElement('input');
+            csrfToken.type = 'hidden';
+            csrfToken.name = '_token';
+            csrfToken.value = '{{ csrf_token() }}';
+            form.appendChild(csrfToken);
             
-        //     // Copy all filter values from the filter form
-        //     const filterForm = document.getElementById('filterForm');
-        //     const filterInputs = filterForm.querySelectorAll('select, input');
+            // Copy all filter values from the filter form
+            const filterForm = document.getElementById('filterForm');
+            const filterInputs = filterForm.querySelectorAll('select, input');
             
-        //     filterInputs.forEach(input => {
-        //         const hiddenField = document.createElement('input');
-        //         hiddenField.type = 'hidden';
-        //         hiddenField.name = input.name;
-        //         hiddenField.value = input.value;
-        //         form.appendChild(hiddenField);
-        //     });
+            filterInputs.forEach(input => {
+                if (input.name && input.value) {
+                    const hiddenField = document.createElement('input');
+                    hiddenField.type = 'hidden';
+                    hiddenField.name = input.name;
+                    hiddenField.value = input.value;
+                    form.appendChild(hiddenField);
+                }
+            });
             
-        //     // Append form to body and submit
-        //     document.body.appendChild(form);
-        //     form.submit();
-        // });
+            // Append form to body and submit
+            document.body.appendChild(form);
+            form.submit();
+        });
     });
 
-     // Initialize all charts
-     function initializeCharts() {
+        // Initialize all charts
+        function initializeCharts() {
         // Chart data from controller - use empty arrays as fallbacks if undefined
         const chartLabels = @json($chartLabels ?? []);
         const bloodPressureData = @json($bloodPressureData ?? []);
         const heartRateData = @json($heartRateData ?? []);
         const respiratoryRateData = @json($respiratoryRateData ?? []);
         const temperatureData = @json($temperatureData ?? []);
-        const chartTitle = @json($chartTitle ?? 'Vital Signs');
         
         // Use default data if empty
         const defaultLabels = chartLabels.length > 0 ? chartLabels : ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
@@ -649,122 +650,150 @@
         const defaultRR = respiratoryRateData.length > 0 ? respiratoryRateData : [16, 17, 15, 16, 18, 17];
         const defaultTemp = temperatureData.length > 0 ? temperatureData : [36.5, 36.6, 36.4, 36.7, 36.5, 36.8];
         
-        // Blood Pressure Chart
-        const bloodPressureCtx = document.getElementById('bloodPressureChart').getContext('2d');
-        new Chart(bloodPressureCtx, {
-            type: 'line',
-            data: {
-                labels: defaultLabels,
-                datasets: [{
-                    label: 'Blood Pressure (Systolic mmHg)',
-                    data: defaultBP,
-                    borderColor: 'rgba(255, 99, 132, 1)',
-                    backgroundColor: 'rgba(255, 99, 132, 0.2)',
-                    fill: true,
-                    tension: 0.3
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
+        try {
+            console.log("Initializing charts with labels:", defaultLabels);
+            console.log("BP Data:", defaultBP);
+            
+            // Blood Pressure Chart
+            const bloodPressureCtx = document.getElementById('bloodPressureChart').getContext('2d');
+            new Chart(bloodPressureCtx, {
+                type: 'line',
+                data: {
+                    labels: defaultLabels,
+                    datasets: [{
+                        label: 'Blood Pressure (Systolic mmHg)',
+                        data: defaultBP,
+                        borderColor: 'rgb(255, 99, 132)',
+                        backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                        fill: true,
+                        tension: 0.3
+                    }]
                 },
-                scales: {
-                    y: {
-                        suggestedMin: 100,
-                        suggestedMax: 160
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Blood Pressure Readings'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: false,
+                            suggestedMin: 100,
+                            suggestedMax: 160
+                        }
                     }
                 }
-            }
-        });
+            });
 
-        // Heart Rate Chart
-        const heartRateCtx = document.getElementById('heartRateChart').getContext('2d');
-        new Chart(heartRateCtx, {
-            type: 'line',
-            data: {
-                labels: defaultLabels,
-                datasets: [{
-                    label: 'Heart Rate (bpm)',
-                    data: defaultHR,
-                    borderColor: 'rgba(54, 162, 235, 1)',
-                    backgroundColor: 'rgba(54, 162, 235, 0.2)',
-                    fill: true,
-                    tension: 0.3
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
+            // Heart Rate Chart
+            const heartRateCtx = document.getElementById('heartRateChart').getContext('2d');
+            new Chart(heartRateCtx, {
+                type: 'line',
+                data: {
+                    labels: defaultLabels,
+                    datasets: [{
+                        label: 'Heart Rate (bpm)',
+                        data: defaultHR,
+                        borderColor: 'rgb(54, 162, 235)',
+                        backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                        fill: true,
+                        tension: 0.3
+                    }]
                 },
-                scales: {
-                    y: {
-                        suggestedMin: 60,
-                        suggestedMax: 100
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Heart Rate Readings'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: false,
+                            suggestedMin: 60,
+                            suggestedMax: 100
+                        }
                     }
                 }
-            }
-        });
+            });
 
-        // Respiratory Rate Chart
-        const respiratoryRateCtx = document.getElementById('respiratoryRateChart').getContext('2d');
-        new Chart(respiratoryRateCtx, {
-            type: 'line',
-            data: {
-                labels: defaultLabels,
-                datasets: [{
-                    label: 'Respiratory Rate (breaths/min)',
-                    data: defaultRR,
-                    borderColor: 'rgba(255, 206, 86, 1)',
-                    backgroundColor: 'rgba(255, 206, 86, 0.2)',
-                    fill: true,
-                    tension: 0.3
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
+            // Respiratory Rate Chart
+            const respiratoryRateCtx = document.getElementById('respiratoryRateChart').getContext('2d');
+            new Chart(respiratoryRateCtx, {
+                type: 'line',
+                data: {
+                    labels: defaultLabels,
+                    datasets: [{
+                        label: 'Respiratory Rate (breaths/min)',
+                        data: defaultRR,
+                        borderColor: 'rgb(255, 206, 86)',
+                        backgroundColor: 'rgba(255, 206, 86, 0.2)',
+                        fill: true,
+                        tension: 0.3
+                    }]
                 },
-                scales: {
-                    y: {
-                        suggestedMin: 10,
-                        suggestedMax: 25
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Respiratory Rate Readings'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: false,
+                            suggestedMin: 10,
+                            suggestedMax: 25
+                        }
                     }
                 }
-            }
-        });
+            });
 
-        // Temperature Chart
-        const temperatureCtx = document.getElementById('temperatureChart').getContext('2d');
-        new Chart(temperatureCtx, {
-            type: 'line',
-            data: {
-                labels: defaultLabels,
-                datasets: [{
-                    label: 'Temperature (°C)',
-                    data: defaultTemp,
-                    borderColor: 'rgba(75, 192, 192, 1)',
-                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                    fill: true,
-                    tension: 0.3
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-    
+            // Temperature Chart
+            const temperatureCtx = document.getElementById('temperatureChart').getContext('2d');
+            new Chart(temperatureCtx, {
+                type: 'line',
+                data: {
+                    labels: defaultLabels,
+                    datasets: [{
+                        label: 'Temperature (°C)',
+                        data: defaultTemp,
+                        borderColor: 'rgb(75, 192, 192)',
+                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                        fill: true,
+                        tension: 0.3
+                    }]
                 },
-                scales: {
-                    y: {
-                        suggestedMin: 35.5,
-                        suggestedMax: 38
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Body Temperature Readings'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: false,
+                            suggestedMin: 35.5,
+                            suggestedMax: 38
+                        }
                     }
                 }
-            }
-        });
+            });
+            
+            console.log("Charts initialized successfully");
+        } catch (error) {
+            console.error("Error initializing charts:", error);
+        }
     }
 
     // Initialize both statistical charts
@@ -899,7 +928,6 @@
                 '<div class="text-center text-muted pt-5 pb-5">No illness data available</div>';
         }
     }
-
 
 </script>
 
