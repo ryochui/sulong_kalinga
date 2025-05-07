@@ -69,6 +69,28 @@ class HealthMonitoringController extends Controller
         $startDate = null;
         $endDate = null;
         $dateRangeLabel = '';
+
+        // Get initial year selection based on available years
+        $currentYear = Carbon::now()->year;
+        if (!empty($availableYears) && max($availableYears) >= ($currentYear - 5)) {
+            $selectedYear = $request->input('year', max($availableYears));
+        } else {
+            $selectedYear = $request->input('year', $currentYear);
+            
+            if (!in_array($currentYear, $availableYears)) {
+                $availableYears[] = $currentYear;
+                sort($availableYears);
+            }
+        }
+
+        // IMPORTANT: Update the year value based on the time range
+        if ($selectedTimeRange === 'weeks') {
+            // For Monthly view, look for monthly_year specifically
+            $selectedYear = $request->input('monthly_year', $selectedYear);
+        } elseif ($selectedTimeRange === 'months') {
+            // For Range of Months, look for range_year specifically
+            $selectedYear = $request->input('range_year', $selectedYear);
+        }
         
         switch ($selectedTimeRange) {
             case 'weeks':
@@ -451,22 +473,21 @@ class HealthMonitoringController extends Controller
                     }
                 }
             } else if ($selectedTimeRange === 'months') {
-                // Get monthly data for date range
+                // Get daily data for the date range (instead of monthly aggregation)
                 $vitalSigns = $vitalSignsQuery->select(
-                    DB::raw('EXTRACT(MONTH FROM wcp.date) as month_num'),
-                    DB::raw('TO_CHAR(DATE_TRUNC(\'month\', wcp.date), \'Mon YYYY\') as date'),
+                    'wcp.date', // Use the actual date
                     DB::raw('AVG(CAST(SPLIT_PART(vs.blood_pressure, \'/\', 1) AS INTEGER)) as avg_systolic'),
                     DB::raw('AVG(vs.pulse_rate) as avg_pulse_rate'),
                     DB::raw('AVG(vs.respiratory_rate) as avg_respiratory_rate'),
                     DB::raw('AVG(vs.body_temperature) as avg_temperature')
                 )
-                ->groupBy('month_num', 'date')
-                ->orderBy('month_num')
+                ->groupBy('wcp.date') // Group by exact date
+                ->orderBy('wcp.date') // Order by date chronologically
                 ->get();
                 
-                // Process for monthly range - only show months with data
+                // Process data to show exact dates
                 foreach ($vitalSigns as $reading) {
-                    $chartLabels[] = $reading->date;
+                    $chartLabels[] = Carbon::parse($reading->date)->format('M d'); // Format as "Jan 05"
                     $bloodPressureData[] = round($reading->avg_systolic, 1);
                     $heartRateData[] = round($reading->avg_pulse_rate, 1);
                     $respiratoryRateData[] = round($reading->avg_respiratory_rate, 1);
@@ -534,22 +555,21 @@ class HealthMonitoringController extends Controller
                     }
                 }
             } else if ($selectedTimeRange === 'months') {
-                // Get data for each month in the selected range
+                // Get data for each day in the selected date range
                 $vitalSigns = $vitalSignsQuery->select(
-                    DB::raw('EXTRACT(MONTH FROM wcp.date) as month_num'),
-                    DB::raw('TO_CHAR(DATE_TRUNC(\'month\', wcp.date), \'Mon YYYY\') as date'),
+                    'wcp.date', // Use the actual date
                     DB::raw('AVG(CAST(SPLIT_PART(vs.blood_pressure, \'/\', 1) AS INTEGER)) as avg_systolic'),
                     DB::raw('AVG(vs.body_temperature) as avg_temperature'),
                     DB::raw('AVG(vs.pulse_rate) as avg_pulse_rate'),
                     DB::raw('AVG(vs.respiratory_rate) as avg_respiratory_rate')
                 )
-                ->groupBy('month_num', 'date')
-                ->orderBy('month_num')
+                ->groupBy('wcp.date') // Group by exact date
+                ->orderBy('wcp.date') // Order by date chronologically
                 ->get();
                 
-                // Process data for monthly view - only include months that have data
+                // Process data to show exact dates
                 foreach ($vitalSigns as $reading) {
-                    $chartLabels[] = $reading->date;
+                    $chartLabels[] = Carbon::parse($reading->date)->format('M d'); // Format as "Jan 05"
                     $bloodPressureData[] = round($reading->avg_systolic, 1);
                     $heartRateData[] = round($reading->avg_pulse_rate, 1);
                     $respiratoryRateData[] = round($reading->avg_respiratory_rate, 1);

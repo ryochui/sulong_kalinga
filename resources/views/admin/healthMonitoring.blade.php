@@ -179,7 +179,7 @@
                                                             </option>
                                                         @endfor
                                                     </select>
-                                                    <select class="form-select ms-2" id="yearSelect" name="year" style="width: 40%;">
+                                                    <select class="form-select ms-2" id="yearSelect" name="monthly_year" style="width: 40%;">
                                                         @foreach($availableYears as $year)
                                                             <option value="{{ $year }}" {{ $selectedYear == $year ? 'selected' : '' }}>
                                                                 {{ $year }}
@@ -192,7 +192,7 @@
                                             <!-- Month Range Filter (hidden by default) -->
                                             <div class="col {{ $selectedTimeRange != 'months' ? 'd-none' : '' }}" id="monthRangeFilterContainer">
                                                 <div class="row g-2">
-                                                    <div class="col">
+                                                    <div class="col-5">
                                                         <label for="startMonth" class="form-label">Start Month:</label>
                                                         <select class="form-select" id="startMonth" name="start_month">
                                                             @for($i = 1; $i <= 12; $i++)
@@ -202,7 +202,7 @@
                                                             @endfor
                                                         </select>
                                                     </div>
-                                                    <div class="col">
+                                                    <div class="col-5">
                                                         <label for="endMonth" class="form-label">End Month:</label>
                                                         <select class="form-select" id="endMonth" name="end_month">
                                                             @for($i = 1; $i <= 12; $i++)
@@ -210,6 +210,16 @@
                                                                     {{ date('F', mktime(0, 0, 0, $i, 1)) }}
                                                                 </option>
                                                             @endfor
+                                                        </select>
+                                                    </div>
+                                                    <div class="col-2">
+                                                        <label for="rangeYearSelect" class="form-label">Year:</label>
+                                                        <select class="form-select" id="rangeYearSelect" name="range_year">
+                                                            @foreach($availableYears as $year)
+                                                                <option value="{{ $year }}" {{ $selectedYear == $year ? 'selected' : '' }}>
+                                                                    {{ $year }}
+                                                                </option>
+                                                            @endforeach
                                                         </select>
                                                     </div>
                                                 </div>
