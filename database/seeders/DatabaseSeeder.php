@@ -266,6 +266,7 @@ class DatabaseSeeder extends Seeder
                     'date' => $wcpDate,
                     'assessment' => $this->getRealisticAssessment(),
                     'illnesses' => !empty($selectedIllnesses) ? json_encode($selectedIllnesses) : null,
+                    'photo_path' => 'weekly_care_plans/photos/seed_photo_' . rand(1, 10) . '.jpg',
                     'evaluation_recommendations' => $this->getRealisticRecommendation(),
                     'created_by' => $careWorker->id,
                     'updated_by' => $careWorker->id,
@@ -364,16 +365,27 @@ class DatabaseSeeder extends Seeder
                         'created_by' => $careWorker->id,
                     ]);
                     
-                    $weeklyCarePlan = new WeeklyCarePlan();
-                    $weeklyCarePlan->beneficiary_id = $beneficiary->beneficiary_id;
-                    $weeklyCarePlan->care_worker_id = $careWorker->id;
-                    $weeklyCarePlan->vital_signs_id = $vitalSigns->vital_signs_id;
-                    $weeklyCarePlan->date = $date;
-                    $weeklyCarePlan->assessment = $this->getRealisticAssessment();
-                    $weeklyCarePlan->evaluation_recommendations = $this->getRealisticRecommendation();
-                    $weeklyCarePlan->created_by = $careWorker->id;
-                    $weeklyCarePlan->updated_by = $careWorker->id;
-                    $weeklyCarePlan->save();
+                    // Select 0-2 illnesses randomly
+                    $selectedIllnesses = $this->faker->randomElements(
+                        $commonIllnesses ?? ['Cold', 'Fever', 'UTI'],
+                        $this->faker->numberBetween(0, 2)
+                    );
+                    
+                    // Create the Weekly Care Plan WITH photo_path
+                    $weeklyCarePlan = WeeklyCarePlan::create([
+                        'beneficiary_id' => $beneficiary->beneficiary_id,
+                        'care_worker_id' => $careWorker->id,
+                        'vital_signs_id' => $vitalSigns->vital_signs_id,
+                        'date' => $date,
+                        'assessment' => $this->getRealisticAssessment(),
+                        'illnesses' => !empty($selectedIllnesses) ? json_encode($selectedIllnesses) : null,
+                        'photo_path' => 'weekly_care_plans/photos/seed_photo_' . rand(1, 10) . '.jpg',
+                        'evaluation_recommendations' => $this->getRealisticRecommendation(),
+                        'created_by' => $careWorker->id,
+                        'updated_by' => $careWorker->id,
+                        'created_at' => $date,
+                        'updated_at' => $date
+                    ]);
                     
                     \Log::info("Created overlapping care plan for date {$date}, beneficiary {$beneficiary->beneficiary_id}, care worker {$careWorker->id}");
                 }

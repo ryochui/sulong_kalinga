@@ -19,7 +19,7 @@ class WeeklyCarePlan extends Model
      */
     protected $fillable = [
         'beneficiary_id', 'care_worker_id', 'care_manager_id', 'vital_signs_id', 'date', 
-        'assessment', 'illnesses', 'evaluation_recommendations', // Added illnesses
+        'assessment', 'illnesses', 'evaluation_recommendations', 'photo_path',
         'created_by', 'updated_by', 'acknowledged_by_beneficiary', 'acknowledged_by_family',
         'acknowledgement_signature'
     ];
