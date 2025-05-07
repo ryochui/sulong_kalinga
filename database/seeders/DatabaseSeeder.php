@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
+use Faker\Factory;
 use App\Models\Beneficiary;
 use App\Models\User;
 use App\Models\FamilyMember;
@@ -30,6 +31,23 @@ use Carbon\Carbon;
 
 class DatabaseSeeder extends Seeder
 {
+    /**
+     * The Faker instance for generating random data.
+     *
+     * @var \Faker\Generator
+     */
+    protected $faker;
+    
+    /**
+     * Create a new seeder instance.
+     *
+     * @return void
+     */
+    public function __construct()
+    {
+        $this->faker = Factory::create();
+    }
+    
     /**
      * Seed the application's database.
      */
@@ -170,9 +188,27 @@ class DatabaseSeeder extends Seeder
      */
     private function generateRealisticWeeklyCarePlans($careWorkers, $beneficiaries)
     {
+        // Realistic illnesses list
+        $commonIllnesses = [
+            'Common Cold',
+            'Influenza',
+            'Urinary Tract Infection',
+            'Pneumonia',
+            'Bronchitis',
+            'Gastroenteritis',
+            'Shingles',
+            'Pressure Ulcers',
+            'Dehydration',
+            'Acute Confusion',
+            'Constipation',
+            'Cellulitis',
+            'Lower Respiratory Tract Infection',
+            'Conjunctivitis'
+        ];
+
         // Fetch all care categories
         $careCategories = CareCategory::all();
-        $interventionsByCategoryId = []; // Initialize the array
+        $interventionsByCategoryId = [];
 
         // Get all interventions by category
         foreach ($careCategories as $category) {
@@ -181,150 +217,206 @@ class DatabaseSeeder extends Seeder
                 $interventionsByCategoryId[$category->care_category_id] = $interventions->pluck('intervention_id')->toArray();
             }
         }
-            
-        // FIXED DATE GENERATION - Use explicit arrays of valid dates instead of Carbon calculations
-        $validYears = [2024, 2025];
-        $validMonths = range(1, 12);
-        $validDates = [];
         
-        // Generate an array of valid dates in 2024-2025 format
-        foreach ($validYears as $year) {
-            foreach ($validMonths as $month) {
-                $daysInMonth = cal_days_in_month(CAL_GREGORIAN, $month, $year);
-                for ($day = 1; $day <= $daysInMonth; $day++) {
-                    $validDates[] = sprintf('%04d-%02d-%02d', $year, $month, $day);
-                }
-            }
-        }
+        // Define the date range - from January 1, 2024 to May 7, 2025
+        $startDate = Carbon::createFromDate(2024, 1, 1);
+        $endDate = Carbon::createFromDate(2025, 5, 7);
         
-        // Create 50 weekly care plans
-        for ($i = 0; $i < 50; $i++) {
-            // Select a random care worker and beneficiary
-            $careWorker = $careWorkers[array_rand($careWorkers)];
-            $beneficiary = $beneficiaries[array_rand($beneficiaries)];
+        \Log::info("Generating weekly care plans from {$startDate->toDateString()} to {$endDate->toDateString()}");
+        
+        $wcpCount = 0;
+        
+        // Create a WCP for each beneficiary for each week in the date range
+        foreach ($beneficiaries as $beneficiary) {
+            $currentDate = $startDate->copy();
             
-            // Create vital signs
-            $vitalSigns = VitalSigns::factory()->create([
-                'created_by' => $careWorker->id,
-            ]);
-            
-            // Pick a random date from our valid dates array
-            $planDate = $validDates[array_rand($validDates)];
-            
-            // Log the date we're using to verify
-            \Log::info("Creating weekly care plan with date: {$planDate}");
-            
-            // Create the weekly care plan without using factory
-            $weeklyCarePlan = new WeeklyCarePlan();
-            $weeklyCarePlan->beneficiary_id = $beneficiary->beneficiary_id;
-            $weeklyCarePlan->care_worker_id = $careWorker->id;
-            $weeklyCarePlan->vital_signs_id = $vitalSigns->vital_signs_id;
-            $weeklyCarePlan->date = $planDate; // Set the date directly as a string
-            $weeklyCarePlan->assessment = $this->getRandomAssessment();
-            $weeklyCarePlan->evaluation_recommendations = $this->getRandomRecommendation();
-            $weeklyCarePlan->created_by = $careWorker->id;
-            $weeklyCarePlan->updated_by = $careWorker->id;
-            $weeklyCarePlan->save();
-            
-            // Add 3-8 interventions from different categories
-            $numInterventions = rand(3, 8);
-            
-            // Ensure we pick interventions from different categories
-            $usedCategoryIds = [];
-            
-            for ($j = 0; $j < $numInterventions; $j++) {
-                // Pick a category (prioritize unused ones)
-                $availableCategoryIds = array_diff(array_keys($interventionsByCategoryId), $usedCategoryIds);
+            // For each week in the range
+            while ($currentDate->lte($endDate)) {
+                // Get a random care worker for this WCP
+                $careWorker = $careWorkers[array_rand($careWorkers)];
                 
-                if (empty($availableCategoryIds)) {
-                    // If we've used all categories, reset and pick randomly
-                    $categoryId = array_rand($interventionsByCategoryId);
-                } else {
-                    // Pick from unused categories
-                    $categoryId = $availableCategoryIds[array_rand($availableCategoryIds)];
-                    $usedCategoryIds[] = $categoryId;
-                }
+                // Create vital signs with realistic values
+                $systolic = $this->faker->numberBetween(110, 160);
+                $diastolic = $this->faker->numberBetween(70, 95);
+                $vitalSigns = VitalSigns::create([
+                    'blood_pressure' => "{$systolic}/{$diastolic}",
+                    'body_temperature' => $this->faker->randomFloat(1, 36.1, 37.2),
+                    'pulse_rate' => $this->faker->numberBetween(60, 100),
+                    'respiratory_rate' => $this->faker->numberBetween(12, 20),
+                    'created_by' => $careWorker->id,
+                    'created_at' => $currentDate->copy(),
+                    'updated_at' => $currentDate->copy()
+                ]);
                 
-                // Get interventions for this category
-                $categoryInterventions = $interventionsByCategoryId[$categoryId];
+                // Select 0-2 illnesses randomly
+                $selectedIllnesses = $this->faker->randomElements(
+                    $commonIllnesses,
+                    $this->faker->numberBetween(0, 2)
+                );
                 
-                if (!empty($categoryInterventions)) {
-                    // Pick a random intervention from this category
-                    $interventionId = $categoryInterventions[array_rand($categoryInterventions)];
+                // Pick a random day during the current week (0-6 days from the start of the week)
+                $randomDayOffset = rand(0, 6);
+                $wcpDate = $currentDate->copy()->addDays($randomDayOffset);
+                
+                // Create weekly care plan with realistic assessment and illnesses
+                $weeklyCarePlan = WeeklyCarePlan::create([
+                    'beneficiary_id' => $beneficiary->beneficiary_id,
+                    'care_worker_id' => $careWorker->id,
+                    'vital_signs_id' => $vitalSigns->vital_signs_id,
+                    'date' => $wcpDate,
+                    'assessment' => $this->getRealisticAssessment(),
+                    'illnesses' => !empty($selectedIllnesses) ? json_encode($selectedIllnesses) : null,
+                    'evaluation_recommendations' => $this->getRealisticRecommendation(),
+                    'created_by' => $careWorker->id,
+                    'updated_by' => $careWorker->id,
+                    'created_at' => $wcpDate,
+                    'updated_at' => $wcpDate
+                ]);
+                
+                $wcpCount++;
+                
+                // Add 3-8 interventions from different categories
+                $numInterventions = rand(3, 8);
+                $usedCategoryIds = [];
+                
+                for ($j = 0; $j < $numInterventions; $j++) {
+                    // Pick a category (prioritize unused ones)
+                    $availableCategoryIds = array_diff(array_keys($interventionsByCategoryId), $usedCategoryIds);
                     
-                    // Determine if this should be a custom intervention (20% chance)
-                    $isCustom = (rand(1, 5) === 1);
-                    
-                    if ($isCustom) {
-                        // Custom intervention - no intervention_id, only category_id and description
-                        WeeklyCarePlanInterventions::create([
-                            'weekly_care_plan_id' => $weeklyCarePlan->weekly_care_plan_id,
-                            'care_category_id' => $categoryId,
-                            'intervention_description' => 'Custom: ' . $this->getRandomCustomIntervention($categoryId),
-                            'duration_minutes' => rand(15, 120),
-                            'implemented' => (rand(1, 10) > 2) // 80% chance of being implemented
-                        ]);
+                    if (empty($availableCategoryIds)) {
+                        // If we've used all categories, reset and pick randomly
+                        $categoryId = array_rand($interventionsByCategoryId);
                     } else {
-                        // Standard intervention
-                        WeeklyCarePlanInterventions::create([
-                            'weekly_care_plan_id' => $weeklyCarePlan->weekly_care_plan_id,
-                            'intervention_id' => $interventionId,
-                            'duration_minutes' => rand(15, 120),
-                            'implemented' => (rand(1, 10) > 2) // 80% chance of being implemented
-                        ]);
+                        // Pick from unused categories
+                        $categoryId = $availableCategoryIds[array_rand($availableCategoryIds)];
+                        $usedCategoryIds[] = $categoryId;
+                    }
+                    
+                    // Get interventions for this category
+                    $categoryInterventions = $interventionsByCategoryId[$categoryId];
+                    
+                    if (!empty($categoryInterventions)) {
+                        // Pick a random intervention from this category
+                        $interventionId = $categoryInterventions[array_rand($categoryInterventions)];
+                        
+                        // Determine if this should be a custom intervention (20% chance)
+                        $isCustom = (rand(1, 5) === 1);
+                        
+                        if ($isCustom) {
+                            // Custom intervention
+                            WeeklyCarePlanInterventions::create([
+                                'weekly_care_plan_id' => $weeklyCarePlan->weekly_care_plan_id,
+                                'care_category_id' => $categoryId,
+                                'intervention_description' => 'Custom: ' . $this->getRandomCustomIntervention($categoryId),
+                                'duration_minutes' => rand(15, 120),
+                                'implemented' => (rand(1, 10) > 2) // 80% chance of being implemented
+                            ]);
+                        } else {
+                            // Standard intervention
+                            WeeklyCarePlanInterventions::create([
+                                'weekly_care_plan_id' => $weeklyCarePlan->weekly_care_plan_id,
+                                'intervention_id' => $interventionId,
+                                'duration_minutes' => rand(15, 120),
+                                'implemented' => (rand(1, 10) > 2) // 80% chance of being implemented
+                            ]);
+                        }
                     }
                 }
+                
+                // Move to next week
+                $currentDate->addWeek();
             }
+            
+            \Log::info("Generated weekly care plans for beneficiary ID: {$beneficiary->beneficiary_id}");
         }
         
-        // Create overlapping plans with fixed dates
+        \Log::info("Created a total of {$wcpCount} weekly care plans");
+        
+        // Add some overlapping plans for testing purposes (same date, different care workers)
+        $this->createOverlappingCarePlans($careWorkers, $beneficiaries);
+    }
+
+    /**
+     * Create some overlapping care plans for testing purposes
+     */
+    private function createOverlappingCarePlans($careWorkers, $beneficiaries)
+    {
+        // Use specific dates for overlapping plans
         $overlappingDates = [
             '2024-03-15',
             '2024-04-15',
-            '2024-05-15'
+            '2024-05-15',
+            '2025-01-10',
+            '2025-02-20',
         ];
         
         foreach ($overlappingDates as $date) {
-            // Create 3 plans on the same date by different care workers
-            for ($i = 0; $i < 3; $i++) {
-                $careWorker = $careWorkers[$i]; // Use first 3 care workers
+            // For each date, create 2 additional plans for the same beneficiary
+            if (count($careWorkers) >= 3 && count($beneficiaries) > 0) {
                 $beneficiary = $beneficiaries[array_rand($beneficiaries)];
                 
-                // Create vital signs
-                $vitalSigns = VitalSigns::factory()->create([
-                    'created_by' => $careWorker->id,
-                ]);
-                
-                // Log the overlapping date we're using
-                \Log::info("Creating overlapping weekly care plan with date: {$date}");
-                
-                $weeklyCarePlan = new WeeklyCarePlan();
-                $weeklyCarePlan->beneficiary_id = $beneficiary->beneficiary_id;
-                $weeklyCarePlan->care_worker_id = $careWorker->id;
-                $weeklyCarePlan->vital_signs_id = $vitalSigns->vital_signs_id;
-                $weeklyCarePlan->date = $date; // String date format
-                $weeklyCarePlan->assessment = $this->getRandomAssessment();
-                $weeklyCarePlan->evaluation_recommendations = $this->getRandomRecommendation();
-                $weeklyCarePlan->created_by = $careWorker->id;
-                $weeklyCarePlan->updated_by = $careWorker->id;
-                $weeklyCarePlan->save();
-                                
-                // Add interventions from all categories for these overlapping plans
-                foreach ($careCategories as $category) {
-                    $categoryId = $category->care_category_id;
-                    if (isset($interventionsByCategoryId[$categoryId]) && !empty($interventionsByCategoryId[$categoryId])) {
-                        $interventionId = $interventionsByCategoryId[$categoryId][array_rand($interventionsByCategoryId[$categoryId])];
-                        
-                        WeeklyCarePlanInterventions::create([
-                            'weekly_care_plan_id' => $weeklyCarePlan->weekly_care_plan_id,
-                            'intervention_id' => $interventionId,
-                            'duration_minutes' => rand(15, 120),
-                            'implemented' => true
-                        ]);
-                    }
+                // Create 2 additional plans with different care workers
+                for ($i = 0; $i < 2; $i++) {
+                    $careWorker = $careWorkers[$i];
+                    
+                    // Create vital signs
+                    $vitalSigns = VitalSigns::factory()->create([
+                        'created_by' => $careWorker->id,
+                    ]);
+                    
+                    $weeklyCarePlan = new WeeklyCarePlan();
+                    $weeklyCarePlan->beneficiary_id = $beneficiary->beneficiary_id;
+                    $weeklyCarePlan->care_worker_id = $careWorker->id;
+                    $weeklyCarePlan->vital_signs_id = $vitalSigns->vital_signs_id;
+                    $weeklyCarePlan->date = $date;
+                    $weeklyCarePlan->assessment = $this->getRealisticAssessment();
+                    $weeklyCarePlan->evaluation_recommendations = $this->getRealisticRecommendation();
+                    $weeklyCarePlan->created_by = $careWorker->id;
+                    $weeklyCarePlan->updated_by = $careWorker->id;
+                    $weeklyCarePlan->save();
+                    
+                    \Log::info("Created overlapping care plan for date {$date}, beneficiary {$beneficiary->beneficiary_id}, care worker {$careWorker->id}");
                 }
             }
         }
+    }
+
+    private function getRealisticAssessment()
+    {
+        $assessments = [
+            "Beneficiary appears alert and oriented to time, place, and person. Vital signs are within normal limits. Reports mild joint pain in knees, rating 3/10 on pain scale. Medication compliance is good. No signs of illness or infection noted.",
+            
+            "Beneficiary is experiencing some shortness of breath upon minimal exertion. Blood pressure is slightly elevated at 145/90. Reports difficulty sleeping due to back discomfort. Needs assistance with bathing and dressing.",
+            
+            "Assessment shows mild cognitive decline, with some short-term memory issues. Beneficiary can still perform most ADLs independently. Mood appears stable. Appetite is good but reports occasional difficulty chewing harder foods.",
+            
+            "Beneficiary reports increased fatigue and dizziness when standing. Blood pressure drops by 15mmHg upon standing, indicating possible orthostatic hypotension. No falls reported, but increased risk noted.",
+            
+            "Beneficiary shows signs of depression with decreased appetite and social withdrawal. Reports feeling 'worthless' and having little energy. Sleep disturbances noted with early morning awakening.",
+            
+            "Physical assessment shows good mobility using walker. Skin is intact with no pressure areas. Edema noted in both ankles, +2. Breathing is unlabored with clear lung sounds."
+        ];
+        
+        return $assessments[array_rand($assessments)];
+    }
+
+    private function getRealisticRecommendation()
+    {
+        $recommendations = [
+            "Continue current medication regimen. Increase fluid intake to 1.5-2L daily. Schedule follow-up blood pressure check in 2 weeks. Encourage daily short walks to maintain mobility.",
+            
+            "Refer to physical therapy for strengthening exercises. Monitor blood glucose levels twice daily. Review medication schedule with beneficiary to ensure proper timing with meals. Provide education on signs of hypoglycemia.",
+            
+            "Recommend home safety evaluation to prevent falls. Contact primary physician regarding increased pain medication. Schedule vision assessment. Encourage family to assist with meal preparation twice weekly.",
+            
+            "Implement cognitive stimulation activities daily. Consider podiatry referral for foot care. Schedule nutrition consultation to address weight loss. Recommend joining community senior center activities once weekly.",
+            
+            "Monitor for signs of urinary tract infection due to recent symptoms. Encourage use of bedroom commode at night to reduce fall risk. Review proper transfer techniques with caregiver. Schedule memory assessment.",
+            
+            "Continue weekly blood pressure monitoring. Recommend compression stockings for lower extremity edema. Evaluate effectiveness of pain management strategies at next visit. Encourage socialization through day program participation."
+        ];
+        
+        return $recommendations[array_rand($recommendations)];
     }
     
     /**
