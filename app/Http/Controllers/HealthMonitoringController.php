@@ -21,8 +21,7 @@ class HealthMonitoringController extends Controller
     public function index(Request $request, $forExport = false)
     {
         // Get all active beneficiaries (status_id = 1)
-        $beneficiaries = Beneficiary::where('beneficiary_status_id', 1)
-            ->orderBy('last_name')
+        $beneficiaries = Beneficiary::orderBy('last_name')
             ->orderBy('first_name')
             ->get();
         
