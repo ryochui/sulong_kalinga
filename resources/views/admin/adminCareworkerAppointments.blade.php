@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Care Worker Scheduling</title>
     <link rel="stylesheet" href="{{ asset('css/bootstrap.min.css') }}">
     <link rel="stylesheet" href="{{ asset('css/homeSection.css') }}">
@@ -209,7 +210,7 @@
             display: inline-flex;
             align-items: center;
             font-size: 0.7rem;
-            color:rgb(233, 137, 137);
+            color:rgba(255, 255, 255, 0.65);
             font-weight: 500;
             margin-top: 2px;
         }
@@ -486,7 +487,7 @@
                         <div class="col-lg-4 col-md-5">
                             <!-- Search Bar -->
                             <div class="search-container">
-                                <input type="text" class="form-control search-input" placeholder="     Search appointments..." aria-label="Search appointments">
+                                <input type="text" id="searchInput" class="form-control search-input" placeholder="     Search appointments..." aria-label="Search appointments">
                                 <i class="bi bi-search"></i>
                             </div>
                             
@@ -535,21 +536,28 @@
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
+                    <div id="modalErrors" class="alert alert-danger d-none mb-3">
+                        <ul id="errorList" class="mb-0"></ul>
+                    </div>
+                    
                     <form id="addAppointmentForm">
+                        @csrf
+                        <input type="hidden" id="visitationId" name="visitation_id">
+                        
                         <!-- Care Worker Selection -->
                         <div class="form-group">
                             <label for="careWorkerSelect">
                                 <i class="bi bi-person-badge"></i> Care Worker
                             </label>
                             <div class="select-container">
-                                <select class="form-control" id="careWorkerSelect" required>
+                                <select class="form-control" id="careWorkerSelect" name="care_worker_id" required>
                                     <option value="">Select Care Worker</option>
-                                    <option value="1">Sarah Johnson</option>
-                                    <option value="2">Michael Brown</option>
-                                    <option value="3">Emma Davis</option>
-                                    <option value="4">David Miller</option>
+                                    @foreach($careWorkers as $worker)
+                                        <option value="{{ $worker->id }}">{{ $worker->first_name }} {{ $worker->last_name }}</option>
+                                    @endforeach
                                 </select>
                             </div>
+                            <div class="error-feedback" id="care-worker-error"></div>
                         </div>
                         
                         <!-- Beneficiary Selection -->
@@ -558,34 +566,35 @@
                                 <i class="bi bi-person-heart"></i> Beneficiary
                             </label>
                             <div class="select-container">
-                                <select class="form-control" id="beneficiarySelect" required>
+                                <select class="form-control" id="beneficiarySelect" name="beneficiary_id" required>
                                     <option value="">Select Beneficiary</option>
-                                    <option value="1">Robert Chen</option>
-                                    <option value="2">Margaret Williams</option>
-                                    <option value="3">James Wilson</option>
-                                    <option value="4">Patricia Taylor</option>
                                 </select>
                             </div>
+                            <div class="error-feedback" id="beneficiary-error"></div>
                         </div>
                         
-                        <!-- Date Range -->
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label for="startDate">
-                                        <i class="bi bi-calendar-date"></i> Start Date
-                                    </label>
-                                    <input type="date" class="form-control" id="startDate" required>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label for="endDate">
-                                        <i class="bi bi-calendar-date"></i> End Date (Optional)
-                                    </label>
-                                    <input type="date" class="form-control" id="endDate">
-                                </div>
-                            </div>
+                        <!-- Beneficiary Details (Auto-filled) -->
+                        <div class="form-group">
+                            <label for="beneficiaryAddress">
+                                <i class="bi bi-geo-alt"></i> Address
+                            </label>
+                            <input type="text" class="form-control" id="beneficiaryAddress" readonly>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="beneficiaryPhone">
+                                <i class="bi bi-telephone"></i> Phone
+                            </label>
+                            <input type="text" class="form-control" id="beneficiaryPhone" readonly>
+                        </div>
+                        
+                        <!-- Visit Date -->
+                        <div class="form-group">
+                            <label for="visitDate">
+                                <i class="bi bi-calendar-date"></i> Visit Date
+                            </label>
+                            <input type="date" class="form-control" id="visitDate" name="visitation_date" required>
+                            <div class="error-feedback" id="visitation-date-error"></div>
                         </div>
                         
                         <!-- Time Selection -->
@@ -597,13 +606,15 @@
                                 <div class="col-md-6">
                                     <div class="form-group">
                                         <label for="startTime" class="form-label">Start Time</label>
-                                        <input type="time" class="form-control" id="startTime">
+                                        <input type="time" class="form-control" id="startTime" name="start_time">
+                                        <div class="error-feedback" id="start-time-error"></div>
                                     </div>
                                 </div>
                                 <div class="col-md-6">
                                     <div class="form-group">
                                         <label for="endTime" class="form-label">End Time</label>
-                                        <input type="time" class="form-control" id="endTime">
+                                        <input type="time" class="form-control" id="endTime" name="end_time">
+                                        <div class="error-feedback" id="end-time-error"></div>
                                     </div>
                                 </div>
                             </div>
@@ -611,47 +622,10 @@
                             <!-- Open Time / Flexible Schedule Option -->
                             <div class="open-time-container">
                                 <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" id="openTimeCheck">
+                                    <input class="form-check-input" type="checkbox" id="openTimeCheck" name="is_flexible_time">
                                     <label class="form-check-label" for="openTimeCheck">
                                         Open Time / Flexible Schedule (Care Worker will determine actual time)
                                     </label>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- Day Selection -->
-                        <div class="form-group">
-                            <label>
-                                <i class="bi bi-calendar-week"></i> Repeat on Days
-                            </label>
-                            <div class="day-checkboxes">
-                                <div class="day-checkbox">
-                                    <input type="checkbox" id="monday" name="days" value="Monday">
-                                    <label for="monday">Mon</label>
-                                </div>
-                                <div class="day-checkbox">
-                                    <input type="checkbox" id="tuesday" name="days" value="Tuesday">
-                                    <label for="tuesday">Tue</label>
-                                </div>
-                                <div class="day-checkbox">
-                                    <input type="checkbox" id="wednesday" name="days" value="Wednesday">
-                                    <label for="wednesday">Wed</label>
-                                </div>
-                                <div class="day-checkbox">
-                                    <input type="checkbox" id="thursday" name="days" value="Thursday">
-                                    <label for="thursday">Thu</label>
-                                </div>
-                                <div class="day-checkbox">
-                                    <input type="checkbox" id="friday" name="days" value="Friday">
-                                    <label for="friday">Fri</label>
-                                </div>
-                                <div class="day-checkbox">
-                                    <input type="checkbox" id="saturday" name="days" value="Saturday">
-                                    <label for="saturday">Sat</label>
-                                </div>
-                                <div class="day-checkbox">
-                                    <input type="checkbox" id="sunday" name="days" value="Sunday">
-                                    <label for="sunday">Sun</label>
                                 </div>
                             </div>
                         </div>
@@ -662,12 +636,78 @@
                                 <i class="bi bi-clipboard2-pulse"></i> Visit Type
                             </label>
                             <div class="select-container">
-                                <select class="form-control" id="visitType" required>
+                                <select class="form-control" id="visitType" name="visit_type" required>
                                     <option value="">Select Visit Type</option>
-                                    <option value="routine">Routine Care Visit</option>
-                                    <option value="service">Service Request</option>
-                                    <option value="emergency">Emergency Visit</option>
+                                    <option value="routine_care_visit">Routine Care Visit</option>
+                                    <option value="service_request">Service Request</option>
+                                    <option value="emergency_visit">Emergency Visit</option>
                                 </select>
+                            </div>
+                            <div class="error-feedback" id="visit-type-error"></div>
+                        </div>
+                        
+                        <!-- Recurring Options -->
+                        <div class="form-check mt-3 mb-3">
+                            <input class="form-check-input" type="checkbox" id="recurringCheck" name="is_recurring">
+                            <label class="form-check-label" for="recurringCheck">
+                                Make this a recurring appointment
+                            </label>
+                        </div>
+                        
+                        <div id="recurringOptionsContainer" class="border rounded p-3 mb-3" style="display: none;">
+                            <div class="form-group">
+                                <label class="form-label">Recurrence Pattern</label>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="pattern_type" id="patternDaily" value="daily">
+                                    <label class="form-check-label" for="patternDaily">Daily</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="pattern_type" id="patternWeekly" value="weekly" checked>
+                                    <label class="form-check-label" for="patternWeekly">Weekly</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="pattern_type" id="patternMonthly" value="monthly">
+                                    <label class="form-check-label" for="patternMonthly">Monthly</label>
+                                </div>
+                            </div>
+                            
+                            <div id="weeklyOptions" class="mt-3">
+                                <label class="form-label">Repeat on</label>
+                                <div class="day-checkboxes">
+                                    <div class="day-checkbox">
+                                        <input type="checkbox" id="daySun" name="day_of_week[]" value="0">
+                                        <label for="daySun">Sun</label>
+                                    </div>
+                                    <div class="day-checkbox">
+                                        <input type="checkbox" id="dayMon" name="day_of_week[]" value="1">
+                                        <label for="dayMon">Mon</label>
+                                    </div>
+                                    <div class="day-checkbox">
+                                        <input type="checkbox" id="dayTue" name="day_of_week[]" value="2">
+                                        <label for="dayTue">Tue</label>
+                                    </div>
+                                    <div class="day-checkbox">
+                                        <input type="checkbox" id="dayWed" name="day_of_week[]" value="3">
+                                        <label for="dayWed">Wed</label>
+                                    </div>
+                                    <div class="day-checkbox">
+                                        <input type="checkbox" id="dayThu" name="day_of_week[]" value="4">
+                                        <label for="dayThu">Thu</label>
+                                    </div>
+                                    <div class="day-checkbox">
+                                        <input type="checkbox" id="dayFri" name="day_of_week[]" value="5">
+                                        <label for="dayFri">Fri</label>
+                                    </div>
+                                    <div class="day-checkbox">
+                                        <input type="checkbox" id="daySat" name="day_of_week[]" value="6">
+                                        <label for="daySat">Sat</label>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group mt-3">
+                                <label for="recurrenceEnd" class="form-label">End Date</label>
+                                <input type="date" class="form-control" id="recurrenceEnd" name="recurrence_end">
                             </div>
                         </div>
                         
@@ -676,7 +716,7 @@
                             <label for="notes">
                                 <i class="bi bi-journal-text"></i> Visit Notes
                             </label>
-                            <textarea class="form-control" id="notes" rows="3" placeholder="Enter any additional instructions or notes about this appointment..."></textarea>
+                            <textarea class="form-control" id="notes" name="notes" rows="3" placeholder="Enter any additional instructions or notes about this appointment..."></textarea>
                         </div>
                     </form>
                 </div>
@@ -701,8 +741,8 @@
                 <div class="modal-body">
                     <p>Are you sure you want to cancel this appointment?</p>
                     <div class="form-group mt-3">
-                        <label for="confirmPassword" class="form-label">Enter your password to confirm:</label>
-                        <input type="password" class="form-control" id="confirmPassword" required>
+                        <label for="cancelReason" class="form-label">Reason for Cancellation</label>
+                        <textarea class="form-control" id="cancelReason" rows="3" required></textarea>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -712,18 +752,45 @@
             </div>
         </div>
     </div>
+    
+    <!-- Error Modal -->
+    <div class="modal fade error-modal" id="errorModal" tabindex="-1" aria-labelledby="errorModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="errorModalLabel">Error</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p id="errorMessage"></p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <script src="{{ asset('js/toggleSideBar.js') }}"></script>
     <script src="{{ asset('js/bootstrap.bundle.min.js') }}"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <!-- FullCalendar JS -->
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            // Setup CSRF token for all AJAX requests
+            $.ajaxSetup({
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                }
+            });
+            
             var calendarEl = document.getElementById('calendar');
             var appointmentDetailsEl = document.getElementById('appointmentDetails');
             var addAppointmentForm = document.getElementById('addAppointmentForm');
             var addAppointmentModal = new bootstrap.Modal(document.getElementById('addAppointmentModal'));
             var confirmationModal = new bootstrap.Modal(document.getElementById('confirmationModal'));
+            var errorModal = new bootstrap.Modal(document.getElementById('errorModal'));
             var editButton = document.getElementById('editAppointmentButton');
             var deleteButton = document.getElementById('deleteAppointmentButton');
             var toggleWeekButton = document.getElementById('toggleWeekView');
@@ -757,26 +824,28 @@
                 }
             });
             
-            // Color coding for different care workers
-            const careWorkerColors = {
-                'Sarah Johnson': {
-                    background: '#4e73df',
-                    border: '#4668cc'
-                },
-                'Michael Brown': {
-                    background: '#1cc88a',
-                    border: '#19b77d'
-                },
-                'Emma Davis': {
-                    background: '#36b9cc',
-                    border: '#31a8ba'
-                },
-                'David Miller': {
-                    background: '#f6c23e',
-                    border: '#e4b138'
+            // Initialize recurring options
+            document.getElementById('recurringCheck').addEventListener('change', function() {
+                document.getElementById('recurringOptionsContainer').style.display = this.checked ? 'block' : 'none';
+            });
+            
+            // Day selection based on appointment date
+            document.getElementById('visitDate').addEventListener('change', function() {
+                if (document.getElementById('recurringCheck').checked && document.getElementById('patternWeekly').checked) {
+                    const date = new Date(this.value);
+                    const dayOfWeek = date.getDay();
+                    document.querySelector(`input[name="day_of_week[]"][value="${dayOfWeek}"]`).checked = true;
                 }
-            };
-
+            });
+            
+            // Pattern type change handling
+            document.querySelectorAll('input[name="pattern_type"]').forEach(function(radio) {
+                radio.addEventListener('change', function() {
+                    document.getElementById('weeklyOptions').style.display = this.value === 'weekly' ? 'block' : 'none';
+                });
+            });
+            
+            // Initialize calendar with dynamic events
             var calendar = new FullCalendar.Calendar(calendarEl, {
                 initialView: currentView,
                 headerToolbar: {
@@ -785,94 +854,44 @@
                     right: 'dayGridMonth,timeGridWeek,timeGridDay'
                 },
                 eventDisplay: 'block',
-                events: [
-                    // Regular scheduled appointments
-                    {
-                        id: '1',
-                        title: 'Sarah Johnson',
-                        start: new Date().setHours(9, 0),
-                        end: new Date().setHours(10, 30),
-                        extendedProps: {
-                            careWorker: 'Sarah Johnson',
-                            beneficiary: 'Robert Chen',
-                            address: '123 Maple St, Springfield, SP 12345',
-                            phone: '(555) 123-4567',
-                            notes: 'Monthly checkup and medication review',
-                            visitType: 'Routine Care Visit',
-                            isOpenTime: false
-                        },
-                        backgroundColor: careWorkerColors['Sarah Johnson'].background,
-                        borderColor: careWorkerColors['Sarah Johnson'].border
-                    },
-                    {
-                        id: '2',
-                        title: 'Michael Brown',
-                        start: new Date(new Date().getTime() + 86400000).setHours(11, 0), // Tomorrow
-                        end: new Date(new Date().getTime() + 86400000).setHours(12, 0),
-                        extendedProps: {
-                            careWorker: 'Michael Brown',
-                            beneficiary: 'Margaret Williams',
-                            address: '456 Oak Ave, Springfield, SP 12345',
-                            phone: '(555) 987-6543',
-                            notes: 'Physical therapy session',
-                            visitType: 'Service Request',
-                            isOpenTime: false
-                        },
-                        backgroundColor: careWorkerColors['Michael Brown'].background,
-                        borderColor: careWorkerColors['Michael Brown'].border
-                    },
+                events: function(info, successCallback, failureCallback) {
+                    const start = info.startStr;
+                    const end = info.endStr;
+                    const searchTerm = document.getElementById('searchInput').value;
+                    const careWorkerId = document.getElementById('careWorkerSelect') ? document.getElementById('careWorkerSelect').value : '';
                     
-                    // Open-time / flexible schedule appointments
-                    {
-                        id: '3',
-                        title: 'Emma Davis - Open Time',
-                        start: new Date(new Date().getTime() + 2 * 86400000), // Day after tomorrow
-                        allDay: true,
-                        extendedProps: {
-                            careWorker: 'Emma Davis',
-                            beneficiary: 'James Wilson',
-                            address: '789 Pine Rd, Springfield, SP 12345',
-                            phone: '(555) 456-7890',
-                            notes: 'Assistance with medication administration and daily tasks',
-                            visitType: 'Routine Care Visit',
-                            isOpenTime: true
+                    $.ajax({
+                        url: '{{ route("admin.careworker.appointments.get") }}',
+                        method: 'GET',
+                        data: {
+                            start: start,
+                            end: end,
+                            search: searchTerm,
+                            care_worker_id: careWorkerId
                         },
-                        backgroundColor: 'rgba(54, 185, 204, 0.15)',
-                        borderColor: '#36b9cc',
-                        textColor: '#333',
-                        classNames: ['open-time']
-                    },
-                    {
-                        id: '4',
-                        title: 'David Miller - Open Time',
-                        start: new Date(new Date().getTime() + 3 * 86400000), // 3 days from now
-                        allDay: true,
-                        extendedProps: {
-                            careWorker: 'David Miller',
-                            beneficiary: 'Patricia Taylor',
-                            address: '321 Elm Blvd, Springfield, SP 12345',
-                            phone: '(555) 789-0123',
-                            notes: 'Emergency welfare check requested by family member',
-                            visitType: 'Emergency Visit',
-                            isOpenTime: true
+                        success: function(response) {
+                            successCallback(response);
                         },
-                        backgroundColor: 'rgba(246, 194, 62, 0.15)',
-                        borderColor: '#f6c23e',
-                        textColor: '#333',
-                        classNames: ['open-time']
-                    }
-                ],
+                        error: function(xhr) {
+                            failureCallback(xhr);
+                            showErrorModal('Failed to fetch appointments');
+                        }
+                    });
+                },
+                eventClick: function(info) {
+                    showEventDetails(info.event);
+                },
                 eventContent: function(arg) {
-                    const isOpenTime = arg.event.extendedProps.isOpenTime;
+                    const isFlexibleTime = arg.event.extendedProps.is_flexible_time;
                     
                     if (arg.view.type === 'dayGridMonth') {
                         // Show simplified content in month view
                         let eventEl = document.createElement('div');
                         eventEl.className = 'fc-event-main';
                         
-                        if (isOpenTime) {
+                        if (isFlexibleTime) {
                             eventEl.innerHTML = `
-                                <div class="event-worker">${arg.event.extendedProps.careWorker}</div>
+                                <div class="event-worker">${arg.event.extendedProps.care_worker}</div>
                                 <div class="event-details">
                                     <div>${arg.event.extendedProps.beneficiary}</div>
                                     <div class="open-time-indicator">
@@ -882,10 +901,10 @@
                             `;
                         } else {
                             eventEl.innerHTML = `
-                                <div class="event-worker">${arg.event.extendedProps.careWorker}</div>
+                                <div class="event-worker">${arg.event.extendedProps.care_worker}</div>
                                 <div class="event-details">
                                     <div>${arg.event.extendedProps.beneficiary}</div>
-                                    <div>${formatTime(arg.event.start)} - ${formatTime(arg.event.end)}</div>
+                                    <div>${formatTime(new Date(arg.event.start))} - ${formatTime(new Date(arg.event.end))}</div>
                                 </div>
                             `;
                         }
@@ -895,9 +914,9 @@
                         let eventEl = document.createElement('div');
                         eventEl.className = 'fc-event-main';
                         
-                        if (isOpenTime) {
+                        if (isFlexibleTime) {
                             eventEl.innerHTML = `
-                                <div class="event-worker">${arg.event.extendedProps.careWorker}</div>
+                                <div class="event-worker">${arg.event.extendedProps.care_worker}</div>
                                 <div class="event-details">
                                     <div>${arg.event.extendedProps.beneficiary}</div>
                                     <div class="open-time-indicator">
@@ -907,10 +926,10 @@
                             `;
                         } else {
                             eventEl.innerHTML = `
-                                <div class="event-worker">${arg.event.extendedProps.careWorker}</div>
+                                <div class="event-worker">${arg.event.extendedProps.care_worker}</div>
                                 <div class="event-details">
                                     <div>${arg.event.extendedProps.beneficiary}</div>
-                                    <div>${arg.event.extendedProps.visitType}</div>
+                                    <div>${arg.event.extendedProps.visit_type}</div>
                                 </div>
                             `;
                         }
@@ -919,17 +938,17 @@
                 },
                 eventDidMount: function(arg) {
                     if (arg.el) {
-                        const isOpenTime = arg.event.extendedProps.isOpenTime;
+                        const isFlexibleTime = arg.event.extendedProps.is_flexible_time;
                         let tooltipTitle;
                         
-                        if (isOpenTime) {
-                            tooltipTitle = `${arg.event.extendedProps.careWorker} → ${arg.event.extendedProps.beneficiary}\n` +
-                                          `Type: ${arg.event.extendedProps.visitType}\n` +
+                        if (isFlexibleTime) {
+                            tooltipTitle = `${arg.event.extendedProps.care_worker} → ${arg.event.extendedProps.beneficiary}\n` +
+                                          `Type: ${arg.event.extendedProps.visit_type}\n` +
                                           `Schedule: Flexible Time`;
                         } else {
-                            tooltipTitle = `${arg.event.extendedProps.careWorker} → ${arg.event.extendedProps.beneficiary}\n` +
-                                          `Time: ${formatTime(arg.event.start)} - ${formatTime(arg.event.end)}\n` +
-                                          `Type: ${arg.event.extendedProps.visitType}`;
+                            tooltipTitle = `${arg.event.extendedProps.care_worker} → ${arg.event.extendedProps.beneficiary}\n` +
+                                          `Time: ${formatTime(new Date(arg.event.start))} - ${formatTime(new Date(arg.event.end))}\n` +
+                                          `Type: ${arg.event.extendedProps.visit_type}`;
                         }
                         
                         arg.el.setAttribute('data-bs-toggle', 'tooltip');
@@ -937,76 +956,76 @@
                         arg.el.setAttribute('title', tooltipTitle);
                         new bootstrap.Tooltip(arg.el);
                     }
-                },
-                eventClick: function(info) {
-                    // Save current event for editing/deletion
-                    currentEvent = info.event;
-                    
-                    // Display full details in the side panel
-                    const isOpenTime = info.event.extendedProps.isOpenTime;
-                    
-                    appointmentDetailsEl.innerHTML = `
-                        <div class="detail-section">
-                            <div class="section-title"><i class="bi bi-person-badge"></i> Care Worker</div>
-                            <p class="mb-0">${info.event.extendedProps.careWorker}</p>
-                        </div>
-                        
-                        <div class="detail-section">
-                            <div class="section-title"><i class="bi bi-person-heart"></i> Beneficiary</div>
-                            <div class="detail-item">
-                                <span class="detail-label">Name:</span>
-                                <span class="detail-value">${info.event.extendedProps.beneficiary}</span>
-                            </div>
-                            <div class="detail-item">
-                                <span class="detail-label">Phone:</span>
-                                <span class="detail-value">${info.event.extendedProps.phone}</span>
-                            </div>
-                            <div class="detail-item">
-                                <span class="detail-label">Address:</span>
-                                <span class="detail-value">${info.event.extendedProps.address}</span>
-                            </div>
-                        </div>
-                        
-                        <div class="detail-section">
-                            <div class="section-title"><i class="bi bi-calendar-date"></i> Visit Details</div>
-                            <div class="detail-item">
-                                <span class="detail-label">Date:</span>
-                                <span class="detail-value">${info.event.start.toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</span>
-                            </div>
-                            ${isOpenTime ? 
-                              `<div class="detail-item">
-                                  <span class="detail-label">Schedule:</span>
-                                  <span class="detail-value"><span class="open-time-indicator"><i class="bi bi-clock"></i> Flexible Time</span></span>
-                               </div>` : 
-                              `<div class="detail-item">
-                                  <span class="detail-label">Time:</span>
-                                  <span class="detail-value">${formatTime(info.event.start)} - ${formatTime(info.event.end)}</span>
-                               </div>`
-                            }
-                            <div class="detail-item">
-                                <span class="detail-label">Type:</span>
-                                <span class="detail-value">${info.event.extendedProps.visitType}</span>
-                            </div>
-                        </div>
-                        
-                        <div class="detail-section">
-                            <div class="section-title"><i class="bi bi-journal-text"></i> Notes</div>
-                            <p class="mb-0">${info.event.extendedProps.notes}</p>
-                        </div>
-                    `;
-                    
-                    // Enable edit and delete buttons when an event is selected
-                    editButton.disabled = false;
-                    deleteButton.disabled = false;
                 }
             });
 
             calendar.render();
             
+            // Load beneficiaries on page load
+            loadBeneficiaries();
+            
+            // Load beneficiaries for dropdown
+            function loadBeneficiaries() {
+                $.ajax({
+                    url: '{{ route("admin.careworker.appointments.beneficiaries") }}',
+                    method: 'GET',
+                    success: function(response) {
+                        const select = document.getElementById('beneficiarySelect');
+                        select.innerHTML = '<option value="">Select Beneficiary</option>';
+                        
+                        if (response.success && response.beneficiaries.length > 0) {
+                            response.beneficiaries.forEach(function(beneficiary) {
+                                const option = document.createElement('option');
+                                option.value = beneficiary.id;
+                                option.textContent = beneficiary.name;
+                                select.appendChild(option);
+                            });
+                        }
+                    },
+                    error: function(xhr) {
+                        showErrorModal('Failed to load beneficiaries');
+                    }
+                });
+            }
+            
+            // Get beneficiary details and autofill form fields
+            document.getElementById('beneficiarySelect').addEventListener('change', function() {
+                const beneficiaryId = this.value;
+                if (!beneficiaryId) return;
+                
+                $.ajax({
+                    url: '{{ route("admin.careworker.appointments.beneficiary.details", ["id" => ":id"]) }}'.replace(':id', beneficiaryId),
+                    method: 'GET',
+                    success: function(response) {
+                        if (response.success) {
+                            const beneficiary = response.beneficiary;
+                            document.getElementById('beneficiaryAddress').value = beneficiary.address;
+                            document.getElementById('beneficiaryPhone').value = beneficiary.phone || 'Not Available';
+                            
+                            // If care worker is assigned in general care plan, select them
+                            if (beneficiary.care_worker) {
+                                const careWorkerSelect = document.getElementById('careWorkerSelect');
+                                const options = careWorkerSelect.options;
+                                
+                                for (let i = 0; i < options.length; i++) {
+                                    if (options[i].value == beneficiary.care_worker.id) {
+                                        careWorkerSelect.selectedIndex = i;
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    error: function(xhr) {
+                        showErrorModal('Failed to load beneficiary details');
+                    }
+                });
+            });
+            
             // Format time helper function
             function formatTime(date) {
-                if (!date) return '';
-                return new Date(date).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                if (!date || isNaN(date.getTime())) return '';
+                return date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
             }
             
             // Toggle week view button
@@ -1021,189 +1040,383 @@
                     currentView = 'dayGridMonth';
                 }
             });
-
-            // Form submission handler
-            document.getElementById('submitAppointment').addEventListener('click', function(e) {
-                e.preventDefault();
+            
+            // Show event details in side panel
+            function showEventDetails(event) {
+                // Enable action buttons
+                editButton.disabled = false;
+                deleteButton.disabled = false;
                 
-                // Get form values
-                const careWorkerSelect = document.getElementById('careWorkerSelect');
-                const beneficiarySelect = document.getElementById('beneficiarySelect');
-                const visitType = document.getElementById('visitType');
-                const startDate = document.getElementById('startDate');
-                const isOpenTime = document.getElementById('openTimeCheck').checked;
-                const notes = document.getElementById('notes').value;
-                const dayCheckboxes = document.querySelectorAll('input[name="days"]:checked');
+                // Store current event
+                currentEvent = event;
                 
-                // Validate required fields
-                if (!careWorkerSelect.value || !beneficiarySelect.value || !startDate.value || 
-                    !visitType.value || dayCheckboxes.length === 0) {
-                    alert('Please fill in all required fields');
-                    return;
+                // Format date for display
+                const eventDate = new Date(event.start);
+                const formattedDate = eventDate.toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+                
+                // Build details HTML
+                appointmentDetailsEl.innerHTML = `
+                    <div class="detail-section">
+                        <div class="section-title"><i class="bi bi-person-badge"></i> Care Worker</div>
+                        <p class="mb-0">${event.extendedProps.care_worker}</p>
+                    </div>
+                    
+                    <div class="detail-section">
+                        <div class="section-title"><i class="bi bi-person-heart"></i> Beneficiary</div>
+                        <div class="detail-item">
+                            <span class="detail-label">Name:</span>
+                            <span class="detail-value">${event.extendedProps.beneficiary}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Phone:</span>
+                            <span class="detail-value">${event.extendedProps.phone || 'Not Available'}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Address:</span>
+                            <span class="detail-value">${event.extendedProps.address || 'Not Available'}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="detail-section">
+                        <div class="section-title"><i class="bi bi-calendar-date"></i> Visit Details</div>
+                        <div class="detail-item">
+                            <span class="detail-label">Date:</span>
+                            <span class="detail-value">${formattedDate}</span>
+                        </div>
+                        ${event.extendedProps.is_flexible_time ? 
+                          `<div class="detail-item">
+                              <span class="detail-label">Schedule:</span>
+                              <span class="detail-value"><i class="bi bi-clock"></i> Flexible Time</span>
+                           </div>` : 
+                          `<div class="detail-item">
+                              <span class="detail-label">Time:</span>
+                              <span class="detail-value">${formatTime(new Date(event.start))} - ${formatTime(new Date(event.end))}</span>
+                           </div>`
+                        }
+                        <div class="detail-item">
+                            <span class="detail-label">Type:</span>
+                            <span class="detail-value">${event.extendedProps.visit_type}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Status:</span>
+                            <span class="detail-value">${getStatusBadge(event.extendedProps.status)}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Recurring:</span>
+                            <span class="detail-value">${event.extendedProps.recurring ? 'Yes' : 'No'}</span>
+                        </div>
+                    </div>
+                    
+                    ${event.extendedProps.notes ? `
+                    <div class="detail-section">
+                        <div class="section-title"><i class="bi bi-journal-text"></i> Notes</div>
+                        <p class="mb-0">${event.extendedProps.notes}</p>
+                    </div>
+                    ` : ''}
+                `;
+                
+                // Only show action buttons for scheduled appointments
+                if (event.extendedProps.status.toLowerCase() !== 'scheduled') {
+                    editButton.disabled = true;
+                    deleteButton.disabled = true;
                 }
+            }
+            
+            // Helper function to create status badge
+            function getStatusBadge(status) {
+                const statusLower = status.toLowerCase();
+                let badgeClass = 'bg-secondary';
                 
-                // Validate time fields if not open time
-                if (!isOpenTime && (!startTimeInput.value || !endTimeInput.value)) {
-                    alert('Please specify start and end times or check "Open Time / Flexible Schedule"');
-                    return;
-                }
+                if (statusLower === 'scheduled') badgeClass = 'bg-primary';
+                else if (statusLower === 'completed') badgeClass = 'bg-success';
+                else if (statusLower === 'canceled') badgeClass = 'bg-danger';
                 
-                // Get selected values
-                const careWorker = careWorkerSelect.options[careWorkerSelect.selectedIndex].text;
-                const beneficiary = beneficiarySelect.options[beneficiarySelect.selectedIndex].text;
-                const visitTypeText = visitType.options[visitType.selectedIndex].text;
-                const selectedDays = Array.from(dayCheckboxes).map(checkbox => checkbox.value);
-                
-                // In a real app, you would send this data to your backend
-                console.log('New Appointment:', {
-                    careWorker,
-                    beneficiary,
-                    startDate: startDate.value,
-                    isOpenTime: isOpenTime,
-                    startTime: isOpenTime ? null : startTimeInput.value,
-                    endTime: isOpenTime ? null : endTimeInput.value,
-                    visitType: visitTypeText,
-                    days: selectedDays,
-                    notes
-                });
-                
-                // Show success message
-                alert('Appointment(s) scheduled successfully!');
-                
-                // Reset form and close modal
-                addAppointmentForm.reset();
-                addAppointmentModal.hide();
-                
-                // In a real app, you would refresh the calendar here
-                // calendar.refetchEvents();
-            });
+                return `<span class="badge ${badgeClass}">${status}</span>`;
+            }
             
             // Edit button click handler
             editButton.addEventListener('click', function() {
                 if (!currentEvent) return;
                 
-                // Here you would pre-fill the form with current event data
-                const event = currentEvent;
+                // Reset form
+                document.getElementById('addAppointmentForm').reset();
+                document.getElementById('modalErrors').classList.add('d-none');
                 
-                // Populate form fields with event data
-                document.getElementById('careWorkerSelect').value = event.id; // assuming id corresponds to care worker id
-                document.getElementById('beneficiarySelect').value = event.extendedProps.beneficiaryId || '';
-                document.getElementById('visitType').value = event.extendedProps.visitTypeValue || '';
-                document.getElementById('notes').value = event.extendedProps.notes || '';
+                // Update modal title
+                document.getElementById('addAppointmentModalLabel').innerHTML = '<i class="bi bi-calendar-plus"></i> Edit Appointment';
+                
+                // Set form data from event
+                document.getElementById('visitationId').value = currentEvent.extendedProps.visitation_id;
+                
+                // Set beneficiary and care worker
+                document.getElementById('beneficiaryAddress').value = currentEvent.extendedProps.address;
+                document.getElementById('beneficiaryPhone').value = currentEvent.extendedProps.phone;
+                document.getElementById('notes').value = currentEvent.extendedProps.notes || '';
+                document.getElementById('visitType').value = getVisitTypeValue(currentEvent.extendedProps.visit_type);
                 
                 // Set date
-                const eventDate = new Date(event.start);
+                const eventDate = new Date(currentEvent.start);
                 const formattedDate = eventDate.toISOString().split('T')[0];
-                document.getElementById('startDate').value = formattedDate;
+                document.getElementById('visitDate').value = formattedDate;
                 
-                // Handle open time vs specific time
-                const isOpenTime = event.extendedProps.isOpenTime;
-                document.getElementById('openTimeCheck').checked = isOpenTime;
-                
-                if (!isOpenTime && event.start && event.end) {
-                    // Format times for input fields (HH:MM format)
-                    const startHour = eventDate.getHours().toString().padStart(2, '0');
-                    const startMinute = eventDate.getMinutes().toString().padStart(2, '0');
-                    document.getElementById('startTime').value = `${startHour}:${startMinute}`;
-                    
-                    const endDate = new Date(event.end);
-                    const endHour = endDate.getHours().toString().padStart(2, '0');
-                    const endMinute = endDate.getMinutes().toString().padStart(2, '0');
-                    document.getElementById('endTime').value = `${endHour}:${endMinute}`;
-                    
-                    // Enable time fields
-                    document.getElementById('startTime').disabled = false;
-                    document.getElementById('endTime').disabled = false;
-                    document.getElementById('timeSelectionContainer').style.opacity = '1';
+                // Set time or flexible time
+                document.getElementById('openTimeCheck').checked = currentEvent.extendedProps.is_flexible_time;
+                if (currentEvent.extendedProps.is_flexible_time) {
+                    timeSelectionContainer.style.opacity = '0.5';
+                    startTimeInput.disabled = true;
+                    endTimeInput.disabled = true;
                 } else {
-                    // Disable time fields for open time
-                    document.getElementById('startTime').value = '';
-                    document.getElementById('endTime').value = '';
-                    document.getElementById('startTime').disabled = true;
-                    document.getElementById('endTime').disabled = true;
-                    document.getElementById('timeSelectionContainer').style.opacity = '0.5';
+                    timeSelectionContainer.style.opacity = '1';
+                    startTimeInput.disabled = false;
+                    endTimeInput.disabled = false;
+                    
+                    if (currentEvent.start) {
+                        const startTime = new Date(currentEvent.start);
+                        document.getElementById('startTime').value = `${String(startTime.getHours()).padStart(2, '0')}:${String(startTime.getMinutes()).padStart(2, '0')}`;
+                    }
+                    
+                    if (currentEvent.end) {
+                        const endTime = new Date(currentEvent.end);
+                        document.getElementById('endTime').value = `${String(endTime.getHours()).padStart(2, '0')}:${String(endTime.getMinutes()).padStart(2, '0')}`;
+                    }
                 }
+                
+                // Set recurring options
+                const isRecurring = currentEvent.extendedProps.recurring;
+                document.getElementById('recurringCheck').checked = isRecurring;
+                document.getElementById('recurringOptionsContainer').style.display = isRecurring ? 'block' : 'none';
+                
+                if (isRecurring && currentEvent.extendedProps.recurring_pattern) {
+                    const pattern = currentEvent.extendedProps.recurring_pattern;
+                    document.querySelector(`input[name="pattern_type"][value="${pattern.type}"]`).checked = true;
+                    document.getElementById('weeklyOptions').style.display = pattern.type === 'weekly' ? 'block' : 'none';
+                    
+                    // Set days of week for weekly pattern
+                    if (pattern.day_of_week && pattern.type === 'weekly') {
+                        const days = pattern.day_of_week.split(',');
+                        days.forEach(day => {
+                            const checkbox = document.querySelector(`input[name="day_of_week[]"][value="${day}"]`);
+                            if (checkbox) checkbox.checked = true;
+                        });
+                    }
+                    
+                    if (pattern.end_date) {
+                        document.getElementById('recurrenceEnd').value = pattern.end_date;
+                    }
+                }
+                
+                // Load full beneficiary and care worker lists
+                loadBeneficiariesForEdit(currentEvent.extendedProps.beneficiary_id, currentEvent.extendedProps.care_worker_id);
                 
                 // Show modal
                 addAppointmentModal.show();
             });
             
-            // Delete button click handler
-            deleteButton.addEventListener('click', function() {
-                if (!currentEvent) return;
-                document.getElementById('confirmPassword').value = '';
-                confirmationModal.show();
-            });
+            // Helper function to convert UI visit type to backend value
+            function getVisitTypeValue(uiVisitType) {
+                const lower = uiVisitType.toLowerCase();
+                if (lower.includes('routine')) return 'routine_care_visit';
+                if (lower.includes('service')) return 'service_request';
+                if (lower.includes('emergency')) return 'emergency_visit';
+                return '';
+            }
             
-            // Confirm delete handler with password verification
-            document.getElementById('confirmDelete').addEventListener('click', function() {
-                const password = document.getElementById('confirmPassword').value;
+            // Load beneficiaries for edit form
+            function loadBeneficiariesForEdit(beneficiaryId, careWorkerId) {
+                // Load beneficiaries
+                $.ajax({
+                    url: '{{ route("admin.careworker.appointments.beneficiaries") }}',
+                    method: 'GET',
+                    success: function(response) {
+                        const select = document.getElementById('beneficiarySelect');
+                        select.innerHTML = '<option value="">Select Beneficiary</option>';
+                        
+                        if (response.success && response.beneficiaries.length > 0) {
+                            response.beneficiaries.forEach(function(beneficiary) {
+                                const option = document.createElement('option');
+                                option.value = beneficiary.id;
+                                option.textContent = beneficiary.name;
+                                option.selected = (beneficiary.id == beneficiaryId);
+                                select.appendChild(option);
+                            });
+                        }
+                    }
+                });
                 
-                if (!password) {
-                    alert('Please enter your password to confirm');
-                    return;
+                // Select care worker if provided
+                if (careWorkerId) {
+                    const careWorkerSelect = document.getElementById('careWorkerSelect');
+                    const options = careWorkerSelect.options;
+                    
+                    for (let i = 0; i < options.length; i++) {
+                        if (options[i].value == careWorkerId) {
+                            careWorkerSelect.selectedIndex = i;
+                            break;
+                        }
+                    }
                 }
-                
-                if (!currentEvent) return;
-                
-                // In a real app, you would verify the password on the server
-                if (password === 'admin') {  // For demo purposes only - in a real app this would be a server-side check
-                    // Send delete request to server
-                    console.log('Deleting appointment:', currentEvent.id);
-                    
-                    // Remove the event from calendar
-                    currentEvent.remove();
-                    
-                    // Reset state
-                    currentEvent = null;
-                    editButton.disabled = true;
-                    deleteButton.disabled = true;
-                    
-                    // Clear details panel
-                    appointmentDetailsEl.innerHTML = `
-                        <div class="text-center text-muted py-4">
-                            <i class="bi bi-calendar-event" style="font-size: 2.5rem; opacity: 0.3;"></i>
-                            <p class="mt-3 mb-0">Select an appointment to view details</p>
-                        </div>
-                    `;
-                    
-                    // Close modal
-                    confirmationModal.hide();
-                } else {
-                    alert('Incorrect password. Cancellation denied.');
-                }
-            });
+            }
             
-            // Search functionality
-            const searchInput = document.querySelector('.search-input');
-            searchInput.addEventListener('input', function(e) {
-                const searchTerm = e.target.value.toLowerCase();
+            // Form submission handler
+            document.getElementById('submitAppointment').addEventListener('click', function(e) {
+                e.preventDefault();
                 
-                if (searchTerm.length < 2) {
-                    // If search term is too short, show all events
-                    calendar.getEvents().forEach(event => {
-                        event.setProp('display', 'auto');
-                    });
-                    return;
-                }
+                // Reset error messages
+                document.getElementById('modalErrors').classList.add('d-none');
+                document.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
                 
-                // Filter events
-                calendar.getEvents().forEach(event => {
-                    const careWorker = event.extendedProps.careWorker.toLowerCase();
-                    const beneficiary = event.extendedProps.beneficiary.toLowerCase();
-                    const visitType = event.extendedProps.visitType.toLowerCase();
-                    const notes = event.extendedProps.notes.toLowerCase();
-                    
-                    if (careWorker.includes(searchTerm) || 
-                        beneficiary.includes(searchTerm) || 
-                        visitType.includes(searchTerm) || 
-                        notes.includes(searchTerm)) {
-                        event.setProp('display', 'auto');
-                    } else {
-                        event.setProp('display', 'none');
+                // Get form data
+                const form = document.getElementById('addAppointmentForm');
+                const formData = new FormData(form);
+                
+                // Check if it's an edit (has visitation id) or a new appointment
+                const isEdit = formData.get('visitation_id') ? true : false;
+                const url = isEdit ? 
+                    '{{ route("admin.careworker.appointments.update") }}' : 
+                    '{{ route("admin.careworker.appointments.store") }}';
+                
+                $.ajax({
+                    url: url,
+                    method: 'POST',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    success: function(response) {
+                        if (response.success) {
+                            // Close the modal
+                            addAppointmentModal.hide();
+                            
+                            // Refresh the calendar
+                            calendar.refetchEvents();
+                            
+                            // Clear the form
+                            form.reset();
+                            
+                            // Reset action buttons
+                            editButton.disabled = true;
+                            deleteButton.disabled = true;
+                            
+                            // Reset appointment details view
+                            appointmentDetailsEl.innerHTML = `
+                                <div class="text-center text-muted py-4">
+                                    <i class="bi bi-calendar-event" style="font-size: 2.5rem; opacity: 0.3;"></i>
+                                    <p class="mt-3 mb-0">Select an appointment to view details</p>
+                                </div>
+                            `;
+                        } else {
+                            // Show validation errors
+                            showValidationErrors(response.errors);
+                        }
+                    },
+                    error: function(xhr) {
+                        if (xhr.status === 422) {
+                            // Validation errors
+                            const errors = xhr.responseJSON.errors;
+                            showValidationErrors(errors);
+                        } else {
+                            // General error
+                            showErrorModal('Failed to save appointment');
+                        }
                     }
                 });
             });
+            
+            // Function to show validation errors
+            function showValidationErrors(errors) {
+                const errorList = document.getElementById('errorList');
+                errorList.innerHTML = '';
+                
+                for (const field in errors) {
+                    // Add error class to input
+                    const input = document.querySelector(`[name="${field}"]`);
+                    if (input) input.classList.add('is-invalid');
+                    
+                    // Add error message to list
+                    const errorItem = document.createElement('li');
+                    errorItem.textContent = errors[field][0];
+                    errorList.appendChild(errorItem);
+                }
+                
+                document.getElementById('modalErrors').classList.remove('d-none');
+            }
+            
+            // Delete button click handler
+            deleteButton.addEventListener('click', function() {
+                if (!currentEvent) return;
+                confirmationModal.show();
+            });
+            
+            // Confirm delete handler
+            document.getElementById('confirmDelete').addEventListener('click', function() {
+                const reason = document.getElementById('cancelReason').value.trim();
+                
+                if (!reason) {
+                    document.getElementById('cancelReason').classList.add('is-invalid');
+                    return;
+                }
+                
+                $.ajax({
+                    url: '{{ route("admin.careworker.appointments.cancel") }}',
+                    method: 'POST',
+                    data: {
+                        _token: '{{ csrf_token() }}',
+                        visitation_id: currentEvent.extendedProps.visitation_id,
+                        reason: reason
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            // Hide modals
+                            confirmationModal.hide();
+                            
+                            // Refresh calendar
+                            calendar.refetchEvents();
+                            
+                            // Reset action buttons
+                            editButton.disabled = true;
+                            deleteButton.disabled = true;
+                            
+                            // Reset appointment details view
+                            appointmentDetailsEl.innerHTML = `
+                                <div class="text-center text-muted py-4">
+                                    <i class="bi bi-calendar-event" style="font-size: 2.5rem; opacity: 0.3;"></i>
+                                    <p class="mt-3 mb-0">Select an appointment to view details</p>
+                                </div>
+                            `;
+                        } else {
+                            showErrorModal(response.message || 'Failed to cancel appointment');
+                        }
+                    },
+                    error: function() {
+                        confirmationModal.hide();
+                        showErrorModal('Failed to cancel appointment');
+                    }
+                });
+            });
+            
+            // Show error modal
+            function showErrorModal(message) {
+                document.getElementById('errorMessage').textContent = message;
+                errorModal.show();
+            }
+            
+            // Search functionality
+            const searchInput = document.getElementById('searchInput');
+            searchInput.addEventListener('input', debounce(function() {
+                calendar.refetchEvents();
+            }, 500));
+            
+            // Debounce helper function
+            function debounce(func, wait) {
+                let timeout;
+                return function executedFunction(...args) {
+                    const later = () => {
+                        clearTimeout(timeout);
+                        func(...args);
+                    };
+                    clearTimeout(timeout);
+                    timeout = setTimeout(later, wait);
+                };
+            }
         });
     </script>
 </body>
