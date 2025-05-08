@@ -23,6 +23,7 @@ use App\Http\Controllers\HealthMonitoringController;
 use App\Http\Controllers\CareWorkerAppointmentController;
 use App\Http\Controllers\InternalAppointmentsController;
 use App\Http\Controllers\MedicationScheduleController;
+use App\Http\Controllers\EmergencyAndRequestController;
 
 
 // All routes with administrator role check
@@ -198,6 +199,12 @@ Route::middleware(['auth', '\App\Http\Middleware\CheckRole:administrator'])->pre
     // Medication Schedule
     Route::prefix('medication-schedule')->name('medication.schedule.')->group(function () {
         Route::get('/', [MedicationScheduleController::class, 'index'])->name('index');
+    });
+
+    // Emergency and Service Request
+    Route::prefix('emergency-request')->name('emergency.request.')->group(function () {
+        Route::get('/', [EmergencyAndRequestController::class, 'index'])->name('index');
+        Route::get('/view-history', [EmergencyAndRequestController::class, 'viewHistory'])->name('viewHistory');
     });
 
     // Update email and password
