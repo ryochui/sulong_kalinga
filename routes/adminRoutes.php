@@ -249,9 +249,9 @@ Route::middleware(['auth', '\App\Http\Middleware\CheckRole:administrator'])->pre
         Route::get('/get-visitations', [VisitationController::class, 'getVisitations'])->name('get');
         Route::get('/beneficiaries', [VisitationController::class, 'getBeneficiaries'])->name('beneficiaries');
         Route::get('/beneficiary/{id}', [VisitationController::class, 'getBeneficiaryDetails'])->name('beneficiary.details');
-        Route::post('/careworker-appointments/store', [VisitationController::class, 'store'])->name('store');
-        Route::post('/careworker-appointments/update', [VisitationController::class, 'update'])->name('update');
-        Route::post('/careworker-appointments/cancel', [VisitationController::class, 'cancel'])->name('cancel');
+        Route::post('/store', [VisitationController::class, 'storeAppointment'])->name('store');
+        Route::post('/update', [VisitationController::class, 'updateAppointment'])->name('update');
+        Route::post('/cancel', [VisitationController::class, 'cancelAppointment'])->name('cancel');
     });
 
 });

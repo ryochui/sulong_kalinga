@@ -1229,7 +1229,7 @@ class DatabaseSeeder extends Seeder
             if ($this->faker->boolean(40)) {
                 \App\Models\RecurringPattern::create([
                     'appointment_id' => $appointment->appointment_id,
-                    'pattern_type' => $this->faker->randomElement(['daily', 'weekly', 'monthly']),
+                    'pattern_type' => $this->faker->randomElement(['weekly', 'monthly']),
                     'day_of_week' => $this->faker->randomElement(['weekly', 'monthly']) ? $this->faker->numberBetween(0, 6) : null,
                     'recurrence_end' => Carbon::parse($appointmentDate)->addMonths($this->faker->numberBetween(1, 6)),
                     'created_at' => $appointment->created_at,
@@ -1321,7 +1321,7 @@ class DatabaseSeeder extends Seeder
             if ($this->faker->boolean(60)) {
                 \App\Models\RecurringPattern::create([
                     'visitation_id' => $visitation->visitation_id,
-                    'pattern_type' => $this->faker->randomElement(['daily', 'weekly', 'monthly']),
+                    'pattern_type' => $this->faker->randomElement(['weekly', 'monthly']),
                     'day_of_week' => $this->faker->randomElement(['weekly', 'monthly']) ? $this->faker->numberBetween(0, 6) : null,
                     'recurrence_end' => Carbon::parse($visitationDate)->addMonths($this->faker->numberBetween(1, 6)),
                     'created_at' => $visitation->created_at,

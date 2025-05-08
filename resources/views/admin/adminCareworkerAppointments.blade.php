@@ -210,7 +210,6 @@
             display: inline-flex;
             align-items: center;
             font-size: 0.7rem;
-            color:rgba(255, 255, 255, 0.65);
             font-weight: 500;
             margin-top: 2px;
         }
@@ -507,7 +506,7 @@
                             <!-- Appointment Details Panel -->
                             <div class="card details-container">
                                 <div class="card-header d-flex justify-content-between align-items-center">
-                                    <h5 class="section-heading text-white mb-0">
+                                    <h5 class="section-heading mb-0">
                                         <i class="bi bi-info-circle"></i> Appointment Details
                                     </h5>
                                 </div>
@@ -730,29 +729,54 @@
         </div>
     </div>
 
-    <!-- Confirmation Modal -->
+    <!-- Cancellation Confirmation Modal -->
     <div class="modal fade" id="confirmationModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-sm">
+        <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header bg-danger text-white">
-                    <h5 class="modal-title">Confirm Cancellation</h5>
+                    <h5 class="modal-title"><i class="bi bi-exclamation-triangle-fill"></i> Cancel Appointment</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <p>Are you sure you want to cancel this appointment?</p>
-                    <div class="form-group mt-3">
-                        <label for="cancelReason" class="form-label">Reason for Cancellation</label>
+                    <p id="cancelMessage">Are you sure you want to cancel this appointment?</p>
+                    
+                    <!-- Recurring options - only shown for recurring events -->
+                    <div id="recurringCancelOptions" class="mb-3 d-none">
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="radio" name="cancelOption" id="cancelThisOnly" value="this" checked>
+                            <label class="form-check-label" for="cancelThisOnly">
+                                Cancel only this occurrence
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="cancelOption" id="cancelFuture" value="future">
+                            <label class="form-check-label" for="cancelFuture">
+                                Cancel this and all future occurrences
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="cancelReason" class="form-label">Reason for cancellation <span class="text-danger">*</span></label>
                         <textarea class="form-control" id="cancelReason" rows="3" required></textarea>
+                        <div class="invalid-feedback">Please provide a reason for cancellation.</div>
+                    </div>
+                    
+                    <!-- Password verification -->
+                    <div class="mb-3">
+                        <label for="cancelPassword" class="form-label">Enter your password to confirm <span class="text-danger">*</span></label>
+                        <input type="password" class="form-control" id="cancelPassword" required>
+                        <div class="invalid-feedback" id="passwordError">Please enter your password.</div>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">No, Keep It</button>
-                    <button type="button" class="btn btn-danger" id="confirmDelete">Yes, Cancel It</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">No, Keep It</button>
+                    <button type="button" class="btn btn-danger" id="confirmDelete">Yes, Cancel Appointment</button>
                 </div>
             </div>
         </div>
     </div>
-    
+
     <!-- Error Modal -->
     <div class="modal fade error-modal" id="errorModal" tabindex="-1" aria-labelledby="errorModalLabel" aria-hidden="true">
         <div class="modal-dialog">
@@ -774,6 +798,7 @@
     <script src="{{ asset('js/toggleSideBar.js') }}"></script>
     <script src="{{ asset('js/bootstrap.bundle.min.js') }}"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
     <!-- FullCalendar JS -->
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
     <script>
@@ -787,7 +812,6 @@
             
             var calendarEl = document.getElementById('calendar');
             var appointmentDetailsEl = document.getElementById('appointmentDetails');
-            var addAppointmentForm = document.getElementById('addAppointmentForm');
             var addAppointmentModal = new bootstrap.Modal(document.getElementById('addAppointmentModal'));
             var confirmationModal = new bootstrap.Modal(document.getElementById('confirmationModal'));
             var errorModal = new bootstrap.Modal(document.getElementById('errorModal'));
@@ -800,7 +824,7 @@
             var endTimeInput = document.getElementById('endTime');
             var currentEvent = null;
             var currentView = 'dayGridMonth';
-            
+
             // Initialize tooltips
             var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
             var tooltipList = tooltipTriggerList.map(function(tooltipTriggerEl) {
@@ -834,7 +858,10 @@
                 if (document.getElementById('recurringCheck').checked && document.getElementById('patternWeekly').checked) {
                     const date = new Date(this.value);
                     const dayOfWeek = date.getDay();
-                    document.querySelector(`input[name="day_of_week[]"][value="${dayOfWeek}"]`).checked = true;
+                    const checkbox = document.querySelector(`input[name="day_of_week[]"][value="${dayOfWeek}"]`);
+                    if (checkbox) {
+                        checkbox.checked = true;
+                    }
                 }
             });
             
@@ -857,7 +884,7 @@
                 events: function(info, successCallback, failureCallback) {
                     const start = info.startStr;
                     const end = info.endStr;
-                    const searchTerm = document.getElementById('searchInput').value;
+                    const searchTerm = document.getElementById('searchInput') ? document.getElementById('searchInput').value : '';
                     const careWorkerId = document.getElementById('careWorkerSelect') ? document.getElementById('careWorkerSelect').value : '';
                     
                     $.ajax({
@@ -943,12 +970,12 @@
                         
                         if (isFlexibleTime) {
                             tooltipTitle = `${arg.event.extendedProps.care_worker} → ${arg.event.extendedProps.beneficiary}\n` +
-                                          `Type: ${arg.event.extendedProps.visit_type}\n` +
-                                          `Schedule: Flexible Time`;
+                                        `Type: ${arg.event.extendedProps.visit_type}\n` +
+                                        `Schedule: Flexible Time`;
                         } else {
                             tooltipTitle = `${arg.event.extendedProps.care_worker} → ${arg.event.extendedProps.beneficiary}\n` +
-                                          `Time: ${formatTime(new Date(arg.event.start))} - ${formatTime(new Date(arg.event.end))}\n` +
-                                          `Type: ${arg.event.extendedProps.visit_type}`;
+                                        `Time: ${formatTime(new Date(arg.event.start))} - ${formatTime(new Date(arg.event.end))}\n` +
+                                        `Type: ${arg.event.extendedProps.visit_type}`;
                         }
                         
                         arg.el.setAttribute('data-bs-toggle', 'tooltip');
@@ -993,13 +1020,17 @@
                 const beneficiaryId = this.value;
                 if (!beneficiaryId) return;
                 
+                // Show loading indicator
+                document.getElementById('beneficiaryAddress').value = "Loading...";
+                document.getElementById('beneficiaryPhone').value = "Loading...";
+                
                 $.ajax({
-                    url: '{{ route("admin.careworker.appointments.beneficiary.details", ["id" => ":id"]) }}'.replace(':id', beneficiaryId),
+                    url: '{{ route("admin.careworker.appointments.beneficiary.details", ["id" => "__id__"]) }}'.replace('__id__', beneficiaryId),
                     method: 'GET',
                     success: function(response) {
                         if (response.success) {
                             const beneficiary = response.beneficiary;
-                            document.getElementById('beneficiaryAddress').value = beneficiary.address;
+                            document.getElementById('beneficiaryAddress').value = beneficiary.address || 'Not Available';
                             document.getElementById('beneficiaryPhone').value = beneficiary.phone || 'Not Available';
                             
                             // If care worker is assigned in general care plan, select them
@@ -1014,10 +1045,24 @@
                                     }
                                 }
                             }
+                        } else {
+                            // Clear fields if there was a problem
+                            document.getElementById('beneficiaryAddress').value = 'Not Available';
+                            document.getElementById('beneficiaryPhone').value = 'Not Available';
+                            showErrorModal(response.message || 'Failed to load beneficiary details');
                         }
                     },
                     error: function(xhr) {
-                        showErrorModal('Failed to load beneficiary details');
+                        // Clear fields on error
+                        document.getElementById('beneficiaryAddress').value = 'Not Available';
+                        document.getElementById('beneficiaryPhone').value = 'Not Available';
+                        
+                        // Show error message
+                        let errorMsg = 'Failed to load beneficiary details';
+                        if (xhr.responseJSON && xhr.responseJSON.message) {
+                            errorMsg = xhr.responseJSON.message;
+                        }
+                        showErrorModal(errorMsg);
                     }
                 });
             });
@@ -1084,14 +1129,14 @@
                             <span class="detail-value">${formattedDate}</span>
                         </div>
                         ${event.extendedProps.is_flexible_time ? 
-                          `<div class="detail-item">
-                              <span class="detail-label">Schedule:</span>
-                              <span class="detail-value"><i class="bi bi-clock"></i> Flexible Time</span>
-                           </div>` : 
-                          `<div class="detail-item">
-                              <span class="detail-label">Time:</span>
-                              <span class="detail-value">${formatTime(new Date(event.start))} - ${formatTime(new Date(event.end))}</span>
-                           </div>`
+                        `<div class="detail-item">
+                            <span class="detail-label">Schedule:</span>
+                            <span class="detail-value"><span class="open-time-indicator"><i class="bi bi-clock"></i> Flexible Time</span></span>
+                        </div>` : 
+                        `<div class="detail-item">
+                            <span class="detail-label">Time:</span>
+                            <span class="detail-value">${formatTime(new Date(event.start))} - ${formatTime(new Date(event.end))}</span>
+                        </div>`
                         }
                         <div class="detail-item">
                             <span class="detail-label">Type:</span>
@@ -1143,7 +1188,7 @@
                 document.getElementById('modalErrors').classList.add('d-none');
                 
                 // Update modal title
-                document.getElementById('addAppointmentModalLabel').innerHTML = '<i class="bi bi-calendar-plus"></i> Edit Appointment';
+                document.getElementById('addAppointmentModalLabel').innerHTML = '<i class="bi bi-pencil-square"></i> Edit Appointment';
                 
                 // Set form data from event
                 document.getElementById('visitationId').value = currentEvent.extendedProps.visitation_id;
@@ -1154,9 +1199,12 @@
                 document.getElementById('notes').value = currentEvent.extendedProps.notes || '';
                 document.getElementById('visitType').value = getVisitTypeValue(currentEvent.extendedProps.visit_type);
                 
-                // Set date
+                // Set date - Fix timezone issue by getting local date components instead of using ISO string
                 const eventDate = new Date(currentEvent.start);
-                const formattedDate = eventDate.toISOString().split('T')[0];
+                const year = eventDate.getFullYear();
+                const month = String(eventDate.getMonth() + 1).padStart(2, '0');
+                const day = String(eventDate.getDate()).padStart(2, '0');
+                const formattedDate = `${year}-${month}-${day}`;
                 document.getElementById('visitDate').value = formattedDate;
                 
                 // Set time or flexible time
@@ -1191,9 +1239,13 @@
                     document.querySelector(`input[name="pattern_type"][value="${pattern.type}"]`).checked = true;
                     document.getElementById('weeklyOptions').style.display = pattern.type === 'weekly' ? 'block' : 'none';
                     
-                    // Set days of week for weekly pattern
+                    // Handle day_of_week properly
                     if (pattern.day_of_week && pattern.type === 'weekly') {
-                        const days = pattern.day_of_week.split(',');
+                        // Convert to string and split if it's not already a string
+                        const days = typeof pattern.day_of_week === 'string' ? 
+                            pattern.day_of_week.split(',') : 
+                            [pattern.day_of_week.toString()];
+                            
                         days.forEach(day => {
                             const checkbox = document.querySelector(`input[name="day_of_week[]"][value="${day}"]`);
                             if (checkbox) checkbox.checked = true;
@@ -1203,6 +1255,22 @@
                     if (pattern.end_date) {
                         document.getElementById('recurrenceEnd').value = pattern.end_date;
                     }
+                }
+                
+                // Show warning for editing recurring event
+                if (isRecurring) {
+                    // Add warning message to the modal
+                    const modalContent = document.querySelector('#addAppointmentModal .modal-body');
+                    const warningEl = document.createElement('div');
+                    warningEl.className = 'alert alert-warning recurring-edit-warning';
+                    warningEl.innerHTML = '<strong>Note:</strong> Editing a recurring appointment will only affect this and future occurrences. Past appointments will remain unchanged.';
+                    
+                    // Remove any existing warning
+                    const existingWarning = document.querySelector('.recurring-edit-warning');
+                    if (existingWarning) existingWarning.remove();
+                    
+                    // Insert at the beginning
+                    modalContent.insertBefore(warningEl, modalContent.firstChild);
                 }
                 
                 // Load full beneficiary and care worker lists
@@ -1257,21 +1325,24 @@
                 }
             }
             
-            // Form submission handler
+           // Form submission handler in adminCareworkerAppointments.blade.php
             document.getElementById('submitAppointment').addEventListener('click', function(e) {
                 e.preventDefault();
                 
                 // Reset error messages
                 document.getElementById('modalErrors').classList.add('d-none');
+                document.querySelectorAll('.error-feedback').forEach(el => el.innerHTML = '');
                 document.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
                 
                 // Get form data
-                const form = document.getElementById('addAppointmentForm');
-                const formData = new FormData(form);
+                const formData = new FormData(document.getElementById('addAppointmentForm'));
+                const visitationId = formData.get('visitation_id');
                 
-                // Check if it's an edit (has visitation id) or a new appointment
-                const isEdit = formData.get('visitation_id') ? true : false;
-                const url = isEdit ? 
+                // Ensure is_flexible_time is explicitly set
+                const isFlexibleTime = document.getElementById('openTimeCheck').checked;
+                formData.set('is_flexible_time', isFlexibleTime ? '1' : '0');
+                
+                const url = visitationId ? 
                     '{{ route("admin.careworker.appointments.update") }}' : 
                     '{{ route("admin.careworker.appointments.store") }}';
                 
@@ -1279,72 +1350,221 @@
                     url: url,
                     method: 'POST',
                     data: formData,
-                    processData: false,
                     contentType: false,
+                    processData: false,
                     success: function(response) {
                         if (response.success) {
+                            let message = response.message;
+                            
+                            // If this was a split of a recurring event, show a more detailed message
+                            if (response.split_occurred) {
+                                showSuccessMessage('Recurring appointment updated. Past appointments have been preserved and future ones now follow the new pattern.');
+                            } else {
+                                showSuccessMessage(visitationId ? 'Appointment updated successfully!' : 'Appointment created successfully!');
+                            }
+                            
                             // Close the modal
                             addAppointmentModal.hide();
                             
-                            // Refresh the calendar
+                            // Reset form
+                            document.getElementById('addAppointmentForm').reset();
+                            
+                            // Remove any warning message
+                            const existingWarning = document.querySelector('.recurring-edit-warning');
+                            if (existingWarning) existingWarning.remove();
+                            
+                            // Refresh calendar
                             calendar.refetchEvents();
                             
-                            // Clear the form
-                            form.reset();
+                            // Clear details panel if we're editing the currently selected event
+                            if (currentEvent && visitationId && 
+                                (currentEvent.extendedProps.visitation_id == visitationId || 
+                                currentEvent.id.startsWith(visitationId + '-'))) {
+                                // Update UI as necessary
+                            }
+                            // Show error message - can be validation errors or "no changes" message
+                            if (response.message) {
+                                // Display the specific message (like "No changes were made")
+                                document.getElementById('modalErrors').classList.remove('d-none');
+                                document.getElementById('modalErrors').innerHTML = `
+                                    <div class="alert alert-warning">
+                                        <i class="bi bi-exclamation-triangle"></i> ${response.message}
+                                    </div>
+                                `;
+                            } else if (response.errors) {
+                                // Display validation errors
+                                showValidationErrors(response.errors);
+                            }
+                        }
+                    },
+                    error: function(xhr) {
+                        if (xhr.status === 422) {
+                            // Validation errors
+                            showValidationErrors(xhr.responseJSON.errors);
+                        } else {
+                            // General error
+                            showErrorModal('Failed to process appointment. Please try again.');
+                        }
+                    }
+                });
+            });
+            
+            // Delete button click handler - Update this in adminCareworkerAppointments.blade.php
+            deleteButton.addEventListener('click', function() {
+                if (!currentEvent) return;
+                
+                // Update the cancel message with the appointment details
+                const beneficiary = currentEvent.extendedProps.beneficiary;
+                const careWorker = currentEvent.extendedProps.care_worker;
+                document.getElementById('cancelMessage').textContent = 
+                    `Are you sure you want to cancel the appointment for ${beneficiary} with ${careWorker}?`;
+                
+                // Show or hide recurring options based on whether this is a recurring event
+                const recurringCancelOptions = document.getElementById('recurringCancelOptions');
+                if (currentEvent.extendedProps.recurring) {
+                    recurringCancelOptions.classList.remove('d-none');
+                } else {
+                    recurringCancelOptions.classList.add('d-none');
+                }
+                
+                // Reset the form
+                document.getElementById('cancelReason').value = '';
+                document.getElementById('cancelReason').classList.remove('is-invalid');
+                document.getElementById('cancelPassword').value = '';
+                document.getElementById('cancelPassword').classList.remove('is-invalid');
+                document.getElementById('passwordError').textContent = 'Please enter your password.';
+                
+                // Show the modal
+                confirmationModal.show();
+            });
+
+            // Confirm delete handler - Update this in adminCareworkerAppointments.blade.php
+            // Cancel button handler
+            document.getElementById('confirmDelete').addEventListener('click', function() {
+                const reason = document.getElementById('cancelReason').value.trim();
+                const password = document.getElementById('cancelPassword').value.trim();
+                let isValid = true;
+                
+                // Validate reason
+                if (!reason) {
+                    document.getElementById('cancelReason').classList.add('is-invalid');
+                    isValid = false;
+                } else {
+                    document.getElementById('cancelReason').classList.remove('is-invalid');
+                }
+                
+                // Validate password
+                if (!password) {
+                    document.getElementById('cancelPassword').classList.add('is-invalid');
+                    isValid = false;
+                } else {
+                    document.getElementById('cancelPassword').classList.remove('is-invalid');
+                }
+                
+                if (!isValid) return;
+                
+                // Get cancellation option for recurring events
+                let cancelOption = 'this'; // Default is cancel just this occurrence
+                if (currentEvent.extendedProps.recurring) {
+                    const selectedOption = document.querySelector('input[name="cancelOption"]:checked');
+                    cancelOption = selectedOption ? selectedOption.value : 'this';
+                }
+                
+                // Get the specific date for this occurrence (important for recurring events)
+                const occurrenceDate = currentEvent.start ? formatDateForAPI(currentEvent.start) : null;
+                
+                // Show loading state
+                const confirmButton = document.getElementById('confirmDelete');
+                const originalText = confirmButton.textContent;
+                confirmButton.disabled = true;
+                confirmButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Processing...';
+                
+                // CSRF token
+                const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+                
+                $.ajax({
+                    url: '{{ route("admin.careworker.appointments.cancel") }}',
+                    method: 'POST',
+                    data: {
+                        _token: csrfToken,
+                        visitation_id: currentEvent.extendedProps.visitation_id,
+                        occurrence_date: occurrenceDate,
+                        reason: reason,
+                        password: password,
+                        cancel_option: cancelOption
+                    },
+                    success: function(response) {
+                        // Handle success response
+                        if (response.success) {
+                            showSuccessMessage(response.message || 'Appointment cancelled successfully!');
                             
-                            // Reset action buttons
-                            editButton.disabled = true;
-                            deleteButton.disabled = true;
+                            // Close the modal
+                            confirmationModal.hide();
                             
-                            // Reset appointment details view
+                            // Reset form
+                            document.getElementById('cancelReason').value = '';
+                            document.getElementById('cancelPassword').value = '';
+                            
+                            // Refresh calendar
+                            calendar.refetchEvents();
+                            
+                            // Clear details panel
                             appointmentDetailsEl.innerHTML = `
                                 <div class="text-center text-muted py-4">
                                     <i class="bi bi-calendar-event" style="font-size: 2.5rem; opacity: 0.3;"></i>
                                     <p class="mt-3 mb-0">Select an appointment to view details</p>
                                 </div>
                             `;
+                            
+                            // Disable buttons
+                            editButton.disabled = true;
+                            deleteButton.disabled = true;
+                            
+                            // Reset current event
+                            currentEvent = null;
                         } else {
-                            // Show validation errors
-                            showValidationErrors(response.errors);
+                            // Show error
+                            if (response.passwordError) {
+                                document.getElementById('cancelPassword').classList.add('is-invalid');
+                                document.getElementById('passwordError').textContent = response.passwordError;
+                            } else if (response.errors) {
+                                const errorMessage = Object.values(response.errors).flat().join('<br>');
+                                showErrorModal(errorMessage);
+                            } else {
+                                showErrorModal(response.message || 'Failed to cancel appointment');
+                            }
                         }
                     },
                     error: function(xhr) {
-                        if (xhr.status === 422) {
-                            // Validation errors
+                        let errorMessage = 'Failed to cancel appointment. Please try again.';
+                        
+                        if (xhr.status === 401) {
+                            document.getElementById('cancelPassword').classList.add('is-invalid');
+                            document.getElementById('passwordError').textContent = 'Incorrect password.';
+                        } else if (xhr.status === 422 && xhr.responseJSON && xhr.responseJSON.errors) {
+                            // Format validation errors
                             const errors = xhr.responseJSON.errors;
-                            showValidationErrors(errors);
+                            errorMessage = Object.values(errors).flat().join('<br>');
+                            showErrorModal(errorMessage);
                         } else {
-                            // General error
-                            showErrorModal('Failed to save appointment');
+                            showErrorModal(errorMessage);
                         }
+                        
+                        console.error('Error details:', xhr.responseText);
+                    },
+                    complete: function() {
+                        // Reset button state
+                        confirmButton.disabled = false;
+                        confirmButton.innerHTML = originalText;
                     }
                 });
             });
-            
-            // Function to show validation errors
-            function showValidationErrors(errors) {
-                const errorList = document.getElementById('errorList');
-                errorList.innerHTML = '';
-                
-                for (const field in errors) {
-                    // Add error class to input
-                    const input = document.querySelector(`[name="${field}"]`);
-                    if (input) input.classList.add('is-invalid');
-                    
-                    // Add error message to list
-                    const errorItem = document.createElement('li');
-                    errorItem.textContent = errors[field][0];
-                    errorList.appendChild(errorItem);
-                }
-                
-                document.getElementById('modalErrors').classList.remove('d-none');
+
+            // Helper function to format date for API
+            function formatDateForAPI(date) {
+                const d = new Date(date);
+                return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
             }
-            
-            // Delete button click handler
-            deleteButton.addEventListener('click', function() {
-                if (!currentEvent) return;
-                confirmationModal.show();
-            });
             
             // Confirm delete handler
             document.getElementById('confirmDelete').addEventListener('click', function() {
@@ -1359,39 +1579,70 @@
                     url: '{{ route("admin.careworker.appointments.cancel") }}',
                     method: 'POST',
                     data: {
-                        _token: '{{ csrf_token() }}',
                         visitation_id: currentEvent.extendedProps.visitation_id,
                         reason: reason
                     },
                     success: function(response) {
                         if (response.success) {
-                            // Hide modals
+                            // Show success message
+                            showSuccessMessage('Appointment canceled successfully!');
+                            
+                            // Close the modal
                             confirmationModal.hide();
+                            
+                            // Reset form
+                            document.getElementById('cancelReason').value = '';
+                            document.getElementById('cancelReason').classList.remove('is-invalid');
                             
                             // Refresh calendar
                             calendar.refetchEvents();
                             
-                            // Reset action buttons
-                            editButton.disabled = true;
-                            deleteButton.disabled = true;
-                            
-                            // Reset appointment details view
+                            // Clear details panel
                             appointmentDetailsEl.innerHTML = `
                                 <div class="text-center text-muted py-4">
                                     <i class="bi bi-calendar-event" style="font-size: 2.5rem; opacity: 0.3;"></i>
                                     <p class="mt-3 mb-0">Select an appointment to view details</p>
                                 </div>
                             `;
+                            
+                            // Disable buttons
+                            editButton.disabled = true;
+                            deleteButton.disabled = true;
                         } else {
                             showErrorModal(response.message || 'Failed to cancel appointment');
                         }
                     },
-                    error: function() {
-                        confirmationModal.hide();
-                        showErrorModal('Failed to cancel appointment');
+                    error: function(xhr) {
+                        showErrorModal('Failed to cancel appointment. Please try again.');
                     }
                 });
             });
+            
+            // Show validation errors
+            function showValidationErrors(errors) {
+                const errorList = document.getElementById('errorList');
+                errorList.innerHTML = '';
+                
+                for (const field in errors) {
+                    const errorMsg = errors[field][0];
+                    errorList.innerHTML += `<li>${errorMsg}</li>`;
+                    
+                    // Highlight the invalid field
+                    const inputField = document.querySelector(`[name="${field}"]`);
+                    if (inputField) {
+                        inputField.classList.add('is-invalid');
+                        
+                        // Add error message below the field
+                        const fieldId = field.replace(/_/g, '-');
+                        const feedbackEl = document.getElementById(`${fieldId}-error`);
+                        if (feedbackEl) {
+                            feedbackEl.innerHTML = errorMsg;
+                        }
+                    }
+                }
+                
+                document.getElementById('modalErrors').classList.remove('d-none');
+            }
             
             // Show error modal
             function showErrorModal(message) {
@@ -1399,9 +1650,36 @@
                 errorModal.show();
             }
             
+            // Show success message
+            function showSuccessMessage(message) {
+                // Create a toast element
+                const toastEl = document.createElement('div');
+                toastEl.className = 'toast position-fixed top-0 end-0 m-3';
+                toastEl.setAttribute('role', 'alert');
+                toastEl.setAttribute('aria-live', 'assertive');
+                toastEl.setAttribute('aria-atomic', 'true');
+                
+                toastEl.innerHTML = `
+                    <div class="toast-header bg-success text-white">
+                        <strong class="me-auto">Success</strong>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
+                    </div>
+                    <div class="toast-body">${message}</div>
+                `;
+                
+                document.body.appendChild(toastEl);
+                
+                const toast = new bootstrap.Toast(toastEl, { delay: 5000 });
+                toast.show();
+                
+                // Remove the element when hidden
+                toastEl.addEventListener('hidden.bs.toast', function() {
+                    toastEl.remove();
+                });
+            }
+            
             // Search functionality
-            const searchInput = document.getElementById('searchInput');
-            searchInput.addEventListener('input', debounce(function() {
+            document.getElementById('searchInput').addEventListener('input', debounce(function() {
                 calendar.refetchEvents();
             }, 500));
             

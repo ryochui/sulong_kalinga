@@ -102,4 +102,12 @@ class Visitation extends Model
     {
         return $this->hasOne(RecurringPattern::class, 'visitation_id', 'visitation_id');
     }
+
+    /**
+     * Get the exceptions for this visitation
+     */
+    public function exceptions()
+    {
+        return $this->hasMany(VisitationException::class, 'visitation_id', 'visitation_id');
+    }
 }
