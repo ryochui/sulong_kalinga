@@ -1,5 +1,5 @@
 <?php
-// app/Models/Visitation.php
+
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -56,58 +56,123 @@ class Visitation extends Model
     }
     
     /**
-     * Get the user who assigned this visitation
-     */
-    public function assignedBy()
-    {
-        return $this->belongsTo(User::class, 'assigned_by', 'id');
-    }
-    
-    /**
-     * Get the beneficiary who confirmed this visitation
-     */
-    public function confirmedByBeneficiary()
-    {
-        return $this->belongsTo(Beneficiary::class, 'confirmed_by_beneficiary', 'beneficiary_id');
-    }
-    
-    /**
-     * Get the family member who confirmed this visitation
-     */
-    public function confirmedByFamily()
-    {
-        return $this->belongsTo(FamilyMember::class, 'confirmed_by_family', 'family_member_id');
-    }
-    
-    /**
-     * Get the work shift associated with this visitation
-     */
-    public function workShift()
-    {
-        return $this->belongsTo(WorkShift::class, 'work_shift_id', 'work_shift_id');
-    }
-    
-    /**
-     * Get the visit log associated with this visitation
-     */
-    public function visitLog()
-    {
-        return $this->belongsTo(VisitationLog::class, 'visit_log_id', 'id');
-    }
-    
-    /**
      * Get the recurring pattern for this visitation if any
      */
     public function recurringPattern()
     {
         return $this->hasOne(RecurringPattern::class, 'visitation_id', 'visitation_id');
     }
-
+    
     /**
-     * Get the exceptions for this visitation
+     * Get the historical archive records for this visitation
      */
+    public function archives()
+    {
+        return $this->hasMany(VisitationArchive::class, 'original_visitation_id', 'visitation_id');
+    }
+    
+    /**
+     * Get all occurrences for this visitation
+     */
+    public function occurrences()
+    {
+        return $this->hasMany(VisitationOccurrence::class, 'visitation_id', 'visitation_id');
+    }
+
     public function exceptions()
     {
         return $this->hasMany(VisitationException::class, 'visitation_id', 'visitation_id');
+    }
+        
+    /**
+     * Generate occurrences for this recurring visitation
+     * 
+     * @param int $months Number of months to generate occurrences for
+     * @return array Array of generated occurrence IDs
+     */
+    public function generateOccurrences($months = 3)
+    {
+        // Only generate occurrences if this is a recurring visitation
+        if (!$this->recurringPattern) {
+            // For non-recurring, create a single occurrence
+            $occurrence = VisitationOccurrence::create([
+                'visitation_id' => $this->visitation_id,
+                'occurrence_date' => $this->visitation_date,
+                'start_time' => $this->start_time,
+                'end_time' => $this->end_time,
+                'status' => $this->status
+            ]);
+            
+            return [$occurrence->occurrence_id];
+        }
+        
+        // For recurring appointments, generate multiple occurrences
+        $pattern = $this->recurringPattern;
+        $startDate = $this->visitation_date;
+        $endDate = $pattern->recurrence_end ?? now()->addMonths($months);
+        
+        // Use the earlier date between the specified end date and the pattern's end date
+        if ($pattern->recurrence_end && $pattern->recurrence_end->lt($endDate)) {
+            $endDate = $pattern->recurrence_end;
+        }
+        
+        $occurrenceIds = [];
+        $currentDate = clone $startDate;
+        
+        while ($currentDate <= $endDate) {
+            $occurrence = VisitationOccurrence::create([
+                'visitation_id' => $this->visitation_id,
+                'occurrence_date' => $currentDate->format('Y-m-d'),
+                'start_time' => $this->start_time,
+                'end_time' => $this->end_time,
+                'status' => $currentDate < now() ? 'completed' : 'scheduled'
+            ]);
+            
+            $occurrenceIds[] = $occurrence->occurrence_id;
+            
+            // Calculate next occurrence date based on pattern
+            switch ($pattern->pattern_type) {
+                case 'daily':
+                    $currentDate->addDay();
+                    break;
+                case 'weekly':
+                    $currentDate->addWeek();
+                    break;
+                case 'monthly':
+                    $currentDate->addMonth();
+                    break;
+            }
+        }
+        
+        return $occurrenceIds;
+    }
+    
+    /**
+     * Move this visitation to the archive table
+     * 
+     * @param string $reason The reason for archiving
+     * @param int $archivedBy User ID who archived the record
+     * @return VisitationArchive The created archive record
+     */
+    public function archive($reason, $archivedBy)
+    {
+        return VisitationArchive::create([
+            'visitation_id' => $this->visitation_id,
+            'original_visitation_id' => $this->visitation_id,
+            'care_worker_id' => $this->care_worker_id,
+            'beneficiary_id' => $this->beneficiary_id,
+            'visitation_date' => $this->visitation_date,
+            'visit_type' => $this->visit_type,
+            'is_flexible_time' => $this->is_flexible_time,
+            'start_time' => $this->start_time,
+            'end_time' => $this->end_time,
+            'notes' => $this->notes,
+            'status' => $this->status,
+            'date_assigned' => $this->date_assigned,
+            'assigned_by' => $this->assigned_by,
+            'archived_at' => now(),
+            'reason' => $reason,
+            'archived_by' => $archivedBy
+        ]);
     }
 }

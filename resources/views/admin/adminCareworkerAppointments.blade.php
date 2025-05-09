@@ -10,6 +10,11 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css">
     <!-- FullCalendar CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/locales-all.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/timegrid/main.min.js"></script>
+
+
     <style>
         /* Card Design */
         .card {
@@ -476,6 +481,11 @@
                                 </div>
                                 <div class="card-body p-0">
                                     <div id="calendar-container">
+                                        <div id="calendar-loading-indicator" style="display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 10;">
+                                            <div class="spinner-border text-primary" role="status">
+                                                <span class="visually-hidden">Loading...</span>
+                                            </div>
+                                        </div>
                                         <div id="calendar" class="p-3"></div>
                                     </div>
                                 </div>
@@ -737,37 +747,11 @@
                     <h5 class="modal-title"><i class="bi bi-exclamation-triangle-fill"></i> Cancel Appointment</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="modal-body">
-                    <p id="cancelMessage">Are you sure you want to cancel this appointment?</p>
-                    
-                    <!-- Recurring options - only shown for recurring events -->
-                    <div id="recurringCancelOptions" class="mb-3 d-none">
-                        <div class="form-check mb-2">
-                            <input class="form-check-input" type="radio" name="cancelOption" id="cancelThisOnly" value="this" checked>
-                            <label class="form-check-label" for="cancelThisOnly">
-                                Cancel only this occurrence
-                            </label>
-                        </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="radio" name="cancelOption" id="cancelFuture" value="future">
-                            <label class="form-check-label" for="cancelFuture">
-                                Cancel this and all future occurrences
-                            </label>
-                        </div>
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label for="cancelReason" class="form-label">Reason for cancellation <span class="text-danger">*</span></label>
-                        <textarea class="form-control" id="cancelReason" rows="3" required></textarea>
-                        <div class="invalid-feedback">Please provide a reason for cancellation.</div>
-                    </div>
-                    
-                    <!-- Password verification -->
-                    <div class="mb-3">
-                        <label for="cancelPassword" class="form-label">Enter your password to confirm <span class="text-danger">*</span></label>
-                        <input type="password" class="form-control" id="cancelPassword" required>
-                        <div class="invalid-feedback" id="passwordError">Please enter your password.</div>
-                    </div>
+                <div class="modal-body" id="confirmationModalBody">
+                    <!-- Content will be dynamically inserted -->
+                    <input type="hidden" id="deleteVisitationId">
+                    <input type="hidden" id="occurrenceDate">
+                    <div id="cancelOptions"></div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">No, Keep It</button>
@@ -801,37 +785,47 @@
 
     <!-- FullCalendar JS -->
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Setup CSRF token for all AJAX requests
-            $.ajaxSetup({
-                headers: {
-                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                }
-            });
-            
-            var calendarEl = document.getElementById('calendar');
-            var appointmentDetailsEl = document.getElementById('appointmentDetails');
-            var addAppointmentModal = new bootstrap.Modal(document.getElementById('addAppointmentModal'));
-            var confirmationModal = new bootstrap.Modal(document.getElementById('confirmationModal'));
-            var errorModal = new bootstrap.Modal(document.getElementById('errorModal'));
-            var editButton = document.getElementById('editAppointmentButton');
-            var deleteButton = document.getElementById('deleteAppointmentButton');
-            var toggleWeekButton = document.getElementById('toggleWeekView');
-            var openTimeCheck = document.getElementById('openTimeCheck');
-            var timeSelectionContainer = document.getElementById('timeSelectionContainer');
-            var startTimeInput = document.getElementById('startTime');
-            var endTimeInput = document.getElementById('endTime');
-            var currentEvent = null;
-            var currentView = 'dayGridMonth';
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/locales-all.min.js"></script>
 
-            // Initialize tooltips
-            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-            var tooltipList = tooltipTriggerList.map(function(tooltipTriggerEl) {
-                return new bootstrap.Tooltip(tooltipTriggerEl);
-            });
-            
-            // Handle open time checkbox
+    <!-- Add this line to include the timegrid plugin -->
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/timegrid/main.min.js"></script>
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Setup CSRF token for all AJAX requests
+        $.ajaxSetup({
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            }
+        });
+        
+        // DOM element references
+        const calendarEl = document.getElementById('calendar');
+        const appointmentDetailsEl = document.getElementById('appointmentDetails');
+        const addAppointmentModal = new bootstrap.Modal(document.getElementById('addAppointmentModal'));
+        const confirmationModal = new bootstrap.Modal(document.getElementById('confirmationModal'));
+        const errorModal = new bootstrap.Modal(document.getElementById('errorModal'));
+        const editButton = document.getElementById('editAppointmentButton');
+        const deleteButton = document.getElementById('deleteAppointmentButton');
+        const toggleWeekButton = document.getElementById('toggleWeekView');
+        const openTimeCheck = document.getElementById('openTimeCheck');
+        const timeSelectionContainer = document.getElementById('timeSelectionContainer');
+        const startTimeInput = document.getElementById('startTime');
+        const endTimeInput = document.getElementById('endTime');
+        const addAppointmentForm = document.getElementById('addAppointmentForm');
+        const addAppointmentModalLabel = document.getElementById('addAppointmentModalLabel');
+        const submitAppointment = document.getElementById('submitAppointment');
+        const confirmationModalBody = document.getElementById('confirmationModalBody');
+        let currentEvent = null;
+        let currentView = 'dayGridMonth';
+
+        // Initialize tooltips
+        const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        const tooltipList = tooltipTriggerList.map(function(tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+        
+        // Handle open time checkbox
+        if (openTimeCheck) {
             openTimeCheck.addEventListener('change', function() {
                 if (this.checked) {
                     // If checked, disable time inputs
@@ -847,15 +841,21 @@
                     timeSelectionContainer.style.opacity = '1';
                 }
             });
-            
-            // Initialize recurring options
-            document.getElementById('recurringCheck').addEventListener('change', function() {
+        }
+        
+        // Initialize recurring options
+        const recurringCheck = document.getElementById('recurringCheck');
+        if (recurringCheck) {
+            recurringCheck.addEventListener('change', function() {
                 document.getElementById('recurringOptionsContainer').style.display = this.checked ? 'block' : 'none';
             });
-            
-            // Day selection based on appointment date
-            document.getElementById('visitDate').addEventListener('change', function() {
-                if (document.getElementById('recurringCheck').checked && document.getElementById('patternWeekly').checked) {
+        }
+        
+        // Day selection based on appointment date
+        const visitDate = document.getElementById('visitDate');
+        if (visitDate) {
+            visitDate.addEventListener('change', function() {
+                if (recurringCheck && recurringCheck.checked && document.getElementById('patternWeekly').checked) {
                     const date = new Date(this.value);
                     const dayOfWeek = date.getDay();
                     const checkbox = document.querySelector(`input[name="day_of_week[]"][value="${dayOfWeek}"]`);
@@ -864,161 +864,250 @@
                     }
                 }
             });
-            
-            // Pattern type change handling
-            document.querySelectorAll('input[name="pattern_type"]').forEach(function(radio) {
-                radio.addEventListener('change', function() {
-                    document.getElementById('weeklyOptions').style.display = this.value === 'weekly' ? 'block' : 'none';
-                });
-            });
-            
-            // Initialize calendar with dynamic events
-            var calendar = new FullCalendar.Calendar(calendarEl, {
-                initialView: currentView,
-                headerToolbar: {
-                    left: 'prev,next today',
-                    center: 'title',
-                    right: 'dayGridMonth,timeGridWeek,timeGridDay'
-                },
-                eventDisplay: 'block',
-                events: function(info, successCallback, failureCallback) {
-                    const start = info.startStr;
-                    const end = info.endStr;
-                    const searchTerm = document.getElementById('searchInput') ? document.getElementById('searchInput').value : '';
-                    const careWorkerId = document.getElementById('careWorkerSelect') ? document.getElementById('careWorkerSelect').value : '';
-                    
-                    $.ajax({
-                        url: '{{ route("admin.careworker.appointments.get") }}',
-                        method: 'GET',
-                        data: {
-                            start: start,
-                            end: end,
-                            search: searchTerm,
-                            care_worker_id: careWorkerId
-                        },
-                        success: function(response) {
-                            successCallback(response);
-                        },
-                        error: function(xhr) {
-                            failureCallback(xhr);
-                            showErrorModal('Failed to fetch appointments');
-                        }
-                    });
-                },
-                eventClick: function(info) {
-                    showEventDetails(info.event);
-                },
-                eventContent: function(arg) {
-                    const isFlexibleTime = arg.event.extendedProps.is_flexible_time;
-                    
-                    if (arg.view.type === 'dayGridMonth') {
-                        // Show simplified content in month view
-                        let eventEl = document.createElement('div');
-                        eventEl.className = 'fc-event-main';
-                        
-                        if (isFlexibleTime) {
-                            eventEl.innerHTML = `
-                                <div class="event-worker">${arg.event.extendedProps.care_worker}</div>
-                                <div class="event-details">
-                                    <div>${arg.event.extendedProps.beneficiary}</div>
-                                    <div class="open-time-indicator">
-                                        <i class="bi bi-clock"></i> Flexible Time
-                                    </div>
-                                </div>
-                            `;
-                        } else {
-                            eventEl.innerHTML = `
-                                <div class="event-worker">${arg.event.extendedProps.care_worker}</div>
-                                <div class="event-details">
-                                    <div>${arg.event.extendedProps.beneficiary}</div>
-                                    <div>${formatTime(new Date(arg.event.start))} - ${formatTime(new Date(arg.event.end))}</div>
-                                </div>
-                            `;
-                        }
-                        return { domNodes: [eventEl] };
-                    } else {
-                        // Show more details in week/day view
-                        let eventEl = document.createElement('div');
-                        eventEl.className = 'fc-event-main';
-                        
-                        if (isFlexibleTime) {
-                            eventEl.innerHTML = `
-                                <div class="event-worker">${arg.event.extendedProps.care_worker}</div>
-                                <div class="event-details">
-                                    <div>${arg.event.extendedProps.beneficiary}</div>
-                                    <div class="open-time-indicator">
-                                        <i class="bi bi-clock"></i> Flexible Time
-                                    </div>
-                                </div>
-                            `;
-                        } else {
-                            eventEl.innerHTML = `
-                                <div class="event-worker">${arg.event.extendedProps.care_worker}</div>
-                                <div class="event-details">
-                                    <div>${arg.event.extendedProps.beneficiary}</div>
-                                    <div>${arg.event.extendedProps.visit_type}</div>
-                                </div>
-                            `;
-                        }
-                        return { domNodes: [eventEl] };
-                    }
-                },
-                eventDidMount: function(arg) {
-                    if (arg.el) {
-                        const isFlexibleTime = arg.event.extendedProps.is_flexible_time;
-                        let tooltipTitle;
-                        
-                        if (isFlexibleTime) {
-                            tooltipTitle = `${arg.event.extendedProps.care_worker} → ${arg.event.extendedProps.beneficiary}\n` +
-                                        `Type: ${arg.event.extendedProps.visit_type}\n` +
-                                        `Schedule: Flexible Time`;
-                        } else {
-                            tooltipTitle = `${arg.event.extendedProps.care_worker} → ${arg.event.extendedProps.beneficiary}\n` +
-                                        `Time: ${formatTime(new Date(arg.event.start))} - ${formatTime(new Date(arg.event.end))}\n` +
-                                        `Type: ${arg.event.extendedProps.visit_type}`;
-                        }
-                        
-                        arg.el.setAttribute('data-bs-toggle', 'tooltip');
-                        arg.el.setAttribute('data-bs-placement', 'top');
-                        arg.el.setAttribute('title', tooltipTitle);
-                        new bootstrap.Tooltip(arg.el);
-                    }
+        }
+        
+        // Pattern type change handling
+        document.querySelectorAll('input[name="pattern_type"]').forEach(function(radio) {
+            radio.addEventListener('change', function() {
+                const weeklyOptions = document.getElementById('weeklyOptions');
+                if (weeklyOptions) {
+                    weeklyOptions.style.display = this.value === 'weekly' ? 'block' : 'none';
                 }
             });
-
-            calendar.render();
+        });
+        
+        // Initialize calendar with dynamic events and lazy loading
+        const calendar = new FullCalendar.Calendar(calendarEl, {
+            initialView: currentView,
+            headerToolbar: {
+                left: 'prev,next today',
+                center: 'title',
+                right: 'dayGridMonth,timeGridWeek,timeGridDay'
+            },
+            eventDisplay: 'block',
             
-            // Load beneficiaries on page load
-            loadBeneficiaries();
+            // Performance optimization settings
+            lazyFetching: true,
+            progressiveEventRendering: true,
+            initialDate: new Date(),
+            dayMaxEvents: 300, // Use dayMaxEvents instead of maxEvents
             
-            // Load beneficiaries for dropdown
-            function loadBeneficiaries() {
+            events: function(info, successCallback, failureCallback) {
+                const start = info.startStr;
+                const end = info.endStr;
+                const searchTerm = document.getElementById('searchInput') ? document.getElementById('searchInput').value : '';
+                const careWorkerId = document.getElementById('careWorkerSelect') ? document.getElementById('careWorkerSelect').value : '';
+                
+                // Show loading indicator
+                if (document.getElementById('calendar-loading-indicator')) {
+                    document.getElementById('calendar-loading-indicator').style.display = 'block';
+                }
+                
+                // Set a timeout to prevent UI freezing if server is slow
+                const timeoutId = setTimeout(() => {
+                    if (document.getElementById('calendar-loading-indicator')) {
+                        document.getElementById('calendar-loading-indicator').style.display = 'none';
+                    }
+                    failureCallback({ message: "Request timed out" });
+                    showErrorModal('Loading took too long. Try viewing a smaller date range or reset the calendar.');
+                }, 15000); // 15 seconds timeout
+                
                 $.ajax({
-                    url: '{{ route("admin.careworker.appointments.beneficiaries") }}',
+                    url: '{{ route("admin.careworker.appointments.get") }}',
                     method: 'GET',
+                    data: {
+                        start: start,
+                        end: end,
+                        search: searchTerm,
+                        care_worker_id: careWorkerId,
+                        view_type: info.view ? info.view.type : 'dayGridMonth' // Safe access with fallback
+                    },
                     success: function(response) {
-                        const select = document.getElementById('beneficiarySelect');
-                        select.innerHTML = '<option value="">Select Beneficiary</option>';
+                        clearTimeout(timeoutId);
+                        successCallback(response);
                         
-                        if (response.success && response.beneficiaries.length > 0) {
-                            response.beneficiaries.forEach(function(beneficiary) {
-                                const option = document.createElement('option');
-                                option.value = beneficiary.id;
-                                option.textContent = beneficiary.name;
-                                select.appendChild(option);
-                            });
-                        }
+                        // FIX: Safe access to view title with fallback
+                        const viewName = info.view && info.view.title ? info.view.title : 'current view';
+                        console.log(`Loaded ${response.length} events for ${viewName}`);
                     },
                     error: function(xhr) {
-                        showErrorModal('Failed to load beneficiaries');
+                        clearTimeout(timeoutId);
+                        failureCallback(xhr);
+                        showErrorModal('Failed to fetch appointments: ' + (xhr.responseJSON?.message || 'Server error'));
+                        console.error('Error fetching events:', xhr.responseText);
+                    },
+                    complete: function() {
+                        // Always ensure loading indicator is hidden
+                        if (document.getElementById('calendar-loading-indicator')) {
+                            document.getElementById('calendar-loading-indicator').style.display = 'none';
+                        }
                     }
                 });
-            }
+            },
             
-            // Get beneficiary details and autofill form fields
-            document.getElementById('beneficiarySelect').addEventListener('change', function() {
+            // Memory management: Clear old events when changing dates
+            datesSet: function(info) {
+                console.log(`View changed: ${info.view.title} (${info.view.type})`);
+                
+                // Force garbage collection of old events
+                const currentEvents = calendar.getEvents();
+                if (currentEvents.length > 500) {
+                    // When we have too many events, purge those far from current view
+                    const viewStart = info.start;
+                    const viewEnd = info.end;
+                    const buffer = 30; // days buffer
+                    
+                    const bufferStart = new Date(viewStart);
+                    bufferStart.setDate(bufferStart.getDate() - buffer);
+                    
+                    const bufferEnd = new Date(viewEnd);
+                    bufferEnd.setDate(bufferEnd.getDate() + buffer);
+                    
+                    currentEvents.forEach(event => {
+                        if (!event.start) return;
+                        const eventDate = new Date(event.start);
+                        if (eventDate < bufferStart || eventDate > bufferEnd) {
+                            event.remove();
+                        }
+                    });
+                    
+                    console.log(`Removed far events, remaining: ${calendar.getEvents().length}`);
+                }
+            },
+            
+            // Event click handler
+            eventClick: function(info) {
+                showEventDetails(info.event);
+                
+                // Update current event reference
+                currentEvent = info.event;
+                
+                // Enable action buttons
+                if (editButton) editButton.disabled = false;
+                if (deleteButton) deleteButton.disabled = false;
+                
+                // Only show action buttons for scheduled appointments
+                if (info.event.extendedProps.status.toLowerCase() !== 'scheduled') {
+                    if (editButton) editButton.disabled = true;
+                    if (deleteButton) deleteButton.disabled = true;
+                }
+            },
+            
+            // Event content formatter
+            eventContent: function(arg) {
+                // Event content formatting logic
+                const isFlexibleTime = arg.event.extendedProps.is_flexible_time;
+                
+                if (arg.view.type === 'dayGridMonth') {
+                    // Month view formatting
+                    let eventEl = document.createElement('div');
+                    eventEl.className = 'fc-event-main';
+                    
+                    if (isFlexibleTime) {
+                        eventEl.innerHTML = `
+                            <div class="event-title">${arg.event.title}</div>
+                            <div class="open-time-indicator"><i class="bi bi-clock"></i> Flexible Time</div>
+                        `;
+                    } else {
+                        const startTime = arg.event.start ? new Date(arg.event.start).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '';
+                        const endTime = arg.event.end ? new Date(arg.event.end).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '';
+                        
+                        eventEl.innerHTML = `
+                            <div class="event-title">${arg.event.title}</div>
+                            <div class="event-time">${startTime} - ${endTime}</div>
+                        `;
+                    }
+                    return { domNodes: [eventEl] };
+                } else {
+                    // Week/day view formatting
+                    let eventEl = document.createElement('div');
+                    eventEl.className = 'fc-event-main';
+                    
+                    if (isFlexibleTime) {
+                        eventEl.innerHTML = `
+                            <div class="event-title">${arg.event.title}</div>
+                            <div class="open-time-indicator"><i class="bi bi-clock"></i> Flexible Time</div>
+                            <div class="event-details">${arg.event.extendedProps.visit_type}</div>
+                        `;
+                    } else {
+                        eventEl.innerHTML = `
+                            <div class="event-title">${arg.event.title}</div>
+                            <div class="event-details">${arg.event.extendedProps.visit_type}</div>
+                        `;
+                    }
+                    return { domNodes: [eventEl] };
+                }
+            },
+            
+            // Additional calendar settings for better performance
+            eventTimeFormat: { 
+                hour: '2-digit',
+                minute: '2-digit',
+                meridiem: false
+            },
+            dayMaxEvents: true,
+            firstDay: 0, // Start week on Sunday
+            height: 'auto'
+        });
+
+        // Add a reset button to clear all events if needed
+        const calendarActions = document.querySelector('.calendar-actions');
+        if (calendarActions) {
+            const resetButton = document.createElement('button');
+            resetButton.type = 'button';
+            resetButton.className = 'btn btn-sm btn-outline-secondary';
+            resetButton.innerHTML = '<i class="bi bi-arrow-counterclockwise"></i> Reset';
+            resetButton.addEventListener('click', function() {
+                calendar.removeAllEvents();
+                calendar.today();
+                calendar.refetchEvents();
+                showSuccessMessage('Calendar reset successfully');
+            });
+            
+            calendarActions.insertBefore(resetButton, calendarActions.firstChild);
+        }
+
+        calendar.render();
+        
+        // Load beneficiaries on page load
+        loadBeneficiaries();
+        
+        // Load beneficiaries for dropdown
+        function loadBeneficiaries() {
+            const beneficiarySelect = document.getElementById('beneficiarySelect');
+            if (!beneficiarySelect) return;
+            
+            $.ajax({
+                url: '{{ route("admin.careworker.appointments.beneficiaries") }}',
+                method: 'GET',
+                success: function(response) {
+                    if (response.success && response.beneficiaries && response.beneficiaries.length > 0) {
+                        beneficiarySelect.innerHTML = '<option value="">Select Beneficiary</option>';
+                        
+                        response.beneficiaries.forEach(function(beneficiary) {
+                            const option = document.createElement('option');
+                            option.value = beneficiary.id;
+                            option.textContent = beneficiary.name;
+                            beneficiarySelect.appendChild(option);
+                        });
+                    }
+                },
+                error: function(xhr) {
+                    console.error('Failed to load beneficiaries:', xhr);
+                }
+            });
+        }
+        
+        // Get beneficiary details and autofill form fields
+        const beneficiarySelect = document.getElementById('beneficiarySelect');
+        if (beneficiarySelect) {
+            beneficiarySelect.addEventListener('change', function() {
                 const beneficiaryId = this.value;
-                if (!beneficiaryId) return;
+                if (!beneficiaryId) {
+                    document.getElementById('beneficiaryAddress').value = '';
+                    document.getElementById('beneficiaryPhone').value = '';
+                    return;
+                }
                 
                 // Show loading indicator
                 document.getElementById('beneficiaryAddress').value = "Loading...";
@@ -1028,311 +1117,496 @@
                     url: '{{ route("admin.careworker.appointments.beneficiary.details", ["id" => "__id__"]) }}'.replace('__id__', beneficiaryId),
                     method: 'GET',
                     success: function(response) {
-                        if (response.success) {
-                            const beneficiary = response.beneficiary;
-                            document.getElementById('beneficiaryAddress').value = beneficiary.address || 'Not Available';
-                            document.getElementById('beneficiaryPhone').value = beneficiary.phone || 'Not Available';
-                            
-                            // If care worker is assigned in general care plan, select them
-                            if (beneficiary.care_worker) {
-                                const careWorkerSelect = document.getElementById('careWorkerSelect');
-                                const options = careWorkerSelect.options;
-                                
-                                for (let i = 0; i < options.length; i++) {
-                                    if (options[i].value == beneficiary.care_worker.id) {
-                                        careWorkerSelect.selectedIndex = i;
-                                        break;
-                                    }
-                                }
-                            }
+                        if (response.success && response.beneficiary) {
+                            document.getElementById('beneficiaryAddress').value = response.beneficiary.address || 'Not Available';
+                            document.getElementById('beneficiaryPhone').value = response.beneficiary.phone || 'Not Available';
                         } else {
-                            // Clear fields if there was a problem
                             document.getElementById('beneficiaryAddress').value = 'Not Available';
                             document.getElementById('beneficiaryPhone').value = 'Not Available';
-                            showErrorModal(response.message || 'Failed to load beneficiary details');
                         }
                     },
                     error: function(xhr) {
-                        // Clear fields on error
-                        document.getElementById('beneficiaryAddress').value = 'Not Available';
-                        document.getElementById('beneficiaryPhone').value = 'Not Available';
-                        
-                        // Show error message
-                        let errorMsg = 'Failed to load beneficiary details';
-                        if (xhr.responseJSON && xhr.responseJSON.message) {
-                            errorMsg = xhr.responseJSON.message;
-                        }
-                        showErrorModal(errorMsg);
+                        document.getElementById('beneficiaryAddress').value = 'Error loading details';
+                        document.getElementById('beneficiaryPhone').value = 'Error loading details';
+                        console.error('Failed to load beneficiary details:', xhr);
                     }
                 });
             });
-            
-            // Format time helper function
-            function formatTime(date) {
-                if (!date || isNaN(date.getTime())) return '';
-                return date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-            }
-            
-            // Toggle week view button
+        }
+        
+        // Format time helper function
+        function formatTime(date) {
+            if (!date || isNaN(date.getTime())) return '';
+            return date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+        }
+        
+        // Toggle week view button
+        if (toggleWeekButton) {
             toggleWeekButton.addEventListener('click', function() {
                 if (currentView === 'dayGridMonth') {
+                    currentView = 'timeGridWeek';
                     calendar.changeView('timeGridWeek');
                     toggleWeekButton.innerHTML = '<i class="bi bi-calendar-month"></i> Month View';
-                    currentView = 'timeGridWeek';
                 } else {
+                    currentView = 'dayGridMonth';
                     calendar.changeView('dayGridMonth');
                     toggleWeekButton.innerHTML = '<i class="bi bi-calendar-week"></i> Week View';
-                    currentView = 'dayGridMonth';
                 }
             });
+        }
+        
+        // Show event details in side panel
+        function showEventDetails(event) {
+            // Enable action buttons
+            if (editButton) editButton.disabled = false;
+            if (deleteButton) deleteButton.disabled = false;
             
-            // Show event details in side panel
-            function showEventDetails(event) {
-                // Enable action buttons
-                editButton.disabled = false;
-                deleteButton.disabled = false;
-                
-                // Store current event
-                currentEvent = event;
-                
-                // Format date for display
-                const eventDate = new Date(event.start);
-                const formattedDate = eventDate.toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-                
-                // Build details HTML
+            // Store current event
+            currentEvent = event;
+            
+            // Format date for display
+            const eventDate = new Date(event.start);
+            const formattedDate = eventDate.toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+            
+            // Build details HTML
+            if (appointmentDetailsEl) {
                 appointmentDetailsEl.innerHTML = `
                     <div class="detail-section">
-                        <div class="section-title"><i class="bi bi-person-badge"></i> Care Worker</div>
-                        <p class="mb-0">${event.extendedProps.care_worker}</p>
+                        <div class="section-title"><i class="bi bi-person-fill"></i> Beneficiary</div>
+                        <div class="detail-value">${event.extendedProps.beneficiary}</div>
                     </div>
                     
                     <div class="detail-section">
-                        <div class="section-title"><i class="bi bi-person-heart"></i> Beneficiary</div>
+                        <div class="section-title"><i class="bi bi-person-badge-fill"></i> Care Worker</div>
+                        <div class="detail-value">${event.extendedProps.care_worker}</div>
+                    </div>
+                    
+                    <div class="detail-section">
+                        <div class="section-title"><i class="bi bi-calendar-date-fill"></i> Visit Details</div>
                         <div class="detail-item">
-                            <span class="detail-label">Name:</span>
-                            <span class="detail-value">${event.extendedProps.beneficiary}</span>
+                            <div class="detail-label">Date:</div>
+                            <div class="detail-value">${formattedDate}</div>
                         </div>
                         <div class="detail-item">
-                            <span class="detail-label">Phone:</span>
-                            <span class="detail-value">${event.extendedProps.phone || 'Not Available'}</span>
+                            <div class="detail-label">Time:</div>
+                            <div class="detail-value">${event.extendedProps.is_flexible_time ? 'Flexible Time' : 
+                                (formatTime(event.start) + ' - ' + formatTime(event.end))}</div>
                         </div>
                         <div class="detail-item">
-                            <span class="detail-label">Address:</span>
-                            <span class="detail-value">${event.extendedProps.address || 'Not Available'}</span>
+                            <div class="detail-label">Type:</div>
+                            <div class="detail-value">${event.extendedProps.visit_type}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Status:</div>
+                            <div class="detail-value">${getStatusBadge(event.extendedProps.status)}</div>
                         </div>
                     </div>
                     
                     <div class="detail-section">
-                        <div class="section-title"><i class="bi bi-calendar-date"></i> Visit Details</div>
-                        <div class="detail-item">
-                            <span class="detail-label">Date:</span>
-                            <span class="detail-value">${formattedDate}</span>
-                        </div>
-                        ${event.extendedProps.is_flexible_time ? 
-                        `<div class="detail-item">
-                            <span class="detail-label">Schedule:</span>
-                            <span class="detail-value"><span class="open-time-indicator"><i class="bi bi-clock"></i> Flexible Time</span></span>
-                        </div>` : 
-                        `<div class="detail-item">
-                            <span class="detail-label">Time:</span>
-                            <span class="detail-value">${formatTime(new Date(event.start))} - ${formatTime(new Date(event.end))}</span>
-                        </div>`
-                        }
-                        <div class="detail-item">
-                            <span class="detail-label">Type:</span>
-                            <span class="detail-value">${event.extendedProps.visit_type}</span>
-                        </div>
-                        <div class="detail-item">
-                            <span class="detail-label">Status:</span>
-                            <span class="detail-value">${getStatusBadge(event.extendedProps.status)}</span>
-                        </div>
-                        <div class="detail-item">
-                            <span class="detail-label">Recurring:</span>
-                            <span class="detail-value">${event.extendedProps.recurring ? 'Yes' : 'No'}</span>
-                        </div>
+                        <div class="section-title"><i class="bi bi-geo-alt-fill"></i> Location</div>
+                        <div class="detail-value">${event.extendedProps.address || 'Not Available'}</div>
                     </div>
                     
                     ${event.extendedProps.notes ? `
                     <div class="detail-section">
                         <div class="section-title"><i class="bi bi-journal-text"></i> Notes</div>
-                        <p class="mb-0">${event.extendedProps.notes}</p>
+                        <div class="detail-value">${event.extendedProps.notes}</div>
+                    </div>
+                    ` : ''}
+                    
+                    ${event.extendedProps.cancel_reason ? `
+                    <div class="detail-section">
+                        <div class="section-title"><i class="bi bi-exclamation-triangle-fill"></i> Cancellation Reason</div>
+                        <div class="detail-value">${event.extendedProps.cancel_reason}</div>
                     </div>
                     ` : ''}
                 `;
                 
                 // Only show action buttons for scheduled appointments
                 if (event.extendedProps.status.toLowerCase() !== 'scheduled') {
-                    editButton.disabled = true;
-                    deleteButton.disabled = true;
+                    if (editButton) editButton.disabled = true;
+                    if (deleteButton) deleteButton.disabled = true;
                 }
             }
+        }
+        
+        // Helper function to create status badge
+        function getStatusBadge(status) {
+            const statusLower = status.toLowerCase();
+            let badgeClass = 'bg-secondary';
             
-            // Helper function to create status badge
-            function getStatusBadge(status) {
-                const statusLower = status.toLowerCase();
-                let badgeClass = 'bg-secondary';
-                
-                if (statusLower === 'scheduled') badgeClass = 'bg-primary';
-                else if (statusLower === 'completed') badgeClass = 'bg-success';
-                else if (statusLower === 'canceled') badgeClass = 'bg-danger';
-                
-                return `<span class="badge ${badgeClass}">${status}</span>`;
-            }
+            if (statusLower === 'scheduled') badgeClass = 'bg-primary';
+            else if (statusLower === 'completed') badgeClass = 'bg-success';
+            else if (statusLower === 'canceled') badgeClass = 'bg-danger';
             
-            // Edit button click handler
-            editButton.addEventListener('click', function() {
-                if (!currentEvent) return;
+            return `<span class="badge ${badgeClass}">${status}</span>`;
+        }
+        
+        // Setup New Appointment button
+        const addAppointmentBtn = document.querySelector('[data-bs-target="#addAppointmentModal"]');
+        if (addAppointmentBtn) {
+            addAppointmentBtn.addEventListener('click', function(e) {
+                e.preventDefault(); // Prevent default button behavior
                 
-                // Reset form
-                document.getElementById('addAppointmentForm').reset();
-                document.getElementById('modalErrors').classList.add('d-none');
-                
-                // Update modal title
-                document.getElementById('addAppointmentModalLabel').innerHTML = '<i class="bi bi-pencil-square"></i> Edit Appointment';
-                
-                // Set form data from event
-                document.getElementById('visitationId').value = currentEvent.extendedProps.visitation_id;
-                
-                // Set beneficiary and care worker
-                document.getElementById('beneficiaryAddress').value = currentEvent.extendedProps.address;
-                document.getElementById('beneficiaryPhone').value = currentEvent.extendedProps.phone;
-                document.getElementById('notes').value = currentEvent.extendedProps.notes || '';
-                document.getElementById('visitType').value = getVisitTypeValue(currentEvent.extendedProps.visit_type);
-                
-                // Set date - Fix timezone issue by getting local date components instead of using ISO string
-                const eventDate = new Date(currentEvent.start);
-                const year = eventDate.getFullYear();
-                const month = String(eventDate.getMonth() + 1).padStart(2, '0');
-                const day = String(eventDate.getDate()).padStart(2, '0');
-                const formattedDate = `${year}-${month}-${day}`;
-                document.getElementById('visitDate').value = formattedDate;
-                
-                // Set time or flexible time
-                document.getElementById('openTimeCheck').checked = currentEvent.extendedProps.is_flexible_time;
-                if (currentEvent.extendedProps.is_flexible_time) {
-                    timeSelectionContainer.style.opacity = '0.5';
-                    startTimeInput.disabled = true;
-                    endTimeInput.disabled = true;
-                } else {
-                    timeSelectionContainer.style.opacity = '1';
-                    startTimeInput.disabled = false;
-                    endTimeInput.disabled = false;
+                // Reset form and clear visitation ID (new appointment)
+                if (addAppointmentForm) {
+                    addAppointmentForm.reset();
                     
-                    if (currentEvent.start) {
-                        const startTime = new Date(currentEvent.start);
-                        document.getElementById('startTime').value = `${String(startTime.getHours()).padStart(2, '0')}:${String(startTime.getMinutes()).padStart(2, '0')}`;
+                    // Clear any existing hidden fields
+                    const visitationIdField = document.getElementById('visitationId');
+                    if (visitationIdField) {
+                        visitationIdField.value = '';
                     }
                     
-                    if (currentEvent.end) {
-                        const endTime = new Date(currentEvent.end);
-                        document.getElementById('endTime').value = `${String(endTime.getHours()).padStart(2, '0')}:${String(endTime.getMinutes()).padStart(2, '0')}`;
+                    // Reset time fields
+                    if (openTimeCheck) {
+                        openTimeCheck.checked = false;
                     }
+                    
+                    if (timeSelectionContainer) {
+                        timeSelectionContainer.style.opacity = '1';
+                    }
+                    
+                    if (startTimeInput) {
+                        startTimeInput.disabled = false;
+                        startTimeInput.value = '';
+                    }
+                    
+                    if (endTimeInput) {
+                        endTimeInput.disabled = false;
+                        endTimeInput.value = '';
+                    }
+                    
+                    // Reset recurring options
+                    if (recurringCheck) {
+                        recurringCheck.checked = false;
+                    }
+                    
+                    const recurringOptionsContainer = document.getElementById('recurringOptionsContainer');
+                    if (recurringOptionsContainer) {
+                        recurringOptionsContainer.style.display = 'none';
+                    }
+                    
+                    // Reset pattern type to weekly (default)
+                    const patternWeekly = document.getElementById('patternWeekly');
+                    if (patternWeekly) {
+                        patternWeekly.checked = true;
+                    }
+                    
+                    // Clear day of week checkboxes
+                    document.querySelectorAll('input[name="day_of_week[]"]').forEach(cb => {
+                        cb.checked = false;
+                    });
                 }
                 
-                // Set recurring options
-                const isRecurring = currentEvent.extendedProps.recurring;
-                document.getElementById('recurringCheck').checked = isRecurring;
-                document.getElementById('recurringOptionsContainer').style.display = isRecurring ? 'block' : 'none';
-                
-                if (isRecurring && currentEvent.extendedProps.recurring_pattern) {
-                    const pattern = currentEvent.extendedProps.recurring_pattern;
-                    document.querySelector(`input[name="pattern_type"][value="${pattern.type}"]`).checked = true;
-                    document.getElementById('weeklyOptions').style.display = pattern.type === 'weekly' ? 'block' : 'none';
-                    
-                    // Handle day_of_week properly
-                    if (pattern.day_of_week && pattern.type === 'weekly') {
-                        // Convert to string and split if it's not already a string
-                        const days = typeof pattern.day_of_week === 'string' ? 
-                            pattern.day_of_week.split(',') : 
-                            [pattern.day_of_week.toString()];
-                            
-                        days.forEach(day => {
-                            const checkbox = document.querySelector(`input[name="day_of_week[]"][value="${day}"]`);
-                            if (checkbox) checkbox.checked = true;
-                        });
-                    }
-                    
-                    if (pattern.end_date) {
-                        document.getElementById('recurrenceEnd').value = pattern.end_date;
-                    }
+                // Set modal title for new appointment
+                if (addAppointmentModalLabel) {
+                    addAppointmentModalLabel.innerHTML = '<i class="bi bi-calendar-plus"></i> Schedule New Appointment';
                 }
                 
-                // Show warning for editing recurring event
-                if (isRecurring) {
-                    // Add warning message to the modal
-                    const modalContent = document.querySelector('#addAppointmentModal .modal-body');
-                    const warningEl = document.createElement('div');
-                    warningEl.className = 'alert alert-warning recurring-edit-warning';
-                    warningEl.innerHTML = '<strong>Note:</strong> Editing a recurring appointment will only affect this and future occurrences. Past appointments will remain unchanged.';
-                    
-                    // Remove any existing warning
-                    const existingWarning = document.querySelector('.recurring-edit-warning');
-                    if (existingWarning) existingWarning.remove();
-                    
-                    // Insert at the beginning
-                    modalContent.insertBefore(warningEl, modalContent.firstChild);
+                // Set submit button text for new appointment
+                if (submitAppointment) {
+                    submitAppointment.innerHTML = '<i class="bi bi-calendar-check"></i> Schedule Appointment';
                 }
                 
-                // Load full beneficiary and care worker lists
-                loadBeneficiariesForEdit(currentEvent.extendedProps.beneficiary_id, currentEvent.extendedProps.care_worker_id);
+                // Remove any recurring warning
+                const existingWarning = document.getElementById('recurringWarning');
+                if (existingWarning) {
+                    existingWarning.remove();
+                }
                 
-                // Show modal
+                // Show the modal
                 addAppointmentModal.show();
             });
-            
-            // Helper function to convert UI visit type to backend value
-            function getVisitTypeValue(uiVisitType) {
-                const lower = uiVisitType.toLowerCase();
-                if (lower.includes('routine')) return 'routine_care_visit';
-                if (lower.includes('service')) return 'service_request';
-                if (lower.includes('emergency')) return 'emergency_visit';
-                return '';
-            }
-            
-            // Load beneficiaries for edit form
-            function loadBeneficiariesForEdit(beneficiaryId, careWorkerId) {
-                // Load beneficiaries
-                $.ajax({
-                    url: '{{ route("admin.careworker.appointments.beneficiaries") }}',
-                    method: 'GET',
-                    success: function(response) {
-                        const select = document.getElementById('beneficiarySelect');
-                        select.innerHTML = '<option value="">Select Beneficiary</option>';
+        }
+        
+        // Edit button click handler
+        if (editButton) {
+            editButton.addEventListener('click', function() {
+                if (!currentEvent) {
+                    console.log('No event selected');
+                    return;
+                }
+                
+                try {
+                    // Reset form
+                    if (addAppointmentForm) {
+                        addAppointmentForm.reset();
+                    }
+                    
+                    // Hide error messages
+                    const modalErrors = document.getElementById('modalErrors');
+                    if (modalErrors) {
+                        modalErrors.classList.add('d-none');
+                    }
+                    
+                    // Update modal title
+                    if (addAppointmentModalLabel) {
+                        addAppointmentModalLabel.innerHTML = '<i class="bi bi-pencil-square"></i> Edit Appointment';
+                    }
+                    
+                    // Set form data from event
+                    const visitationId = document.getElementById('visitationId');
+                    if (visitationId) {
+                        visitationId.value = currentEvent.extendedProps.visitation_id;
+                    }
+                    
+                    // Set beneficiary address and phone
+                    const beneficiaryAddress = document.getElementById('beneficiaryAddress');
+                    if (beneficiaryAddress) {
+                        beneficiaryAddress.value = currentEvent.extendedProps.address || 'Not Available';
+                    }
+                    
+                    const beneficiaryPhone = document.getElementById('beneficiaryPhone');
+                    if (beneficiaryPhone) {
+                        beneficiaryPhone.value = currentEvent.extendedProps.phone || 'Not Available';
+                    }
+                    
+                    // Set notes
+                    const notes = document.getElementById('notes');
+                    if (notes) {
+                        notes.value = currentEvent.extendedProps.notes || '';
+                    }
+                    
+                    // Set visit type
+                    const visitType = document.getElementById('visitType');
+                    if (visitType) {
+                        visitType.value = getVisitTypeValue(currentEvent.extendedProps.visit_type);
+                    }
+                    
+                    // Set date
+                    const eventDate = new Date(currentEvent.start);
+                    const formattedDate = `${eventDate.getFullYear()}-${String(eventDate.getMonth() + 1).padStart(2, '0')}-${String(eventDate.getDate()).padStart(2, '0')}`;
+                    
+                    const visitDate = document.getElementById('visitDate');
+                    if (visitDate) {
+                        visitDate.value = formattedDate;
+                    }
+                    
+                    // Time settings
+                    const isFlexibleTime = currentEvent.extendedProps.is_flexible_time;
+                    if (openTimeCheck) {
+                        openTimeCheck.checked = isFlexibleTime;
+                    }
+                    
+                    if (timeSelectionContainer) {
+                        timeSelectionContainer.style.opacity = isFlexibleTime ? '0.5' : '1';
+                    }
+                    
+                    if (startTimeInput) {
+                        startTimeInput.disabled = isFlexibleTime;
                         
-                        if (response.success && response.beneficiaries.length > 0) {
-                            response.beneficiaries.forEach(function(beneficiary) {
-                                const option = document.createElement('option');
-                                option.value = beneficiary.id;
-                                option.textContent = beneficiary.name;
-                                option.selected = (beneficiary.id == beneficiaryId);
-                                select.appendChild(option);
-                            });
+                        if (!isFlexibleTime && currentEvent.start) {
+                            const startTime = new Date(currentEvent.start);
+                            startTimeInput.value = `${String(startTime.getHours()).padStart(2, '0')}:${String(startTime.getMinutes()).padStart(2, '0')}`;
+                        } else {
+                            startTimeInput.value = '';
                         }
                     }
-                });
-                
-                // Select care worker if provided
-                if (careWorkerId) {
-                    const careWorkerSelect = document.getElementById('careWorkerSelect');
-                    const options = careWorkerSelect.options;
                     
-                    for (let i = 0; i < options.length; i++) {
-                        if (options[i].value == careWorkerId) {
-                            careWorkerSelect.selectedIndex = i;
-                            break;
+                    if (endTimeInput) {
+                        endTimeInput.disabled = isFlexibleTime;
+                        
+                        if (!isFlexibleTime && currentEvent.end) {
+                            const endTime = new Date(currentEvent.end);
+                            endTimeInput.value = `${String(endTime.getHours()).padStart(2, '0')}:${String(endTime.getMinutes()).padStart(2, '0')}`;
+                        } else {
+                            endTimeInput.value = '';
                         }
+                    }
+                    
+                    // Set recurring options
+                    const isRecurring = currentEvent.extendedProps.recurring;
+                    if (recurringCheck) {
+                        recurringCheck.checked = isRecurring;
+                    }
+                    
+                    const recurringOptionsContainer = document.getElementById('recurringOptionsContainer');
+                    if (recurringOptionsContainer) {
+                        recurringOptionsContainer.style.display = isRecurring ? 'block' : 'none';
+                    }
+                    
+                    // FIX: Properly handle recurring pattern type selection
+                    if (isRecurring && currentEvent.extendedProps.recurring_pattern) {
+                        const pattern = currentEvent.extendedProps.recurring_pattern;
+                        console.log('Pattern data:', pattern);
+                        
+                        // IMPORTANT: First reset all radio selections
+                        document.querySelectorAll('input[name="pattern_type"]').forEach(radio => {
+                            radio.checked = false;
+                        });
+                        
+                        // Determine pattern type and check the appropriate radio
+                        const patternType = pattern.type || 'weekly'; // Default to weekly if not set
+                        
+                        console.log('Setting pattern type to:', patternType);
+                        
+                        // Explicitly set the correct radio button
+                        if (patternType === 'weekly') {
+                            const patternWeekly = document.getElementById('patternWeekly');
+                            if (patternWeekly) {
+                                patternWeekly.checked = true;
+                            }
+                            
+                            const weeklyOptions = document.getElementById('weeklyOptions');
+                            if (weeklyOptions) {
+                                weeklyOptions.style.display = 'block';
+                            }
+                        } else if (patternType === 'monthly') {
+                            const patternMonthly = document.getElementById('patternMonthly');
+                            if (patternMonthly) {
+                                patternMonthly.checked = true;
+                            }
+                            
+                            const weeklyOptions = document.getElementById('weeklyOptions');
+                            if (weeklyOptions) {
+                                weeklyOptions.style.display = 'none';
+                            }
+                        }
+                        
+                        // Handle weekly day selection if applicable
+                        if (patternType === 'weekly' && pattern.day_of_week) {
+                            // Clear existing selections
+                            document.querySelectorAll('input[name="day_of_week[]"]').forEach(cb => {
+                                cb.checked = false;
+                            });
+                            
+                            // Parse and check the appropriate day(s)
+                            const dayArray = typeof pattern.day_of_week === 'string' ? 
+                                pattern.day_of_week.split(',').map(d => d.trim()) : 
+                                [String(pattern.day_of_week)];
+                            
+                            console.log('Setting day of week:', dayArray);
+                            
+                            dayArray.forEach(day => {
+                                const checkbox = document.querySelector(`input[name="day_of_week[]"][value="${day}"]`);
+                                if (checkbox) {
+                                    checkbox.checked = true;
+                                }
+                            });
+                        }
+                        
+                        // Set end date if present
+                        const recurrenceEnd = document.getElementById('recurrenceEnd');
+                        if (recurrenceEnd && pattern.recurrence_end) {
+                            recurrenceEnd.value = pattern.recurrence_end;
+                        }
+                    }
+                    
+                    // Show warning if editing a recurring event
+                    if (isRecurring) {
+                        const modalContent = document.querySelector('.modal-body');
+                        if (modalContent) {
+                            // Remove any existing warning first
+                            const existingWarning = document.getElementById('recurringWarning');
+                            if (existingWarning) {
+                                existingWarning.remove();
+                            }
+                            
+                            // Add fresh warning
+                            const warningEl = document.createElement('div');
+                            warningEl.className = 'alert alert-warning mb-3';
+                            warningEl.id = 'recurringWarning';
+                            warningEl.innerHTML = '<i class="bi bi-exclamation-triangle-fill me-2"></i> ' +
+                                'You are editing a recurring appointment. If this appointment has past occurrences, ' +
+                                'those will maintain their original settings, and changes will apply to future occurrences only.';
+                                
+                            // Insert at the beginning of the modal
+                            modalContent.insertBefore(warningEl, modalContent.firstChild);
+                        }
+                    }
+                    
+                    // Update submit button text
+                    if (submitAppointment) {
+                        submitAppointment.innerHTML = '<i class="bi bi-check-circle"></i> Update Appointment';
+                    }
+                    
+                    // Load beneficiaries for the form
+                    loadBeneficiariesForEdit(currentEvent.extendedProps.beneficiary_id, currentEvent.extendedProps.care_worker_id);
+                    
+                    // Show the modal
+                    addAppointmentModal.show();
+                    
+                    console.log('Edit modal should now be visible');
+                } catch (error) {
+                    console.error('Error opening edit modal:', error);
+                    showErrorModal('There was an error opening the edit form. Please try again.');
+                }
+            });
+        }
+        
+        // Helper function to convert UI visit type to backend value
+        function getVisitTypeValue(uiVisitType) {
+            if (!uiVisitType) return '';
+            
+            const lower = uiVisitType.toLowerCase();
+            if (lower.includes('routine')) return 'routine_care_visit';
+            if (lower.includes('service')) return 'service_request';
+            if (lower.includes('emergency')) return 'emergency_visit';
+            return '';
+        }
+        
+        // Load beneficiaries for edit form
+        function loadBeneficiariesForEdit(beneficiaryId, careWorkerId) {
+            // Load beneficiaries
+            $.ajax({
+                url: '{{ route("admin.careworker.appointments.beneficiaries") }}',
+                method: 'GET',
+                success: function(response) {
+                    const select = document.getElementById('beneficiarySelect');
+                    if (!select) return;
+                    
+                    select.innerHTML = '<option value="">Select Beneficiary</option>';
+                    
+                    if (response.success && response.beneficiaries.length > 0) {
+                        response.beneficiaries.forEach(function(beneficiary) {
+                            const option = document.createElement('option');
+                            option.value = beneficiary.id;
+                            option.textContent = beneficiary.name;
+                            option.selected = (beneficiary.id == beneficiaryId);
+                            select.appendChild(option);
+                        });
+                    }
+                },
+                error: function(xhr) {
+                    console.error('Error loading beneficiaries:', xhr);
+                }
+            });
+            
+            // Select care worker if provided
+            if (careWorkerId) {
+                const careWorkerSelect = document.getElementById('careWorkerSelect');
+                if (!careWorkerSelect) return;
+                
+                const options = careWorkerSelect.options;
+                
+                for (let i = 0; i < options.length; i++) {
+                    if (options[i].value == careWorkerId) {
+                        careWorkerSelect.selectedIndex = i;
+                        break;
                     }
                 }
             }
-            
-           // Form submission handler in adminCareworkerAppointments.blade.php
-            document.getElementById('submitAppointment').addEventListener('click', function(e) {
+        }
+        
+        // Form submission handler
+        if (submitAppointment) {
+            submitAppointment.addEventListener('click', function(e) {
                 e.preventDefault();
                 
                 // Reset error messages
-                document.getElementById('modalErrors').classList.add('d-none');
-                document.querySelectorAll('.error-feedback').forEach(el => el.innerHTML = '');
-                document.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+                const modalErrors = document.getElementById('modalErrors');
+                if (modalErrors) {
+                    modalErrors.classList.add('d-none');
+                }
+                
+                document.querySelectorAll('.error-feedback').forEach(el => {
+                    el.innerHTML = '';
+                });
+                
+                document.querySelectorAll('.is-invalid').forEach(el => {
+                    el.classList.remove('is-invalid');
+                });
                 
                 // Get form data
                 const formData = new FormData(document.getElementById('addAppointmentForm'));
@@ -1342,9 +1616,15 @@
                 const isFlexibleTime = document.getElementById('openTimeCheck').checked;
                 formData.set('is_flexible_time', isFlexibleTime ? '1' : '0');
                 
+                // Set appropriate URL based on whether this is an edit or new appointment
                 const url = visitationId ? 
                     '{{ route("admin.careworker.appointments.update") }}' : 
                     '{{ route("admin.careworker.appointments.store") }}';
+                
+                // Show loading state
+                const originalBtnHtml = submitAppointment.innerHTML;
+                submitAppointment.disabled = true;
+                submitAppointment.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Processing...';
                 
                 $.ajax({
                     url: url,
@@ -1363,84 +1643,163 @@
                                 showSuccessMessage(visitationId ? 'Appointment updated successfully!' : 'Appointment created successfully!');
                             }
                             
-                            // Close the modal
+                            // Close the modal and reset form
                             addAppointmentModal.hide();
-                            
-                            // Reset form
                             document.getElementById('addAppointmentForm').reset();
                             
-                            // Remove any warning message
-                            const existingWarning = document.querySelector('.recurring-edit-warning');
-                            if (existingWarning) existingWarning.remove();
-                            
-                            // Refresh calendar
+                            // Refresh calendar events
                             calendar.refetchEvents();
-                            
-                            // Clear details panel if we're editing the currently selected event
-                            if (currentEvent && visitationId && 
-                                (currentEvent.extendedProps.visitation_id == visitationId || 
-                                currentEvent.id.startsWith(visitationId + '-'))) {
-                                // Update UI as necessary
-                            }
-                            // Show error message - can be validation errors or "no changes" message
-                            if (response.message) {
-                                // Display the specific message (like "No changes were made")
-                                document.getElementById('modalErrors').classList.remove('d-none');
-                                document.getElementById('modalErrors').innerHTML = `
-                                    <div class="alert alert-warning">
-                                        <i class="bi bi-exclamation-triangle"></i> ${response.message}
-                                    </div>
-                                `;
-                            } else if (response.errors) {
-                                // Display validation errors
+                        } else {
+                            // Show validation errors
+                            if (response.errors) {
                                 showValidationErrors(response.errors);
+                            } else {
+                                showErrorModal(response.message || 'An error occurred while saving the appointment.');
                             }
                         }
                     },
                     error: function(xhr) {
-                        if (xhr.status === 422) {
-                            // Validation errors
+                        console.error('Error submitting form:', xhr);
+                        
+                        if (xhr.status === 422 && xhr.responseJSON && xhr.responseJSON.errors) {
                             showValidationErrors(xhr.responseJSON.errors);
                         } else {
-                            // General error
-                            showErrorModal('Failed to process appointment. Please try again.');
+                            showErrorModal('An error occurred while saving the appointment. Please try again.');
                         }
+                    },
+                    complete: function() {
+                        // Restore button state
+                        submitAppointment.disabled = false;
+                        submitAppointment.innerHTML = originalBtnHtml;
                     }
                 });
             });
-            
-            // Delete button click handler - Update this in adminCareworkerAppointments.blade.php
+        }
+        
+        // Delete button click handler
+        if (deleteButton) {
             deleteButton.addEventListener('click', function() {
-                if (!currentEvent) return;
-                
-                // Update the cancel message with the appointment details
-                const beneficiary = currentEvent.extendedProps.beneficiary;
-                const careWorker = currentEvent.extendedProps.care_worker;
-                document.getElementById('cancelMessage').textContent = 
-                    `Are you sure you want to cancel the appointment for ${beneficiary} with ${careWorker}?`;
-                
-                // Show or hide recurring options based on whether this is a recurring event
-                const recurringCancelOptions = document.getElementById('recurringCancelOptions');
-                if (currentEvent.extendedProps.recurring) {
-                    recurringCancelOptions.classList.remove('d-none');
-                } else {
-                    recurringCancelOptions.classList.add('d-none');
+                if (!currentEvent) {
+                    console.log('No event selected');
+                    return;
                 }
                 
-                // Reset the form
-                document.getElementById('cancelReason').value = '';
-                document.getElementById('cancelReason').classList.remove('is-invalid');
-                document.getElementById('cancelPassword').value = '';
-                document.getElementById('cancelPassword').classList.remove('is-invalid');
-                document.getElementById('passwordError').textContent = 'Please enter your password.';
+                // Update modal title and message
+                document.getElementById('confirmationModalLabel').innerHTML = 
+                    '<i class="bi bi-trash-fill"></i> Cancel Appointment';
                 
-                // Show the modal
+                // Clear previous content
+                if (confirmationModalBody) {
+                    // Set up form based on if this is recurring or not
+                    const isRecurring = currentEvent.extendedProps.recurring;
+                    
+                    // Fill in the visitation ID field
+                    const deleteVisitationId = document.getElementById('deleteVisitationId');
+                    if (deleteVisitationId) {
+                        deleteVisitationId.value = currentEvent.extendedProps.visitation_id;
+                    }
+                    
+                    // Clear cancel options container
+                    const cancelOptionsContainer = document.getElementById('cancelOptions');
+                    if (cancelOptionsContainer) {
+                        cancelOptionsContainer.innerHTML = '';
+                    }
+                    
+                    // FIX: Different content based on recurring status
+                    let modalContent = `
+                        <p>Are you sure you want to cancel this appointment?</p>
+                        <p><strong>Beneficiary:</strong> ${currentEvent.extendedProps.beneficiary}</p>
+                        <p><strong>Care Worker:</strong> ${currentEvent.extendedProps.care_worker}</p>
+                        <p><strong>Date:</strong> ${new Date(currentEvent.start).toLocaleDateString()}</p>
+                    `;
+                    
+                    if (isRecurring) {
+                        // For recurring appointments, show options
+                        modalContent += `
+                            <div class="form-group mb-3" id="cancelOptionGroup">
+                                <label class="form-label">Cancel Options:</label>
+                                <div class="form-check">
+                                    <input type="radio" id="cancelThisOption" name="cancelOption" value="this" class="form-check-input" checked>
+                                    <label class="form-check-label" for="cancelThisOption">Cancel only this occurrence</label>
+                                </div>
+                                <div class="form-check">
+                                    <input type="radio" id="cancelFutureOption" name="cancelOption" value="future" class="form-check-input">
+                                    <label class="form-check-label" for="cancelFutureOption">Cancel this and future occurrences</label>
+                                </div>
+                            </div>
+                        `;
+                    } else {
+                        // For non-recurring, add a hidden input with "this" as default option
+                        modalContent += `
+                            <input type="hidden" name="cancelOption" value="this">
+                        `;
+                    }
+                    
+                    // Add reason field and password confirmation to both types
+                    modalContent += `
+                        <div class="form-group mb-3">
+                            <label for="cancelReason" class="form-label">Cancellation Reason:</label>
+                            <textarea class="form-control" id="cancelReason" name="reason" rows="2" required></textarea>
+                            <div class="invalid-feedback">Please provide a reason for cancellation.</div>
+                        </div>
+                        
+                        <div class="form-group mb-3">
+                            <label for="cancelPassword" class="form-label">Confirm your password:</label>
+                            <input type="password" class="form-control" id="cancelPassword" name="password" required>
+                            <div class="invalid-feedback" id="passwordError">Password is required to confirm this action.</div>
+                        </div>
+                    `;
+                    
+                    // Update modal content
+                    const contentContainer = document.createElement('div');
+                    contentContainer.innerHTML = modalContent;
+                    
+                    // Clear and append new content
+                    while (confirmationModalBody.firstChild) {
+                        if (confirmationModalBody.firstChild.id === 'deleteVisitationId' ||
+                            confirmationModalBody.firstChild.id === 'occurrenceDate' ||
+                            confirmationModalBody.firstChild.id === 'cancelOptions') {
+                            // Keep these hidden inputs
+                        } else {
+                            confirmationModalBody.removeChild(confirmationModalBody.firstChild);
+                        }
+                    }
+                    
+                    // Append new content
+                    while (contentContainer.firstChild) {
+                        confirmationModalBody.appendChild(contentContainer.firstChild);
+                    }
+                    
+                    // Set occurrence date for recurring events
+                    if (isRecurring && currentEvent.start) {
+                        const occurrenceDate = document.getElementById('occurrenceDate');
+                        if (occurrenceDate) {
+                            occurrenceDate.value = formatDateForAPI(currentEvent.start);
+                        }
+                    }
+                }
+                
+                // Show the confirmation modal
                 confirmationModal.show();
             });
-
-            // Confirm delete handler - Update this in adminCareworkerAppointments.blade.php
-            // Cancel button handler
-            document.getElementById('confirmDelete').addEventListener('click', function() {
+        }
+        
+        // Helper function to format date for API
+        function formatDateForAPI(date) {
+            if (!date) return '';
+            
+            const d = new Date(date);
+            const year = d.getFullYear();
+            const month = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            
+            return `${year}-${month}-${day}`;
+        }
+        
+        // Confirm delete button handler
+        const confirmDeleteBtn = document.getElementById('confirmDelete');
+        if (confirmDeleteBtn) {
+            confirmDeleteBtn.addEventListener('click', function() {
                 const reason = document.getElementById('cancelReason').value.trim();
                 const password = document.getElementById('cancelPassword').value.trim();
                 let isValid = true;
@@ -1463,239 +1822,198 @@
                 
                 if (!isValid) return;
                 
-                // Get cancellation option for recurring events
-                let cancelOption = 'this'; // Default is cancel just this occurrence
-                if (currentEvent.extendedProps.recurring) {
-                    const selectedOption = document.querySelector('input[name="cancelOption"]:checked');
-                    cancelOption = selectedOption ? selectedOption.value : 'this';
+                // Show loading state
+                const originalText = confirmDeleteBtn.innerHTML;
+                confirmDeleteBtn.disabled = true;
+                confirmDeleteBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Processing...';
+                
+                // Prepare data for AJAX request
+                const formData = {
+                    _token: document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                    visitation_id: document.getElementById('deleteVisitationId').value,
+                    reason: reason,
+                    password: password
+                };
+                
+                // Add occurrence date for recurring events
+                const occurrenceDate = document.getElementById('occurrenceDate');
+                if (occurrenceDate && occurrenceDate.value) {
+                    formData.occurrence_date = occurrenceDate.value;
                 }
                 
-                // Get the specific date for this occurrence (important for recurring events)
-                const occurrenceDate = currentEvent.start ? formatDateForAPI(currentEvent.start) : null;
+                // Add cancel option if available
+                const cancelOption = document.querySelector('input[name="cancelOption"]:checked');
+                if (cancelOption) {
+                    formData.cancel_option = cancelOption.value;
+                }
                 
-                // Show loading state
-                const confirmButton = document.getElementById('confirmDelete');
-                const originalText = confirmButton.textContent;
-                confirmButton.disabled = true;
-                confirmButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Processing...';
-                
-                // CSRF token
-                const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+                console.log('Cancel request data:', formData);
                 
                 $.ajax({
                     url: '{{ route("admin.careworker.appointments.cancel") }}',
                     method: 'POST',
-                    data: {
-                        _token: csrfToken,
-                        visitation_id: currentEvent.extendedProps.visitation_id,
-                        occurrence_date: occurrenceDate,
-                        reason: reason,
-                        password: password,
-                        cancel_option: cancelOption
-                    },
+                    data: formData,
                     success: function(response) {
-                        // Handle success response
                         if (response.success) {
                             showSuccessMessage(response.message || 'Appointment cancelled successfully!');
                             
                             // Close the modal
                             confirmationModal.hide();
                             
-                            // Reset form
+                            // Reset form fields
                             document.getElementById('cancelReason').value = '';
                             document.getElementById('cancelPassword').value = '';
                             
-                            // Refresh calendar
+                            // Refresh events
                             calendar.refetchEvents();
                             
                             // Clear details panel
-                            appointmentDetailsEl.innerHTML = `
-                                <div class="text-center text-muted py-4">
-                                    <i class="bi bi-calendar-event" style="font-size: 2.5rem; opacity: 0.3;"></i>
-                                    <p class="mt-3 mb-0">Select an appointment to view details</p>
-                                </div>
-                            `;
+                            if (appointmentDetailsEl) {
+                                appointmentDetailsEl.innerHTML = `
+                                    <div class="text-center text-muted py-4">
+                                        <i class="bi bi-calendar-event" style="font-size: 2.5rem; opacity: 0.3;"></i>
+                                        <p class="mt-3 mb-0">Select an appointment to view details</p>
+                                    </div>
+                                `;
+                            }
                             
                             // Disable buttons
-                            editButton.disabled = true;
-                            deleteButton.disabled = true;
+                            if (editButton) editButton.disabled = true;
+                            if (deleteButton) deleteButton.disabled = true;
                             
                             // Reset current event
                             currentEvent = null;
                         } else {
-                            // Show error
+                            // Show errors
                             if (response.passwordError) {
                                 document.getElementById('cancelPassword').classList.add('is-invalid');
                                 document.getElementById('passwordError').textContent = response.passwordError;
-                            } else if (response.errors) {
-                                const errorMessage = Object.values(response.errors).flat().join('<br>');
-                                showErrorModal(errorMessage);
                             } else {
-                                showErrorModal(response.message || 'Failed to cancel appointment');
+                                showErrorModal(response.message || 'Failed to cancel the appointment.');
                             }
                         }
                     },
                     error: function(xhr) {
-                        let errorMessage = 'Failed to cancel appointment. Please try again.';
+                        console.error('Error response:', xhr);
                         
                         if (xhr.status === 401) {
                             document.getElementById('cancelPassword').classList.add('is-invalid');
                             document.getElementById('passwordError').textContent = 'Incorrect password.';
-                        } else if (xhr.status === 422 && xhr.responseJSON && xhr.responseJSON.errors) {
-                            // Format validation errors
-                            const errors = xhr.responseJSON.errors;
-                            errorMessage = Object.values(errors).flat().join('<br>');
-                            showErrorModal(errorMessage);
                         } else {
-                            showErrorModal(errorMessage);
+                            showErrorModal('An error occurred while cancelling the appointment. Please try again.');
                         }
-                        
-                        console.error('Error details:', xhr.responseText);
                     },
                     complete: function() {
                         // Reset button state
-                        confirmButton.disabled = false;
-                        confirmButton.innerHTML = originalText;
+                        confirmDeleteBtn.disabled = false;
+                        confirmDeleteBtn.innerHTML = originalText;
                     }
                 });
             });
-
-            // Helper function to format date for API
-            function formatDateForAPI(date) {
-                const d = new Date(date);
-                return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+        }
+        
+        // Show validation errors
+        function showValidationErrors(errors) {
+            const errorList = document.getElementById('errorList');
+            if (!errorList) return;
+            
+            errorList.innerHTML = '';
+            
+            const modalErrors = document.getElementById('modalErrors');
+            if (modalErrors) {
+                modalErrors.classList.remove('d-none');
             }
             
-            // Confirm delete handler
-            document.getElementById('confirmDelete').addEventListener('click', function() {
-                const reason = document.getElementById('cancelReason').value.trim();
+            // Process each error
+            Object.keys(errors).forEach(key => {
+                const error = errors[key];
+                const errorMsg = Array.isArray(error) ? error[0] : error;
                 
-                if (!reason) {
-                    document.getElementById('cancelReason').classList.add('is-invalid');
-                    return;
+                // Add to error list
+                const li = document.createElement('li');
+                li.textContent = errorMsg;
+                errorList.appendChild(li);
+                
+                // Mark field as invalid
+                const field = document.querySelector(`[name="${key}"]`);
+                if (field) {
+                    field.classList.add('is-invalid');
                 }
                 
-                $.ajax({
-                    url: '{{ route("admin.careworker.appointments.cancel") }}',
-                    method: 'POST',
-                    data: {
-                        visitation_id: currentEvent.extendedProps.visitation_id,
-                        reason: reason
-                    },
-                    success: function(response) {
-                        if (response.success) {
-                            // Show success message
-                            showSuccessMessage('Appointment canceled successfully!');
-                            
-                            // Close the modal
-                            confirmationModal.hide();
-                            
-                            // Reset form
-                            document.getElementById('cancelReason').value = '';
-                            document.getElementById('cancelReason').classList.remove('is-invalid');
-                            
-                            // Refresh calendar
-                            calendar.refetchEvents();
-                            
-                            // Clear details panel
-                            appointmentDetailsEl.innerHTML = `
-                                <div class="text-center text-muted py-4">
-                                    <i class="bi bi-calendar-event" style="font-size: 2.5rem; opacity: 0.3;"></i>
-                                    <p class="mt-3 mb-0">Select an appointment to view details</p>
-                                </div>
-                            `;
-                            
-                            // Disable buttons
-                            editButton.disabled = true;
-                            deleteButton.disabled = true;
-                        } else {
-                            showErrorModal(response.message || 'Failed to cancel appointment');
-                        }
-                    },
-                    error: function(xhr) {
-                        showErrorModal('Failed to cancel appointment. Please try again.');
-                    }
-                });
+                // Add error message to feedback div
+                const feedbackDiv = document.getElementById(`${key.replace('_', '-')}-error`);
+                if (feedbackDiv) {
+                    feedbackDiv.innerHTML = errorMsg;
+                }
             });
-            
-            // Show validation errors
-            function showValidationErrors(errors) {
-                const errorList = document.getElementById('errorList');
-                errorList.innerHTML = '';
-                
-                for (const field in errors) {
-                    const errorMsg = errors[field][0];
-                    errorList.innerHTML += `<li>${errorMsg}</li>`;
-                    
-                    // Highlight the invalid field
-                    const inputField = document.querySelector(`[name="${field}"]`);
-                    if (inputField) {
-                        inputField.classList.add('is-invalid');
-                        
-                        // Add error message below the field
-                        const fieldId = field.replace(/_/g, '-');
-                        const feedbackEl = document.getElementById(`${fieldId}-error`);
-                        if (feedbackEl) {
-                            feedbackEl.innerHTML = errorMsg;
-                        }
-                    }
-                }
-                
-                document.getElementById('modalErrors').classList.remove('d-none');
+        }
+        
+        // Show error modal
+        function showErrorModal(message) {
+            const errorMessage = document.getElementById('errorMessage');
+            if (errorMessage) {
+                errorMessage.innerHTML = message;
             }
             
-            // Show error modal
-            function showErrorModal(message) {
-                document.getElementById('errorMessage').textContent = message;
-                errorModal.show();
-            }
+            errorModal.show();
+        }
+        
+        // Show success message with toast
+        function showSuccessMessage(message) {
+            // Create toast element
+            const toastContainer = document.createElement('div');
+            toastContainer.className = 'position-fixed bottom-0 end-0 p-3';
+            toastContainer.style.zIndex = '5000';
             
-            // Show success message
-            function showSuccessMessage(message) {
-                // Create a toast element
-                const toastEl = document.createElement('div');
-                toastEl.className = 'toast position-fixed top-0 end-0 m-3';
-                toastEl.setAttribute('role', 'alert');
-                toastEl.setAttribute('aria-live', 'assertive');
-                toastEl.setAttribute('aria-atomic', 'true');
-                
-                toastEl.innerHTML = `
-                    <div class="toast-header bg-success text-white">
-                        <strong class="me-auto">Success</strong>
-                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
+            toastContainer.innerHTML = `
+                <div class="toast align-items-center text-white bg-success border-0" role="alert" aria-live="assertive" aria-atomic="true">
+                    <div class="d-flex">
+                        <div class="toast-body">
+                            <i class="bi bi-check-circle-fill me-2"></i> ${message}
+                        </div>
+                        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
                     </div>
-                    <div class="toast-body">${message}</div>
-                `;
-                
-                document.body.appendChild(toastEl);
-                
-                const toast = new bootstrap.Toast(toastEl, { delay: 5000 });
-                toast.show();
-                
-                // Remove the element when hidden
-                toastEl.addEventListener('hidden.bs.toast', function() {
-                    toastEl.remove();
-                });
-            }
+                </div>
+            `;
             
-            // Search functionality
-            document.getElementById('searchInput').addEventListener('input', debounce(function() {
+            document.body.appendChild(toastContainer);
+            
+            const toastElement = toastContainer.querySelector('.toast');
+            const toast = new bootstrap.Toast(toastElement, {
+                delay: 5000
+            });
+            
+            toast.show();
+            
+            // Remove from DOM after hiding
+            toastElement.addEventListener('hidden.bs.toast', function() {
+                toastContainer.remove();
+            });
+        }
+        
+        // Search functionality
+        const searchInput = document.getElementById('searchInput');
+        if (searchInput) {
+            searchInput.addEventListener('input', debounce(function() {
                 calendar.refetchEvents();
             }, 500));
+        }
+        
+        // Debounce helper function
+        function debounce(func, wait) {
+            let timeout;
             
-            // Debounce helper function
-            function debounce(func, wait) {
-                let timeout;
-                return function executedFunction(...args) {
-                    const later = () => {
-                        clearTimeout(timeout);
-                        func(...args);
-                    };
+            return function executedFunction(...args) {
+                const later = () => {
                     clearTimeout(timeout);
-                    timeout = setTimeout(later, wait);
+                    func(...args);
                 };
-            }
-        });
-    </script>
+                
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
+    });
+</script>
 </body>
 </html>

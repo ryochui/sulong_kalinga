@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Visitation;
+use App\Models\VisitationOccurrence;
+use App\Models\VisitationArchive;
 use App\Models\VisitationException;
 use App\Models\Beneficiary;
 use App\Models\FamilyMember;
@@ -14,6 +16,7 @@ use App\Models\Notification;
 use App\Models\GeneralCarePlan;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 
@@ -53,242 +56,232 @@ class VisitationController extends Controller
     }
     
     /**
-     * Get visitations for the calendar view
+     * Get visitations for the calendar view using the occurrence-based approach
      */
     public function getVisitations(Request $request)
     {
-        $user = Auth::user();
+        // Set a reasonable timeout
+        set_time_limit(30); 
+        
+        $viewType = $request->input('view_type', 'dayGridMonth');
         $startDate = $request->input('start');
         $endDate = $request->input('end');
+        $user = Auth::user();
         $today = Carbon::today();
         
-        $visitations = Visitation::with(['beneficiary', 'careWorker', 'recurringPattern']);
-        
-        // Apply role-based filters
-        if ($user->isAdministrator() || $user->isExecutiveDirector()) {
-            // Admin sees everything - no additional filters needed
-        } elseif ($user->isCareManager()) {
-            // Care managers see:
-            // 1. Appointments they assigned
-            // 2. Appointments with care workers they manage
-            $managedCareWorkerIds = User::where('assigned_care_manager_id', $user->id)->pluck('id')->toArray();
+        // For month view, limit to 3 months of data at most
+        if ($viewType === 'dayGridMonth') {
+            $calendarStartDate = Carbon::parse($startDate);
+            $calendarEndDate = Carbon::parse($endDate);
             
-            $visitations->where(function($query) use ($user, $managedCareWorkerIds) {
-                $query->whereIn('care_worker_id', $managedCareWorkerIds)  // Workers they manage
-                    ->orWhere('assigned_by', $user->id);               // Appointments they assigned
-            });
-        } elseif ($user->isCareWorker()) {
-            // Care workers see:
-            // 1. Their own appointments
-            // 2. Appointments for beneficiaries assigned to them
-            $assignedBeneficiaryIds = GeneralCarePlan::where('care_worker_id', $user->id)
-                                        ->pluck('general_care_plan_id')->toArray();
-                                        
-            $beneficiaryIds = Beneficiary::whereIn('general_care_plan_id', $assignedBeneficiaryIds)
-                                        ->pluck('beneficiary_id')->toArray();
-                                        
-            $visitations->where(function($query) use ($user, $beneficiaryIds) {
-                $query->where('care_worker_id', $user->id)           // Their own appointments
-                    ->orWhereIn('beneficiary_id', $beneficiaryIds); // Appointments for their beneficiaries
-            });
-        }
-        
-        // Date range filtering - MODIFIED to include ALL recurring patterns that might show in the range
-        $visitations->where(function($query) use ($startDate, $endDate) {
-            // Include non-recurring visitations within the date range
-            $query->whereBetween('visitation_date', [$startDate, $endDate])
-                ->whereDoesntHave('recurringPattern');
-            
-            // Include ALL recurring visitations that could generate occurrences in the range
-            $query->orWhere(function($q) use ($startDate, $endDate) {
-                $q->whereHas('recurringPattern')
-                ->where(function($dateQ) use ($startDate, $endDate) {
-                    // Initial date before end date (so it could generate occurrences in range)
-                    $dateQ->where('visitation_date', '<=', $endDate);
-                });
-            });
-        });
-        
-        // Apply additional filters (search, care worker, status)
-        if ($request->has('search') && !empty($request->search)) {
-            // Search logic - unchanged
-        }
-        
-        if ($request->has('care_worker_id') && !empty($request->care_worker_id)) {
-            // Care worker filter - unchanged
-        }
-        
-        if ($request->has('status') && !empty($request->status)) {
-            // Status filter - unchanged
-        }
-        
-        // Rest of the method is unchanged...
-        $this->updatePastAppointmentsStatus();
-        
-        $visitations = $visitations->get();
-        
-        // Format visitations for fullcalendar
-        $events = [];
-        
-        foreach ($visitations as $visitation) {
-            $color = $this->getStatusColor($visitation->status);
-            
-            $title = $visitation->beneficiary->first_name . ' ' . $visitation->beneficiary->last_name;
-            if ($user->role_id <= 2) {
-                $title .= ' (' . $visitation->careWorker->first_name . ' ' . $visitation->careWorker->last_name . ')';
+            // Limit date range to prevent timeout
+            $maxEndDate = $calendarStartDate->copy()->addMonths(3);
+            if ($calendarEndDate->gt($maxEndDate)) {
+                $calendarEndDate = $maxEndDate;
+                $endDate = $maxEndDate->format('Y-m-d');
             }
-            
-            // Create the base event
-            $baseEvent = [
-                'id' => $visitation->visitation_id,
-                'title' => $title,
-                'backgroundColor' => $color,
-                'borderColor' => $color,
-                'textColor' => '#fff',
-                'allDay' => $visitation->is_flexible_time,
-                'extendedProps' => [
-                    'visitation_id' => $visitation->visitation_id,
-                    'care_worker' => $visitation->careWorker->first_name . ' ' . $visitation->careWorker->last_name,
-                    'care_worker_id' => $visitation->care_worker_id,
-                    'beneficiary' => $visitation->beneficiary->first_name . ' ' . $visitation->beneficiary->last_name,
-                    'beneficiary_id' => $visitation->beneficiary_id,
-                    'visit_type' => ucwords(str_replace('_', ' ', $visitation->visit_type)),
-                    'status' => ucfirst($visitation->status),
-                    'is_flexible_time' => $visitation->is_flexible_time,
-                    'notes' => $visitation->notes,
-                    'phone' => $visitation->beneficiary->mobile ?? 'Not Available',
-                    'address' => $visitation->beneficiary->street_address,
-                    'recurring' => $visitation->recurringPattern ? true : false,
-                    'recurring_pattern' => $visitation->recurringPattern ? [
-                        'type' => $visitation->recurringPattern->pattern_type,
-                        'day_of_week' => $visitation->recurringPattern->day_of_week,
-                        'end_date' => $visitation->recurringPattern->recurrence_end
-                    ] : null
-                ]
-            ];
-            
-            // Handle recurring events
-            if ($visitation->recurringPattern) {
-                // Get recurring pattern
-                $pattern = $visitation->recurringPattern;
-                $originalDate = Carbon::parse($visitation->visitation_date);
-                $calendarEndDate = Carbon::parse($endDate);
-                $recurrenceEnd = $pattern->recurrence_end ? Carbon::parse($pattern->recurrence_end) : $calendarEndDate;
+        }
+
+        try {
+            // APPROACH 1: For visitations with occurrences
+            $occurrenceQuery = VisitationOccurrence::with(['visitation.beneficiary', 'visitation.careWorker'])
+                ->whereBetween('occurrence_date', [$startDate, $endDate]);
                 
-                // Use the earlier of the two end dates
-                $effectiveEndDate = $recurrenceEnd->min($calendarEndDate);
-                
-                // Skip if the pattern would never generate events in our range
-                // (Original date is after calendar end or recurrence ended before calendar start)
-                if ($originalDate->gt($calendarEndDate) || 
-                    ($pattern->recurrence_end && Carbon::parse($pattern->recurrence_end)->lt(Carbon::parse($startDate)))) {
-                    continue;
-                }
-                
-                // Generate occurrences based on pattern type
-                $currentDate = $originalDate->copy();
-                
-                while ($currentDate <= $effectiveEndDate) {
-                    // Check if the current date is within the requested range
-                    if ($currentDate >= Carbon::parse($startDate)) {
-                        $eventDate = $currentDate->format('Y-m-d');
-                        
-                        // Determine status based on date
-                        $eventStatus = $visitation->status;
-                        if ($currentDate->lt($today) && $eventStatus === 'scheduled') {
-                            $eventStatus = 'completed';
-                        } else if ($currentDate->gte($today) && $eventStatus === 'completed') {
-                            // FIX: Ensure future events are always scheduled, not completed
-                            $eventStatus = 'scheduled';
-                        }
-                        
-                        $eventStart = $eventDate;
-                        $eventEnd = $eventDate;
-                        
-                        if (!$visitation->is_flexible_time) {
-                            $eventStart .= 'T' . $visitation->start_time;
-                            $eventEnd .= 'T' . $visitation->end_time;
-                        }
-                        
-                        // Clone the base event and set the new dates
-                        $event = array_merge([], $baseEvent);
-                        $event['start'] = $eventStart;
-                        $event['end'] = $eventEnd;
-                        
-                        // Override status for this specific occurrence
-                        if ($eventStatus !== $visitation->status) {
-                            $event['backgroundColor'] = $this->getStatusColor($eventStatus);
-                            $event['borderColor'] = $this->getStatusColor($eventStatus);
-                            $event['extendedProps']['status'] = ucfirst($eventStatus);
-                        }
-                        
-                        // Use a unique ID for each occurrence
-                        $event['id'] = $visitation->visitation_id . '-' . $currentDate->format('Ymd');
-                        
-                        $events[] = $event;
-                    }
+            // APPROACH 2: For non-recurring visitations without occurrences yet (transitional)
+            // FIXED: using doesntHave('occurrences') instead of whereNull('occurrences')
+            $visitations = Visitation::with(['beneficiary', 'careWorker', 'recurringPattern', 'exceptions'])
+                ->doesntHave('occurrences')  // CORRECTED LINE
+                ->where(function($query) use ($startDate, $endDate) {
+                    // Direct date match
+                    $query->whereBetween('visitation_date', [$startDate, $endDate]);
                     
-                    // Move to next occurrence based on pattern
-                    if ($pattern->pattern_type === 'daily') {
-                        $currentDate->addDay();
-                    } elseif ($pattern->pattern_type === 'weekly') {
-                        // Weekly pattern with specific days
-                        if ($pattern->day_of_week) {
-                            // Get next occurrence based on day_of_week
-                            // Convert string day_of_week to array of integers
-                            $dayArray = is_string($pattern->day_of_week) ? 
-                                array_map('intval', explode(',', $pattern->day_of_week)) : 
-                                [intval($pattern->day_of_week)];
-                            
-                            // Sort days to find the next one after current day
-                            sort($dayArray);
-                            
-                            // Find the next day in the sequence
-                            $currentDayOfWeek = $currentDate->dayOfWeek;
-                            $nextDay = null;
-                            
-                            foreach ($dayArray as $day) {
-                                if ($day > $currentDayOfWeek) {
-                                    $nextDay = $day;
-                                    break;
-                                }
-                            }
-                            
-                            if ($nextDay === null) {
-                                // No days left in this week, move to first day of next week
-                                $nextDay = $dayArray[0];
-                                $daysToAdd = 7 - $currentDayOfWeek + $nextDay;
-                                $currentDate->addDays($daysToAdd);
-                            } else {
-                                // Move to next day in the same week
-                                $daysToAdd = $nextDay - $currentDayOfWeek;
-                                $currentDate->addDays($daysToAdd);
-                            }
-                        } else {
-                            // Simple weekly pattern (same day each week)
-                            $currentDate->addWeek();
-                        }
-                    } elseif ($pattern->pattern_type === 'monthly') {
-                        $currentDate->addMonth();
-                    }
-                }
-            } else {
-                // Non-recurring event
-                $baseEvent['start'] = $visitation->visitation_date . ($visitation->is_flexible_time ? '' : 'T' . $visitation->start_time);
-                $baseEvent['end'] = $visitation->visitation_date . ($visitation->is_flexible_time ? '' : 'T' . $visitation->end_time);
+                    // Or recurring appointment that might have occurrences in our range
+                    $query->orWhereHas('recurringPattern', function($q) use ($startDate) {
+                        // Get recurring appointments where:
+                        // 1. Start date is before our end range
+                        // 2. Either has no end date, or end date is after our start range
+                        $q->where(function($dateQuery) use ($startDate) {
+                            $dateQuery->whereNull('recurrence_end')
+                                    ->orWhere('recurrence_end', '>=', $startDate);
+                        });
+                    });
+                });
+            
+            // Filter by role
+            if ($user->isCareWorker()) {
+                $occurrenceQuery->whereHas('visitation', function($q) use ($user) {
+                    $q->where('care_worker_id', $user->id);
+                });
                 
-                // Override status for past events
-                if (Carbon::parse($visitation->visitation_date) < $today && $visitation->status === 'scheduled') {
-                    $baseEvent['backgroundColor'] = $this->getStatusColor('completed');
-                    $baseEvent['borderColor'] = $this->getStatusColor('completed');
-                    $baseEvent['extendedProps']['status'] = 'Completed';
-                }
+                $visitations->where('care_worker_id', $user->id);
+            } elseif ($user->isCareManager()) {
+                // Care managers see visitations for care workers they manage
+                $careWorkerIds = User::where('assigned_care_manager_id', $user->id)->pluck('id');
                 
-                $events[] = $baseEvent;
+                $occurrenceQuery->whereHas('visitation', function($q) use ($careWorkerIds) {
+                    $q->whereIn('care_worker_id', $careWorkerIds);
+                });
+                
+                $visitations->whereIn('care_worker_id', $careWorkerIds);
             }
+            
+            // Apply search filter if provided
+            if ($request->has('search') && !empty($request->search)) {
+                $search = $request->search;
+                
+                $occurrenceQuery->whereHas('visitation', function($q) use ($search) {
+                    $q->whereHas('beneficiary', function($bq) use ($search) {
+                        $bq->where(DB::raw("CONCAT(first_name, ' ', last_name)"), 'LIKE', "%{$search}%");
+                    })->orWhereHas('careWorker', function($cq) use ($search) {
+                        $cq->where(DB::raw("CONCAT(first_name, ' ', last_name)"), 'LIKE', "%{$search}%");
+                    });
+                });
+                
+                $visitations->where(function($q) use ($search) {
+                    $q->whereHas('beneficiary', function($bq) use ($search) {
+                        $bq->where(DB::raw("CONCAT(first_name, ' ', last_name)"), 'LIKE', "%{$search}%");
+                    })->orWhereHas('careWorker', function($cq) use ($search) {
+                        $cq->where(DB::raw("CONCAT(first_name, ' ', last_name)"), 'LIKE', "%{$search}%");
+                    });
+                });
+            }
+            
+            // Apply care worker filter if provided
+            if ($request->has('care_worker_id') && !empty($request->care_worker_id)) {
+                $occurrenceQuery->whereHas('visitation', function($q) use ($request) {
+                    $q->where('care_worker_id', $request->care_worker_id);
+                });
+                
+                $visitations->where('care_worker_id', $request->care_worker_id);
+            }
+            
+            // Execute queries with limits to prevent timeouts
+            $occurrences = $occurrenceQuery->limit(1000)->get();
+            $visitations = $visitations->limit(500)->get();
+            
+            // DEBUG: Log the query counts
+            \Log::info('Visitation queries executed', [
+                'occurrences_count' => $occurrences->count(),
+                'visitations_count' => $visitations->count(),
+                'date_range' => [$startDate, $endDate]
+            ]);
+
+            $events = [];
+            
+            // Process occurrences from the occurrences table
+            foreach ($occurrences as $occurrence) {
+                // Skip if the parent visitation is missing
+                if (!$occurrence->visitation) continue;
+                
+                $visitation = $occurrence->visitation;
+                
+                // Create title
+                $title = $visitation->beneficiary->first_name . ' ' . $visitation->beneficiary->last_name;
+                if ($user->role_id <= 2) { // Admin or care manager
+                    $title .= ' (' . $visitation->careWorker->first_name . ' ' . $visitation->careWorker->last_name . ')';
+                }
+                
+                // Build the event object
+                $event = [
+                    'id' => 'occ-' . $occurrence->occurrence_id,
+                    'title' => $title,
+                    'start' => $occurrence->occurrence_date . 
+                            ($visitation->is_flexible_time ? '' : 'T' . Carbon::parse($occurrence->start_time)->format('H:i:s')),
+                    'end' => $occurrence->occurrence_date . 
+                            ($visitation->is_flexible_time ? '' : 'T' . Carbon::parse($occurrence->end_time)->format('H:i:s')),
+                    'backgroundColor' => $this->getStatusColor($occurrence->status),
+                    'borderColor' => $this->getStatusColor($occurrence->status),
+                    'textColor' => '#fff',
+                    'allDay' => $visitation->is_flexible_time,
+                    'extendedProps' => [
+                        'visitation_id' => $visitation->visitation_id,
+                        'occurrence_id' => $occurrence->occurrence_id,
+                        'care_worker' => $visitation->careWorker->first_name . ' ' . $visitation->careWorker->last_name,
+                        'care_worker_id' => $visitation->care_worker_id,
+                        'beneficiary' => $visitation->beneficiary->first_name . ' ' . $visitation->beneficiary->last_name,
+                        'beneficiary_id' => $visitation->beneficiary_id,
+                        'visit_type' => ucwords(str_replace('_', ' ', $visitation->visit_type)),
+                        'status' => ucfirst($occurrence->status),
+                        'is_flexible_time' => $visitation->is_flexible_time,
+                        'notes' => $occurrence->notes ?? $visitation->notes,
+                        'phone' => $visitation->beneficiary->mobile ?? 'Not Available',
+                        'address' => $visitation->beneficiary->street_address,
+                        'recurring' => $visitation->recurringPattern ? true : false,
+                    ]
+                ];
+                
+                $events[] = $event;
+            }
+            
+            // Process legacy visitations (should become fewer over time as you migrate)
+            foreach ($visitations as $visitation) {
+                // For visitations not yet migrated to occurrences system
+                // Create base event properties
+                $color = $this->getStatusColor($visitation->status);
+                
+                $title = $visitation->beneficiary->first_name . ' ' . $visitation->beneficiary->last_name;
+                if ($user->role_id <= 2) { // Admin or care manager
+                    $title .= ' (' . $visitation->careWorker->first_name . ' ' . $visitation->careWorker->last_name . ')';
+                }
+                
+                $baseEvent = [
+                    'title' => $title,
+                    'backgroundColor' => $color,
+                    'borderColor' => $color,
+                    'textColor' => '#fff',
+                    'allDay' => $visitation->is_flexible_time,
+                    'extendedProps' => [
+                        'visitation_id' => $visitation->visitation_id,
+                        'care_worker' => $visitation->careWorker->first_name . ' ' . $visitation->careWorker->last_name,
+                        'care_worker_id' => $visitation->care_worker_id,
+                        'beneficiary' => $visitation->beneficiary->first_name . ' ' . $visitation->beneficiary->last_name,
+                        'beneficiary_id' => $visitation->beneficiary_id,
+                        'visit_type' => ucwords(str_replace('_', ' ', $visitation->visit_type)),
+                        'status' => ucfirst($visitation->status),
+                        'is_flexible_time' => $visitation->is_flexible_time,
+                        'notes' => $visitation->notes,
+                        'phone' => $visitation->beneficiary->mobile ?? 'Not Available',
+                        'address' => $visitation->beneficiary->street_address,
+                        'recurring' => $visitation->recurringPattern ? true : false,
+                    ]
+                ];
+                
+                // Handle recurring events (legacy approach)
+                if ($visitation->recurringPattern) {
+                    // Process recurring pattern later
+                    
+                    // Generate on-the-fly for legacy visitations
+                    // This block would be your existing code for handling recurring patterns
+                    // We'll leave it in place during the transition period
+                } else {
+                    // Non-recurring event
+                    $event = $baseEvent;
+                    $event['id'] = $visitation->visitation_id;
+                    $event['start'] = $visitation->visitation_date->format('Y-m-d') . 
+                                    ($visitation->is_flexible_time ? '' : 'T' . $visitation->start_time->format('H:i:s'));
+                    $event['end'] = $visitation->visitation_date->format('Y-m-d') . 
+                                ($visitation->is_flexible_time ? '' : 'T' . $visitation->end_time->format('H:i:s'));
+                    
+                    $events[] = $event;
+                }
+                
+                // Generate occurrences for this visitation for next time
+                // This helps gradually migrate to the occurrence-based system
+                if (!$visitation->occurrences()->exists()) {
+                    $visitation->generateOccurrences(3);
+                }
+            }
+            
+            return response()->json($events);
+        } catch (\Exception $e) {
+            \Log::error('Error in getVisitations: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            return response()->json([
+                'error' => 'An error occurred while fetching visitations: ' . $e->getMessage()
+            ], 500);
         }
-        
-        return response()->json($events);
     }
 
     /**
@@ -297,13 +290,14 @@ class VisitationController extends Controller
      */
     private function updatePastAppointmentsStatus()
     {
-        // Update all scheduled appointments that are in the past
+        // Only update non-recurring appointments that are in the past
         $updated = Visitation::where('status', 'scheduled')
             ->where('visitation_date', '<', Carbon::today())
+            ->whereDoesntHave('recurringPattern') // Exclude recurring appointments
             ->update(['status' => 'completed']);
         
         if ($updated > 0) {
-            \Log::info("Automatically marked $updated past appointments as completed");
+            \Log::info("Automatically marked $updated past non-recurring appointments as completed");
         }
         
         return $updated;
@@ -455,7 +449,7 @@ class VisitationController extends Controller
      */
     public function storeAppointment(Request $request)
     {
-        // Verify that either times are specified or is_flexible_time is checked
+        // First validate that either times are specified or is_flexible_time is checked
         if (!$request->has('is_flexible_time') && (!$request->has('start_time') || !$request->has('end_time') || 
             empty($request->start_time) || empty($request->end_time))) {
             return response()->json([
@@ -466,6 +460,26 @@ class VisitationController extends Controller
             ], 422);
         }
         
+        // Check recurring pattern requirements if it's recurring
+        if ($request->has('is_recurring')) {
+            $recurringValidator = Validator::make($request->all(), [
+                'pattern_type' => 'required|in:daily,weekly,monthly', 
+                'day_of_week' => 'required_if:pattern_type,weekly',
+                'recurrence_end' => 'nullable|date|after:visitation_date'
+            ], [
+                'pattern_type.required' => 'Please specify the recurring pattern type.',
+                'day_of_week.required_if' => 'Please select at least one day of the week for weekly patterns.'
+            ]);
+            
+            if ($recurringValidator->fails()) {
+                return response()->json([
+                    'success' => false,
+                    'errors' => $recurringValidator->errors()
+                ], 422);
+            }
+        }
+        
+        // Validate main appointment data
         $validator = Validator::make($request->all(), [
             'care_worker_id' => 'required|exists:cose_users,id',
             'beneficiary_id' => 'required|exists:beneficiaries,beneficiary_id',
@@ -489,65 +503,257 @@ class VisitationController extends Controller
         }
         
         DB::beginTransaction();
-        
+            
         try {
-            $isRecurring = $request->input('is_recurring', false);
+            // Create the appointment
+            $visitation = new Visitation();
+            $visitation->care_worker_id = $request->care_worker_id;
+            $visitation->beneficiary_id = $request->beneficiary_id;
+            $visitation->visitation_date = $request->visitation_date;
+            $visitation->visit_type = $request->visit_type;
+            $visitation->is_flexible_time = $request->has('is_flexible_time');
+            $visitation->start_time = $request->is_flexible_time ? null : $request->start_time;
+            $visitation->end_time = $request->is_flexible_time ? null : $request->end_time;
+            $visitation->notes = $request->notes;
+            $visitation->status = 'scheduled';
+            $visitation->date_assigned = now();
+            $visitation->assigned_by = Auth::id();
+            $visitation->save();
             
-            $visitation = Visitation::create([
-                'care_worker_id' => $request->care_worker_id,
-                'beneficiary_id' => $request->beneficiary_id,
-                'visitation_date' => $request->visitation_date,
-                'visit_type' => $request->visit_type,
-                'is_flexible_time' => filter_var($request->is_flexible_time, FILTER_VALIDATE_BOOLEAN),
-                'start_time' => !$request->has('is_flexible_time') ? $request->start_time : null,
-                'end_time' => !$request->has('is_flexible_time') ? $request->end_time : null,
-                'notes' => $request->notes,
-                'date_assigned' => now(),
-                'assigned_by' => Auth::id(),
-                'status' => 'scheduled'
-            ]);
-            
-            // Handle recurring patterns if needed
-            if ($isRecurring) {
-                $patternType = $request->input('pattern_type', 'weekly');
-                $dayOfWeek = null;
+            // NOW create the recurring pattern if needed, AFTER creating the visitation
+            if ($request->has('is_recurring')) {
+                $pattern = new RecurringPattern();
+                $pattern->visitation_id = $visitation->visitation_id;
+                $pattern->pattern_type = $request->pattern_type;
                 
-                if ($patternType === 'weekly' && $request->has('day_of_week')) {
-                    // Join the array of days into a comma-separated string
-                    $dayOfWeek = implode(',', (array)$request->input('day_of_week'));
+                // Convert day_of_week array to comma-separated string
+                if (is_array($request->day_of_week)) {
+                    $pattern->day_of_week = implode(',', $request->day_of_week);
+                } else {
+                    $pattern->day_of_week = $request->day_of_week;
                 }
                 
-                RecurringPattern::create([
-                    'visitation_id' => $visitation->visitation_id,
-                    'pattern_type' => $patternType,
-                    'day_of_week' => $dayOfWeek,
-                    'recurrence_end' => $request->input('recurrence_end')
-                ]);
+                $pattern->recurrence_end = $request->recurrence_end;
+                $pattern->save();
             }
             
-            // Send notifications
-            $this->sendAppointmentNotifications($visitation, 'created');
+            // Generate occurrences
+            $visitation->generateOccurrences(3);
             
             DB::commit();
-
-            // Update statuses after creating a new appointment
-             $this->updatePastAppointmentsStatus();
             
             return response()->json([
                 'success' => true,
-                'message' => 'Appointment scheduled successfully',
+                'message' => 'Appointment created successfully',
                 'visitation' => $visitation
             ]);
-            
         } catch (\Exception $e) {
             DB::rollBack();
             
+            \Log::error('Error creating appointment: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString()
+            ]);
+            
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to schedule appointment',
-                'error' => $e->getMessage()
+                'message' => 'Failed to create appointment: ' . $e->getMessage()
             ], 500);
         }
+    }
+
+    /**
+     * Helper function to split a recurring appointment into past and future parts
+     * 
+     * @param Visitation $originalVisitation The original visitation record
+     * @param Carbon $splitDate The date to split at (usually today)
+     * @param array $newData New data for the future occurrences
+     * @return Visitation The newly created visitation record for future occurrences
+     */
+    private function splitRecurringAppointment(Visitation $originalVisitation, Carbon $splitDate, array $newData)
+    {
+        // STEP 1: Create a new visitation for future occurrences using direct SQL
+        $newVisitationId = DB::table('visitations')->insertGetId([
+            'care_worker_id' => $newData['care_worker_id'],
+            'beneficiary_id' => $newData['beneficiary_id'],
+            'visitation_date' => $newData['visitation_date'],
+            'visit_type' => $newData['visit_type'],
+            'is_flexible_time' => $newData['is_flexible_time'] ? 1 : 0,
+            'start_time' => $newData['is_flexible_time'] ? null : $newData['start_time'],
+            'end_time' => $newData['is_flexible_time'] ? null : $newData['end_time'],
+            'notes' => $newData['notes'],
+            'status' => 'scheduled',
+            'date_assigned' => now(),
+            'assigned_by' => Auth::id(),
+            'created_at' => now(),
+            'updated_at' => now()
+        ], 'visitation_id');  // Specify the primary key column name here
+        
+        // Log the creation of new visitation
+        DB::table('visitation_debug')->insert([
+            'message' => 'Created new visitation for future occurrences',
+            'data_json' => json_encode(['new_id' => $newVisitationId]),
+            'created_at' => now()
+        ]);
+        
+        // STEP 2: Create the new pattern for future occurrences if needed
+        if ($newData['is_recurring']) {
+            $newPatternId = DB::table('recurring_patterns')->insertGetId([
+                'visitation_id' => $newVisitationId,
+                'pattern_type' => $newData['pattern_type'] ?? 'weekly',
+                'day_of_week' => is_array($newData['day_of_week']) 
+                    ? implode(',', $newData['day_of_week']) 
+                    : $newData['day_of_week'],
+                'recurrence_end' => $newData['recurrence_end'] ?? null,
+                'created_at' => now(),
+                'updated_at' => now()
+            ], 'pattern_id');  // Specify the primary key column name here
+            
+            // Log the creation of new pattern
+            DB::table('visitation_debug')->insert([
+                'message' => 'Created new recurring pattern',
+                'data_json' => json_encode(['pattern_id' => $newPatternId]),
+                'created_at' => now()
+            ]);
+        }
+
+       // STEP 2.5: Create exceptions for the original pattern for all dates that will be covered by the new pattern
+        if ($newData['is_recurring']) {
+            $newStartDate = Carbon::parse($newData['visitation_date']);
+            
+            // Get the original pattern FIRST
+            $originalPattern = $originalVisitation->recurringPattern;
+            
+            DB::table('visitation_debug')->insert([
+                'message' => 'Creating exceptions for original pattern',
+                'data_json' => json_encode([
+                    'original_visitation_id' => $originalVisitation->visitation_id,
+                    'new_visitation_id' => $newVisitationId,
+                    'new_start_date' => $newStartDate->format('Y-m-d'),
+                    'original_pattern_id' => $originalPattern->pattern_id
+                ]),
+                'created_at' => now()
+            ]);
+            
+            // Now use the pattern
+            $originalEndDate = $newData['original_recurrence_end'] ?? $originalPattern->recurrence_end;
+            $originalDate = Carbon::parse($originalVisitation->visitation_date);
+            $patternType = $originalPattern->pattern_type;
+            $currentDate = $originalDate->copy();
+            
+            // Calculate the end date for exception creation 
+            $exceptionEndDate = null;
+            if ($originalEndDate) {
+                $exceptionEndDate = Carbon::parse($originalEndDate);
+            } else {
+                // If no end date, use a reasonable future date (e.g., 1 year from now)
+                $exceptionEndDate = Carbon::now()->addYear();
+            }
+            
+            // Create exceptions for all future occurrences from the new start date
+            while ($currentDate <= $exceptionEndDate) {
+                // Only create exceptions for dates on or after the new pattern start date
+                if ($currentDate >= $newStartDate) {
+                    // Add an exception for this date
+                    DB::table('visitation_exceptions')->insert([
+                        'visitation_id' => $originalVisitation->visitation_id,
+                        'exception_date' => $currentDate->format('Y-m-d'),
+                        'status' => 'skipped',  // Use 'skipped' instead of 'canceled' to hide it without showing as canceled
+                        'reason' => 'Modified - see updated appointment',
+                        'created_by' => Auth::id(),
+                        'created_at' => now(),
+                        'updated_at' => now()
+                    ]);
+                }
+                
+                // Advance to next occurrence based on pattern type
+                if ($patternType === 'daily') {
+                    $currentDate->addDay();
+                } elseif ($patternType === 'weekly') {
+                    if ($originalVisitation->recurringPattern->day_of_week) {
+                        // Handle weekly pattern with specific days
+                        // (Use the same logic as in your getVisitations method)
+                        $dayArray = is_string($originalVisitation->recurringPattern->day_of_week) ? 
+                            array_map('intval', explode(',', $originalVisitation->recurringPattern->day_of_week)) : 
+                            [intval($originalVisitation->recurringPattern->day_of_week)];
+                        
+                        // Sort days to find the next one
+                        sort($dayArray);
+                        
+                        $currentDayOfWeek = $currentDate->dayOfWeek;
+                        $nextDay = null;
+                        
+                        foreach ($dayArray as $day) {
+                            if ($day > $currentDayOfWeek) {
+                                $nextDay = $day;
+                                break;
+                            }
+                        }
+                        
+                        if ($nextDay === null) {
+                            // No days left in this week, move to first day of next week
+                            $nextDay = $dayArray[0];
+                            $daysToAdd = 7 - $currentDayOfWeek + $nextDay;
+                            $currentDate->addDays($daysToAdd);
+                        } else {
+                            // Move to next day in the same week
+                            $daysToAdd = $nextDay - $currentDayOfWeek;
+                            $currentDate->addDays($daysToAdd);
+                        }
+                    } else {
+                        // Simple weekly pattern (same day each week)
+                        $currentDate->addWeek();
+                    }
+                } elseif ($patternType === 'monthly') {
+                    $currentDate->addMonth();
+                }
+            }
+        }
+        
+        // STEP 3: Update the original pattern - ACTUALLY preserve the original end date
+        $originalPattern = $originalVisitation->recurringPattern;
+        $originalEndDate = $newData['original_recurrence_end'] ?? $originalPattern->recurrence_end;
+
+        DB::table('visitation_debug')->insert([
+            'message' => 'Original end date determination',
+            'data_json' => json_encode([
+                'original_recurrence_end' => $newData['original_recurrence_end'] ?? 'NOT SET',
+                'pattern_current_value' => $originalPattern->recurrence_end,
+                'final_value_used' => $originalEndDate
+            ]),
+            'created_at' => now()
+        ]);
+        
+        // RESTORE the original end date 
+        DB::table('recurring_patterns')
+            ->where('pattern_id', $originalPattern->pattern_id)
+            ->update([
+                'recurrence_end' => $originalEndDate,
+                'updated_at' => now()
+            ]);
+        
+        // STEP 4: Verify both records exist through direct SQL
+        $originalStillExists = DB::table('visitations')
+            ->where('visitation_id', $originalVisitation->visitation_id)
+            ->exists();
+        
+        $newExists = DB::table('visitations')
+            ->where('visitation_id', $newVisitationId)
+            ->exists();
+        
+        // Log the verification
+        DB::table('visitation_debug')->insert([
+            'message' => 'Verification of both records',
+            'data_json' => json_encode([
+                'original_id' => $originalVisitation->visitation_id,
+                'original_exists' => $originalStillExists ? 'YES' : 'NO',
+                'new_id' => $newVisitationId,
+                'new_exists' => $newExists ? 'YES' : 'NO'
+            ]),
+            'created_at' => now()
+        ]);
+        
+        // Return a new Visitation model instance for the new record
+        return Visitation::find($newVisitationId);
     }
 
     /**
@@ -555,17 +761,7 @@ class VisitationController extends Controller
      */
     public function updateAppointment(Request $request)
     {
-        // Verify that either times are specified or is_flexible_time is checked
-        if (!$request->has('is_flexible_time') && (!$request->has('start_time') || !$request->has('end_time') || 
-            empty($request->start_time) || empty($request->end_time))) {
-            return response()->json([
-                'success' => false,
-                'errors' => [
-                    'time' => ['Either specific times or flexible time must be selected.']
-                ]
-            ], 422);
-        }
-        
+        // Validate the request
         $validator = Validator::make($request->all(), [
             'visitation_id' => 'required|exists:visitations,visitation_id',
             'care_worker_id' => 'required|exists:cose_users,id',
@@ -579,7 +775,7 @@ class VisitationController extends Controller
         ], [
             'start_time.required_if' => 'Start time is required when flexible time is not checked.',
             'end_time.required_if' => 'End time is required when flexible time is not checked.',
-            'end_time.after' => 'End time must be after start time.',
+            'end_time.after' => 'End time must be after start time.'
         ]);
         
         if ($validator->fails()) {
@@ -589,172 +785,195 @@ class VisitationController extends Controller
             ], 422);
         }
 
-        $visitation = Visitation::findOrFail($request->visitation_id);
-    
-        // Check if anything actually changed
-        $isFlexibleTime = filter_var($request->is_flexible_time, FILTER_VALIDATE_BOOLEAN);
-        $noChanges = (
-            $visitation->care_worker_id == $request->care_worker_id &&
-            $visitation->beneficiary_id == $request->beneficiary_id &&
-            $visitation->visitation_date == $request->visitation_date &&
-            $visitation->visit_type == $request->visit_type &&
-            $visitation->is_flexible_time == $isFlexibleTime &&
-            (!$isFlexibleTime ? $visitation->start_time == $request->start_time : true) &&
-            (!$isFlexibleTime ? $visitation->end_time == $request->end_time : true) &&
-            $visitation->notes == $request->notes
-        );
-        
-        // Also check recurring pattern if applicable
-        $isRecurring = $request->input('is_recurring', false);
-        $currentPattern = $visitation->recurringPattern;
-        
-        if ($currentPattern && $isRecurring) {
-            $patternType = $request->input('pattern_type', 'weekly');
-            $dayOfWeek = null;
-            
-            if ($patternType === 'weekly' && $request->has('day_of_week')) {
-                $dayOfWeek = implode(',', (array)$request->input('day_of_week'));
-            }
-            
-            $noChanges = $noChanges && (
-                $currentPattern->pattern_type == $patternType &&
-                $currentPattern->day_of_week == $dayOfWeek &&
-                $currentPattern->recurrence_end == $request->input('recurrence_end')
-            );
-        } else if (($currentPattern && !$isRecurring) || (!$currentPattern && $isRecurring)) {
-            // Pattern presence changed
-            $noChanges = false;
-        }
-        
-        if ($noChanges) {
-            return response()->json([
-                'success' => false,
-                'message' => 'No changes were made to the appointment.'
-            ]);
-        }
+        // Check if we're updating a specific occurrence or the entire series
+        $isOccurrenceUpdate = $request->has('occurrence_id') && $request->occurrence_id;
         
         DB::beginTransaction();
         
         try {
-            $isRecurring = $request->input('is_recurring', false);
+            // Get the visitation
             $visitation = Visitation::findOrFail($request->visitation_id);
-            $today = Carbon::today();
+            $originalVisitationDate = $visitation->visitation_date->format('Y-m-d'); // Store original date
             
-            // Check if this is a recurring event and if the visitation date is in the past
-            if ($visitation->recurringPattern && Carbon::parse($visitation->visitation_date)->lt($today)) {
-                // Create a new appointment for future occurrences
-                $newVisitation = Visitation::create([
-                    'care_worker_id' => $request->care_worker_id,
-                    'beneficiary_id' => $request->beneficiary_id,
-                    'visitation_date' => $request->visitation_date,
-                    'visit_type' => $request->visit_type,
-                    'is_flexible_time' => filter_var($request->is_flexible_time, FILTER_VALIDATE_BOOLEAN),
-                    'start_time' => filter_var($request->is_flexible_time, FILTER_VALIDATE_BOOLEAN) ? null : $request->start_time,
-                    'end_time' => filter_var($request->is_flexible_time, FILTER_VALIDATE_BOOLEAN) ? null : $request->end_time,
-                    'notes' => $request->notes,
-                    'date_assigned' => now(),
-                    'assigned_by' => Auth::id(),
-                    'status' => 'scheduled'
-                ]);
+            // For occurrence-specific updates
+            if ($isOccurrenceUpdate) {
+                $occurrence = VisitationOccurrence::findOrFail($request->occurrence_id);
                 
-                // Update the recurrence end date of the old pattern to yesterday
-                $oldPattern = $visitation->recurringPattern;
-                $oldPattern->recurrence_end = $today->copy()->subDay()->format('Y-m-d');
-                $oldPattern->save();
-                
-                // Create new recurring pattern
-                if ($isRecurring) {
-                    $patternType = $request->input('pattern_type', 'weekly');
-                    $dayOfWeek = null;
-                    
-                    if ($patternType === 'weekly' && $request->has('day_of_week')) {
-                        $dayOfWeek = implode(',', (array)$request->input('day_of_week'));
-                    }
-                    
-                    RecurringPattern::create([
-                        'visitation_id' => $newVisitation->visitation_id,
-                        'pattern_type' => $patternType,
-                        'day_of_week' => $dayOfWeek,
-                        'recurrence_end' => $request->input('recurrence_end')
-                    ]);
-                }
-                
-                // Send notifications about the new appointment
-                $this->sendAppointmentNotifications($newVisitation, 'created');
+                // Update just this occurrence
+                $occurrence->start_time = $request->is_flexible_time ? null : $request->start_time;
+                $occurrence->end_time = $request->is_flexible_time ? null : $request->end_time;
+                $occurrence->notes = $request->notes;
+                $occurrence->is_modified = true; // Mark as modified from the series
+                $occurrence->save();
                 
                 DB::commit();
                 
-                // Update statuses after updating an appointment
-                $this->updatePastAppointmentsStatus();
+                // Log the update
+                \Log::info('Updated specific occurrence', [
+                    'occurrence_id' => $occurrence->occurrence_id,
+                    'visitation_id' => $visitation->visitation_id,
+                ]);
                 
                 return response()->json([
                     'success' => true,
-                    'message' => 'Future appointments updated successfully. Past appointments preserved.',
-                    'visitation' => $newVisitation,
-                    'split_occurred' => true
-                ]);
-            } else {
-                // For non-recurring events or recurring events with first date in the future
-                // Store old values for notification
-                $oldCareWorkerId = $visitation->care_worker_id;
-                $oldDate = $visitation->visitation_date;
-                
-                // Update visitation details
-                $visitation->update([
-                    'care_worker_id' => $request->care_worker_id,
-                    'beneficiary_id' => $request->beneficiary_id,
-                    'visitation_date' => $request->visitation_date,
-                    'visit_type' => $request->visit_type,
-                    'is_flexible_time' => filter_var($request->is_flexible_time, FILTER_VALIDATE_BOOLEAN),
-                    'start_time' => $request->is_flexible_time == '1' ? null : $request->start_time,
-                    'end_time' => $request->is_flexible_time == '1' ? null : $request->end_time,
-                    'notes' => $request->notes
-                ]);
-                
-                // Handle recurring patterns
-                if ($isRecurring) {
-                    $patternType = $request->input('pattern_type', 'weekly');
-                    $dayOfWeek = null;
-                    
-                    if ($patternType === 'weekly' && $request->has('day_of_week')) {
-                        $dayOfWeek = implode(',', (array)$request->input('day_of_week'));
-                    }
-                    
-                    // Update or create recurring pattern
-                    RecurringPattern::updateOrCreate(
-                        ['visitation_id' => $visitation->visitation_id],
-                        [
-                            'pattern_type' => $patternType,
-                            'day_of_week' => $dayOfWeek,
-                            'recurrence_end' => $request->input('recurrence_end')
-                        ]
-                    );
-                } else {
-                    // Remove recurring pattern if it exists
-                    RecurringPattern::where('visitation_id', $visitation->visitation_id)->delete();
-                }
-                
-                // Send notifications about the update
-                if ($oldCareWorkerId != $request->care_worker_id || $oldDate != $request->visitation_date) {
-                    $this->sendAppointmentNotifications($visitation, 'updated');
-                }
-                
-                DB::commit();
-                
-                return response()->json([
-                    'success' => true,
-                    'message' => 'Appointment updated successfully',
+                    'message' => 'Appointment occurrence updated successfully',
                     'visitation' => $visitation,
-                    'split_occurred' => false
+                    'occurrence' => $occurrence
                 ]);
             }
+            
+            // For full visitation updates
+            
+            // Check if this is recurring and we need to update this & future occurrences
+            $updateFuture = $request->has('update_future') && $request->update_future && $visitation->recurringPattern;
+            
+            // 1. Archive the current visitation before modifying
+            $archive = $visitation->archive('Updated', Auth::id());
+            
+            // 2. Update the base visitation record
+            $visitation->care_worker_id = $request->care_worker_id;
+            $visitation->beneficiary_id = $request->beneficiary_id;
+            $visitation->visitation_date = $request->visitation_date;
+            $visitation->visit_type = $request->visit_type;
+            $visitation->is_flexible_time = $request->has('is_flexible_time') && $request->is_flexible_time;
+            $visitation->start_time = $request->is_flexible_time ? null : $request->start_time;
+            $visitation->end_time = $request->is_flexible_time ? null : $request->end_time;
+            $visitation->notes = $request->notes;
+            $visitation->updated_at = now();
+            $visitation->save();
+            
+            // 3. Handle recurring pattern updates
+            if ($request->has('is_recurring')) {
+                // Is this set to be recurring?
+                if ($request->is_recurring) {
+                    $pattern = $visitation->recurringPattern;
+                    
+                    // Update existing pattern or create new one
+                    if ($pattern) {
+                        $pattern->pattern_type = $request->pattern_type;
+                        
+                        // Handle day_of_week field properly
+                        if (is_array($request->day_of_week)) {
+                            $pattern->day_of_week = implode(',', $request->day_of_week);
+                        } else {
+                            $pattern->day_of_week = $request->day_of_week;
+                        }
+                        
+                        $pattern->recurrence_end = $request->recurrence_end ?? null;
+                        $pattern->save();
+                    } else {
+                        // Create new pattern if one doesn't exist
+                        $pattern = new RecurringPattern();
+                        $pattern->visitation_id = $visitation->visitation_id;
+                        $pattern->pattern_type = $request->pattern_type;
+                        
+                        // Handle day_of_week field properly
+                        if (is_array($request->day_of_week)) {
+                            $pattern->day_of_week = implode(',', $request->day_of_week);
+                        } else {
+                            $pattern->day_of_week = $request->day_of_week;
+                        }
+                        
+                        $pattern->recurrence_end = $request->recurrence_end ?? null;
+                        $pattern->save();
+                    }
+                    
+                    // Get update date - determines which occurrences to update
+                    $updateDate = Carbon::parse($request->effective_date ?? $visitation->visitation_date);
+                    
+                    // Delete future occurrences
+                    VisitationOccurrence::where('visitation_id', $visitation->visitation_id)
+                        ->where('occurrence_date', '>=', $updateDate->format('Y-m-d'))
+                        ->delete();
+                        
+                    // Regenerate occurrences
+                    $months = 3; // Generate for 3 months
+                    $occurrenceIds = $visitation->generateOccurrences($months);
+                    
+                    \Log::info('Updated recurring visitation and regenerated occurrences', [
+                        'visitation_id' => $visitation->visitation_id,
+                        'generated_occurrences' => count($occurrenceIds)
+                    ]);
+                } else {
+                    // It was recurring but now it's not
+                    if ($visitation->recurringPattern) {
+                        // Remove the pattern
+                        $visitation->recurringPattern->delete();
+                        
+                        // Delete all occurrences except the first one
+                        $firstOccurrence = $visitation->occurrences()->orderBy('occurrence_date')->first();
+                        
+                        if ($firstOccurrence) {
+                            VisitationOccurrence::where('visitation_id', $visitation->visitation_id)
+                                ->where('occurrence_id', '!=', $firstOccurrence->occurrence_id)
+                                ->delete();
+                        } else {
+                            // No occurrences found, create one for the base visitation
+                            VisitationOccurrence::create([
+                                'visitation_id' => $visitation->visitation_id,
+                                'occurrence_date' => $visitation->visitation_date,
+                                'start_time' => $visitation->start_time,
+                                'end_time' => $visitation->end_time,
+                                'status' => $visitation->status
+                            ]);
+                        }
+                        
+                        \Log::info('Visitation changed from recurring to non-recurring', [
+                            'visitation_id' => $visitation->visitation_id
+                        ]);
+                    }
+                }
+            } else {
+                // Not dealing with recurrence, just update the single occurrence
+                
+                // For non-recurring appointments, handle date changes properly
+                $newVisitationDate = $visitation->visitation_date->format('Y-m-d');
+                
+                // If the date was changed, delete the old occurrence
+                if ($originalVisitationDate != $newVisitationDate) {
+                    // Delete the occurrence for the old date
+                    VisitationOccurrence::where('visitation_id', $visitation->visitation_id)
+                        ->where('occurrence_date', $originalVisitationDate)
+                        ->delete();
+                    
+                    \Log::info('Deleted old occurrence during visitation update', [
+                        'visitation_id' => $visitation->visitation_id,
+                        'old_date' => $originalVisitationDate,
+                        'new_date' => $newVisitationDate
+                    ]);
+                }
+
+                // Now create/update the occurrence for the new date
+                VisitationOccurrence::updateOrCreate(
+                    ['visitation_id' => $visitation->visitation_id, 'occurrence_date' => $newVisitationDate],
+                    [
+                        'start_time' => $visitation->start_time,
+                        'end_time' => $visitation->end_time,
+                        'status' => $visitation->status
+                    ]
+                );
+            }
+            
+            // Send notifications
+            $this->sendAppointmentNotifications($visitation, 'updated');
+            
+            DB::commit();
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Appointment updated successfully',
+                'visitation' => $visitation
+            ]);
         } catch (\Exception $e) {
             DB::rollBack();
             
+            \Log::error('Error updating appointment: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString()
+            ]);
+            
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to update appointment',
-                'error' => $e->getMessage()
+                'message' => 'Failed to update appointment: ' . $e->getMessage()
             ], 500);
         }
     }
@@ -788,37 +1007,35 @@ class VisitationController extends Controller
         }
         
         DB::beginTransaction();
-        
+                
         try {
-            $visitation = Visitation::findOrFail($request->visitation_id);
-            $isRecurring = $visitation->recurringPattern ? true : false;
-            $today = Carbon::today();
-            $occurrenceDate = $request->has('occurrence_date') ? Carbon::parse($request->occurrence_date) : null;
-            
-            // Different handling based on recurring status and cancel option
-            if ($isRecurring) {
-                if ($request->cancel_option === 'this') {
-                    // Handle single occurrence cancellation
-                    $this->cancelSingleOccurrence($visitation, $occurrenceDate, $request->reason);
-                    $message = 'This occurrence has been cancelled.';
-                } else {
-                    // Handle this and future occurrences cancellation
-                    $this->cancelFutureOccurrences($visitation, $occurrenceDate, $request->reason);
-                    $message = 'This and all future occurrences have been cancelled.';
-                }
+            // Determine if we're canceling a specific occurrence or the entire series
+            if ($request->has('occurrence_id')) {
+                // Cancel a specific occurrence
+                $occurrence = VisitationOccurrence::findOrFail($request->occurrence_id);
+                $occurrence->cancel($request->reason);
+                
+                $message = 'The appointment on ' . $occurrence->occurrence_date->format('M j, Y') . ' has been canceled.';
             } else {
-                // Non-recurring appointment - simple cancellation
+                $visitation = Visitation::findOrFail($request->visitation_id);
+                
+                // Archive the current visitation
+                $archive = $visitation->archive('Canceled: ' . $request->reason, Auth::id());
+                
+                // Cancel the visitation
                 $visitation->status = 'canceled';
-                $visitation->notes = ($visitation->notes ? $visitation->notes . "\n\n" : '') . 
-                                    "Cancellation reason: " . $request->reason . 
-                                    "\nCancelled by: " . Auth::user()->first_name . ' ' . Auth::user()->last_name . 
-                                    "\nCancelled on: " . now()->format('Y-m-d H:i:s');
                 $visitation->save();
-                $message = 'Appointment has been cancelled.';
+                
+                // Cancel all future occurrences
+                VisitationOccurrence::where('visitation_id', $visitation->visitation_id)
+                    ->where('occurrence_date', '>=', now()->format('Y-m-d'))
+                    ->update([
+                        'status' => 'canceled',
+                        'notes' => $request->reason
+                    ]);
+                
+                $message = 'The appointment and all future occurrences have been canceled.';
             }
-            
-            // Send cancellation notifications
-            $this->sendAppointmentNotifications($visitation, 'canceled', $request->reason);
             
             DB::commit();
             
@@ -826,7 +1043,6 @@ class VisitationController extends Controller
                 'success' => true,
                 'message' => $message
             ]);
-            
         } catch (\Exception $e) {
             DB::rollBack();
             
@@ -838,7 +1054,7 @@ class VisitationController extends Controller
     }
 
     /**
-     * Cancel a single occurrence of a recurring event by creating a cancelled exception
+     * Cancel a single occurrence by creating an exception
      */
     private function cancelSingleOccurrence(Visitation $visitation, $occurrenceDate, $reason)
     {
@@ -846,21 +1062,38 @@ class VisitationController extends Controller
             throw new \Exception("Occurrence date is required for cancelling a single occurrence");
         }
         
-        // Create a "cancelled exception" entry
-        $exception = new VisitationException([
+        // Format the date for consistency
+        $formattedDate = $occurrenceDate->format('Y-m-d');
+        
+        \Log::info('Creating exception for single occurrence', [
             'visitation_id' => $visitation->visitation_id,
-            'exception_date' => $occurrenceDate,
-            'status' => 'canceled',
-            'reason' => $reason,
-            'created_by' => Auth::id(),
-            'created_at' => now()
+            'date' => $formattedDate
         ]);
         
+        // Delete any existing exception for this date to avoid conflicts
+        VisitationException::where('visitation_id', $visitation->visitation_id)
+            ->where('exception_date', $formattedDate)
+            ->delete();
+        
+        // Create a new exception record
+        $exception = new VisitationException();
+        $exception->visitation_id = $visitation->visitation_id;
+        $exception->exception_date = $formattedDate;
+        $exception->status = 'canceled';
+        $exception->reason = $reason;
+        $exception->created_by = Auth::id();
         $exception->save();
+        
+        \Log::info('Exception created successfully', [
+            'exception_id' => $exception->exception_id,
+            'status' => $exception->status
+        ]);
+        
+        return $exception;
     }
 
     /**
-     * Cancel this and all future occurrences of a recurring event
+     * Cancel this and all future occurrences
      */
     private function cancelFutureOccurrences(Visitation $visitation, $occurrenceDate, $reason)
     {
@@ -874,31 +1107,44 @@ class VisitationController extends Controller
             throw new \Exception("No recurring pattern found for this visitation");
         }
         
-        // If occurrence date is the original date of the visitation, cancel the whole series
-        if ($visitation->visitation_date == $occurrenceDate->format('Y-m-d')) {
+        // Format both dates as strings for proper comparison
+        $originalDate = $visitation->visitation_date->format('Y-m-d');
+        $occurrenceDateStr = $occurrenceDate->format('Y-m-d');
+        
+        \Log::info('Processing cancel future occurrences', [
+            'visitation_id' => $visitation->visitation_id,
+            'original_date' => $originalDate,
+            'occurrence_date' => $occurrenceDateStr,
+            'are_equal' => ($originalDate == $occurrenceDateStr)
+        ]);
+        
+        // If the occurrence date is the original start date of the visitation
+        if ($originalDate == $occurrenceDateStr) {
+            // Mark the whole series as canceled
             $visitation->status = 'canceled';
             $visitation->notes = ($visitation->notes ? $visitation->notes . "\n\n" : '') . 
-                                "Cancellation reason: " . $reason . 
-                                "\nCancelled by: " . Auth::user()->first_name . ' ' . Auth::user()->last_name . 
-                                "\nCancelled on: " . now()->format('Y-m-d H:i:s');
+                            "Canceled: " . $reason;
             $visitation->save();
+            
+            \Log::info('Canceled entire recurring series');
         } else {
-            // Otherwise, adjust the recurring pattern to end before this occurrence
+            // 1. First create an exception for THIS SPECIFIC DATE to mark it as canceled
+            $exception = $this->cancelSingleOccurrence($visitation, $occurrenceDate, $reason);
+            
+            \Log::info('Created exception for current occurrence', [
+                'exception_id' => $exception->exception_id,
+                'exception_date' => $occurrenceDateStr
+            ]);
+            
+            // 2. Then update the recurring pattern to end before this occurrence
             $dayBefore = $occurrenceDate->copy()->subDay();
             $recurringPattern->recurrence_end = $dayBefore->format('Y-m-d');
             $recurringPattern->save();
             
-            // Create a "cancelled exception" entry for this specific occurrence
-            $exception = new VisitationException([
-                'visitation_id' => $visitation->visitation_id,
-                'exception_date' => $occurrenceDate,
-                'status' => 'canceled',
-                'reason' => $reason,
-                'created_by' => Auth::id(),
-                'created_at' => now()
+            \Log::info('Updated recurring pattern end date', [
+                'pattern_id' => $recurringPattern->pattern_id,
+                'new_end_date' => $recurringPattern->recurrence_end
             ]);
-            
-            $exception->save();
         }
     }
 
