@@ -17,6 +17,11 @@
 
     <style>
         /* Card Design */
+        .modal-header-danger {
+            background-color: #dc3545;
+            color: white;
+        }
+
         .card {
             border-radius: 8px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.07);
@@ -749,19 +754,18 @@
     <div class="modal fade" id="confirmationModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
-                <div class="modal-header bg-danger text-white">
-                    <h5 class="modal-title"><i class="bi bi-exclamation-triangle-fill"></i> Cancel Appointment</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                <div class="modal-header">
+                    <h5 class="modal-title" id="confirmationModalLabel">
+                        <i class="bi bi-trash-fill"></i> Cancel Appointment
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body" id="confirmationModalBody">
-                    <!-- Content will be dynamically inserted -->
-                    <input type="hidden" id="deleteVisitationId">
-                    <input type="hidden" id="occurrenceDate">
-                    <div id="cancelOptions"></div>
+                    <!-- Modal content will be inserted here -->
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">No, Keep It</button>
-                    <button type="button" class="btn btn-danger" id="confirmDelete">Yes, Cancel Appointment</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-danger" id="confirmDelete">Confirm Cancellation</button>
                 </div>
             </div>
         </div>
@@ -1679,100 +1683,86 @@
                     return;
                 }
                 
-                // Update modal title and message
-                document.getElementById('confirmationModalLabel').innerHTML = 
-                    '<i class="bi bi-trash-fill"></i> Cancel Appointment';
+                // Get modal elements
+                const confirmationModalLabel = document.getElementById('confirmationModalLabel');
+                const confirmationModalBody = document.getElementById('confirmationModalBody');
+                const modalHeader = document.querySelector('#confirmationModal .modal-header');
                 
-                // Clear previous content
-                if (confirmationModalBody) {
-                    // Set up form based on if this is recurring or not
-                    const isRecurring = currentEvent.extendedProps.recurring;
-                    
-                    // Fill in the visitation ID field
-                    const deleteVisitationId = document.getElementById('deleteVisitationId');
-                    if (deleteVisitationId) {
-                        deleteVisitationId.value = currentEvent.extendedProps.visitation_id;
-                    }
-                    
-                    // Clear cancel options container
-                    const cancelOptionsContainer = document.getElementById('cancelOptions');
-                    if (cancelOptionsContainer) {
-                        cancelOptionsContainer.innerHTML = '';
-                    }
-                    
-                    // FIX: Different content based on recurring status
-                    let modalContent = `
-                        <p>Are you sure you want to cancel this appointment?</p>
-                        <p><strong>Beneficiary:</strong> ${currentEvent.extendedProps.beneficiary}</p>
-                        <p><strong>Care Worker:</strong> ${currentEvent.extendedProps.care_worker}</p>
-                        <p><strong>Date:</strong> ${new Date(currentEvent.start).toLocaleDateString()}</p>
-                    `;
-                    
-                    if (isRecurring) {
-                        // For recurring appointments, show options
-                        modalContent += `
-                            <div class="form-group mb-3" id="cancelOptionGroup">
-                                <label class="form-label">Cancel Options:</label>
-                                <div class="form-check">
-                                    <input type="radio" id="cancelThisOption" name="cancelOption" value="this" class="form-check-input" checked>
-                                    <label class="form-check-label" for="cancelThisOption">Cancel only this occurrence</label>
-                                </div>
-                                <div class="form-check">
-                                    <input type="radio" id="cancelFutureOption" name="cancelOption" value="future" class="form-check-input">
-                                    <label class="form-check-label" for="cancelFutureOption">Cancel this and future occurrences</label>
-                                </div>
-                            </div>
-                        `;
-                    } else {
-                        // For non-recurring, add a hidden input with "this" as default option
-                        modalContent += `
-                            <input type="hidden" name="cancelOption" value="this">
-                        `;
-                    }
-                    
-                    // Add reason field and password confirmation to both types
-                    modalContent += `
-                        <div class="form-group mb-3">
-                            <label for="cancelReason" class="form-label">Cancellation Reason:</label>
-                            <textarea class="form-control" id="cancelReason" name="reason" rows="2" required></textarea>
-                            <div class="invalid-feedback">Please provide a reason for cancellation.</div>
-                        </div>
-                        
-                        <div class="form-group mb-3">
-                            <label for="cancelPassword" class="form-label">Confirm your password:</label>
-                            <input type="password" class="form-control" id="cancelPassword" name="password" required>
-                            <div class="invalid-feedback" id="passwordError">Password is required to confirm this action.</div>
-                        </div>
-                    `;
-                    
-                    // Update modal content
-                    const contentContainer = document.createElement('div');
-                    contentContainer.innerHTML = modalContent;
-                    
-                    // Clear and append new content
-                    while (confirmationModalBody.firstChild) {
-                        if (confirmationModalBody.firstChild.id === 'deleteVisitationId' ||
-                            confirmationModalBody.firstChild.id === 'occurrenceDate' ||
-                            confirmationModalBody.firstChild.id === 'cancelOptions') {
-                            // Keep these hidden inputs
-                        } else {
-                            confirmationModalBody.removeChild(confirmationModalBody.firstChild);
-                        }
-                    }
-                    
-                    // Append new content
-                    while (contentContainer.firstChild) {
-                        confirmationModalBody.appendChild(contentContainer.firstChild);
-                    }
-                    
-                    // Set occurrence date for recurring events
-                    if (isRecurring && currentEvent.start) {
-                        const occurrenceDate = document.getElementById('occurrenceDate');
-                        if (occurrenceDate) {
-                            occurrenceDate.value = formatDateForAPI(currentEvent.start);
-                        }
-                    }
+                // Make header red
+                if (modalHeader) {
+                    modalHeader.classList.remove('bg-primary');
+                    modalHeader.classList.add('bg-danger');
                 }
+                
+                // Update modal title
+                if (confirmationModalLabel) {
+                    confirmationModalLabel.innerHTML = '<i class="bi bi-trash-fill"></i> Cancel Appointment';
+                }
+                
+                // Get appointment details
+                const isRecurring = currentEvent.extendedProps.recurring;
+                const eventDate = new Date(currentEvent.start).toLocaleDateString();
+                const careWorkerName = currentEvent.extendedProps.care_worker || "Not assigned";
+                const beneficiaryName = currentEvent.extendedProps.beneficiary || "Not specified";
+                const visitationType = currentEvent.extendedProps.visit_type || "Not specified";
+                
+                // Build the modal content
+                let modalContent = `
+                    <div class="mb-4">
+                        <p class="mb-1"><strong>Date:</strong> ${eventDate}</p>
+                        <p class="mb-1"><strong>Care Worker:</strong> ${careWorkerName}</p>
+                        <p class="mb-1"><strong>Beneficiary:</strong> ${beneficiaryName}</p>
+                        <p class="mb-1"><strong>Type:</strong> ${visitationType}</p>
+                        ${isRecurring ? '<p class="mb-1 text-danger"><strong><i class="bi bi-repeat"></i> Recurring Appointment</strong></p>' : ''}
+                    </div>
+                    
+                    <input type="hidden" id="deleteVisitationId" value="${currentEvent.extendedProps.visitation_id}">
+                `;
+                
+                // Add cancellation options for recurring appointments only
+                if (isRecurring) {
+                    modalContent += `
+                        <div class="mb-3 border rounded p-3 bg-light">
+                            <p class="mb-2"><strong>Cancellation Options:</strong></p>
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="radio" name="cancel_option" id="cancelSingle" value="single" checked>
+                                <label class="form-check-label" for="cancelSingle">
+                                    Cancel only this occurrence (${eventDate})
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="cancel_option" id="cancelFuture" value="future">
+                                <label class="form-check-label" for="cancelFuture">
+                                    Cancel this and all future occurrences
+                                </label>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    modalContent += `
+                        <div class="alert alert-info mb-3">
+                            <i class="bi bi-info-circle me-2"></i>
+                            This will cancel the appointment for ${eventDate}
+                        </div>
+                    `;
+                }
+                
+                // Add reason and password fields
+                modalContent += `
+                    <div class="mb-3">
+                        <label for="cancelReason" class="form-label">Reason for Cancellation</label>
+                        <textarea class="form-control" id="cancelReason" rows="3" placeholder="Please provide a reason for cancellation..."></textarea>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="cancelPassword" class="form-label">Confirm your password</label>
+                        <input type="password" class="form-control" id="cancelPassword" placeholder="Enter your password">
+                        <div id="passwordError" class="text-danger mt-1"></div>
+                    </div>
+                `;
+                
+                // Set the modal content
+                confirmationModalBody.innerHTML = modalContent;
                 
                 // Show the confirmation modal
                 confirmationModal.show();
@@ -1795,8 +1785,8 @@
         const confirmDeleteBtn = document.getElementById('confirmDelete');
         if (confirmDeleteBtn) {
             confirmDeleteBtn.addEventListener('click', function() {
-                const reason = document.getElementById('cancelReason').value.trim();
-                const password = document.getElementById('cancelPassword').value.trim();
+                const reason = document.getElementById('cancelReason')?.value.trim();
+                const password = document.getElementById('cancelPassword')?.value.trim();
                 let isValid = true;
                 
                 // Validate reason
@@ -1810,9 +1800,11 @@
                 // Validate password
                 if (!password) {
                     document.getElementById('cancelPassword').classList.add('is-invalid');
+                    document.getElementById('passwordError').textContent = 'Password is required';
                     isValid = false;
                 } else {
                     document.getElementById('cancelPassword').classList.remove('is-invalid');
+                    document.getElementById('passwordError').textContent = '';
                 }
                 
                 if (!isValid) return;
@@ -1822,7 +1814,7 @@
                 confirmDeleteBtn.disabled = true;
                 confirmDeleteBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Processing...';
                 
-                // Prepare data for AJAX request
+                // Get form data
                 const formData = {
                     _token: document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
                     visitation_id: document.getElementById('deleteVisitationId').value,
@@ -1830,19 +1822,14 @@
                     password: password
                 };
                 
-                // Add occurrence date for recurring events
-                const occurrenceDate = document.getElementById('occurrenceDate');
-                if (occurrenceDate && occurrenceDate.value) {
-                    formData.occurrence_date = occurrenceDate.value;
+                // Add cancel option for recurring appointments
+                const isRecurring = currentEvent.extendedProps.recurring;
+                if (isRecurring) {
+                    const cancelOption = document.querySelector('input[name="cancel_option"]:checked')?.value;
+                    if (cancelOption) {
+                        formData.cancel_option = cancelOption;
+                    }
                 }
-                
-                // Add cancel option if available
-                const cancelOption = document.querySelector('input[name="cancelOption"]:checked');
-                if (cancelOption) {
-                    formData.cancel_option = cancelOption.value;
-                }
-                
-                console.log('Cancel request data:', formData);
                 
                 $.ajax({
                     url: '{{ route("admin.careworker.appointments.cancel") }}',
@@ -1850,19 +1837,29 @@
                     data: formData,
                     success: function(response) {
                         if (response.success) {
-                            showSuccessMessage(response.message || 'Appointment cancelled successfully!');
-                            
+                            // Show success toast
+                            showToast('Success', response.message || 'Appointment cancelled successfully', 'success');
+
                             // Close the modal
                             confirmationModal.hide();
-                            
+
                             // Reset form fields
                             document.getElementById('cancelReason').value = '';
                             document.getElementById('cancelPassword').value = '';
+
+                            // Replace the aggressive refresh with a gentler approach
+                            setTimeout(function() {
+                                // Don't remove event sources, just trigger a refresh
+                                calendar.refetchEvents();
+                                console.log('Calendar refreshed after cancellation');
+                            }, 500);
+
+                            // Reset current event and disable action buttons
+                            currentEvent = null;
+                            if (editButton) editButton.disabled = true;
+                            if (deleteButton) deleteButton.disabled = true;
                             
-                            // Refresh events
-                            calendar.refetchEvents();
-                            
-                            // Clear details panel
+                            // Reset appointment details view
                             if (appointmentDetailsEl) {
                                 appointmentDetailsEl.innerHTML = `
                                     <div class="text-center text-muted py-4">
@@ -1871,15 +1868,8 @@
                                     </div>
                                 `;
                             }
-                            
-                            // Disable buttons
-                            if (editButton) editButton.disabled = true;
-                            if (deleteButton) deleteButton.disabled = true;
-                            
-                            // Reset current event
-                            currentEvent = null;
                         } else {
-                            // Show errors
+                            // Show error
                             if (response.passwordError) {
                                 document.getElementById('cancelPassword').classList.add('is-invalid');
                                 document.getElementById('passwordError').textContent = response.passwordError;
@@ -1983,6 +1973,66 @@
             // Remove from DOM after hiding
             toastElement.addEventListener('hidden.bs.toast', function() {
                 toastContainer.remove();
+            });
+        }
+
+        function showToast(title, message, type) {
+            // Create toast container if it doesn't exist
+            let toastContainer = document.getElementById('toast-container');
+            if (!toastContainer) {
+                toastContainer = document.createElement('div');
+                toastContainer.id = 'toast-container';
+                toastContainer.className = 'position-fixed bottom-0 end-0 p-3';
+                toastContainer.style.zIndex = '5000';
+                document.body.appendChild(toastContainer);
+            }
+            
+            // Create unique ID for this toast
+            const toastId = 'toast-' + Date.now();
+            
+            // Determine background color based on type
+            let bgClass = 'bg-primary';
+            let iconClass = 'bi-info-circle-fill';
+            
+            if (type === 'success') {
+                bgClass = 'bg-success';
+                iconClass = 'bi-check-circle-fill';
+            } else if (type === 'danger' || type === 'error') {
+                bgClass = 'bg-danger';
+                iconClass = 'bi-exclamation-circle-fill';
+            } else if (type === 'warning') {
+                bgClass = 'bg-warning';
+                iconClass = 'bi-exclamation-triangle-fill';
+            }
+            
+            // Create toast HTML
+            const toastHtml = `
+                <div id="${toastId}" class="toast align-items-center text-white ${bgClass} border-0" role="alert" aria-live="assertive" aria-atomic="true">
+                    <div class="d-flex">
+                        <div class="toast-body">
+                            <i class="bi ${iconClass} me-2"></i>
+                            <strong>${title}</strong> ${message ? ': ' + message : ''}
+                        </div>
+                        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                    </div>
+                </div>
+            `;
+            
+            // Add toast to container
+            toastContainer.innerHTML += toastHtml;
+            
+            // Initialize and show the toast
+            const toastElement = document.getElementById(toastId);
+            const toast = new bootstrap.Toast(toastElement, {
+                delay: 5000,
+                autohide: true
+            });
+            
+            toast.show();
+            
+            // Remove from DOM after hiding
+            toastElement.addEventListener('hidden.bs.toast', function() {
+                this.remove();
             });
         }
         

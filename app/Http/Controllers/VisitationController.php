@@ -551,7 +551,7 @@ class VisitationController extends Controller
             }
             
             // Generate occurrences
-            $visitation->generateOccurrences(3);
+            $visitation->generateOccurrences(6);
             
             DB::commit();
             
@@ -1099,6 +1099,7 @@ class VisitationController extends Controller
             ], 401);
         }
         
+        
         DB::beginTransaction();
                 
         try {
@@ -1127,14 +1128,20 @@ class VisitationController extends Controller
                         'notes' => $request->reason
                     ]);
                 
-                $message = 'The appointment and all future occurrences have been canceled.';
+                // Use a different message based on whether it's recurring or not
+                if ($visitation->recurringPattern) {
+                    $message = 'The appointment and all future occurrences have been canceled.';
+                } else {
+                    $message = 'The appointment has been canceled.';
+                }
             }
             
             DB::commit();
             
             return response()->json([
                 'success' => true,
-                'message' => $message
+                'message' => $message,
+                'should_refresh' => true // Add refresh flag
             ]);
         } catch (\Exception $e) {
             DB::rollBack();
