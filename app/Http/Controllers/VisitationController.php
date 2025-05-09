@@ -552,7 +552,8 @@ class VisitationController extends Controller
             
             // Generate occurrences
             $visitation->generateOccurrences(3);
-            
+
+            $this->sendAppointmentNotifications($visitation, 'created', null, Auth::id());
             DB::commit();
             
             return response()->json([
@@ -830,6 +831,8 @@ class VisitationController extends Controller
                 $occurrence->notes = $request->notes;
                 $occurrence->is_modified = true; // Mark as modified from the series
                 $occurrence->save();
+
+                $this->sendAppointmentNotifications($visitation, 'updated', null, Auth::id());
                 
                 DB::commit();
                 
@@ -998,8 +1001,8 @@ class VisitationController extends Controller
             }
             
             // Send notifications
-            $this->sendAppointmentNotifications($visitation, 'updated');
-            
+            $this->sendAppointmentNotifications($visitation, 'updated', null, Auth::id()); 
+
             DB::commit();
             
             return response()->json([
@@ -1160,6 +1163,16 @@ class VisitationController extends Controller
                 }
             }
             
+            // If canceling a specific occurrence
+            if (isset($occurrence)) {
+                // Get the parent visitation to include in notifications
+                $visitation = $occurrence->visitation;
+                $this->sendAppointmentNotifications($visitation, 'canceled', $request->reason, Auth::id());
+            } else if (isset($visitation)) {
+                // For full visitation cancellations
+                $this->sendAppointmentNotifications($visitation, 'canceled', $request->reason, Auth::id());
+            }
+
             DB::commit();
             
             return response()->json([
@@ -1310,13 +1323,31 @@ class VisitationController extends Controller
 
     /**
      * Send notifications to relevant stakeholders about appointment changes
+     * 
+     * @param Visitation $visitation The appointment being modified
+     * @param string $action The action performed (created, updated, canceled)
+     * @param string|null $reason Reason for cancellation if applicable
+     * @param int|null $authorId User ID of the person who performed the action
      */
-    private function sendAppointmentNotifications(Visitation $visitation, string $action, string $reason = null)
+    private function sendAppointmentNotifications(Visitation $visitation, string $action, string $reason = null, int $authorId = null)
     {
+        // Set author ID to current user if not provided
+        if ($authorId === null) {
+            $authorId = Auth::id();
+        }
+        
+        // Get all stakeholders
         $beneficiary = Beneficiary::find($visitation->beneficiary_id);
         $careWorker = User::find($visitation->care_worker_id);
         $familyMembers = FamilyMember::where('related_beneficiary_id', $visitation->beneficiary_id)->get();
         
+        // Get care manager of the care worker
+        $careManager = null;
+        if ($careWorker && $careWorker->assigned_care_manager_id) {
+            $careManager = User::find($careWorker->assigned_care_manager_id);
+        }
+        
+        // Format date and time information
         $dateFormatted = Carbon::parse($visitation->visitation_date)->format('l, F j, Y');
         $timeInfo = $visitation->is_flexible_time ? 
             'flexible time (to be determined)' : 
@@ -1325,6 +1356,7 @@ class VisitationController extends Controller
         
         $visitType = ucwords(str_replace('_', ' ', $visitation->visit_type));
         
+        // Prepare notification content based on action type
         switch ($action) {
             case 'created':
                 $title = "New Appointment Scheduled";
@@ -1345,22 +1377,36 @@ class VisitationController extends Controller
                 $title = "Appointment Canceled";
                 $message = "The appointment for {$beneficiary->first_name} {$beneficiary->last_name} " . 
                         "with care worker {$careWorker->first_name} {$careWorker->last_name} on {$dateFormatted} " .
-                        "has been canceled. Reason: {$reason}";
+                        "has been canceled." . ($reason ? " Reason: {$reason}" : "");
                 break;
                 
             default:
                 return;
         }
         
-        // Notify the care worker
-        Notification::create([
-            'user_id' => $careWorker->id,
-            'user_type' => 'cose_staff',
-            'message_title' => $title,
-            'message' => $message,
-            'date_created' => now(),
-            'is_read' => false
-        ]);
+        // Send notification to care worker (if not the author)
+        if ($careWorker && $careWorker->id != $authorId) {
+            Notification::create([
+                'user_id' => $careWorker->id,
+                'user_type' => 'cose_staff',
+                'message_title' => $title,
+                'message' => $message,
+                'date_created' => now(),
+                'is_read' => false
+            ]);
+        }
+        
+        // Send notification to care manager (if not the author)
+        if ($careManager && $careManager->id != $authorId) {
+            Notification::create([
+                'user_id' => $careManager->id,
+                'user_type' => 'cose_staff',
+                'message_title' => $title,
+                'message' => $message,
+                'date_created' => now(),
+                'is_read' => false
+            ]);
+        }
         
         // Notify beneficiary if they have portal access
         if ($beneficiary->portal_account_id) {
@@ -1387,6 +1433,14 @@ class VisitationController extends Controller
                 ]);
             }
         }
+
+        // Administrator notification code removed
+        
+        \Log::info("Appointment notifications sent", [
+            'action' => $action,
+            'visitation_id' => $visitation->visitation_id,
+            'author_id' => $authorId
+        ]);
     }
 
     
