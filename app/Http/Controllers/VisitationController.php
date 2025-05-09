@@ -60,6 +60,11 @@ class VisitationController extends Controller
      */
     public function getVisitations(Request $request)
     {
+
+        header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+        header('Cache-Control: post-check=0, pre-check=0', false);
+        header('Pragma: no-cache');
+
         // Set a reasonable timeout
         set_time_limit(30); 
         
@@ -131,17 +136,19 @@ class VisitationController extends Controller
                 
                 $occurrenceQuery->whereHas('visitation', function($q) use ($search) {
                     $q->whereHas('beneficiary', function($bq) use ($search) {
-                        $bq->where(DB::raw("CONCAT(first_name, ' ', last_name)"), 'LIKE', "%{$search}%");
+                        // Use ILIKE for case-insensitive search in PostgreSQL
+                        $bq->where(DB::raw("CONCAT(first_name, ' ', last_name)"), 'ILIKE', "%{$search}%");
                     })->orWhereHas('careWorker', function($cq) use ($search) {
-                        $cq->where(DB::raw("CONCAT(first_name, ' ', last_name)"), 'LIKE', "%{$search}%");
+                        $cq->where(DB::raw("CONCAT(first_name, ' ', last_name)"), 'ILIKE', "%{$search}%");
                     });
                 });
                 
+                // Similarly update the visitations query for search
                 $visitations->where(function($q) use ($search) {
                     $q->whereHas('beneficiary', function($bq) use ($search) {
-                        $bq->where(DB::raw("CONCAT(first_name, ' ', last_name)"), 'LIKE', "%{$search}%");
+                        $bq->where(DB::raw("CONCAT(first_name, ' ', last_name)"), 'ILIKE', "%{$search}%");
                     })->orWhereHas('careWorker', function($cq) use ($search) {
-                        $cq->where(DB::raw("CONCAT(first_name, ' ', last_name)"), 'LIKE', "%{$search}%");
+                        $cq->where(DB::raw("CONCAT(first_name, ' ', last_name)"), 'ILIKE', "%{$search}%");
                     });
                 });
             }
@@ -461,14 +468,18 @@ class VisitationController extends Controller
         }
         
         // Check recurring pattern requirements if it's recurring
-        if ($request->has('is_recurring')) {
+        if ($request->has('is_recurring') && $request->is_recurring) {
             $recurringValidator = Validator::make($request->all(), [
                 'pattern_type' => 'required|in:daily,weekly,monthly', 
-                'day_of_week' => 'required_if:pattern_type,weekly',
-                'recurrence_end' => 'nullable|date|after:visitation_date'
+                'day_of_week' => 'required_if:pattern_type,weekly|array|min:1',
+                'recurrence_end' => 'required|date|after:visitation_date'
             ], [
                 'pattern_type.required' => 'Please specify the recurring pattern type.',
-                'day_of_week.required_if' => 'Please select at least one day of the week for weekly patterns.'
+                'day_of_week.required_if' => 'Please select at least one day of the week for weekly patterns.',
+                'day_of_week.array' => 'Days of week must be selected for weekly patterns.',
+                'day_of_week.min' => 'At least one day must be selected for weekly patterns.',
+                'recurrence_end.required' => 'End date is required for recurring appointments.',
+                'recurrence_end.after' => 'End date must be after the visit date.'
             ]);
             
             if ($recurringValidator->fails()) {
@@ -477,6 +488,8 @@ class VisitationController extends Controller
                     'errors' => $recurringValidator->errors()
                 ], 422);
             }
+
+            $isOccurrenceUpdate = $request->has('occurrence_id') && $request->occurrence_id;
         }
         
         // Validate main appointment data
@@ -761,28 +774,27 @@ class VisitationController extends Controller
      */
     public function updateAppointment(Request $request)
     {
-        // Validate the request
-        $validator = Validator::make($request->all(), [
-            'visitation_id' => 'required|exists:visitations,visitation_id',
-            'care_worker_id' => 'required|exists:cose_users,id',
-            'beneficiary_id' => 'required|exists:beneficiaries,beneficiary_id',
-            'visitation_date' => 'required|date',
-            'visit_type' => 'required|in:routine_care_visit,service_request,emergency_visit',
-            'start_time' => 'required_if:is_flexible_time,0,null|nullable|date_format:H:i',
-            'end_time' => 'required_if:is_flexible_time,0,null|nullable|date_format:H:i|after:start_time',
-            'is_flexible_time' => 'boolean',
-            'notes' => 'nullable|string|max:500',
-        ], [
-            'start_time.required_if' => 'Start time is required when flexible time is not checked.',
-            'end_time.required_if' => 'End time is required when flexible time is not checked.',
-            'end_time.after' => 'End time must be after start time.'
-        ]);
-        
-        if ($validator->fails()) {
-            return response()->json([
-                'success' => false,
-                'errors' => $validator->errors()
-            ], 422);
+        if ($request->has('is_recurring') && $request->is_recurring) {
+            $recurringValidator = Validator::make($request->all(), [
+                'pattern_type' => 'required|in:daily,weekly,monthly', 
+                'day_of_week' => 'required_if:pattern_type,weekly|array|min:1',
+                'recurrence_end' => 'required|date|after:visitation_date'
+            ], [
+                'pattern_type.required' => 'Please specify the recurring pattern type.',
+                'day_of_week.required_if' => 'Please select at least one day of the week for weekly patterns.',
+                'day_of_week.array' => 'Days of week must be selected for weekly patterns.',
+                'day_of_week.min' => 'At least one day must be selected for weekly patterns.',
+                'recurrence_end.required' => 'End date is required for recurring appointments.',
+                'recurrence_end.after' => 'End date must be after the visit date.'
+            ]);
+            
+            if ($recurringValidator->fails()) {
+                return response()->json([
+                    'success' => false,
+                    'errors' => $recurringValidator->errors()
+                ], 422);
+            }
+
         }
 
         // Check if we're updating a specific occurrence or the entire series
@@ -794,7 +806,8 @@ class VisitationController extends Controller
             // Get the visitation
             $visitation = Visitation::findOrFail($request->visitation_id);
             $originalVisitationDate = $visitation->visitation_date->format('Y-m-d'); // Store original date
-            
+            $newVisitationDate = null; // Initialize the variable here
+
             // For occurrence-specific updates
             if ($isOccurrenceUpdate) {
                 $occurrence = VisitationOccurrence::findOrFail($request->occurrence_id);
@@ -841,6 +854,21 @@ class VisitationController extends Controller
             $visitation->notes = $request->notes;
             $visitation->updated_at = now();
             $visitation->save();
+            
+            // Store the new date here to ensure it's defined for all code paths
+            $newVisitationDate = $visitation->visitation_date->format('Y-m-d');
+
+            // IMPORTANT: Delete the old base occurrence if date changed, regardless of recurrence
+            if ($originalVisitationDate !== $newVisitationDate) {
+                // Delete the occurrence for the old date
+                $this->forceDeleteOccurrencesByDate($visitation->visitation_id, $originalVisitationDate);
+                
+                \Log::info('Base date changed for appointment, deleted old occurrence', [
+                    'visitation_id' => $visitation->visitation_id,
+                    'old_date' => $originalVisitationDate,
+                    'new_date' => $newVisitationDate
+                ]);
+            }
             
             // 3. Handle recurring pattern updates
             if ($request->has('is_recurring')) {
@@ -930,13 +958,16 @@ class VisitationController extends Controller
                 $newVisitationDate = $visitation->visitation_date->format('Y-m-d');
                 
                 // If the date was changed, delete the old occurrence
-                if ($originalVisitationDate != $newVisitationDate) {
-                    // Delete the occurrence for the old date
-                    VisitationOccurrence::where('visitation_id', $visitation->visitation_id)
-                        ->where('occurrence_date', $originalVisitationDate)
-                        ->delete();
+                // Inside the date change block for non-recurring appointments:
+                if ($originalVisitationDate !== $newVisitationDate) {
+                    // Delete the old occurrence with a forced approach
+                    $this->forceDeleteOccurrencesByDate($visitation->visitation_id, $originalVisitationDate);
                     
-                    \Log::info('Deleted old occurrence during visitation update', [
+                    // Force the removal through a direct SQL query as a backup
+                    DB::statement('DELETE FROM visitation_occurrences WHERE visitation_id = ? AND occurrence_date = ?', 
+                        [$visitation->visitation_id, $originalVisitationDate]);
+                        
+                    \Log::info('Date change detected - deleted old occurrence', [
                         'visitation_id' => $visitation->visitation_id,
                         'old_date' => $originalVisitationDate,
                         'new_date' => $newVisitationDate
@@ -944,7 +975,7 @@ class VisitationController extends Controller
                 }
 
                 // Now create/update the occurrence for the new date
-                VisitationOccurrence::updateOrCreate(
+                $occurrence = VisitationOccurrence::updateOrCreate(
                     ['visitation_id' => $visitation->visitation_id, 'occurrence_date' => $newVisitationDate],
                     [
                         'start_time' => $visitation->start_time,
@@ -962,7 +993,9 @@ class VisitationController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Appointment updated successfully',
-                'visitation' => $visitation
+                'visitation' => $visitation,
+                'should_refresh' => true,  // Add this flag
+                'date_changed' => ($originalVisitationDate !== $newVisitationDate)  // Add this info
             ]);
         } catch (\Exception $e) {
             DB::rollBack();
@@ -975,6 +1008,66 @@ class VisitationController extends Controller
                 'success' => false,
                 'message' => 'Failed to update appointment: ' . $e->getMessage()
             ], 500);
+        }
+    }
+
+    /**
+     * Forcefully delete occurrences by date and visitation ID with direct SQL
+     * 
+     * @param int $visitationId The visitation ID
+     * @param string $date The date to delete occurrences for
+     * @return int Number of records deleted
+     */
+    private function forceDeleteOccurrencesByDate($visitationId, $date)
+    {
+        try {
+            // Log what we're attempting to delete
+            \Log::info('Attempting to delete occurrence', [
+                'visitation_id' => $visitationId,
+                'date' => $date
+            ]);
+            
+            // Method 1: Eloquent deletion
+            $deleteCount1 = VisitationOccurrence::where('visitation_id', $visitationId)
+                ->where('occurrence_date', $date)
+                ->delete();
+            
+            // Method 2: Direct SQL deletion
+            $deleteCount2 = DB::delete('DELETE FROM visitation_occurrences WHERE visitation_id = ? AND occurrence_date = ?', 
+                [$visitationId, $date]);
+            
+            // Verify deletion worked
+            $remaining = VisitationOccurrence::where('visitation_id', $visitationId)
+                ->where('occurrence_date', $date)
+                ->count();
+            
+            \Log::info('Deletion results', [
+                'eloquent_deleted' => $deleteCount1,
+                'sql_deleted' => $deleteCount2,
+                'remaining_count' => $remaining
+            ]);
+            
+            // If there are still occurrences, try one more approach
+            if ($remaining > 0) {
+                DB::statement('DELETE FROM visitation_occurrences WHERE visitation_id = ? AND occurrence_date = ?', 
+                    [$visitationId, $date]);
+                    
+                $remaining = VisitationOccurrence::where('visitation_id', $visitationId)
+                    ->where('occurrence_date', $date)
+                    ->count();
+                    
+                \Log::info('Final deletion check', [
+                    'remaining_after_final_attempt' => $remaining
+                ]);
+            }
+            
+            return $deleteCount1 + $deleteCount2;
+        } catch (\Exception $e) {
+            \Log::error('Error in force delete:', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            return 0;
         }
     }
 

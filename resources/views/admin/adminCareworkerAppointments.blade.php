@@ -548,6 +548,12 @@
                     <div id="modalErrors" class="alert alert-danger d-none mb-3">
                         <ul id="errorList" class="mb-0"></ul>
                     </div>
+
+                    <div id="recurringWarningMessage" class="alert alert-warning mb-3" style="display: none;">
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                        <strong>Note:</strong> Editing a recurring appointment will only affect this and future occurrences. 
+                        Past occurrences will remain unchanged.
+                    </div>
                     
                     <form id="addAppointmentForm">
                         @csrf
@@ -1504,15 +1510,13 @@
                             }
                             
                             // Add fresh warning
-                            const warningEl = document.createElement('div');
-                            warningEl.className = 'alert alert-warning mb-3';
-                            warningEl.id = 'recurringWarning';
-                            warningEl.innerHTML = '<i class="bi bi-exclamation-triangle-fill me-2"></i> ' +
-                                'You are editing a recurring appointment. If this appointment has past occurrences, ' +
-                                'those will maintain their original settings, and changes will apply to future occurrences only.';
-                                
-                            // Insert at the beginning of the modal
-                            modalContent.insertBefore(warningEl, modalContent.firstChild);
+                            // Use the existing warning element instead of creating a new one
+                            const recurringWarningMessage = document.getElementById('recurringWarningMessage');
+                            if (recurringWarningMessage) {
+                                recurringWarningMessage.style.display = 'block';
+                            } else {
+                                console.warn('Warning message element not found');
+                            }
                         }
                     }
                     
@@ -1634,21 +1638,12 @@
                     processData: false,
                     success: function(response) {
                         if (response.success) {
-                            let message = response.message;
-                            
-                            // If this was a split of a recurring event, show a more detailed message
-                            if (response.split_occurred) {
-                                showSuccessMessage('Recurring appointment updated. Past appointments have been preserved and future ones now follow the new pattern.');
-                            } else {
-                                showSuccessMessage(visitationId ? 'Appointment updated successfully!' : 'Appointment created successfully!');
-                            }
-                            
-                            // Close the modal and reset form
-                            addAppointmentModal.hide();
-                            document.getElementById('addAppointmentForm').reset();
-                            
-                            // Refresh calendar events
-                            calendar.refetchEvents();
+                            $('#addAppointmentModal').modal('hide');
+                            // Add a slight delay to ensure database operations complete
+                            setTimeout(function() {
+                                calendar.refetchEvents();
+                                console.log('Calendar fully refreshed after appointment update');
+                            }, 500);
                         } else {
                             // Show validation errors
                             if (response.errors) {
