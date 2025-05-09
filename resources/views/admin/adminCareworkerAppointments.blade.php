@@ -1644,12 +1644,33 @@
                         if (response.success) {
                             $('#addAppointmentModal').modal('hide');
                             
-                            // Add a slight delay to ensure database operations complete
+                            // Show success toast
+                            showToast('Success', 
+                                visitationId ? 'Appointment updated successfully!' : 'Appointment created successfully!', 
+                                'success');
+                            
+                            // Improved refresh sequence for create/edit operations
                             setTimeout(function() {
-                                // Simple refresh - don't mess with event sources
-                                calendar.refetchEvents();
-                                console.log('Calendar refreshed after appointment update');
-                            }, 500);
+                                // First step: clear any display caching but don't remove sources
+                                calendar.getEvents().forEach(e => e.remove());
+                                
+                                // Add timestamp parameter to avoid browser/server caching
+                                const timestamp = new Date().getTime();
+                                const originalEvents = calendar.getEventSources()[0];
+                                if (originalEvents) {
+                                    originalEvents.remove();
+                                }
+                                
+                                // Add event source with cache-busting parameter
+                                calendar.addEventSource({
+                                    url: '{{ route("admin.careworker.appointments.get") }}',
+                                    extraParams: {
+                                        cache_buster: timestamp
+                                    }
+                                });
+                                
+                                console.log(`Calendar refreshed with cache busting after create/edit (${timestamp})`);
+                            }, 800); // Slightly longer delay for create/edit operations
                         } else {
                             // Show validation errors
                             if (response.errors) {
@@ -2069,6 +2090,7 @@
             };
         }
     });
+    
 </script>
 </body>
 </html>

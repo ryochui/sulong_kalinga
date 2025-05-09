@@ -551,7 +551,7 @@ class VisitationController extends Controller
             }
             
             // Generate occurrences
-            $visitation->generateOccurrences(6);
+            $visitation->generateOccurrences(3);
             
             DB::commit();
             
