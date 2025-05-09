@@ -1080,7 +1080,8 @@ class VisitationController extends Controller
             'visitation_id' => 'required|exists:visitations,visitation_id',
             'reason' => 'required|string|max:500',
             'password' => 'required|string',
-            'cancel_option' => 'sometimes|in:this,future',
+            'cancel_option' => 'sometimes|in:single,future', // Changed from 'this,future'
+            'occurrence_id' => 'sometimes|exists:visitation_occurrences,occurrence_id',
             'occurrence_date' => 'sometimes|date'
         ]);
         
@@ -1116,22 +1117,33 @@ class VisitationController extends Controller
                 // Archive the current visitation
                 $archive = $visitation->archive('Canceled: ' . $request->reason, Auth::id());
                 
-                // Cancel the visitation
-                $visitation->status = 'canceled';
-                $visitation->save();
-                
-                // Cancel all future occurrences
-                VisitationOccurrence::where('visitation_id', $visitation->visitation_id)
-                    ->where('occurrence_date', '>=', now()->format('Y-m-d'))
-                    ->update([
-                        'status' => 'canceled',
-                        'notes' => $request->reason
-                    ]);
-                
-                // Use a different message based on whether it's recurring or not
-                if ($visitation->recurringPattern) {
+                if ($visitation->recurringPattern && $request->has('cancel_option') && $request->cancel_option === 'future') {
+                    // Get the occurrence date from the request
+                    $occurrenceDate = $request->has('occurrence_date') ? 
+                        Carbon::parse($request->occurrence_date) : 
+                        Carbon::today();
+                    
+                    // Cancel this and all future occurrences
+                    $this->cancelFutureOccurrences($visitation, $occurrenceDate, $request->reason);
+                    
                     $message = 'The appointment and all future occurrences have been canceled.';
                 } else {
+                    // For non-recurring appointments or cancel_option = 'single'
+                    $visitation->status = 'canceled';
+                    $visitation->save();
+                    
+                    // Only cancel the specific occurrence
+                    $occurrenceDate = $request->has('occurrence_date') ? 
+                        $request->occurrence_date : 
+                        $visitation->visitation_date->format('Y-m-d');
+                    
+                    VisitationOccurrence::where('visitation_id', $visitation->visitation_id)
+                        ->where('occurrence_date', $occurrenceDate)
+                        ->update([
+                            'status' => 'canceled',
+                            'notes' => $request->reason
+                        ]);
+                    
                     $message = 'The appointment has been canceled.';
                 }
             }
@@ -1145,7 +1157,11 @@ class VisitationController extends Controller
             ]);
         } catch (\Exception $e) {
             DB::rollBack();
-            
+
+            \Log::error('Error canceling appointment: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString()
+            ]);
+        
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to cancel appointment: ' . $e->getMessage()
@@ -1220,32 +1236,64 @@ class VisitationController extends Controller
         
         // If the occurrence date is the original start date of the visitation
         if ($originalDate == $occurrenceDateStr) {
-            // Mark the whole series as canceled
+            // Mark the visitation as canceled but DO NOT update past occurrences
             $visitation->status = 'canceled';
             $visitation->notes = ($visitation->notes ? $visitation->notes . "\n\n" : '') . 
                             "Canceled: " . $reason;
             $visitation->save();
             
-            \Log::info('Canceled entire recurring series');
-        } else {
-            // 1. First create an exception for THIS SPECIFIC DATE to mark it as canceled
-            $exception = $this->cancelSingleOccurrence($visitation, $occurrenceDate, $reason);
-            
-            \Log::info('Created exception for current occurrence', [
-                'exception_id' => $exception->exception_id,
-                'exception_date' => $occurrenceDateStr
+            // Find and cancel the selected occurrence
+            $selectedOccurrence = VisitationOccurrence::where('visitation_id', $visitation->visitation_id)
+                ->where('occurrence_date', $occurrenceDateStr)
+                ->first();
+                
+            if ($selectedOccurrence) {
+                $selectedOccurrence->status = 'canceled';
+                $selectedOccurrence->notes = $reason;
+                $selectedOccurrence->save();
+            }
+                
+            // Delete future occurrences to clean up the calendar
+            $deletedCount = VisitationOccurrence::where('visitation_id', $visitation->visitation_id)
+                ->where('occurrence_date', '>', $occurrenceDateStr)
+                ->delete();
+                
+            \Log::info('Canceled recurring appointment and removed future occurrences', [
+                'selected_date' => $occurrenceDateStr,
+                'deleted_future_count' => $deletedCount
             ]);
+        } else {
+            // This is a mid-series cancellation
             
-            // 2. Then update the recurring pattern to end before this occurrence
-            $dayBefore = $occurrenceDate->copy()->subDay();
-            $recurringPattern->recurrence_end = $dayBefore->format('Y-m-d');
+            // 1. Cancel the selected occurrence
+            $selectedOccurrence = VisitationOccurrence::where('visitation_id', $visitation->visitation_id)
+                ->where('occurrence_date', $occurrenceDateStr)
+                ->first();
+                
+            if ($selectedOccurrence) {
+                $selectedOccurrence->status = 'canceled';
+                $selectedOccurrence->notes = $reason;
+                $selectedOccurrence->save();
+            }
+            
+            // 2. Delete occurrences after the selected date
+            $deletedCount = VisitationOccurrence::where('visitation_id', $visitation->visitation_id)
+                ->where('occurrence_date', '>', $occurrenceDateStr)
+                ->delete();
+                
+            // 3. Update the recurring pattern end date to be the day before the selected date
+            $dayBefore = Carbon::parse($occurrenceDateStr)->subDay();
+            $recurringPattern->recurrence_end = $dayBefore;
             $recurringPattern->save();
             
-            \Log::info('Updated recurring pattern end date', [
-                'pattern_id' => $recurringPattern->pattern_id,
-                'new_end_date' => $recurringPattern->recurrence_end
+            \Log::info('Canceled recurring appointment from middle of series', [
+                'selected_date' => $occurrenceDateStr,
+                'new_end_date' => $dayBefore->format('Y-m-d'),
+                'deleted_future_count' => $deletedCount
             ]);
         }
+        
+        return true;
     }
 
     /**

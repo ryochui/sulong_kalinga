@@ -1828,6 +1828,11 @@
                     const cancelOption = document.querySelector('input[name="cancel_option"]:checked')?.value;
                     if (cancelOption) {
                         formData.cancel_option = cancelOption;
+                        
+                        // IMPORTANT: Add the occurrence_id when canceling a single occurrence
+                        if (cancelOption === 'single') {
+                            formData.occurrence_id = currentEvent.extendedProps.occurrence_id;
+                        }
                     }
                 }
                 
