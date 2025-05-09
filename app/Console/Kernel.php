@@ -14,6 +14,7 @@ class Kernel extends ConsoleKernel
      */
     protected $commands = [
         Commands\GenerateVisitationOccurrences::class,
+        Commands\SendAppointmentReminders::class, // Add the new command here
     ];
 
     /**
@@ -30,6 +31,15 @@ class Kernel extends ConsoleKernel
                  ->description('Generate upcoming visitation occurrences')
                  ->emailOutputOnFailure(env('ADMIN_EMAIL'));
         
+        // Run the appointment reminders command hourly
+        // This ensures both 6am notifications for flexible appointments
+        // and 3-hour-before notifications for timed appointments
+        $schedule->command('appointments:send-reminders')
+                 ->hourly()
+                 ->description('Send reminder notifications for upcoming appointments')
+                 ->withoutOverlapping()
+                 ->appendOutputTo(storage_path('logs/appointment-reminders.log'));
+                 
         // Weekly cleanup of old occurrences (optional - keeps database size manageable)
         $schedule->command('visitations:cleanup-old-occurrences --months=12')
                  ->weekly()
