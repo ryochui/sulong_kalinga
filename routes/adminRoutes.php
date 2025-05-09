@@ -24,6 +24,7 @@ use App\Http\Controllers\CareWorkerAppointmentController;
 use App\Http\Controllers\InternalAppointmentsController;
 use App\Http\Controllers\MedicationScheduleController;
 use App\Http\Controllers\EmergencyAndRequestController;
+use App\Http\Controllers\ExpenseTrackerController;
 
 
 // All routes with administrator role check
@@ -205,6 +206,11 @@ Route::middleware(['auth', '\App\Http\Middleware\CheckRole:administrator'])->pre
     Route::prefix('emergency-request')->name('emergency.request.')->group(function () {
         Route::get('/', [EmergencyAndRequestController::class, 'index'])->name('index');
         Route::get('/view-history', [EmergencyAndRequestController::class, 'viewHistory'])->name('viewHistory');
+    });
+
+    // Expense Tracker
+    Route::prefix('expense-tracker')->name('expense.')->group(function () {
+        Route::get('/', [ExpenseTrackerController::class, 'index'])->name('index');
     });
 
     // Update email and password
