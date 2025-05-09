@@ -1643,10 +1643,12 @@
                     success: function(response) {
                         if (response.success) {
                             $('#addAppointmentModal').modal('hide');
+                            
                             // Add a slight delay to ensure database operations complete
                             setTimeout(function() {
+                                // Simple refresh - don't mess with event sources
                                 calendar.refetchEvents();
-                                console.log('Calendar fully refreshed after appointment update');
+                                console.log('Calendar refreshed after appointment update');
                             }, 500);
                         } else {
                             // Show validation errors
@@ -1834,6 +1836,9 @@
                             formData.occurrence_id = currentEvent.extendedProps.occurrence_id;
                         }
                     }
+                    
+                    const occurrenceDate = currentEvent.start ? formatDateForAPI(currentEvent.start) : '';
+                    formData.occurrence_date = occurrenceDate;
                 }
                 
                 $.ajax({
