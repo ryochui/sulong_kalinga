@@ -338,6 +338,10 @@
             border-color: #4e73df;
             color: white;
         }
+
+        .note-1{
+            padding: 0.1rem, 0rem, 0.75rem, 0rem;
+        }
         
         /* Time Input Group */
         .time-input-group {
@@ -1290,6 +1294,14 @@
                     // Reset recurring options
                     if (recurringCheck) {
                         recurringCheck.checked = false;
+
+                        recurringCheck.disabled = false; // Enable for new appointments
+    
+                        // Remove any explanatory text that might have been added
+                        const recurringHelpText = recurringCheck.closest('.form-check')?.nextElementSibling;
+                        if (recurringHelpText && recurringHelpText.classList.contains('form-text')) {
+                            recurringHelpText.remove();
+                        }
                     }
                     
                     const recurringOptionsContainer = document.getElementById('recurringOptionsContainer');
@@ -1429,11 +1441,48 @@
                     const isRecurring = currentEvent.extendedProps.recurring;
                     if (recurringCheck) {
                         recurringCheck.checked = isRecurring;
+
+                        // Disable the checkbox when editing an existing appointment
+                        recurringCheck.disabled = true;
+                        
+                        // Add an explanatory message
+                        const recurringHelpText = document.createElement('div');
+                        recurringHelpText.className = 'form-text text-muted mt-2 note-1';
+                        recurringHelpText.innerHTML = '<i class="bi bi-info-circle me-1"></i> ' +
+                            'Converting between recurring and non-recurring appointments is not allowed. ' +
+                            'Please cancel this appointment and create a new one instead.';
+                        
+                        // Insert the message after the checkbox's parent element
+                        const checkboxParent = recurringCheck.closest('.form-check');
+                        if (checkboxParent) {
+                            checkboxParent.parentNode.insertBefore(recurringHelpText, checkboxParent.nextSibling);
+                        }
+                    }
+
+                    // Remove any explanatory text that might have been added
+                    const recurringHelpText = recurringCheck.closest('.form-check')?.nextElementSibling;
+                    if (recurringHelpText && recurringHelpText.classList.contains('form-text')) {
+                        recurringHelpText.remove();
                     }
                     
+                    // Show/hide recurring options container based on existing state
                     const recurringOptionsContainer = document.getElementById('recurringOptionsContainer');
                     if (recurringOptionsContainer) {
+                        // Always show if it was already recurring, but don't allow toggling
                         recurringOptionsContainer.style.display = isRecurring ? 'block' : 'none';
+
+                        // For existing recurring appointments, show a warning about the pattern
+                        if (isRecurring) {
+                            const recurringWarningMessage = document.getElementById('recurringWarningMessage');
+                            if (recurringWarningMessage) {
+                                recurringWarningMessage.style.display = 'block';
+                                recurringWarningMessage.innerHTML = `
+                                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                                    <strong>Note:</strong> Editing this recurring appointment will affect this and future occurrences. 
+                                    Past occurrences will remain unchanged. You cannot change it to a non-recurring appointment.
+                                `;
+                            }
+                        }
                     }
                     
                     // FIX: Properly handle recurring pattern type selection

@@ -805,6 +805,18 @@ class VisitationController extends Controller
         try {
             // Get the visitation
             $visitation = Visitation::findOrFail($request->visitation_id);
+            
+            // Check if user is trying to change between recurring and non-recurring
+            $wasRecurring = $visitation->recurringPattern ? true : false;
+            $wantsRecurring = $request->has('is_recurring') ? true : false;
+            
+            if ($wasRecurring !== $wantsRecurring) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Converting between recurring and non-recurring appointments is not allowed. Please cancel this appointment and create a new one instead.'
+                ], 422);
+            }
+            
             $originalVisitationDate = $visitation->visitation_date->format('Y-m-d'); // Store original date
             $newVisitationDate = null; // Initialize the variable here
 
