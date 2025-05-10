@@ -20,6 +20,10 @@ use App\Http\Controllers\ViewAccountProfileController;
 use App\Http\Controllers\NotificationsController;
 use App\Http\Controllers\MessageController;
 use App\Http\Controllers\HealthMonitoringController;
+use App\Http\Controllers\CareWorkerAppointmentController;
+use App\Http\Controllers\InternalAppointmentsController;
+use App\Http\Controllers\MedicationScheduleController;
+
 
 // All routes with administrator role check
 
@@ -107,7 +111,8 @@ Route::middleware(['auth', '\App\Http\Middleware\CheckRole:administrator'])->pre
         Route::get('/{id}/edit', [WeeklyCareController::class, 'edit'])->name('edit');
         Route::put('/{id}', [WeeklyCareController::class, 'update'])->name('update');
         Route::get('/beneficiary/{id}', [WeeklyCareController::class, 'getBeneficiaryDetails'])->name('beneficiaryDetails');
-        Route::delete('/{id}/delete', [WeeklyCareController::class, 'destroy'])->name('delete');
+        Route::delete('/{id}', [WeeklyCareController::class, 'destroy'])->name('delete');
+
     });
 
     // Reports Management
@@ -132,7 +137,9 @@ Route::middleware(['auth', '\App\Http\Middleware\CheckRole:administrator'])->pre
         Route::post('/careworkers-pdf', [ExportController::class, 'exportCareworkersToPdf'])->name('careworkers.pdf');
         Route::post('/caremanagers-pdf', [ExportController::class, 'exportCaremanagersToPdf'])->name('caremanagers.pdf');
         Route::post('/administrators-pdf', [ExportController::class, 'exportAdministratorsToPdf'])->name('administrators.pdf');
-        
+        Route::post('/export/health-monitoring-pdf', [ExportController::class, 'exportHealthMonitoringToPdfForCareManager'])->name('export.health.monitoring.pdf');
+        Route::post('/export/careworker-performance-pdf', [ExportController::class, 'exportCareWorkerPerformanceToPdfForCareManager'])->name('export.careworker.performance.pdf');
+
         // Excel Exports
         Route::post('/beneficiaries-excel', [ExportController::class, 'exportBeneficiariesToExcel'])->name('beneficiaries.excel');
         Route::post('/family-excel', [ExportController::class, 'exportFamilyMembersToExcel'])->name('family.excel');
@@ -180,6 +187,21 @@ Route::middleware(['auth', '\App\Http\Middleware\CheckRole:administrator'])->pre
         Route::get('/', [HealthMonitoringController::class, 'index'])->name('index');
     });
 
+    // Care worker appointments
+    Route::prefix('careworker-appointments')->name('careworker.appointments.')->group(function () {
+        Route::get('/', [CareWorkerAppointmentController::class, 'index'])->name('index');
+    });
+
+    // Internal appointments
+    Route::prefix('internal-appointments')->name('internal.appointments.')->group(function () {
+        Route::get('/', [InternalAppointmentsController::class, 'index'])->name('index');
+    });
+
+    // Medication Schedule
+    Route::prefix('medication-schedule')->name('medication.schedule.')->group(function () {
+        Route::get('/', [MedicationScheduleController::class, 'index'])->name('index');
+    });
+
     // Update email and password
     Route::post('/update-email', [AdminController::class, 'updateAdminEmail'])->name('update.email');
     Route::post('/update-password', [AdminController::class, 'updateAdminPassword'])->name('update.password');
@@ -210,6 +232,17 @@ Route::middleware(['auth', '\App\Http\Middleware\CheckRole:administrator'])->pre
         Route::post('add-group-member', [MessageController::class, 'addGroupMember'])->name('add-group-member');
         Route::post('unsend-message/{id}', [MessageController::class, 'unsendMessage'])->name('unsend');
     });
+
+    // Health Monitoring
+    Route::prefix('health-monitoring')->name('health.monitoring.')->group(function () {
+        Route::get('/', [HealthMonitoringController::class, 'careManagerIndex'])->name('index');
+    });
+
+    // Care Worker Performance
+    Route::prefix('care-worker-performance')->name('careworker.performance.')->group(function () {
+        Route::get('/', [CareWorkerPerformanceController::class, 'careManagerIndex'])->name('index');
+    });
+
 });
 
 // Route::get('/admin/viewProfile', function () {

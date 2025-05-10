@@ -59,6 +59,20 @@
         <li><a class="link_name" href="{{ route('care-manager.weeklycareplans.create') }}">Weekly Care Plans</a></li>
       </ul>
     </li>
+    <li class="{{ Request::routeIs('care-manager.careworker.performance.*') || Request::routeIs('care-manager.health.monitoring.*') ? 'active' : '' }}">
+    <div class="icon-link">
+      <a>
+        <i class='bx bx-file-find'></i>
+        <span class="link_name" onclick="toggleDropdown(this)">Report Management</span>
+        <i class='bx bxs-chevron-down arrow' onclick="toggleDropdown(this)"></i>
+      </a>
+    </div>
+    <ul class="sub-menu">
+      <li><a class="link_name">Report Management</a></li>
+      <li><a href="{{ route('care-manager.careworker.performance.index') }}" class="{{ Request::routeIs('care-manager.careworker.performance.*') ? 'active' : '' }}">Care Worker Performance</a></li>
+      <li><a href="{{ route('care-manager.health.monitoring.index') }}" class="{{ Request::routeIs('care-manager.health.monitoring.*') ? 'active' : '' }}">Health Monitoring</a></li>
+    </ul>
+  </li>
   </ul>
 </div>
 

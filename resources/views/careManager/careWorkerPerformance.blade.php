@@ -114,8 +114,8 @@
     </style>
 </head>
 <body>
-    @include('components.adminNavbar')
-    @include('components.adminSidebar')
+    @include('components.careManagerNavbar')
+    @include('components.careManagerSidebar')
 
     <div class="home-section">
         <div class="d-flex justify-content-between align-items-center mb-2">
@@ -142,7 +142,7 @@
                             </div>
                         </div>
                         <div class="card-body p-2">
-                            <form id="filterForm" action="{{ route('admin.careworker.performance.index') }}" method="GET">
+                        <form id="filterForm" action="{{ route('care-manager.careworker.performance.index') }}" method="GET">
                                 <div class="row g-2">
                                     <!-- Care Worker Select -->
                                     <div class="col">
@@ -994,7 +994,7 @@
             // Create a form to submit the current filter values
             const form = document.createElement('form');
             form.method = 'POST';
-            form.action = '{{ route("admin.export.careworker.performance.pdf") }}';
+            form.action = '{{ route("care-manager.exports.careworker.performance.pdf") }}';
             form.style.display = 'none';
             
             // Add CSRF token

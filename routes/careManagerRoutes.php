@@ -93,6 +93,8 @@ Route::middleware(['auth', '\App\Http\Middleware\CheckRole:care_manager'])->pref
         Route::post('/beneficiaries-excel', [ExportController::class, 'exportBeneficiariesToExcel'])->name('beneficiaries-excel');
         Route::post('/family-excel', [ExportController::class, 'exportFamilyMembersToExcel'])->name('family-excel');
         Route::post('/careworkers-excel', [ExportController::class, 'exportCareworkersToExcel'])->name('careworkers-excel');
+        Route::post('/export/health-monitoring-pdf', [ExportController::class, 'exportHealthMonitoringToPdfForCareManager'])->name('health.monitoring.pdf');
+        Route::post('/export/careworker-performance-pdf', [ExportController::class, 'exportCareWorkerPerformanceToPdfForCareManager'])->name('careworker.performance.pdf');
     });
 
     //Municipalities (Read-Only)
@@ -133,6 +135,16 @@ Route::middleware(['auth', '\App\Http\Middleware\CheckRole:care_manager'])->pref
         Route::get('group-members/{id}', [MessageController::class, 'getGroupMembers'])->name('group-members');
         Route::post('add-group-member', [MessageController::class, 'addGroupMember'])->name('add-group-member');
         Route::post('unsend-message/{id}', [MessageController::class, 'unsendMessage'])->name('unsend');
+    });
+
+    // Health Monitoring
+    Route::prefix('health-monitoring')->name('health.monitoring.')->group(function () {
+        Route::get('/', [HealthMonitoringController::class, 'careManagerIndex'])->name('index');
+    });
+
+    // Care Worker Performance
+    Route::prefix('care-worker-performance')->name('careworker.performance.')->group(function () {
+        Route::get('/', [CareWorkerPerformanceController::class, 'careManagerIndex'])->name('index');
     });
     
 });
