@@ -73,6 +73,19 @@
       <li><a href="{{ route('care-manager.health.monitoring.index') }}" class="{{ Request::routeIs('care-manager.health.monitoring.*') ? 'active' : '' }}">Health Monitoring</a></li>
     </ul>
   </li>
+  <li class="{{ Request::routeIs('care-manager.careworker.appointments.*') || Request::routeIs('care-manager.internal.appointments.*') || Request::routeIs('care-manager.medication.schedule.*')? 'active' : '' }}">
+      <div class="icon-link">
+        <a>
+          <i class="bi bi-calendar-week"></i>
+          <span class="link_name">Schedules & Appointments</span>
+        </a>
+          <i class='bi bi-chevron-down arrow dropdown-arrow'></i>
+      </div>
+      <ul class="sub-menu">
+        <li><a class="link_name">Schedules & Appointments</a></li>
+        <li><a href="{{ route('care-manager.careworker.appointments.index') }}" class="{{ Request::routeIs('care-manager.careworker.appointments.*') ? 'active' : '' }}">Care Worker Appointment</a></li>
+      </ul>
+    </li>
   </ul>
 </div>
 

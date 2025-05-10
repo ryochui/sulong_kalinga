@@ -239,6 +239,7 @@ Route::middleware(['auth', '\App\Http\Middleware\CheckRole:administrator'])->pre
         Route::get('/', [CareWorkerPerformanceController::class, 'index'])->name('index');
     });
 
+    // Care Worker Appointments
     Route::prefix('careworker-appointments')->name('careworker.appointments.')->group(function () {
         Route::get('/', [VisitationController::class, 'index'])->name('index');
         Route::get('/get-visitations', [VisitationController::class, 'getVisitations'])->name('get');
@@ -248,26 +249,6 @@ Route::middleware(['auth', '\App\Http\Middleware\CheckRole:administrator'])->pre
         Route::post('/store', [VisitationController::class, 'storeAppointment'])->name('store');
         Route::post('/update', [VisitationController::class, 'updateAppointment'])->name('update');
         Route::post('/cancel', [VisitationController::class, 'cancelAppointment'])->name('cancel');
-    });
-
-    Route::get('/debug/appointments/{id?}', function($id = null) {
-        if ($id) {
-            $visitation = DB::table('visitations')->where('visitation_id', $id)->first();
-            $pattern = DB::table('recurring_patterns')->where('visitation_id', $id)->first();
-            
-            return response()->json([
-                'visitation' => $visitation,
-                'pattern' => $pattern
-            ]);
-        }
-        
-        return response()->json([
-            'count' => DB::table('visitations')->count(),
-            'recurring_count' => DB::table('recurring_patterns')->count(),
-            'latest_visitations' => DB::table('visitations')->orderBy('visitation_id', 'desc')->limit(10)->get(),
-            'latest_patterns' => DB::table('recurring_patterns')->orderBy('pattern_id', 'desc')->limit(10)->get(),
-            'debug_logs' => DB::table('visitation_debug')->orderBy('id', 'desc')->limit(20)->get()
-        ]);
     });
 
 });

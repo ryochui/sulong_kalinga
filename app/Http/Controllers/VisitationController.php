@@ -45,9 +45,13 @@ class VisitationController extends Controller
         }
         
         // Get care workers for admin/care manager views
-        $careWorkers = null;
+        $careWorkers = [];
         if ($user->role_id <= 2) { // Admin or Care Manager
             $careWorkers = User::where('role_id', 3)->get(); // Care Workers
+        }
+        // For care workers, show only their own appointments
+        elseif ($user->isCareWorker()) {
+            $careWorkers = User::where('id', $user->id)->get();
         }
         
         return view($viewPath, [
@@ -119,7 +123,8 @@ class VisitationController extends Controller
                 });
                 
                 $visitations->where('care_worker_id', $user->id);
-            } elseif ($user->isCareManager()) {
+            } 
+            /*elseif ($user->isCareManager()) {
                 // Care managers see visitations for care workers they manage
                 $careWorkerIds = User::where('assigned_care_manager_id', $user->id)->pluck('id');
                 
@@ -128,7 +133,8 @@ class VisitationController extends Controller
                 });
                 
                 $visitations->whereIn('care_worker_id', $careWorkerIds);
-            }
+            }*/ 
+            // Give the two care managers mutual access to all appointments
             
             // Apply search filter if provided
             if ($request->has('search') && !empty($request->search)) {
@@ -602,13 +608,6 @@ class VisitationController extends Controller
             'updated_at' => now()
         ], 'visitation_id');  // Specify the primary key column name here
         
-        // Log the creation of new visitation
-        DB::table('visitation_debug')->insert([
-            'message' => 'Created new visitation for future occurrences',
-            'data_json' => json_encode(['new_id' => $newVisitationId]),
-            'created_at' => now()
-        ]);
-        
         // STEP 2: Create the new pattern for future occurrences if needed
         if ($newData['is_recurring']) {
             $newPatternId = DB::table('recurring_patterns')->insertGetId([
@@ -622,12 +621,6 @@ class VisitationController extends Controller
                 'updated_at' => now()
             ], 'pattern_id');  // Specify the primary key column name here
             
-            // Log the creation of new pattern
-            DB::table('visitation_debug')->insert([
-                'message' => 'Created new recurring pattern',
-                'data_json' => json_encode(['pattern_id' => $newPatternId]),
-                'created_at' => now()
-            ]);
         }
 
        // STEP 2.5: Create exceptions for the original pattern for all dates that will be covered by the new pattern
@@ -636,17 +629,6 @@ class VisitationController extends Controller
             
             // Get the original pattern FIRST
             $originalPattern = $originalVisitation->recurringPattern;
-            
-            DB::table('visitation_debug')->insert([
-                'message' => 'Creating exceptions for original pattern',
-                'data_json' => json_encode([
-                    'original_visitation_id' => $originalVisitation->visitation_id,
-                    'new_visitation_id' => $newVisitationId,
-                    'new_start_date' => $newStartDate->format('Y-m-d'),
-                    'original_pattern_id' => $originalPattern->pattern_id
-                ]),
-                'created_at' => now()
-            ]);
             
             // Now use the pattern
             $originalEndDate = $newData['original_recurrence_end'] ?? $originalPattern->recurrence_end;
@@ -726,16 +708,6 @@ class VisitationController extends Controller
         // STEP 3: Update the original pattern - ACTUALLY preserve the original end date
         $originalPattern = $originalVisitation->recurringPattern;
         $originalEndDate = $newData['original_recurrence_end'] ?? $originalPattern->recurrence_end;
-
-        DB::table('visitation_debug')->insert([
-            'message' => 'Original end date determination',
-            'data_json' => json_encode([
-                'original_recurrence_end' => $newData['original_recurrence_end'] ?? 'NOT SET',
-                'pattern_current_value' => $originalPattern->recurrence_end,
-                'final_value_used' => $originalEndDate
-            ]),
-            'created_at' => now()
-        ]);
         
         // RESTORE the original end date 
         DB::table('recurring_patterns')
@@ -753,18 +725,6 @@ class VisitationController extends Controller
         $newExists = DB::table('visitations')
             ->where('visitation_id', $newVisitationId)
             ->exists();
-        
-        // Log the verification
-        DB::table('visitation_debug')->insert([
-            'message' => 'Verification of both records',
-            'data_json' => json_encode([
-                'original_id' => $originalVisitation->visitation_id,
-                'original_exists' => $originalStillExists ? 'YES' : 'NO',
-                'new_id' => $newVisitationId,
-                'new_exists' => $newExists ? 'YES' : 'NO'
-            ]),
-            'created_at' => now()
-        ]);
         
         // Return a new Visitation model instance for the new record
         return Visitation::find($newVisitationId);
