@@ -25,6 +25,7 @@ use App\Http\Controllers\InternalAppointmentsController;
 use App\Http\Controllers\MedicationScheduleController;
 use App\Http\Controllers\EmergencyAndRequestController;
 use App\Http\Controllers\ExpenseTrackerController;
+use App\Http\Controllers\VisitationController;
 
 
 // All routes with administrator role check
