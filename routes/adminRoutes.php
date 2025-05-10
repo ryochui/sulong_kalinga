@@ -23,6 +23,7 @@ use App\Http\Controllers\HealthMonitoringController;
 use App\Http\Controllers\CareWorkerAppointmentController;
 use App\Http\Controllers\InternalAppointmentsController;
 use App\Http\Controllers\MedicationScheduleController;
+use App\Http\Controllers\VisitationController;
 
 
 // All routes with administrator role check
@@ -137,8 +138,8 @@ Route::middleware(['auth', '\App\Http\Middleware\CheckRole:administrator'])->pre
         Route::post('/careworkers-pdf', [ExportController::class, 'exportCareworkersToPdf'])->name('careworkers.pdf');
         Route::post('/caremanagers-pdf', [ExportController::class, 'exportCaremanagersToPdf'])->name('caremanagers.pdf');
         Route::post('/administrators-pdf', [ExportController::class, 'exportAdministratorsToPdf'])->name('administrators.pdf');
-        Route::post('/export/health-monitoring-pdf', [ExportController::class, 'exportHealthMonitoringToPdfForCareManager'])->name('export.health.monitoring.pdf');
-        Route::post('/export/careworker-performance-pdf', [ExportController::class, 'exportCareWorkerPerformanceToPdfForCareManager'])->name('export.careworker.performance.pdf');
+        Route::post('/export/health-monitoring-pdf', [ExportController::class, 'exportHealthMonitoringToPdf'])->name('health.monitoring.pdf');
+        Route::post('/export/careworker-performance-pdf', [ExportController::class, 'exportCareWorkerPerformanceToPdf'])->name('careworker.performance.pdf');
 
         // Excel Exports
         Route::post('/beneficiaries-excel', [ExportController::class, 'exportBeneficiariesToExcel'])->name('beneficiaries.excel');
@@ -186,12 +187,7 @@ Route::middleware(['auth', '\App\Http\Middleware\CheckRole:administrator'])->pre
     Route::prefix('health-monitoring')->name('health.monitoring.')->group(function () {
         Route::get('/', [HealthMonitoringController::class, 'index'])->name('index');
     });
-
-    // Care worker appointments
-    Route::prefix('careworker-appointments')->name('careworker.appointments.')->group(function () {
-        Route::get('/', [CareWorkerAppointmentController::class, 'index'])->name('index');
-    });
-
+    
     // Internal appointments
     Route::prefix('internal-appointments')->name('internal.appointments.')->group(function () {
         Route::get('/', [InternalAppointmentsController::class, 'index'])->name('index');
@@ -235,12 +231,24 @@ Route::middleware(['auth', '\App\Http\Middleware\CheckRole:administrator'])->pre
 
     // Health Monitoring
     Route::prefix('health-monitoring')->name('health.monitoring.')->group(function () {
-        Route::get('/', [HealthMonitoringController::class, 'careManagerIndex'])->name('index');
+        Route::get('/', [HealthMonitoringController::class, 'index'])->name('index');
     });
 
     // Care Worker Performance
     Route::prefix('care-worker-performance')->name('careworker.performance.')->group(function () {
-        Route::get('/', [CareWorkerPerformanceController::class, 'careManagerIndex'])->name('index');
+        Route::get('/', [CareWorkerPerformanceController::class, 'index'])->name('index');
+    });
+
+    // Care Worker Appointments
+    Route::prefix('careworker-appointments')->name('careworker.appointments.')->group(function () {
+        Route::get('/', [VisitationController::class, 'index'])->name('index');
+        Route::get('/get-visitations', [VisitationController::class, 'getVisitations'])->name('get');
+        Route::get('/beneficiaries', [VisitationController::class, 'getBeneficiaries'])->name('beneficiaries');
+        Route::get('/beneficiary/{id}', [VisitationController::class, 'getBeneficiaryDetails'])->name('beneficiary');
+        Route::get('/beneficiary/{id}', [VisitationController::class, 'getBeneficiaryDetails'])->name('beneficiary.details');
+        Route::post('/store', [VisitationController::class, 'storeAppointment'])->name('store');
+        Route::post('/update', [VisitationController::class, 'updateAppointment'])->name('update');
+        Route::post('/cancel', [VisitationController::class, 'cancelAppointment'])->name('cancel');
     });
 
 });

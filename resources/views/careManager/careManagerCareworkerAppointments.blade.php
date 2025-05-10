@@ -465,8 +465,8 @@
 </head>
 <body>
 
-    @include('components.adminNavbar')
-    @include('components.adminSidebar')
+    @include('components.careManagerNavbar')
+    @include('components.careManagerSidebar')
 
     <div class="home-section">
         <div class="text-left">CARE WORKER SCHEDULING</div>
@@ -927,7 +927,7 @@
                 }, 15000); // 15 seconds timeout
                 
                 $.ajax({
-                    url: '{{ route("admin.careworker.appointments.get") }}',
+                    url: '{{ route("care-manager.careworker.appointments.get") }}',
                     method: 'GET',
                     data: {
                         start: start,
@@ -1092,7 +1092,7 @@
             if (!beneficiarySelect) return;
             
             $.ajax({
-                url: '{{ route("admin.careworker.appointments.beneficiaries") }}',
+                url: '{{ route("care-manager.careworker.appointments.beneficiaries") }}',
                 method: 'GET',
                 success: function(response) {
                     if (response.success && response.beneficiaries && response.beneficiaries.length > 0) {
@@ -1128,7 +1128,7 @@
                 document.getElementById('beneficiaryPhone').value = "Loading...";
                 
                 $.ajax({
-                    url: '{{ route("admin.careworker.appointments.beneficiary.details", ["id" => "__id__"]) }}'.replace('__id__', beneficiaryId),
+                    url: '{{ route("care-manager.careworker.appointments.beneficiary.details", ["id" => "__id__"]) }}'.replace('__id__', beneficiaryId),
                     method: 'GET',
                     success: function(response) {
                         if (response.success && response.beneficiary) {
@@ -1607,7 +1607,7 @@
         function loadBeneficiariesForEdit(beneficiaryId, careWorkerId) {
             // Load beneficiaries
             $.ajax({
-                url: '{{ route("admin.careworker.appointments.beneficiaries") }}',
+                url: '{{ route("care-manager.careworker.appointments.beneficiaries") }}',
                 method: 'GET',
                 success: function(response) {
                     const select = document.getElementById('beneficiarySelect');
@@ -1675,8 +1675,8 @@
                 
                 // Set appropriate URL based on whether this is an edit or new appointment
                 const url = visitationId ? 
-                    '{{ route("admin.careworker.appointments.update") }}' : 
-                    '{{ route("admin.careworker.appointments.store") }}';
+                    '{{ route("care-manager.careworker.appointments.update") }}' : 
+                    '{{ route("care-manager.careworker.appointments.store") }}';
                 
                 // Show loading state
                 const originalBtnHtml = submitAppointment.innerHTML;
@@ -1712,7 +1712,7 @@
                                 
                                 // Add event source with cache-busting parameter
                                 calendar.addEventSource({
-                                    url: '{{ route("admin.careworker.appointments.get") }}',
+                                    url: '{{ route("care-manager.careworker.appointments.get") }}',
                                     extraParams: {
                                         cache_buster: timestamp
                                     }
@@ -1912,7 +1912,7 @@
                 }
                 
                 $.ajax({
-                    url: '{{ route("admin.careworker.appointments.cancel") }}',
+                    url: '{{ route("care-manager.careworker.appointments.cancel") }}',
                     method: 'POST',
                     data: formData,
                     success: function(response) {
