@@ -206,6 +206,11 @@ Route::middleware(['auth', '\App\Http\Middleware\CheckRole:administrator'])->pre
         Route::get('/view-history', [EmergencyAndRequestController::class, 'viewHistory'])->name('viewHistory');
     });
 
+    // Expense Tracker
+    Route::prefix('expense-tracker')->name('expense.')->group(function () {
+        Route::get('/', [ExpenseTrackerController::class, 'index'])->name('index');
+    });
+
     // Update email and password
     Route::post('/update-email', [AdminController::class, 'updateAdminEmail'])->name('update.email');
     Route::post('/update-password', [AdminController::class, 'updateAdminPassword'])->name('update.password');

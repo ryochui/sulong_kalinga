@@ -105,8 +105,8 @@
       </ul>
     </li>
 
-    <li>
-      <a href="#" class="">
+    <li class="{{ Request::routeIs('admin.expense.*') ? 'active' : '' }}">
+      <a href="{{ route('admin.expense.index') }}">
         <i class="bi bi-cash-stack"></i>
         <span class="link_name">Expenses Tracker</span>
       </a>
