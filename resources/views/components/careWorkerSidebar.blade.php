@@ -1,5 +1,4 @@
 <link rel="stylesheet" href="{{ asset('css/sidebar.css') }}">
-<link rel="stylesheet" href="{{ asset('css/boxicons.min.css') }}">
 
 <div class="sidebar">
   <div class="logo-details" id="logoToggle">
@@ -59,6 +58,8 @@
       <ul class="sub-menu m-auto">
         <li><a class="link_name">Schedules & Appointments</a></li>
         <li><a href="{{ route('care-worker.careworker.appointments.index') }}" class="{{ Request::routeIs('care-worker.careworker.appointments.*') ? 'active' : '' }}">Care Worker Appointment</a></li>
+        <li><a href="#" class="">Internal Appointment</a></li>
+        <li><a href="#" class="">Medical Schedule</a></li>
       </ul>
     </li>
   </ul>
@@ -82,4 +83,22 @@
     const parent = element.closest('li');
     parent.classList.toggle('showMenu');
   }
+  
+  // Add click event to all dropdown arrows
+  document.querySelectorAll('.dropdown-arrow').forEach(arrow => {
+    arrow.addEventListener('click', function(e) {
+      e.stopPropagation();
+      const parent = this.closest('li');
+      parent.classList.toggle('showMenu');
+    });
+  });
+  
+  // Add click event to all link names in dropdown items
+  document.querySelectorAll('.icon-link .link_name').forEach(link => {
+    link.addEventListener('click', function(e) {
+      e.stopPropagation();
+      const parent = this.closest('li');
+      parent.classList.toggle('showMenu');
+    });
+  });
 </script>
