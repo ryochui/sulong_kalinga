@@ -58,7 +58,7 @@
         <li><a class="link_name">Schedules & Appointments</a></li>
         <li><a href="{{ route('care-worker.careworker.appointments.index') }}" class="{{ Request::routeIs('care-worker.careworker.appointments.*') ? 'active' : '' }}">Care Worker Appointment</a></li>
         <li><a href="#" class="">Internal Appointment</a></li>
-        <li><a href="#" class="">Medication Schedule</a></li>
+        <li><a href="#" class="">Medical Schedule</a></li>
       </ul>
     </li>
     
