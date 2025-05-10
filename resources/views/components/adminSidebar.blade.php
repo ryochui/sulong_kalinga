@@ -115,13 +115,13 @@
       </ul>
     </li>
     
-    <li>
-      <a href="#" class="">
+    <li class="{{ Request::routeIs('admin.emergency.request.*') ? 'active' : '' }}">
+      <a href="{{ route('admin.emergency.request.index') }}" class="">
         <i class="bi bi-exclamation-triangle"></i>
         <span class="link_name">Emergency & Request</span>
       </a>
       <ul class="sub-menu blank">
-        <li><a class="link_name" href="#">Emergency & Request</a></li>
+        <li><a class="link_name" href="{{ route('admin.emergency.request.index') }}">Emergency & Request</a></li>
       </ul>
     </li>
     

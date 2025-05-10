@@ -200,6 +200,12 @@ Route::middleware(['auth', '\App\Http\Middleware\CheckRole:administrator'])->pre
         Route::get('/', [MedicationScheduleController::class, 'index'])->name('index');
     });
 
+    // Emergency and Service Request
+    Route::prefix('emergency-request')->name('emergency.request.')->group(function () {
+        Route::get('/', [EmergencyAndRequestController::class, 'index'])->name('index');
+        Route::get('/view-history', [EmergencyAndRequestController::class, 'viewHistory'])->name('viewHistory');
+    });
+
     // Update email and password
     Route::post('/update-email', [AdminController::class, 'updateAdminEmail'])->name('update.email');
     Route::post('/update-password', [AdminController::class, 'updateAdminPassword'])->name('update.password');
