@@ -20,6 +20,7 @@ use App\Http\Controllers\ViewAccountProfileController;
 use App\Http\Controllers\NotificationsController;
 use App\Http\Controllers\MessageController;
 use App\Http\Controllers\HealthMonitoringController;
+use App\Http\Controllers\VisitationController;
 
 
 require_once __DIR__.'/routeHelpers.php';
@@ -145,6 +146,18 @@ Route::middleware(['auth', '\App\Http\Middleware\CheckRole:care_manager'])->pref
     // Care Worker Performance
     Route::prefix('care-worker-performance')->name('careworker.performance.')->group(function () {
         Route::get('/', [CareWorkerPerformanceController::class, 'careManagerIndex'])->name('index');
+    });
+
+    // Care Worker Appointments
+    Route::prefix('careworker-appointments')->name('careworker.appointments.')->group(function () {
+        Route::get('/', [VisitationController::class, 'index'])->name('index');
+        Route::get('/get-visitations', [VisitationController::class, 'getVisitations'])->name('get');
+        Route::get('/beneficiaries', [VisitationController::class, 'getBeneficiaries'])->name('beneficiaries');
+        Route::get('/beneficiary/{id}', [VisitationController::class, 'getBeneficiaryDetails'])->name('beneficiary');
+        Route::get('/beneficiary/{id}', [VisitationController::class, 'getBeneficiaryDetails'])->name('beneficiary.details');
+        Route::post('/store', [VisitationController::class, 'storeAppointment'])->name('store');
+        Route::post('/update', [VisitationController::class, 'updateAppointment'])->name('update');
+        Route::post('/cancel', [VisitationController::class, 'cancelAppointment'])->name('cancel');
     });
     
 });
